@@ -6,6 +6,7 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.Utils;
 
 public class IntTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4178003762513900453L;
@@ -34,7 +35,7 @@ public class IntTypeObject extends TypeObject {
 		}
 		
 		if (arg2 == null)
-			return PythonInterpret.interpret.get().execute(arg1.get(IntObject.__INT__, null));
+			return PythonInterpret.interpret.get().execute(Utils.get(arg1, IntObject.__INT__));
 		else {
 			try {
 				PythonObject strArg = PythonInterpret.interpret.get().executeCall(StringTypeObject.STRING_CALL, arg2);

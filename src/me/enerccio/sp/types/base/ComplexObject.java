@@ -3,6 +3,7 @@ package me.enerccio.sp.types.base;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.utils.Utils;
 
 public class ComplexObject extends NumberObject {
 	private static final long serialVersionUID = 9L;
@@ -20,12 +21,12 @@ public class ComplexObject extends NumberObject {
 
 	@Override
 	public boolean truthValue() {
-		return get(REAL_ACCESSOR, this).truthValue();
+		return Utils.get(this, REAL_ACCESSOR).truthValue();
 	}
 
 	@Override
 	protected PythonObject getIntValue() {
-		return get(REAL_ACCESSOR, this);
+		return Utils.get(this, REAL_ACCESSOR);
 	}
 
 }

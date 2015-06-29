@@ -99,5 +99,12 @@ public class Utils {
 
 		throw new PointerMethodIncompatibleException();
 	}
+
+	public static PythonObject get(PythonObject container, String field) {
+		return PythonInterpret.interpret.get().executeCall("getattr", container, new StringObject(field));
+	}
 	
+	public static PythonObject set(PythonObject container, String field, PythonObject value){
+		return PythonInterpret.interpret.get().executeCall("setattr", container, new StringObject(field), value);
+	}
 }
