@@ -38,10 +38,10 @@ tokens { INDENT, DEDENT }
 @lexer::members {
 
   // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
-  private java.util.LinkedList<Token> tokens = new java.util.LinkedList<>();
+  private java.util.LinkedList<Token> tokens = new java.util.LinkedList<Token>();
 
   // The stack that keeps track of the indentation level.
-  private java.util.Stack<Integer> indents = new java.util.Stack<>();
+  private java.util.Stack<Integer> indents = new java.util.Stack<Integer>();
 
   // The amount of opened braces, brackets and parenthesis.
   private int opened = 0;
