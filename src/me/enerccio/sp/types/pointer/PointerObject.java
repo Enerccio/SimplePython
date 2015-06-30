@@ -2,6 +2,7 @@ package me.enerccio.sp.types.pointer;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.utils.Utils;
 
 public class PointerObject extends PythonObject {
 	private static final long serialVersionUID = 25L;
@@ -24,13 +25,15 @@ public class PointerObject extends PythonObject {
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		// TODO Auto-generated method stub
-		return null;
+		if (!fields.containsKey(key))
+			throw Utils.throwException("AttributeError", "'" + 
+					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+		throw Utils.throwException("AttributeError", "'" + 
+				Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
 	public void create(String key, AccessRestrictions restrictions) {
-		// TODO Auto-generated method stub
 		
 	}
 }

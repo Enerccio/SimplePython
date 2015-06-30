@@ -2,6 +2,7 @@ package me.enerccio.sp.utils;
 
 import java.lang.reflect.Array;
 
+import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -101,10 +102,18 @@ public class Utils {
 	}
 
 	public static PythonObject get(PythonObject container, String field) {
-		return PythonInterpret.interpret.get().executeCall("getattr", container, new StringObject(field));
+		return run("getattr", container, new StringObject(field));
 	}
 	
 	public static PythonObject set(PythonObject container, String field, PythonObject value){
-		return PythonInterpret.interpret.get().executeCall("setattr", container, new StringObject(field), value);
+		return run("setattr", container, new StringObject(field), value);
+	}
+
+	public static PythonObject run(String function, PythonObject... args) {
+		return PythonInterpret.interpret.get().executeCall(function, args);
+	}
+
+	public static RuntimeException throwException(String type, String text) {
+		return new PythonExecutionException(run(type, new StringObject(text)));
 	}
 }
