@@ -33,4 +33,9 @@ public class MapObject extends PythonObject {
 		// TODO Auto-generated method stub
 		
 	}
+
+	// Internal use only
+	public boolean contains(String key) {
+		return backingMap.containsKey(key);
+	}
 }

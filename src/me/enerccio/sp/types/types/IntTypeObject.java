@@ -36,18 +36,17 @@ public class IntTypeObject extends TypeObject {
 		
 		if (arg2 == null)
 			return PythonInterpret.interpret.get().execute(Utils.get(arg1, IntObject.__INT__));
-		else {
+		else if (arg1 != null && arg2 != null){
 			try {
-				PythonObject strArg = PythonInterpret.interpret.get().executeCall(StringTypeObject.STRING_CALL, arg2);
-				PythonObject intArg = PythonInterpret.interpret.get().executeCall(INT_CALL, arg2);
+				PythonObject strArg = Utils.run(StringTypeObject.STRING_CALL, arg2);
+				PythonObject intArg = Utils.run(INT_CALL, arg2);
 				return new IntObject(Integer.parseInt(((StringObject)strArg).getString(), ((IntObject)intArg).intValue()));
 			} catch (ClassCastException e){
-				// TODO
+				throw Utils.throwException("TypeError", "Incorrect type for function call: " + e.getMessage());
 			}
 		}
 		
-		// TODO error
-		throw new RuntimeException();
+		throw Utils.throwException("TypeError", "Incorrect number of parameters");
 	}
 
 }

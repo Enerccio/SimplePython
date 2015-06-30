@@ -8,6 +8,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 public abstract class CallableObject extends PythonObject {
 	private static final long serialVersionUID = 21L;
+	public static final String __CALL__ = "__CALL__";
 	
 	public CallableObject(){
 		try {

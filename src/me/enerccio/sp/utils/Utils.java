@@ -4,6 +4,8 @@ import java.lang.reflect.Array;
 
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -115,5 +117,9 @@ public class Utils {
 
 	public static RuntimeException throwException(String type, String text) {
 		return new PythonExecutionException(run(type, new StringObject(text)));
+	}
+
+	public static void putPublic(PythonObject target, String key, PythonObject value) {
+		target.fields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 }

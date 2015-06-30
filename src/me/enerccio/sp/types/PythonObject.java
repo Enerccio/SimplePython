@@ -16,10 +16,8 @@ public abstract class PythonObject implements Serializable {
 		
 	}
 
-	protected PythonObject type;
-	
 	public PythonObject getType(){
-		return type;
+		return Utils.run("type", this);
 	}
 	
 	public IntObject getId(){
@@ -34,7 +32,8 @@ public abstract class PythonObject implements Serializable {
 		if (!fields.containsKey(key))
 			return null;
 		AugumentedPythonObject field = fields.get(key);
-		if (field.restrictions == AccessRestrictions.PRIVATE && this != localContext)
+		if (field.restrictions == AccessRestrictions.PRIVATE && 
+				(localContext == null || this != localContext))
 			throw Utils.throwException("AttributeError", "Access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)));
 		return field.object;
