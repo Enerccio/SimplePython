@@ -1,5 +1,12 @@
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.Utils;
+
 public class StringTypeObject extends TypeObject {
 	private static final long serialVersionUID = 189813854164565772L;
 	public static final String STRING_CALL = "str";
@@ -9,4 +16,16 @@ public class StringTypeObject extends TypeObject {
 		return STRING_CALL;
 	}
 
+	@Override
+	public PythonObject call(TupleObject args) {
+		if (args.size().intValue() != 1)
+			throw Utils.throwException("TypeError", "Incorrect number of parameters");
+		
+		PythonObject o = args.getObjects()[0];
+		if (o instanceof ClassInstanceObject){
+			return PythonInterpret.interpret.get().execute(PythonInterpret.interpret.get().executeCall("getattr", o, 
+					new StringObject("__str__")));
+		} else
+			return new StringObject(o.toString());
+	}
 }

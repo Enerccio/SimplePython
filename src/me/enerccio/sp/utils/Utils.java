@@ -1,6 +1,7 @@
 package me.enerccio.sp.utils;
 
 import java.lang.reflect.Array;
+import java.util.Stack;
 
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
@@ -11,6 +12,7 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.StringObject;
 
@@ -121,5 +123,21 @@ public class Utils {
 
 	public static void putPublic(PythonObject target, String key, PythonObject value) {
 		target.fields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+	}
+
+	public static <T> T peek(Stack<T> stack) {
+		if (stack.empty())
+			return null;
+		return stack.peek();
+	}
+
+	public static PythonObject staticMethodCall(Class<?> clazz,
+			String method, Class<?>... signature) {
+		try {
+			return new JavaFunctionObject(clazz.getMethod(method, signature));
+		} catch (NoSuchMethodException e){
+			// will not happen
+			return null;
+		}
 	}
 }

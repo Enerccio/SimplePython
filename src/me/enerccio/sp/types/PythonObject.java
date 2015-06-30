@@ -59,4 +59,9 @@ public abstract class PythonObject implements Serializable {
 		AugumentedPythonObject field = new AugumentedPythonObject(NoneObject.NONE, restrictions);
 		fields.put(key, field);
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		return o == this;
+	}
 }

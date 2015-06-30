@@ -9,7 +9,7 @@ public class StringObject extends ImmutableSequenceObject {
 		value = v;
 	}
 	
-	private String value;
+	public String value;
 	
 	@Override
 	public IntObject size() {
@@ -24,5 +24,16 @@ public class StringObject extends ImmutableSequenceObject {
 	public String getString() {
 		return value;
 	}
+	
+	@Override
+	public int hashCode(){
+		return value.hashCode();
+	}
 
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof StringObject)
+			return value.equals(((StringObject)o).value);
+		return false;
+	}
 }

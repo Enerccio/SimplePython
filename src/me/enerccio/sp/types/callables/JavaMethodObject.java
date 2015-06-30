@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
@@ -21,7 +20,7 @@ public class JavaMethodObject extends CallableObject {
 	private Object caller;
 	
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
+	public PythonObject call(TupleObject args) {
 		// kwargs are ignored
 		
 		Object[] jargs = new Object[args.size().intValue()];

@@ -28,5 +28,19 @@ public class ComplexObject extends NumberObject {
 	protected PythonObject getIntValue() {
 		return Utils.get(this, REAL_ACCESSOR);
 	}
+	
+	@Override
+	public int hashCode(){
+		return fields.get(REAL_ACCESSOR).object.hashCode() ^ fields.get(IMAG_ACCESSOR).object.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof ComplexObject){
+			return ((ComplexObject)o).fields.get(REAL_ACCESSOR).object.equals(fields.get(REAL_ACCESSOR).object)
+					&& ((ComplexObject)o).fields.get(IMAG_ACCESSOR).object.equals(fields.get(IMAG_ACCESSOR).object);
+		}
+		return false;
+	}
 
 }

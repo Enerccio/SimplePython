@@ -43,4 +43,16 @@ public class IntObject extends NumberObject {
 	protected PythonObject getIntValue() {
 		return this;
 	}
+	
+	@Override
+	public int hashCode(){
+		return value.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof IntObject)
+			return value.equals(((IntObject)o).value);
+		return false;
+	}
 }

@@ -6,6 +6,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
@@ -21,6 +22,8 @@ public class ClassObject extends CallableObject {
 	
 	public ClassObject(){
 		try {
+			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
+					new Class<?>[]{TupleObject.class, MapObject.class})));
 			Utils.putPublic(this, __NEW__, new JavaMethodObject(this, this.getClass().getMethod("newInstance", 
 					new Class<?>[]{TupleObject.class, MapObject.class})));
 		} catch (NoSuchMethodException e){
@@ -29,18 +32,35 @@ public class ClassObject extends CallableObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
-		return newObject(args, kwargs);
+	public PythonObject call(TupleObject args) {
+		return newObject(args);
 	}
 
-	private PythonObject newObject(TupleObject args, MapObject kwargs) {
+	private PythonObject newObject(TupleObject args) {
 		MapObject dict = (MapObject) fields.get(__DICT__).object;
+		TupleObject bases = (TupleObject) fields.get(__BASES__).object;
 		
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
-		synchronized (dict.fields){
-			for (String key : dict.fields.keySet()){
-				PythonObject value = dict.fields.get(key).object;
+		
+		for (int i=0; i<bases.getObjects().length; i++){
+			addToInstance(bases.getObjects()[i].fields.get(__BASES__).object, instance);
+		}
+		addToInstance(dict, instance);
+		
+		PythonObject ret = instance.runMethod(ClassInstanceObject.__INIT__, args);
+		if (ret != NoneObject.NONE)
+			throw Utils.throwException("TypeError", "__init__ returned value other than None");
+		return instance;
+	}
+
+	private void addToInstance(PythonObject s, ClassInstanceObject instance) {
+		
+		MapObject dict = (MapObject)s;
+		synchronized (dict.backingMap){
+			for (PythonObject key : dict.backingMap.keySet()){
+				String kkey = ((StringObject)key).getString();
+				PythonObject value = dict.backingMap.get(key);
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.fields.get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();
@@ -56,17 +76,12 @@ public class ClassObject extends CallableObject {
 				}
 				
 				AccessRestrictions ar = AccessRestrictions.PUBLIC;
-				if (key.startsWith("__") && !key.endsWith("__"))
+				if (kkey.startsWith("__") && !kkey.endsWith("__"))
 					ar = AccessRestrictions.PRIVATE;
 				
-				instance.fields.put(key, new AugumentedPythonObject(value, ar));
+				instance.fields.put(kkey, new AugumentedPythonObject(value, ar));
 			}
 		}
-		
-		PythonObject ret = instance.runMethod(ClassInstanceObject.__INIT__, args, kwargs);
-		if (ret != NoneObject.NONE)
-			throw Utils.throwException("TypeError", "__init__ returned value other than None");
-		return instance;
 	}
 
 }

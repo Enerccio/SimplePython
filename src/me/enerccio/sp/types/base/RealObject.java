@@ -37,4 +37,16 @@ public class RealObject extends NumberObject {
 	protected PythonObject getIntValue() {
 		return new IntObject(new Double(value).longValue());
 	}
+	
+	@Override
+	public int hashCode(){
+		return new Double(value).hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof RealObject)
+			return value == ((RealObject)o).value;
+		return false;
+	}
 }

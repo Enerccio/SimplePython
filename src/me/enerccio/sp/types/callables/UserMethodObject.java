@@ -1,7 +1,7 @@
 package me.enerccio.sp.types.callables;
 
+import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -11,10 +11,15 @@ public class UserMethodObject extends CallableObject {
 	public static final String FUNC = "__func__";
 	
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
-		return ((UserFunctionObject)fields.get(FUNC).object).call(
-				new TupleObject((PythonObject[]) Utils.pushLeft(fields.get(SELF).object, args.getObjects())), 
-					kwargs);
+	public PythonObject call(TupleObject args) {
+		try {
+			PythonInterpret.interpret.get().currentContext.push(fields.get(SELF).object);
+			return ((UserFunctionObject)fields.get(FUNC).object)
+					.call(new TupleObject((PythonObject[]) Utils.pushLeft(fields
+							.get(SELF).object, args.getObjects())));
+		} finally {
+			PythonInterpret.interpret.get().currentContext.pop();
+		}
 	}
 
 	@Override

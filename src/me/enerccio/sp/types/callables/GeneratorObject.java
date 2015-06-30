@@ -2,7 +2,6 @@ package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -10,7 +9,7 @@ public class GeneratorObject extends CallableObject {
 	private static final long serialVersionUID = 23L;
 
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
+	public PythonObject call(TupleObject args) {
 		// TODO
 		return null;
 	}

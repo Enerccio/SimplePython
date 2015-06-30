@@ -3,7 +3,6 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -22,7 +21,7 @@ public class IntTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
+	public PythonObject call(TupleObject args) {
 		PythonObject arg1 = null, arg2 = null;
 		
 		if (args.size().intValue() == 0){

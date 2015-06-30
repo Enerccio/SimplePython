@@ -17,7 +17,7 @@ public class TypeTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
+	public PythonObject call(TupleObject args) {
 		if (args.size().intValue() == 1)
 			return getTypeInformation(args.getObjects()[0]);
 		else if (args.size().intValue() == 3)

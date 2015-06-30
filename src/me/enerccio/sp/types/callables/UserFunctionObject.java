@@ -9,9 +9,18 @@ public class UserFunctionObject extends CallableObject {
 	private static final long serialVersionUID = 22L;
 	public static final String GLOBALS = "__globals__";
 	public static final String CLOSURE = "__closure__";
+	
+	public UserFunctionObject(){
+		try {
+			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
+					new Class<?>[]{TupleObject.class, MapObject.class})));
+		} catch (NoSuchMethodException e){
+			// will not happen
+		}
+	}
 
 	@Override
-	public PythonObject call(TupleObject args, MapObject kwargs) {
+	public PythonObject call(TupleObject args) {
 		// TODO
 		return null;
 	}
