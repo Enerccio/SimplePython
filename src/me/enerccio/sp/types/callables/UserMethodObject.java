@@ -30,4 +30,9 @@ public class UserMethodObject extends CallableObject {
 					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
+
+	@Override
+	protected String doToString() {
+		return "<method xxx of object " + fields.get(SELF) + ">"; // TODO
+	}
 }

@@ -64,4 +64,11 @@ public abstract class PythonObject implements Serializable {
 	public boolean equals(Object o){
 		return o == this;
 	}
+	
+	@Override
+	public final String toString(){
+		return doToString();
+	}
+
+	protected abstract String doToString();
 }

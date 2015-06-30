@@ -28,4 +28,10 @@ public class GeneratorObject extends CallableObject {
 	public void create(String key, AccessRestrictions restrictions) {
 		
 	}
+
+	@Override
+	protected String doToString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -17,4 +17,13 @@ private static final long serialVersionUID = 19L;
 		return new IntObject(backingSet.size());
 	}
 	
+	@Override
+	protected String doToString() {
+		StringBuilder bd = new StringBuilder();
+		bd.append("(");
+		for (PythonObject o : backingSet)
+			bd.append(o.toString() + " ");
+		bd.append(")");
+		return bd.toString();
+	}
 }

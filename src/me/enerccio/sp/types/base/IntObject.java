@@ -55,4 +55,9 @@ public class IntObject extends NumberObject {
 			return value.equals(((IntObject)o).value);
 		return false;
 	}
+
+	@Override
+	protected String doToString() {
+		return value.toString();
+	}
 }

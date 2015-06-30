@@ -54,6 +54,8 @@ public class Utils {
 			return NoneObject.NONE;
 		if (retType == Boolean.class || retType == boolean.class)
 			return BoolObject.fromBoolean((Boolean) ret);
+		if (ret instanceof PythonObject)
+			return (PythonObject) ret;
 		return new PointerObject(ret);
 	}
 	
@@ -101,6 +103,9 @@ public class Utils {
 			if (aType.isAssignableFrom(ptype))
 				return ((PointerObject) datum).getObject();
 		}
+		
+		if (aType.isAssignableFrom(datum.getClass()))
+			return datum;
 
 		throw new PointerMethodIncompatibleException();
 	}

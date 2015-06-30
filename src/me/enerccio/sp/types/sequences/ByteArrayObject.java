@@ -22,5 +22,10 @@ public class ByteArrayObject extends MutableSequenceObject {
 		return new IntObject(bytes.length);
 	}
 
+	@Override
+	protected String doToString() {
+		return bytes.toString();
+	}
+
 	
 }

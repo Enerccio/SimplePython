@@ -27,4 +27,9 @@ public class BoolObject extends NumberObject {
 		return value ? new IntObject(1) : new IntObject(0);
 	}
 
+	@Override
+	protected String doToString() {
+		return value ? "True" : "False";
+	}
+
 }

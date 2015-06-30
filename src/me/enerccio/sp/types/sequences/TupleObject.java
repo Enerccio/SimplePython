@@ -21,4 +21,14 @@ public class TupleObject extends ImmutableSequenceObject {
 		return array;
 	}
 
+	@Override
+	protected String doToString() {
+		StringBuilder bd = new StringBuilder();
+		bd.append("(");
+		for (int i=0; i<array.length; i++)
+			bd.append(array[i].toString() + " ");
+		bd.append(")");
+		return bd.toString();
+	}
+
 }

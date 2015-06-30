@@ -22,4 +22,8 @@ public class BytesObject extends ImmutableSequenceObject {
 		return new IntObject(bytes.length);
 	}
 
+	@Override
+	protected String doToString() {
+		return bytes.toString();
+	}
 }

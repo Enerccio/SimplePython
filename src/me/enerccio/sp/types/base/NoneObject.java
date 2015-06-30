@@ -17,11 +17,6 @@ public class NoneObject extends PythonObject {
 	public boolean truthValue() {
 		return false;
 	}
-	
-	@Override
-	public String toString(){
-		return "None";
-	}
 
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
@@ -36,5 +31,10 @@ public class NoneObject extends PythonObject {
 	@Override
 	public void create(String key, AccessRestrictions restrictions) {
 		
+	}
+
+	@Override
+	protected String doToString() {
+		return "None";
 	}
 }

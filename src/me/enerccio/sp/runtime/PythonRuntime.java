@@ -20,7 +20,7 @@ public class PythonRuntime {
 	public MapObject generateGlobals() {
 		MapObject globals = new MapObject();
 		
-		globals.put("getattr", Utils.staticMethodCall(PythonRuntime.class, "getattr"));
+		globals.put("getattr", Utils.staticMethodCall(PythonRuntime.class, "getattr", PythonObject.class, String.class));
 		globals.put(TypeTypeObject.TYPE_CALL, new TypeTypeObject());
 		globals.put(StringTypeObject.STRING_CALL, new StringTypeObject());
 		globals.put(IntTypeObject.INT_CALL, new IntTypeObject());

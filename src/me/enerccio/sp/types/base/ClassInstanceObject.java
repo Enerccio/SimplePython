@@ -25,4 +25,10 @@ public class ClassInstanceObject extends PythonObject {
 			return fields.get(__INIT__).object;
 		return Utils.run("super", fields.get(ClassObject.__CLASS__).object, this);
 	}
+
+	@Override
+	protected String doToString() {
+		return "<instance of " + fields.get(ClassObject.__CLASS__).object.toString() + " at 0x"
+				+ Long.toHexString(getId().longValue()) + ">";
+	}
 }

@@ -24,4 +24,10 @@ public abstract class TypeObject extends ClassObject {
 	public void create(String key, AccessRestrictions restrictions) {
 		
 	}
+	
+	@Override
+	protected String doToString() {
+		return "<type " + getTypeIdentificator() + ">";
+	}
+
 }

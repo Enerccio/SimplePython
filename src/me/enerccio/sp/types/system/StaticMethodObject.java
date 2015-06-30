@@ -27,4 +27,9 @@ public class StaticMethodObject extends PythonObject {
 	public void create(String key, AccessRestrictions restrictions) {
 		
 	}
+	
+	@Override
+	protected String doToString() {
+		return "<static method of " + fields.get(__FUNC__).toString() + ">";
+	}
 }

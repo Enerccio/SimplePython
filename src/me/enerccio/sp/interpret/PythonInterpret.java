@@ -22,7 +22,7 @@ public class PythonInterpret {
 		interpret.set(this);
 	}
 	
-	private Stack<MapObject> currentGlobals = new Stack<MapObject>();
+	public Stack<MapObject> currentGlobals = new Stack<MapObject>();
 	private Stack<MapObject> currentLocals = new Stack<MapObject>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 
@@ -31,8 +31,8 @@ public class PythonInterpret {
 		MapObject globals = Utils.peek(currentGlobals);
 		
 		if (locals != null && locals.contains(function))
-			return execute(execute(locals.doGet(function)), data);
-		return execute(execute(globals.doGet(function)), data);
+			return execute(locals.doGet(function), data);
+		return execute(globals.doGet(function), data);
 	}
 
 	public PythonObject execute(PythonObject callable, PythonObject... args) {

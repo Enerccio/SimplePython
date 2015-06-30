@@ -36,4 +36,9 @@ public class StringObject extends ImmutableSequenceObject {
 			return value.equals(((StringObject)o).value);
 		return false;
 	}
+	
+	@Override
+	protected String doToString() {
+		return value;
+	}
 }

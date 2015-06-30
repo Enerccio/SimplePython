@@ -27,4 +27,9 @@ public class ClassMethodObject extends PythonObject {
 	public void create(String key, AccessRestrictions restrictions) {
 		
 	}
+
+	@Override
+	protected String doToString() {
+		return "<class method of " + fields.get(__FUNC__).toString() + ">";
+	}
 }

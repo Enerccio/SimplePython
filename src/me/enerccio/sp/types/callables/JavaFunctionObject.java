@@ -8,4 +8,9 @@ public class JavaFunctionObject extends JavaMethodObject {
 	public JavaFunctionObject(Method m) {
 		super(null, m);
 	}
+	
+	@Override
+	protected String doToString() {
+		return "<java static method " + boundHandle.toString() + ">";
+	}
 }

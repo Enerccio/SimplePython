@@ -13,10 +13,11 @@ public class JavaMethodObject extends CallableObject {
 	private static final long serialVersionUID = 23L;
 
 	public JavaMethodObject(Object caller, Method m){
-		boundHandle = m;
+		this.caller = caller;
+		this.boundHandle = m;
 	}
 	
-	private Method boundHandle;
+	protected Method boundHandle;
 	private Object caller;
 	
 	@Override
@@ -33,7 +34,8 @@ public class JavaMethodObject extends CallableObject {
 		int i=0;
 		for (PythonObject o : args.getObjects()){
 			try {
-				jargs[i++] = Utils.asJavaObject(types[i], o);
+				jargs[i] = Utils.asJavaObject(types[i], o);
+				++i;
 			} catch (PointerMethodIncompatibleException e){
 				// TODO
 			}
@@ -60,5 +62,10 @@ public class JavaMethodObject extends CallableObject {
 	@Override
 	public void create(String key, AccessRestrictions restrictions) {
 		
+	}
+
+	@Override
+	protected String doToString() {
+		return "<java method " + boundHandle.toString() + " of object " + caller.toString() + ">";
 	}
 }

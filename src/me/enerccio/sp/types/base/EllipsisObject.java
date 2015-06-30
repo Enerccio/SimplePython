@@ -33,4 +33,9 @@ public class EllipsisObject extends PythonObject {
 		
 	}
 
+	@Override
+	protected String doToString() {
+		return "...";
+	}
+
 }

@@ -49,4 +49,9 @@ public class RealObject extends NumberObject {
 			return value == ((RealObject)o).value;
 		return false;
 	}
+
+	@Override
+	protected String doToString() {
+		return new Double(value).toString();
+	}
 }

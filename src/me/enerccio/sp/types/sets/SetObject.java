@@ -15,4 +15,14 @@ public class SetObject extends AbstractSetObject {
 	public IntObject size() {
 		return new IntObject(backingSet.size());
 	}
+	
+	@Override
+	protected String doToString() {
+		StringBuilder bd = new StringBuilder();
+		bd.append("(");
+		for (PythonObject o : backingSet)
+			bd.append(o.toString() + " ");
+		bd.append(")");
+		return bd.toString();
+	}
 }

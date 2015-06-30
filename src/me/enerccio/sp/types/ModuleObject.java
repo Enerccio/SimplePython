@@ -7,4 +7,10 @@ public class ModuleObject extends PythonObject {
 	public boolean truthValue() {
 		return true;
 	}
+
+	@Override
+	protected String doToString() {
+		// TODO Auto-generated method stub
+		return "";
+	}
 }

@@ -1,5 +1,6 @@
 package me.enerccio.sp.types.mappings;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,8 @@ public class MapObject extends PythonObject {
 		}
 	}
 	
-	public Map<PythonObject, PythonObject> backingMap = new HashMap<PythonObject, PythonObject>();
+	public Map<PythonObject, PythonObject> backingMap = 
+			Collections.synchronizedMap(new HashMap<PythonObject, PythonObject>());
 	
 	public IntObject size(){
 		return new IntObject(backingMap.size());
@@ -74,5 +76,18 @@ public class MapObject extends PythonObject {
 
 	public PythonObject doGet(PythonObject key) {
 		return backingMap.get(key);
+	}
+
+	@Override
+	protected String doToString() {
+		StringBuilder bd = new StringBuilder();
+		bd.append("{");
+		synchronized (backingMap){
+			for (PythonObject key : backingMap.keySet()){
+				bd.append(key.toString() + ":" + backingMap.get(key).toString() + " ");
+			}
+		}
+		bd.append("}");
+		return bd.toString();
 	}
 }

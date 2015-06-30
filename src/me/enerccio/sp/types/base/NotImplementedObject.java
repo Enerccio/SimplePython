@@ -32,4 +32,9 @@ public class NotImplementedObject extends PythonObject {
 		
 	}
 
+	@Override
+	protected String doToString() {
+		return "NotImplemented";
+	}
+
 }

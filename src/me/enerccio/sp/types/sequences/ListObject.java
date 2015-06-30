@@ -19,5 +19,15 @@ public class ListObject extends MutableSequenceObject {
 	public IntObject size() {
 		return new IntObject(objects.size());
 	}
+	
+	@Override
+	protected String doToString() {
+		StringBuilder bd = new StringBuilder();
+		bd.append("(");
+		for (PythonObject o : objects)
+			bd.append(o.toString() + " ");
+		bd.append(")");
+		return bd.toString();
+	}
 
 }

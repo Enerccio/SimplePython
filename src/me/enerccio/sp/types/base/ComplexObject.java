@@ -43,4 +43,9 @@ public class ComplexObject extends NumberObject {
 		return false;
 	}
 
+	@Override
+	protected String doToString() {
+		return fields.get(REAL_ACCESSOR).object.toString() + "." + fields.get(IMAG_ACCESSOR).object.toString() + "i";
+	}
+
 }

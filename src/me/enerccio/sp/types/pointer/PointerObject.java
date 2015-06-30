@@ -36,4 +36,9 @@ public class PointerObject extends PythonObject {
 	public void create(String key, AccessRestrictions restrictions) {
 		
 	}
+
+	@Override
+	protected String doToString() {
+		return "<pointer object to " + pointed.toString() + ">";
+	}
 }
