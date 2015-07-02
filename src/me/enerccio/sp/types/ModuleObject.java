@@ -8,6 +8,7 @@ import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.StmtContext;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
 public class ModuleObject extends PythonObject {
@@ -29,6 +30,8 @@ public class ModuleObject extends PythonObject {
 			e.printStackTrace();
 			throw Utils.throwException("ParseException", "Failed to parse source code of " + provider);
 		}
+		
+		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
 	}
 	
 	private ModuleProvider provider;

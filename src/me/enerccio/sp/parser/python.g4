@@ -112,7 +112,7 @@ tokens { INDENT, DEDENT }
   //
   //  -- https://docs.python.org/3.1/reference/lexical_analysis.html#indentation
   static int getIndentationCount(String spaces) {
-
+ 
     int count = 0;
 
     for (char ch : spaces.toCharArray()) {
@@ -153,13 +153,13 @@ file_input
 /// eval_input: testlist NEWLINE* ENDMARKER
 eval_input
  : testlist NEWLINE* EOF
- ;
+ ; 
 
 /// decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorator
  : '@' dotted_name ( '(' arglist? ')' )? NEWLINE
  ;
-
+ 
 /// decorators: decorator+
 decorators
  : decorator+
