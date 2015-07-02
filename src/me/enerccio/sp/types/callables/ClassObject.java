@@ -23,9 +23,9 @@ public class ClassObject extends CallableObject {
 	public ClassObject(){
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class, MapObject.class})));
+					new Class<?>[]{TupleObject.class})));
 			Utils.putPublic(this, __NEW__, new JavaMethodObject(this, this.getClass().getMethod("newInstance", 
-					new Class<?>[]{TupleObject.class, MapObject.class})));
+					new Class<?>[]{TupleObject.class})));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}

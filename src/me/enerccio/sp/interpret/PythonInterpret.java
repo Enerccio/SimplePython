@@ -2,10 +2,9 @@ package me.enerccio.sp.interpret;
 
 import java.util.Stack;
 
-import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -15,24 +14,25 @@ public class PythonInterpret {
 	
 	public PythonInterpret(){
 		bind();
-		currentGlobals.push(PythonRuntime.runtime.generateGlobals());
 	}
 	
 	public void bind(){
 		interpret.set(this);
 	}
 	
-	public Stack<MapObject> currentGlobals = new Stack<MapObject>();
-	private Stack<MapObject> currentLocals = new Stack<MapObject>();
+	public Stack<CurrentEnvironment> currentEnvironment = new Stack<CurrentEnvironment>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 
 	public PythonObject executeCall(String function, PythonObject... data) {
-		MapObject locals = Utils.peek(currentLocals);
-		MapObject globals = Utils.peek(currentGlobals);
-		
-		if (locals != null && locals.contains(function))
-			return execute(locals.doGet(function), data);
-		return execute(globals.doGet(function), data);
+		return execute(environment().get(new StringObject(function), false), data);
+	}
+
+	public CurrentEnvironment environment() {
+		return Utils.peek(currentEnvironment);
+	}
+	
+	public PythonObject getLocalContext() {
+		return Utils.peek(currentContext);
 	}
 
 	public PythonObject execute(PythonObject callable, PythonObject... args) {
@@ -47,8 +47,8 @@ public class PythonInterpret {
 		return execute(callable, args.getObjects());
 	}
 
-	public PythonObject getLocalContext() {
-		return Utils.peek(currentContext);
+	public PythonObject getGlobal(String key) {
+		return environment().get(new StringObject(key), true);
 	}
 	
 }

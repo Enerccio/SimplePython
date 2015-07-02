@@ -5,6 +5,7 @@ import java.util.List;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.utils.Utils;
 
 public class ListObject extends MutableSequenceObject {
 	private static final long serialVersionUID = 16L;
@@ -30,4 +31,8 @@ public class ListObject extends MutableSequenceObject {
 		return bd.toString();
 	}
 
+	@Override
+	public int hashCode(){
+		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+	}
 }

@@ -15,11 +15,17 @@ import me.enerccio.sp.utils.Utils;
 public class MapObject extends PythonObject {
 	private static final long serialVersionUID = 20L;
 	private static final String __GETITEM__ = "__getitem__";
+	private static final String __SETITEM__ = "__setitem__";
+	private static final String __LEN__ = "__len__";
 	
 	public MapObject(){
 		try {
 			Utils.putPublic(this, __GETITEM__, new JavaMethodObject(this, this.getClass().getMethod("getItem", 
-					new Class<?>[]{TupleObject.class, MapObject.class})));
+					new Class<?>[]{TupleObject.class})));
+			Utils.putPublic(this, __SETITEM__, new JavaMethodObject(this, this.getClass().getMethod("setItem", 
+					new Class<?>[]{TupleObject.class})));
+			Utils.putPublic(this, __LEN__, new JavaMethodObject(this, this.getClass().getMethod("len", 
+					new Class<?>[]{TupleObject.class})));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
@@ -54,20 +60,34 @@ public class MapObject extends PythonObject {
 
 	// Internal use only
 	public boolean contains(String key) {
-		return backingMap.containsKey(key);
+		return backingMap.containsKey(new StringObject(key));
 	}
 
 	public void put(String key, PythonObject value) {
 		backingMap.put(new StringObject(key), value);
 	}
 	
-	public PythonObject getItem(TupleObject a, MapObject kw){
+	public PythonObject getItem(TupleObject a){
 		if (a.size().intValue() != 1)
 			throw Utils.throwException("TypeError", "__getitem__ requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
 		if (!backingMap.containsKey(key))
 			throw Utils.throwException("KeyError", "Unknown key " + key);
 		return backingMap.get(key);
+	}
+	
+	public PythonObject setItem(TupleObject a){
+		if (a.size().intValue() != 2)
+			throw Utils.throwException("TypeError", "__setitem__ requires 2 parameters");
+		PythonObject key = a.getObjects()[0];
+		PythonObject value = a.getObjects()[1];
+		return backingMap.put(key, value);
+	}
+	
+	public PythonObject len(TupleObject a){
+		if (a.size().intValue() != 0)
+			throw Utils.throwException("TypeError", "__len__ requires zero parameters");
+		return size();
 	}
 
 	public PythonObject doGet(String str) {
