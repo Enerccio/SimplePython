@@ -3,8 +3,18 @@ package me.enerccio.sp.utils;
 import java.lang.reflect.Array;
 import java.util.Stack;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.parser.pythonLexer;
+import me.enerccio.sp.parser.pythonParser;
+import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -145,4 +155,34 @@ public class Utils {
 			return null;
 		}
 	}
+	
+	private static class ThrowingErrorListener extends BaseErrorListener {
+		private String source;
+
+		public ThrowingErrorListener(String loc) {
+			this.source = loc;
+		}
+
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer,
+				Object offendingSymbol, int line, int charPositionInLine,
+				String msg, RecognitionException e)
+				throws ParseCancellationException {
+			throw new ParseCancellationException("file " + source + " line "
+					+ line + ":" + charPositionInLine + " " + msg);
+		}
+	}
+
+	public static pythonParser parse(ModuleProvider provider) throws Exception {
+		ANTLRInputStream is = new ANTLRInputStream(provider.getSource());
+		pythonLexer lexer = new pythonLexer(is);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
+		CommonTokenStream stream = new CommonTokenStream(lexer);
+		pythonParser parser = new pythonParser(stream);
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
+		return parser;
+	}
+	
 }

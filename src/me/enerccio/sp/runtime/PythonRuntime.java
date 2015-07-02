@@ -1,6 +1,11 @@
 package me.enerccio.sp.runtime;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -17,6 +22,27 @@ public class PythonRuntime {
 	
 	private PythonRuntime(){
 		
+	}
+	
+	private Map<String, ModuleObject> moduleMap = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
+	
+	public synchronized void loadModule(ModuleProvider provider){
+		MapObject globals = generateGlobals();
+		ModuleObject mo = new ModuleObject(globals, provider);
+		moduleMap.put(mo.getFullPath(), mo);
+	}
+	
+	public ModuleObject getModule(String fqPath){
+		ModuleObject o = moduleMap.get(fqPath);
+		if (o == null)
+			throw Utils.throwException("ImportError", "Unknown module '" + fqPath + "'");
+		if (!o.isInited)
+			synchronized (o){
+				if (!o.isInited){
+					o.initModule();
+				}
+			}
+		return o;
 	}
 
 	public MapObject generateGlobals() {

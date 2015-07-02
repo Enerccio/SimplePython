@@ -1,15 +1,22 @@
+import java.io.File;
+import java.io.FileInputStream;
+
 import me.enerccio.sp.interpret.PythonInterpret;
-import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.ModuleObject;
 
 
 public class Test {
 	
-	public static void main(String[] args){
-		PythonInterpret i = new PythonInterpret();
-		PythonObject v = i.executeCall("getattr", new IntObject(10), new StringObject("__int__"));
-		v.toString();
+	public static void main(String[] args) throws Exception {
+		PythonRuntime r = PythonRuntime.runtime;
+		PythonInterpret i = PythonInterpret.interpret.get();
+		
+		File f = new File("bin\\x.spy");
+		r.loadModule(new ModuleProvider("x", "x.spy", new FileInputStream(f)));
+		ModuleObject o = r.getModule("x");
+		System.out.println(o);
 	}
 
 }

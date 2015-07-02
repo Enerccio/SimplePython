@@ -1,16 +1,26 @@
 package me.enerccio.sp.interpret;
 
+import java.util.List;
 import java.util.Stack;
 
+import me.enerccio.sp.parser.pythonParser.StmtContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
+import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
 public class PythonInterpret {
 
-	public static final ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>();
+	public static final ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
+
+		@Override
+		protected PythonInterpret initialValue() {
+			return new PythonInterpret();
+		}
+		
+	};
 	
 	public PythonInterpret(){
 		bind();
@@ -49,6 +59,21 @@ public class PythonInterpret {
 
 	public PythonObject getGlobal(String key) {
 		return environment().get(new StringObject(key), true);
+	}
+
+	public void pushEnvironment(MapObject... environs) {
+		CurrentEnvironment c;
+		currentEnvironment.push(c = new CurrentEnvironment());
+		c.add(environs);
+	}
+
+	public void runAst(List<StmtContext> statements) {
+		for (StmtContext stmt : statements)
+			executeStatement(stmt);
+	}
+
+	private void executeStatement(StmtContext stmt) {
+		
 	}
 	
 }
