@@ -11,13 +11,20 @@ public class UserFunctionObject extends CallableObject {
 	public static final String CLOSURE = "__closure__";
 	
 	public UserFunctionObject(){
+		
+	}
+	
+	@Override
+	public void newObject() {
+		super.newObject();
+		
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
 					new Class<?>[]{TupleObject.class, MapObject.class})));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
-	}
+	};
 
 	@Override
 	public PythonObject call(TupleObject args) {

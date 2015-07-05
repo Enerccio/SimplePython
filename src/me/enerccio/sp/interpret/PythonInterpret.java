@@ -13,7 +13,7 @@ import me.enerccio.sp.utils.Utils;
 
 public class PythonInterpret {
 
-	public static final ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
+	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
 
 		@Override
 		protected PythonInterpret initialValue() {

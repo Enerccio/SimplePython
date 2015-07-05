@@ -13,6 +13,14 @@ public abstract class NumberObject extends PythonObject {
 	public static final String __INT__ = "__int__";
 
 	public NumberObject(){
+		
+	}
+	
+
+	@Override
+	public void newObject() {
+		super.newObject();
+		
 		try {
 			fields.put(__INT__, new AugumentedPythonObject(
 					new JavaMethodObject(this, this.getClass().getMethod("intValue", 
@@ -20,7 +28,7 @@ public abstract class NumberObject extends PythonObject {
 		} catch (Exception e) {
 			
 		}
-	}
+	};
 	
 	protected abstract PythonObject getIntValue();
 	

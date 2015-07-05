@@ -25,6 +25,18 @@ public class PythonRuntime {
 	}
 	
 	private Map<String, ModuleObject> moduleMap = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
+	private Map<Long, PythonObject> instances1 = new HashMap<Long, PythonObject>();
+	private Map<PythonObject, Long> instances2 = new HashMap<PythonObject, Long>();
+	private long key = Long.MIN_VALUE;
+	
+	public synchronized void newInstanceInitialization(PythonObject o){
+		instances2.put(o, key);
+		instances1.put(key++, o);
+	}
+	
+	public synchronized long getInstanceId(PythonObject o){
+		return instances2.get(o);
+	}
 	
 	public synchronized void loadModule(ModuleProvider provider){
 		MapObject globals = generateGlobals();

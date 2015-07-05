@@ -5,6 +5,10 @@ import me.enerccio.sp.types.base.IntObject;
 public class StringObject extends ImmutableSequenceObject {
 	private static final long serialVersionUID = 11L;
 	
+	public StringObject(){
+		
+	}
+	
 	public StringObject(String v){
 		value = v;
 	}

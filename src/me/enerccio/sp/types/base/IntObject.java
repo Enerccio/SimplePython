@@ -7,6 +7,10 @@ import me.enerccio.sp.types.PythonObject;
 public class IntObject extends NumberObject {
 	private static final long serialVersionUID = 6L;
 	
+	public IntObject(){
+		
+	}
+	
 	public IntObject(int v){
 		value = BigInteger.valueOf(v);
 	}

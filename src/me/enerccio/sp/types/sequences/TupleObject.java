@@ -5,6 +5,10 @@ import me.enerccio.sp.types.base.IntObject;
 
 public class TupleObject extends ImmutableSequenceObject {
 	private static final long serialVersionUID = 12L;
+	
+	public TupleObject(){
+		
+	}
 
 	public TupleObject(PythonObject... args){
 		array = args;

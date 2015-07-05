@@ -9,6 +9,7 @@ public class BoolObject extends NumberObject {
 	public static final BoolObject FALSE = new BoolObject(false);
 	
 	private final boolean value;
+	
 	private BoolObject(boolean v){
 		this.value = v;
 	}

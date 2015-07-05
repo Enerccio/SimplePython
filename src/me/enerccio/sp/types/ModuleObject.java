@@ -1,10 +1,13 @@
 package me.enerccio.sp.types;
 
+import io.gsonfire.annotations.PostDeserialize;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
+import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.parser.pythonParser.StmtContext;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -22,8 +25,9 @@ public class ModuleObject extends PythonObject {
 		
 		try {
 			pythonParser p = Utils.parse(this.provider);
-			if (p.file_input() != null){
-				for (StmtContext ctx : p.file_input().stmt())
+			File_inputContext fcx = p.file_input();
+			if (fcx != null){
+				for (StmtContext ctx : fcx.stmt())
 					statements.add(ctx);
 			}
 		} catch (Exception e) {
@@ -35,7 +39,7 @@ public class ModuleObject extends PythonObject {
 	}
 	
 	private ModuleProvider provider;
-	private List<StmtContext> statements = new ArrayList<StmtContext>();
+	private transient List<StmtContext> statements = new ArrayList<StmtContext>();
 	public volatile boolean isInited = false;
 
 	@Override
@@ -78,5 +82,20 @@ public class ModuleObject extends PythonObject {
 		
 		i.currentContext.pop();
 		i.currentEnvironment.pop();
+	}
+	
+	@PostDeserialize
+	public void reparse(){
+		try {
+			pythonParser p = Utils.parse(this.provider);
+			File_inputContext fcx = p.file_input();
+			if (fcx != null){
+				for (StmtContext ctx : fcx.stmt())
+					statements.add(ctx);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw Utils.throwException("ParseException", "Failed to parse source code of " + provider);
+		}
 	}
 }

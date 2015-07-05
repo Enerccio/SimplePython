@@ -19,6 +19,13 @@ public class MapObject extends PythonObject {
 	private static final String __LEN__ = "__len__";
 	
 	public MapObject(){
+		
+	}
+	
+	@Override
+	public void newObject() {
+		super.newObject();
+		
 		try {
 			Utils.putPublic(this, __GETITEM__, new JavaMethodObject(this, this.getClass().getMethod("getItem", 
 					new Class<?>[]{TupleObject.class})));
@@ -29,7 +36,7 @@ public class MapObject extends PythonObject {
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
-	}
+	};
 	
 	public Map<PythonObject, PythonObject> backingMap = 
 			Collections.synchronizedMap(new HashMap<PythonObject, PythonObject>());

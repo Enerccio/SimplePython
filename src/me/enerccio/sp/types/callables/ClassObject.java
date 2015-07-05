@@ -21,6 +21,13 @@ public class ClassObject extends CallableObject {
 	public static final String __CLASS__ = "__class__";
 	
 	public ClassObject(){
+		
+	}
+	
+	@Override
+	public void newObject() {
+		super.newObject();
+		
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
 					new Class<?>[]{TupleObject.class})));
@@ -29,7 +36,7 @@ public class ClassObject extends CallableObject {
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
-	}
+	};
 
 	@Override
 	public PythonObject call(TupleObject args) {

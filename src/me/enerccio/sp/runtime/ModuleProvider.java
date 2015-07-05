@@ -1,5 +1,6 @@
 package me.enerccio.sp.runtime;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,7 +8,7 @@ import java.util.List;
 
 public class ModuleProvider {
 	
-	public ModuleProvider(String moduleName, String srcFile, InputStream source, String... packages){
+	public ModuleProvider(String moduleName, String srcFile, byte[] source, String... packages){
 		this.moduleName = moduleName;
 		this.packages.addAll(Arrays.asList(packages));
 		this.source = source;
@@ -23,7 +24,7 @@ public class ModuleProvider {
 	}
 
 	public InputStream getSource() {
-		return source;
+		return new ByteArrayInputStream(source);
 	}
 
 	public String getSrcFile() {
@@ -31,7 +32,7 @@ public class ModuleProvider {
 	}
 
 	private final String moduleName;
-	private final InputStream source;
+	private final byte[] source;
 	private final String srcFile;
 	private final List<String> packages = new ArrayList<String>();
 

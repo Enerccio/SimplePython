@@ -10,6 +10,10 @@ public class ComplexObject extends NumberObject {
 	private static final String REAL_ACCESSOR = "real";
 	private static final String IMAG_ACCESSOR = "imag";
 	
+	public ComplexObject(){
+		
+	}
+	
 	public ComplexObject(double r, double i){
 		this(new RealObject(r), new RealObject(i));
 	}

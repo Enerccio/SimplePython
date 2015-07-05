@@ -4,6 +4,10 @@ import me.enerccio.sp.types.PythonObject;
 
 public class RealObject extends NumberObject {
 	private static final long serialVersionUID = 8L;
+	
+	public RealObject(){
+		
+	}
 
 	public RealObject(double v){
 		value = v;

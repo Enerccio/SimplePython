@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.utils.Utils;
@@ -14,6 +15,10 @@ public abstract class PythonObject implements Serializable {
 	
 	public PythonObject(){
 		
+	}
+	
+	public void newObject(){
+		PythonRuntime.runtime.newInstanceInitialization(this);
 	}
 
 	public PythonObject getType(){
