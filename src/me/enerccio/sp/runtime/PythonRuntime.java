@@ -28,6 +28,12 @@ public class PythonRuntime {
 	private Map<Long, PythonObject> instances1 = new HashMap<Long, PythonObject>();
 	private Map<PythonObject, Long> instances2 = new HashMap<PythonObject, Long>();
 	private long key = Long.MIN_VALUE;
+	private volatile boolean saving = false;
+	
+	public void waitIfSaving() throws InterruptedException {
+		while (saving)
+			Thread.sleep(10);
+	}
 	
 	public synchronized void newInstanceInitialization(PythonObject o){
 		instances2.put(o, key);

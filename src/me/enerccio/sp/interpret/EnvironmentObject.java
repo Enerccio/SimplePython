@@ -9,8 +9,8 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 
-public class CurrentEnvironment {
-
+public class EnvironmentObject extends PythonObject {
+	private static final long serialVersionUID = -4678903433798210010L;
 	private List<MapObject> environments = new ArrayList<MapObject>();
 	
 	public void add(MapObject... closures){
@@ -49,6 +49,16 @@ public class CurrentEnvironment {
 		}
 		
 		return environments.get(0).backingMap.put(key, value);
+	}
+
+	@Override
+	public boolean truthValue() {
+		return true;
+	}
+
+	@Override
+	protected String doToString() {
+		return "<environment 0x" + Integer.toHexString(hashCode()) + ">"; 
 	}
 	
 }

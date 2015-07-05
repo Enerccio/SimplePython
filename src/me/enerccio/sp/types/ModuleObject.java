@@ -1,14 +1,12 @@
 package me.enerccio.sp.types;
 
-import io.gsonfire.annotations.PostDeserialize;
-
-import java.util.ArrayList;
 import java.util.List;
 
+import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
-import me.enerccio.sp.parser.pythonParser.StmtContext;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -27,8 +25,7 @@ public class ModuleObject extends PythonObject {
 			pythonParser p = Utils.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
-				for (StmtContext ctx : fcx.stmt())
-					statements.add(ctx);
+				frame = new PythonCompiler().doCompile(fcx);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -39,7 +36,7 @@ public class ModuleObject extends PythonObject {
 	}
 	
 	private ModuleProvider provider;
-	private transient List<StmtContext> statements = new ArrayList<StmtContext>();
+	private List<PythonBytecode> frame;
 	public volatile boolean isInited = false;
 
 	@Override
@@ -74,28 +71,6 @@ public class ModuleObject extends PythonObject {
 	}
 
 	private void doInitModule() {
-		PythonInterpret i = PythonInterpret.interpret.get();
-		i.pushEnvironment((MapObject)get(__DICT__, this));
-		i.currentContext.push(this);
-		
-		i.runAst(statements);
-		
-		i.currentContext.pop();
-		i.currentEnvironment.pop();
-	}
-	
-	@PostDeserialize
-	public void reparse(){
-		try {
-			pythonParser p = Utils.parse(this.provider);
-			File_inputContext fcx = p.file_input();
-			if (fcx != null){
-				for (StmtContext ctx : fcx.stmt())
-					statements.add(ctx);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw Utils.throwException("ParseException", "Failed to parse source code of " + provider);
-		}
+		PythonInterpret.interpret.get().executeBytecode(frame);
 	}
 }

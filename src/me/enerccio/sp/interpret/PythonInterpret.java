@@ -1,9 +1,12 @@
 package me.enerccio.sp.interpret;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import me.enerccio.sp.parser.pythonParser.StmtContext;
+import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.compiler.PythonBytecode.PushDict;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -30,14 +33,15 @@ public class PythonInterpret {
 		interpret.set(this);
 	}
 	
-	public Stack<CurrentEnvironment> currentEnvironment = new Stack<CurrentEnvironment>();
+	public Stack<EnvironmentObject> currentEnvironment = new Stack<EnvironmentObject>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
+	public Stack<FrameObject> currentFrame = new Stack<FrameObject>();
 
 	public PythonObject executeCall(String function, PythonObject... data) {
 		return execute(environment().get(new StringObject(function), false), data);
 	}
 
-	public CurrentEnvironment environment() {
+	public EnvironmentObject environment() {
 		return Utils.peek(currentEnvironment);
 	}
 	
@@ -62,18 +66,56 @@ public class PythonInterpret {
 	}
 
 	public void pushEnvironment(MapObject... environs) {
-		CurrentEnvironment c;
-		currentEnvironment.push(c = new CurrentEnvironment());
+		EnvironmentObject c;
+		currentEnvironment.push(c = new EnvironmentObject());
 		c.add(environs);
 	}
 
-	public void runAst(List<StmtContext> statements) {
-		for (StmtContext stmt : statements)
-			executeStatement(stmt);
+	public void executeBytecode(List<PythonBytecode> frame) {
+		FrameObject o;
+		currentFrame.add(o = new FrameObject());
+		o.bytecode = new ArrayList<PythonBytecode>(frame);
 	}
 
-	private void executeStatement(StmtContext stmt) {
+	public ExecutionResult executeOnce(){
+		try {
+			PythonRuntime.runtime.waitIfSaving();
+		} catch (InterruptedException e) {
+			return ExecutionResult.INTERRUPTED;
+		}
+		
+		if (Thread.interrupted()){
+			return ExecutionResult.INTERRUPTED;
+		}
+		FrameObject o = Utils.peek(currentFrame);
+		if (o == null)
+			return ExecutionResult.FINISHED;
+		if (o.pc >= o.bytecode.size()){
+			currentFrame.pop();
+			return executeOnce();
+		}
+		executeSingleInstruction(o, o.bytecode.get(o.pc++));
+		return ExecutionResult.OK;
+	}
+
+	private void executeSingleInstruction(FrameObject o,
+			PythonBytecode pythonBytecode) {
+		
+		switch (pythonBytecode.getOpcode()){
+		case NOP:
+			break;
+		case POP_ENVIRONMENT:
+			currentEnvironment.pop();
+			break;
+		case PUSH_DICT:{
+				EnvironmentObject env = Utils.peek(currentEnvironment);
+				env.add(((PushDict)pythonBytecode).dict);
+			} break;
+		case PUSH_ENVIRONMENT:
+			currentEnvironment.push(new EnvironmentObject());
+			break;
+		
+		}
 		
 	}
-	
 }
