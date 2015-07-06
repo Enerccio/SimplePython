@@ -27,6 +27,9 @@
  * Project      : python3-parser; an ANTLR4 grammar for Python 3
  *                https://github.com/bkiers/python3-parser
  * Developed by : Bart Kiers, bart@big-o.nl
+ *
+ * Modified by: Peter Vanusanik
+ * Modification: Python 2 grammar
  */
 grammar python;
 
@@ -307,7 +310,7 @@ old_test
 ;
 
 old_lambdef
-: 'lambda' fpdef* vararg? ':' old_test
+: 'lambda' fpdef* vararg? ':' suite
 ;
 
 test
@@ -382,7 +385,7 @@ testlist_comp
 ;
 
 lambdef
-: 'lambda' fpdef* vararg? ':' test
+: 'lambda' fpdef* vararg? ':' suite
 ;
 
 trailer
