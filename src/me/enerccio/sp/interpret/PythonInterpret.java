@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.compiler.PythonBytecode.PushDict;
+import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
@@ -36,9 +36,10 @@ public class PythonInterpret {
 	public Stack<EnvironmentObject> currentEnvironment = new Stack<EnvironmentObject>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 	public Stack<FrameObject> currentFrame = new Stack<FrameObject>();
+	public Stack<PythonObject> stack = new Stack<PythonObject>();
 
 	public PythonObject executeCall(String function, PythonObject... data) {
-		return execute(environment().get(new StringObject(function), false), data);
+		return execute(environment().get(new StringObject(function), false, false), data);
 	}
 
 	public EnvironmentObject environment() {
@@ -53,7 +54,7 @@ public class PythonInterpret {
 		if (callable instanceof CallableObject){
 			return ((CallableObject)callable).call(new TupleObject(args));
 		} else {
-			return execute(callable.get(CallableObject.__CALL__, null), args);
+			return execute(callable.get(CallableObject.__CALL__, getLocalContext()), args);
 		}
 	}
 
@@ -62,7 +63,7 @@ public class PythonInterpret {
 	}
 
 	public PythonObject getGlobal(String key) {
-		return environment().get(new StringObject(key), true);
+		return environment().get(new StringObject(key), true, false);
 	}
 
 	public void pushEnvironment(MapObject... environs) {
@@ -113,6 +114,46 @@ public class PythonInterpret {
 			} break;
 		case PUSH_ENVIRONMENT:
 			currentEnvironment.push(new EnvironmentObject());
+			break;
+		case CALL:
+			break;
+		case GOTO:
+			o.pc = ((Goto)pythonBytecode).idx;
+			break;
+		case JUMPIFFALSE:
+			if (!stack.pop().truthValue())
+				o.pc = ((JumpIfFalse)pythonBytecode).idx;
+			break;
+		case JUMPIFTRUE:
+			if (stack.pop().truthValue())
+				o.pc = ((JumpIfFalse)pythonBytecode).idx;
+			break;
+		case LOAD:
+			stack.push(environment().get(new StringObject(((Load)pythonBytecode).variable), false, false));
+			break;
+		case LOADGLOBAL:
+			stack.push(environment().get(new StringObject(((LoadGlobal)pythonBytecode).variable), true, false));
+			break;
+		case LOADNONLOCAL:
+			stack.push(environment().get(new StringObject(((LoadNonLocal)pythonBytecode).variable), false, true));
+			break;
+		case POP:
+			stack.pop();
+			break;
+		case PUSH:
+			stack.push(((Push)pythonBytecode).value);
+			break;
+		case RETURN:
+			break;
+		case SAVE:
+			
+			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
+			break;
+		case SAVEGLOBAL:
+			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), true, false);
+			break;
+		case SAVENONLOCAL:
+			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, true);
 			break;
 		
 		}

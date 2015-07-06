@@ -21,13 +21,17 @@ public class EnvironmentObject extends PythonObject {
 		environments.addAll(closures);
 	}
 	
-	public PythonObject get(StringObject key, boolean isGlobal){
+	public PythonObject get(StringObject key, boolean isGlobal, boolean skipFirst){
 		if (isGlobal){
 			return environments.get(environments.size()-1).doGet(key);
 		}
 		
 		PythonObject o;
 		for (MapObject e : environments){
+			if (skipFirst){
+				skipFirst = false;
+				continue;
+			}
 			o = e.doGet(key);
 			if (o != null)
 				return o;
@@ -35,13 +39,17 @@ public class EnvironmentObject extends PythonObject {
 		return null;
 	}
 	
-	public PythonObject set(StringObject key, PythonObject value, boolean isGlobal){
+	public PythonObject set(StringObject key, PythonObject value, boolean isGlobal, boolean skipFirst){
 		if (isGlobal){
 			return environments.get(environments.size()-1).backingMap.put(key, value);
 		}
 		
 		PythonObject o;
 		for (MapObject e : environments){
+			if (skipFirst){
+				skipFirst = false;
+				continue;
+			}
 			o = e.doGet(key);
 			if (o != null){
 				return e.backingMap.put(key, value);
