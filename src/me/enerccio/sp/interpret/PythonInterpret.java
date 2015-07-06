@@ -14,8 +14,8 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class PythonInterpret {
-
+public class PythonInterpret extends PythonObject {
+	private static final long serialVersionUID = -8039667108607710165L;
 	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
 
 		@Override
@@ -146,7 +146,6 @@ public class PythonInterpret {
 		case RETURN:
 			break;
 		case SAVE:
-			
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
 			break;
 		case SAVEGLOBAL:
@@ -155,8 +154,34 @@ public class PythonInterpret {
 		case SAVENONLOCAL:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, true);
 			break;
-		
+		case CUSTOM:
+			execute(pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
+			break;
+		case POP_EXCEPTION_HANDLER:
+			break;
+		case POP_FINALLY_HANDLER:
+			break;
+		case PUSH_EXCEPTION_HANDLER:
+			break;
+		case PUSH_FINALLY_HANDLER:
+			break;
+		case DUP:
+			break;
+		case END_EXCEPTION:
+			break;
+		case YIELD:
+			break;
 		}
 		
+	}
+
+	@Override
+	public boolean truthValue() {
+		return true;
+	}
+
+	@Override
+	protected String doToString() {
+		return "<bound python interpret for thread 0x" + Long.toHexString(Thread.currentThread().getId()) + ">";
 	}
 }

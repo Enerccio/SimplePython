@@ -1,5 +1,7 @@
 package me.enerccio.sp.compiler;
 
+import java.util.List;
+
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -102,7 +104,6 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.LOADGLOBAL;
 		}
 	}
-	
 
 	public static class LoadNonLocal extends PythonBytecode {
 		public String variable;
@@ -129,6 +130,54 @@ public class PythonBytecode extends PythonObject {
 		public String variable;
 		{
 			bytecode = Bytecode.SAVENONLOCAL;
+		}
+	}
+	
+	public static class PushExceptionHandler extends PythonBytecode {
+		public PythonObject exceptionType;
+		public int jumpAfter;
+		{
+			bytecode = Bytecode.PUSH_EXCEPTION_HANDLER;
+		}
+	}
+	
+	public static class PushFinallyHandler extends PythonBytecode {
+		public List<PythonBytecode> ast;
+		{
+			bytecode = Bytecode.PUSH_FINALLY_HANDLER;
+		}
+	}
+	
+	public static class PopExceptionHandler extends PythonBytecode {
+		public PythonObject exceptionType;
+		{
+			bytecode = Bytecode.POP_EXCEPTION_HANDLER;
+		}
+	}
+	
+	public static class PopFinallyHandler extends PythonBytecode {
+		public List<PythonBytecode> ast;
+		{
+			bytecode = Bytecode.POP_FINALLY_HANDLER;
+		}
+	}
+	
+	public static class Dup extends PythonBytecode {
+		{
+			bytecode = Bytecode.DUP;
+		}
+	}
+	
+	public static class EndException extends PythonBytecode {
+		{
+			bytecode = Bytecode.END_EXCEPTION;
+		}
+	}
+	
+	public static class Yield extends PythonBytecode {
+		public PythonObject value = NoneObject.NONE;
+		{
+			bytecode = Bytecode.YIELD;
 		}
 	}
 	

@@ -84,4 +84,9 @@ public class PythonRuntime {
 		}
 		return value;
 	}
+
+	public PythonObject runtimeWrapper() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
