@@ -155,8 +155,12 @@ decorated
 : decorators (classdef | funcdef)
 ;
 
+docstring
+: DOCCOMMENT
+;
+
 funcdef
-: 'def' NAME '(' fpdef* vararg? ')' ':' suite
+: (docstring NEWLINE)? 'def' NAME '(' fpdef* vararg? ')' ':' suite
 ;
 
 fpdef
@@ -411,7 +415,7 @@ dictorsetmaker
 ;
 
 classdef
-: 'class' NAME '(' testlist? ')' ':' suite
+: (docstring NEWLINE)? 'class' NAME '(' testlist? ')' ':' suite
 ;
 
 arglist
@@ -481,7 +485,6 @@ FROM : 'from';
 IMPORT : 'import';
 AS : 'as';
 GLOBAL : 'global';
-NONLOCAL : 'nonlocal';
 ASSERT : 'assert';
 IF : 'if';
 ELIF : 'elif';
@@ -491,7 +494,6 @@ FOR : 'for';
 IN : 'in';
 TRY : 'try';
 FINALLY : 'finally';
-WITH : 'with';
 EXCEPT : 'except';
 LAMBDA : 'lambda';
 OR : 'or';
@@ -556,6 +558,10 @@ NAME
 STRING_LITERAL
  : [uU]? [rR]? ( SHORT_STRING | LONG_STRING )
  ;
+ 
+DOCCOMMENT
+ : LONG_STRING
+ ;
 
 /// bytesliteral   ::=  bytesprefix(shortbytes | longbytes)
 /// bytesprefix    ::=  "b" | "B" | "br" | "Br" | "bR" | "BR"
@@ -596,7 +602,6 @@ IMAG_NUMBER
  ;
 
 DOT : '.';
-ELLIPSIS : '...';
 STAR : '*';
 OPEN_PAREN : '(' {opened++;};
 CLOSE_PAREN : ')' {opened--;};
