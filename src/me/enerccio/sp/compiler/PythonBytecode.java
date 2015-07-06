@@ -165,12 +165,6 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
-	public static class Yield extends PythonBytecode {
-		{
-			bytecode = Bytecode.YIELD;
-		}
-	}
-	
 	@Override
 	public boolean truthValue() {
 		return true;

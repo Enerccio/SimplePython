@@ -1,6 +1,7 @@
 package me.enerccio.sp.interpret;
 
 import java.util.List;
+import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
@@ -10,6 +11,7 @@ public class FrameObject extends PythonObject {
 	
 	public List<PythonBytecode> bytecode;
 	public int pc;
+	public Stack<PythonObject> stack = new Stack<PythonObject>();
 
 	@Override
 	public boolean truthValue() {

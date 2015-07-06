@@ -26,7 +26,7 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args) {
 		if (args.size().intValue() == 0)
-			throw Utils.throwException("TypeError", "Incorrect number of parameters, must be non zero");
+			throw Utils.throwException("TypeError", "Incorrect number of parameters, must be >0");
 		
 		try {
 			IntObject byteNum = (IntObject) args.getObjects()[0];
@@ -154,11 +154,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new SaveNonLocal();
 				bytecode.newObject();
 				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
-				break;
-			case YIELD:
-				bytecode = new Yield();
-				bytecode.newObject();
-				bytecode.value = args.getObjects()[1];
 				break;
 			}
 			

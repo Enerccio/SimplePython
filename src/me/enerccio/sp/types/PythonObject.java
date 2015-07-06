@@ -13,6 +13,9 @@ import me.enerccio.sp.utils.Utils;
 public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
+	public static final String __EQ__ = "__eq__";
+	public static final String __NEQ__ = "__neq__";
+	
 	public PythonObject(){
 		
 	}

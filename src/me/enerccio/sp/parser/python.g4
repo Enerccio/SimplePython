@@ -138,541 +138,318 @@ tokens { INDENT, DEDENT }
  * parser rules
  */
 
-/// single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE
-single_input
- : NEWLINE
- | simple_stmt
- | compound_stmt NEWLINE
- ;
-
 /// file_input: (NEWLINE | stmt)* ENDMARKER
 file_input
  : ( NEWLINE | stmt )* EOF
  ;
 
-/// eval_input: testlist NEWLINE* ENDMARKER
-eval_input
- : testlist NEWLINE* EOF
- ; 
-
-/// decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorator
- : '@' dotted_name ( '(' arglist? ')' )? NEWLINE
- ;
- 
-/// decorators: decorator+
+: '@' dotted_name ('(' arglist? ')')? NEWLINE
+;
+
 decorators
- : decorator+
- ;
+: decorator+
+;
 
-/// decorated: decorators (classdef | funcdef)
 decorated
- : decorators ( classdef | funcdef )
- ;
+: decorators (classdef | funcdef)
+;
 
-/// funcdef: 'def' NAME parameters ['->' test] ':' suite
 funcdef
- : DEF NAME parameters ( '->' test )? ':' suite
- ;
+: 'def' NAME '(' fpdef* vararg? ')' ':' suite
+;
 
-/// parameters: '(' [typedargslist] ')'
-parameters
- : '(' typedargslist? ')'
- ;
+fpdef
+: NAME
+;
 
-/// typedargslist: (tfpdef ['=' test] (',' tfpdef ['=' test])* [','
-///                ['*' [tfpdef] (',' tfpdef ['=' test])* [',' '**' tfpdef] | '**' tfpdef]]
-///              |  '*' [tfpdef] (',' tfpdef ['=' test])* [',' '**' tfpdef] | '**' tfpdef)
-typedargslist
- : tfpdef ( '=' test )? ( ',' tfpdef ( '=' test )? )* ( ',' ( '*' tfpdef? ( ',' tfpdef ( '=' test )? )* ( ',' '**' tfpdef )? 
-                                                            | '**' tfpdef 
-                                                            )? 
-                                                      )?
- | '*' tfpdef? ( ',' tfpdef ( '=' test )? )* ( ',' '**' tfpdef )? 
- | '**' tfpdef
- ;
+vararg
+: '*' NAME
+; 
 
-/// tfpdef: NAME [':' test]
-tfpdef
- : NAME ( ':' test )?
- ;
-
-/// varargslist: (vfpdef ['=' test] (',' vfpdef ['=' test])* [','
-///       ['*' [vfpdef] (',' vfpdef ['=' test])* [',' '**' vfpdef] | '**' vfpdef]]
-///     |  '*' [vfpdef] (',' vfpdef ['=' test])* [',' '**' vfpdef] | '**' vfpdef)
-varargslist
- : vfpdef ( '=' test )? ( ',' vfpdef ( '=' test )? )* ( ',' ( '*' vfpdef? ( ',' vfpdef ( '=' test )? )* ( ',' '**' vfpdef )? 
-                                                            | '**' vfpdef 
-                                                            )? 
-                                                      )?
- | '*' vfpdef? ( ',' vfpdef ( '=' test )? )* ( ',' '**' vfpdef )?
- | '**' vfpdef
- ;
-
-/// vfpdef: NAME
-vfpdef
- : NAME
- ;
-
-/// stmt: simple_stmt | compound_stmt
 stmt
- : simple_stmt 
- | compound_stmt
- ;
+: simple_stmt | compound_stmt
+;
 
-/// simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE
 simple_stmt
- : small_stmt ( ';' small_stmt )* ';'? NEWLINE
- ;
+: small_stmt (';' small_stmt)* ';'? NEWLINE
+;
 
-/// small_stmt: (expr_stmt | del_stmt | pass_stmt | flow_stmt |
-///              import_stmt | global_stmt | nonlocal_stmt | assert_stmt)
 small_stmt
- : expr_stmt 
- | del_stmt 
- | pass_stmt 
- | flow_stmt 
- | import_stmt 
- | global_stmt 
- | nonlocal_stmt 
- | assert_stmt
- ;
+: (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
+             import_stmt | global_stmt)
+;
 
-/// expr_stmt: testlist_star_expr (augassign (yield_expr|testlist) |
-///                      ('=' (yield_expr|testlist_star_expr))*)
 expr_stmt
- : testlist_star_expr ( augassign ( yield_expr | testlist) 
-                      | ( '=' ( yield_expr| testlist_star_expr ) )*
-                      )
- ;           
+: testlist (augassignexp | ('=' testlist*))
+;                
 
-/// testlist_star_expr: (test|star_expr) (',' (test|star_expr))* [',']
-testlist_star_expr
- : ( test | star_expr ) ( ',' ( test |  star_expr ) )* ','?
- ;
+augassignexp
+: (augassign testlist)
+;
 
-/// augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
-///             '<<=' | '>>=' | '**=' | '//=')
 augassign
- : '+=' 
- | '-=' 
- | '*=' 
- | '@=' // PEP 465
- | '/=' 
- | '%=' 
- | '&=' 
- | '|=' 
- | '^=' 
- | '<<=' 
- | '>>=' 
- | '**=' 
- | '//='
- ;
+: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
+            '<<=' | '>>=' | '**=' | '//=')
+;
 
-/// del_stmt: 'del' exprlist
+print_stmt
+: 'print' ( (test (',' test)* (',')?)? |
+                      '>>' test ((',' test)+ (',')?)?)
+;
+
 del_stmt
- : DEL exprlist
- ;
+: 'del' exprlist
+;
 
-/// pass_stmt: 'pass'
 pass_stmt
- : PASS
- ;
+: 'pass'
+;
 
-/// flow_stmt: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt
 flow_stmt
- : break_stmt 
- | continue_stmt 
- | return_stmt 
- | raise_stmt 
- | yield_stmt
- ;
+: break_stmt | continue_stmt | return_stmt | raise_stmt
+;
 
-/// break_stmt: 'break'
 break_stmt
- : BREAK
- ;
+: 'break'
+;
 
-/// continue_stmt: 'continue'
 continue_stmt
- : CONTINUE
- ;
+: 'continue'
+;
 
-/// return_stmt: 'return' [testlist]
 return_stmt
- : RETURN testlist?
- ;
+: 'return' testlist?
+;
 
-/// yield_stmt: yield_expr
-yield_stmt
- : yield_expr
- ;
-
-/// raise_stmt: 'raise' [test ['from' test]]
 raise_stmt
- : RAISE ( test ( FROM test )? )?
- ;
+: 'raise' (test (',' test (',' test)?)?)?
+;
 
-/// import_stmt: import_name | import_from
 import_stmt
- : import_name 
- | import_from
- ;
+: import_name | import_from
+;
 
-/// import_name: 'import' dotted_as_names
 import_name
- : IMPORT dotted_as_names
- ;
+: 'import' dotted_as_names
+;
 
-/// # note below: the ('.' | '...') is necessary because '...' is tokenized as ELLIPSIS
-/// import_from: ('from' (('.' | '...')* dotted_name | ('.' | '...')+)
-///               'import' ('*' | '(' import_as_names ')' | import_as_names))
 import_from
- : FROM ( ( '.' | '...' )* dotted_name 
-        | ('.' | '...')+ 
-        )
-   IMPORT ( '*' 
-          | '(' import_as_names ')' 
-          | import_as_names
-          )         
- ;
+: ('from' ('.'* dotted_name | '.'+)
+              'import' ('*' | '(' import_as_names ')' | import_as_names))
+;
 
-/// import_as_name: NAME ['as' NAME]
-import_as_name
- : NAME ( AS NAME )?
- ;
+import_as_name: NAME ('as' NAME)?
+;
 
-/// dotted_as_name: dotted_name ['as' NAME]
 dotted_as_name
- : dotted_name ( AS NAME )?
- ;
+: dotted_name ('as' NAME)?
+;
 
-/// import_as_names: import_as_name (',' import_as_name)* [',']
 import_as_names
- : import_as_name ( ',' import_as_name )* ','?
- ;
+: import_as_name (',' import_as_name)* (',')
+;
 
-/// dotted_as_names: dotted_as_name (',' dotted_as_name)*
 dotted_as_names
- : dotted_as_name ( ',' dotted_as_name )*
- ;
+: dotted_as_name (',' dotted_as_name)*
+;
 
-/// dotted_name: NAME ('.' NAME)*
 dotted_name
- : NAME ( '.' NAME )*
- ;
+: NAME ('.' NAME)*
+;
 
-/// global_stmt: 'global' NAME (',' NAME)*
 global_stmt
- : GLOBAL NAME ( ',' NAME )*
- ;
+: 'global' NAME (',' NAME)*
+;
 
-/// nonlocal_stmt: 'nonlocal' NAME (',' NAME)*
-nonlocal_stmt
- : NONLOCAL NAME ( ',' NAME )*
- ;
-
-/// assert_stmt: 'assert' test [',' test]
-assert_stmt
- : ASSERT test ( ',' test )?
- ;
-
-/// compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated
 compound_stmt
- : if_stmt 
- | while_stmt 
- | for_stmt 
- | try_stmt 
- | with_stmt 
- | funcdef 
- | classdef 
- | decorated
- ;
+: if_stmt | while_stmt | for_stmt | try_stmt | funcdef | classdef | decorated
+;
 
-/// if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite]
 if_stmt
- : IF test ':' suite ( ELIF test ':' suite )* ( ELSE ':' suite )?
- ;
+: 'if' test ':' suite ('elif' test ':' suite)* ('else' ':' suite)?
+;
 
-/// while_stmt: 'while' test ':' suite ['else' ':' suite]
 while_stmt
- : WHILE test ':' suite ( ELSE ':' suite )?
- ;
+: 'while' test ':' suite ('else' ':' suite)?
+;
 
-/// for_stmt: 'for' exprlist 'in' testlist ':' suite ['else' ':' suite]
 for_stmt
- : FOR exprlist IN testlist ':' suite ( ELSE ':' suite )?
- ;
+: 'for' exprlist 'in' testlist ':' suite ('else' ':' suite)?
+;
 
-/// try_stmt: ('try' ':' suite
-///            ((except_clause ':' suite)+
-///       ['else' ':' suite]
-///       ['finally' ':' suite] |
-///      'finally' ':' suite))
 try_stmt
- : TRY ':' suite ( ( except_clause ':' suite )+ 
-                   ( ELSE ':' suite )? 
-                   ( FINALLY ':' suite )?
-                 | FINALLY ':' suite
-                 )
- ;
+: ('try' ':' suite
+           ((except_clause ':' suite)+
+            ('else' ':' suite)?
+            ('finally' ':' suite)? |
+           'finally' ':' suite))
+;
 
-/// with_stmt: 'with' with_item (',' with_item)*  ':' suite
-with_stmt
- : WITH with_item ( ',' with_item )* ':' suite
- ;
-
-/// with_item: test ['as' expr]
-with_item
- : test ( AS expr )?
- ;
-
-/// # NB compile.c makes sure that the default except clause is last
-/// except_clause: 'except' [test ['as' NAME]]
 except_clause
- : EXCEPT ( test ( AS NAME )? )?
- ;
+: 'except' (test (('as' | ',') test)?)?
+;
 
-/// suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT
 suite
- : simple_stmt 
- | NEWLINE INDENT stmt+ DEDENT
- ;
+: simple_stmt | NEWLINE INDENT stmt+ DEDENT
+;
 
-/// test: or_test ['if' or_test 'else' test] | lambdef
+testlist_safe
+: old_test ((',' old_test)+ (',')?)?
+;
+
+old_test
+: or_test | old_lambdef
+;
+
+old_lambdef
+: 'lambda' fpdef* vararg? ':' old_test
+;
+
 test
- : or_test ( IF or_test ELSE test )?
- | lambdef
- ;
+: or_test ('if' or_test 'else' test)? | lambdef
+;
 
-/// test_nocond: or_test | lambdef_nocond
-test_nocond
- : or_test 
- | lambdef_nocond
- ;
-
-/// lambdef: 'lambda' [varargslist] ':' test
-lambdef
- : LAMBDA varargslist? ':' test
- ;
-
-/// lambdef_nocond: 'lambda' [varargslist] ':' test_nocond
-lambdef_nocond
- : LAMBDA varargslist? ':' test_nocond
- ;
-
-/// or_test: and_test ('or' and_test)*
 or_test
- : and_test ( OR and_test )*
- ;
+: and_test ('or' and_test)*
+;
 
-/// and_test: not_test ('and' not_test)*
 and_test
- : not_test ( AND not_test )*
- ;
+: not_test ('and' not_test)*
+;
 
-/// not_test: 'not' not_test | comparison
 not_test
- : NOT not_test 
- | comparison
- ;
+: 'not' not_test | comparison
+;
 
-/// comparison: star_expr (comp_op star_expr)*
 comparison
- : star_expr ( comp_op star_expr )*
- ;
+: expr (comp_op expr)*
+;
 
-/// # <> isn't actually a valid comparison operator in Python. It's here for the
-/// # sake of a __future__ import described in PEP 401
-/// comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
 comp_op
- : '<'
- | '>'
- | '=='
- | '>='
- | '<='
- | '<>'
- | '!='
- | IN
- | NOT IN
- | IS
- | IS NOT
- ;
+: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
+;
 
-/// star_expr: ['*'] expr
-star_expr
- : '*'? expr
- ;
-
-/// expr: xor_expr ('|' xor_expr)*
 expr
- : xor_expr ( '|' xor_expr )*
- ;
+: xor_expr ('|' xor_expr)*
+;
 
-/// xor_expr: and_expr ('^' and_expr)*
 xor_expr
- : and_expr ( '^' and_expr )*
- ;
+: and_expr ('^' and_expr)*
+;
 
-/// and_expr: shift_expr ('&' shift_expr)*
 and_expr
- : shift_expr ( '&' shift_expr )*
- ;
+: shift_expr ('&' shift_expr)*
+;
 
-/// shift_expr: arith_expr (('<<'|'>>') arith_expr)*
 shift_expr
- : arith_expr ( '<<' arith_expr 
-              | '>>' arith_expr 
-              )*
- ;
+: arith_expr (('<<'|'>>') arith_expr)*
+;
 
-/// arith_expr: term (('+'|'-') term)*
 arith_expr
- : term ( '+' term
-        | '-' term 
-        )*
- ;
+: term (('+'|'-') term)*
+;
 
-/// term: factor (('*'|'/'|'%'|'//') factor)*
 term
- : factor ( '*' factor
-          | '/' factor
-          | '%' factor 
-          | '//' factor 
-          | '@' factor // PEP 465
-          )*
- ;
+: factor (('*'|'/'|'%'|'//') factor)*
+;
 
-/// factor: ('+'|'-'|'~') factor | power
 factor
- : '+' factor 
- | '-' factor 
- | '~' factor 
- | power
- ;
+: ('+'|'-'|'~') factor | power
+;
 
-/// power: atom trailer* ['**' factor]
 power
- : atom trailer* ( '**' factor )?
- ;
+: atom trailer* ('**' factor)?
+;
 
-/// atom: ('(' [yield_expr|testlist_comp] ')' |
-///        '[' [testlist_comp] ']' |
-///        '{' [dictorsetmaker] '}' |
-///        NAME | NUMBER | STRING+ | '...' | 'None' | 'True' | 'False')
-atom
- : '(' ( yield_expr | testlist_comp )? ')' 
- | '[' testlist_comp? ']'  
- | '{' dictorsetmaker? '}' 
- | NAME 
- | number 
- | string+ 
- | '...' 
- | NONE
- | TRUE
- | FALSE
- ;
+atom: ('(' testlist_comp? ')' |
+       '[' listmaker? ']' |
+       '{' dictorsetmaker? '}' |
+       '`' testlist1 '`' |
+       NAME | number | string+)
+;
 
-/// testlist_comp: test ( comp_for | (',' test)* [','] )
+listmaker
+: test ( list_for | (',' test)* ','? )
+;
+
 testlist_comp
- : test ( comp_for 
-        | ( ',' test )* ','? 
-        )
- ;
+: test ( comp_for | (',' test)* ','? )
+;
 
-/// trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
+lambdef
+: 'lambda' fpdef* vararg? ':' test
+;
+
 trailer
- : '(' arglist? ')' 
- | '[' subscriptlist ']' 
- | '.' NAME
- ;
+: '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME
+;
 
-/// subscriptlist: subscript (',' subscript)* [',']
 subscriptlist
- : subscript ( ',' subscript )* ','?
- ;
+: subscript (',' subscript)* ','?
+;
 
-/// subscript: test | [test] ':' [test] [sliceop]
 subscript
- : test 
- | test? ':' test? sliceop?
- ;
+: '.' '.' '.' | test | test? ':' test? sliceop?
+;
 
-/// sliceop: ':' [test]
 sliceop
- : ':' test?
- ;
+: ':' test?
+;
 
-/// exprlist: star_expr (',' star_expr)* [',']
 exprlist
- : star_expr ( ',' star_expr )* ','?
- ;
+: expr (',' expr)* ','?
+;
 
-/// testlist: test (',' test)* [',']
 testlist
- : test ( ',' test )* ','?
- ;
+: test (',' test)* ','?
+;
 
-/// dictorsetmaker: ( (test ':' test (comp_for | (',' test ':' test)* [','])) |
-///                   (test (comp_for | (',' test)* [','])) )
 dictorsetmaker
- : test ':' test ( comp_for 
-                 | ( ',' test ':' test )* ','? 
-                 ) 
- | test ( comp_for 
-        | ( ',' test )* ','? 
-        )
- ;
+: ( (test ':' test (comp_for | (',' test ':' test)* ','?)) |
+                  (test (comp_for | (',' test)* ','?)) )
+;
 
-/// classdef: 'class' NAME ['(' [arglist] ')'] ':' suite
 classdef
- : CLASS NAME ( '(' arglist? ')' )? ':' suite
- ;
+: 'class' NAME '(' testlist? ')' ':' suite
+;
 
-/// arglist: (argument ',')* (argument [',']
-///                          |'*' test (',' argument)* [',' '**' test]
-///                          |'**' test)
 arglist
- : ( argument ',' )* ( argument ','?
-                     | '*' test ( ',' argument )* ( ',' '**' test )?
-                     | '**' test
-                     )
- ;
+: (argument ',')* (argument ','?
+                         |'*' test )
+;
 
-/// # The reason that keywords are test nodes instead of NAME is that using NAME
-/// # results in an ambiguity. ast.c makes sure it's a NAME.
-/// argument: test [comp_for] | test '=' test  # Really [keyword '='] test
 argument
- : test comp_for? 
- | test '=' test
- ;
+: test comp_for? | test '=' test
+;
 
-/// comp_iter: comp_for | comp_if
+list_iter
+: list_for | list_if
+;
+
+list_for
+: 'for' exprlist 'in' testlist_safe list_iter?
+;
+
+list_if
+: 'if' old_test list_iter?
+;
+
 comp_iter
- : comp_for 
- | comp_if
- ;
+: comp_for | comp_if
+;
 
-/// comp_for: 'for' exprlist 'in' or_test [comp_iter]
 comp_for
- : FOR exprlist IN or_test comp_iter?
- ;
+: 'for' exprlist 'in' or_test comp_iter?
+;
 
-/// comp_if: 'if' test_nocond [comp_iter]
 comp_if
- : IF test_nocond comp_iter?
- ;
+: 'if' old_test comp_iter?
+;
 
-/// yield_expr: 'yield' [testlist]
-yield_expr
- : YIELD yield_arg?
- ;
-
-/// yield_arg: 'from' test | testlist
-yield_arg
- : FROM test 
- | testlist
- ;
+testlist1
+: test (',' test)*
+;
 
 string
  : STRING_LITERAL
@@ -725,7 +502,6 @@ NONE : 'None';
 TRUE : 'True';
 FALSE : 'False';
 CLASS : 'class';
-YIELD : 'yield';
 DEL : 'del';
 PASS : 'pass';
 CONTINUE : 'continue';

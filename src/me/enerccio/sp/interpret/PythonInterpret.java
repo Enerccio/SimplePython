@@ -1,6 +1,7 @@
 package me.enerccio.sp.interpret;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -8,6 +9,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -35,8 +37,7 @@ public class PythonInterpret extends PythonObject {
 	
 	public Stack<EnvironmentObject> currentEnvironment = new Stack<EnvironmentObject>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
-	public Stack<FrameObject> currentFrame = new Stack<FrameObject>();
-	public Stack<PythonObject> stack = new Stack<PythonObject>();
+	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 
 	public PythonObject executeCall(String function, PythonObject... data) {
 		return execute(environment().get(new StringObject(function), false, false), data);
@@ -88,7 +89,7 @@ public class PythonInterpret extends PythonObject {
 		if (Thread.interrupted()){
 			return ExecutionResult.INTERRUPTED;
 		}
-		FrameObject o = Utils.peek(currentFrame);
+		FrameObject o = currentFrame.getLast();
 		if (o == null)
 			return ExecutionResult.FINISHED;
 		if (o.pc >= o.bytecode.size()){
@@ -102,6 +103,7 @@ public class PythonInterpret extends PythonObject {
 	private void executeSingleInstruction(FrameObject o,
 			PythonBytecode pythonBytecode) {
 		
+		Stack<PythonObject> stack = o.stack;
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -110,40 +112,51 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case PUSH_DICT:{
 				EnvironmentObject env = Utils.peek(currentEnvironment);
-				env.add(((PushDict)pythonBytecode).dict);
+				env.add(pythonBytecode.dict);
 			} break;
 		case PUSH_ENVIRONMENT:
 			currentEnvironment.push(new EnvironmentObject());
 			break;
 		case CALL:
+			PythonObject[] args = new PythonObject[pythonBytecode.argc];
+			for (int i=0; i<args.length; i++)
+				args[i] = stack.pop();
+			
 			break;
 		case GOTO:
-			o.pc = ((Goto)pythonBytecode).idx;
+			o.pc = pythonBytecode.idx;
 			break;
 		case JUMPIFFALSE:
 			if (!stack.pop().truthValue())
-				o.pc = ((JumpIfFalse)pythonBytecode).idx;
+				o.pc = pythonBytecode.idx;
 			break;
 		case JUMPIFTRUE:
 			if (stack.pop().truthValue())
-				o.pc = ((JumpIfFalse)pythonBytecode).idx;
+				o.pc = pythonBytecode.idx;
 			break;
 		case LOAD:
-			stack.push(environment().get(new StringObject(((Load)pythonBytecode).variable), false, false));
+			stack.push(environment().get(new StringObject(pythonBytecode.variable), false, false));
 			break;
 		case LOADGLOBAL:
-			stack.push(environment().get(new StringObject(((LoadGlobal)pythonBytecode).variable), true, false));
+			stack.push(environment().get(new StringObject(pythonBytecode.variable), true, false));
 			break;
 		case LOADNONLOCAL:
-			stack.push(environment().get(new StringObject(((LoadNonLocal)pythonBytecode).variable), false, true));
+			stack.push(environment().get(new StringObject(pythonBytecode.variable), false, true));
 			break;
 		case POP:
 			stack.pop();
 			break;
 		case PUSH:
-			stack.push(((Push)pythonBytecode).value);
+			stack.push(pythonBytecode.value);
 			break;
 		case RETURN:
+			currentEnvironment.pop();
+			PythonObject retVal = pythonBytecode.value;
+			if (retVal == null)
+				retVal = NoneObject.NONE;
+			currentFrame.pop();
+			if (currentFrame.size() != 0)
+				currentFrame.getLast().stack.add(retVal);
 			break;
 		case SAVE:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
@@ -158,18 +171,22 @@ public class PythonInterpret extends PythonObject {
 			execute(pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
 			break;
 		case POP_EXCEPTION_HANDLER:
+			// TODO
 			break;
 		case POP_FINALLY_HANDLER:
+			// TODO
 			break;
 		case PUSH_EXCEPTION_HANDLER:
+			// TODO
 			break;
 		case PUSH_FINALLY_HANDLER:
+			// TODO
 			break;
 		case DUP:
+			stack.push(stack.peek());
 			break;
 		case END_EXCEPTION:
-			break;
-		case YIELD:
+			// TODO
 			break;
 		}
 		
