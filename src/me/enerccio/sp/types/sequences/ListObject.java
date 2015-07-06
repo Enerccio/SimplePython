@@ -14,7 +14,7 @@ public class ListObject extends MutableSequenceObject {
 		
 	}
 	
-	private List<PythonObject> objects = new ArrayList<PythonObject>();
+	public List<PythonObject> objects = new ArrayList<PythonObject>();
 	
 	@Override
 	public IntObject size() {

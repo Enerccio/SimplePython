@@ -22,4 +22,11 @@ public enum Bytecode {
 	}
 	
 	public final int id;
+
+	public static Bytecode fromNumber(int intValue) {
+		for (Bytecode b : values())
+			if (b.id == intValue)
+				return b;
+		return null;
+	}
 }

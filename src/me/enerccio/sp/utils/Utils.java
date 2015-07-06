@@ -1,6 +1,9 @@
 package me.enerccio.sp.utils;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Stack;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -10,6 +13,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
+import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonLexer;
@@ -24,7 +28,9 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.pointer.PointerObject;
+import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.sequences.TupleObject;
 
 public class Utils {
 
@@ -183,6 +189,17 @@ public class Utils {
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
 		return parser;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Collection<? extends PythonBytecode> asList(
+			PythonObject pythonObject) {
+		ArrayList<PythonObject> pa = new ArrayList<PythonObject>();
+		if (pythonObject instanceof TupleObject)
+			pa.addAll(Arrays.asList(((TupleObject) pythonObject).getObjects()));
+		else
+			pa.addAll(((ListObject)pythonObject).objects);
+		return (ArrayList<PythonBytecode>)(Object)pa;
 	}
 	
 }

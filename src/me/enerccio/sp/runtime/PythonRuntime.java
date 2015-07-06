@@ -10,6 +10,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
@@ -70,6 +71,7 @@ public class PythonRuntime {
 		globals.put(TypeTypeObject.TYPE_CALL, new TypeTypeObject());
 		globals.put(StringTypeObject.STRING_CALL, new StringTypeObject());
 		globals.put(IntTypeObject.INT_CALL, new IntTypeObject());
+		globals.put(BytecodeTypeObject.BYTECODE_CALL, new BytecodeTypeObject());
 		
 		return globals;
 	}
