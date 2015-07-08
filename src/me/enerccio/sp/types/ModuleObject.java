@@ -4,6 +4,7 @@ import java.util.List;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -14,8 +15,9 @@ import me.enerccio.sp.utils.Utils;
 
 public class ModuleObject extends PythonObject {
 	private static final long serialVersionUID = -2347220852204272570L;
-	private static final String __NAME__ = "__name__";
-	private static final String __DICT__ = "__dict__";
+	public static final String __NAME__ = "__name__";
+	public static final String __DICT__ = "__dict__";
+	public static final String __THISMODULE__ = "__thismodule__";
 
 	public ModuleObject(MapObject globals, ModuleProvider provider) {
 		this.provider = provider;
@@ -25,7 +27,7 @@ public class ModuleObject extends PythonObject {
 			pythonParser p = Utils.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx);
+				frame = new PythonCompiler().doCompile(fcx, globals);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -33,9 +35,11 @@ public class ModuleObject extends PythonObject {
 		}
 		
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
+		globals.backingMap.put(new StringObject(__THISMODULE__), this);
+		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
 	}
 	
-	private ModuleProvider provider;
+	public final ModuleProvider provider;
 	private List<PythonBytecode> frame;
 	public volatile boolean isInited = false;
 
@@ -58,13 +62,6 @@ public class ModuleObject extends PythonObject {
 		return "<Module " + get(__NAME__, this).toString() + " at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
-	public String getFullPath() {
-		StringBuilder bd = new StringBuilder();
-		for (String pathComponent : provider.getPackages())
-			bd.append(pathComponent + ".");
-		return bd.append(provider.getModuleName()).toString();
-	}
-
 	public void initModule() {
 		doInitModule();
 		isInited = true;
@@ -72,5 +69,10 @@ public class ModuleObject extends PythonObject {
 
 	private void doInitModule() {
 		PythonInterpret.interpret.get().executeBytecode(frame);
+		while (true){
+			ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
+			if (res == ExecutionResult.FINISHED || res == ExecutionResult.INTERRUPTED || res == ExecutionResult.EOF)
+				return;
+		}
 	}
 }

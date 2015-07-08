@@ -1,9 +1,12 @@
 package me.enerccio.sp.runtime;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
@@ -25,11 +28,17 @@ public class PythonRuntime {
 		
 	}
 	
-	private Map<String, ModuleObject> moduleMap = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
+	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
 	private Map<Long, PythonObject> instances1 = new HashMap<Long, PythonObject>();
 	private Map<PythonObject, Long> instances2 = new HashMap<PythonObject, Long>();
+	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
+	
 	private long key = Long.MIN_VALUE;
 	private volatile boolean saving = false;
+	
+	public synchronized void addResolver(PythonDataSourceResolver resolver){
+		resolvers.add(resolver);
+	}
 	
 	public void waitIfSaving() throws InterruptedException {
 		while (saving)
@@ -45,27 +54,47 @@ public class PythonRuntime {
 		return instances2.get(o);
 	}
 	
-	public synchronized void loadModule(ModuleProvider provider){
-		MapObject globals = generateGlobals();
-		ModuleObject mo = new ModuleObject(globals, provider);
-		moduleMap.put(mo.getFullPath(), mo);
+	public synchronized ModuleObject getRoot(String key) {
+		if (!root.containsKey(key)){
+			root.put(key, getModule(key, null));
+		}
+		return root.get(key);
 	}
 	
-	public ModuleObject getModule(String fqPath){
-		ModuleObject o = moduleMap.get(fqPath);
-		if (o == null)
-			throw Utils.throwException("ImportError", "Unknown module '" + fqPath + "'");
-		if (!o.isInited)
-			synchronized (o){
-				if (!o.isInited){
-					o.initModule();
-				}
-			}
-		return o;
+	private ModuleObject loadModule(ModuleProvider provider){
+		MapObject globals = generateGlobals();
+		ModuleObject mo = new ModuleObject(globals, provider);
+		return mo;
+	}
+	
+	public synchronized ModuleObject getModule(String name, StringObject moduleResolvePath){
+		if (moduleResolvePath == null)
+			moduleResolvePath = new StringObject("");
+		ModuleObject mo = resolveModule(name, moduleResolvePath);
+		if (mo == null)
+			throw Utils.throwException("ImportError", "Unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
+		String pp = moduleResolvePath.value;
+		mo.newObject();
+		if (pp.equals(""))
+			root.put(name, mo);
+		mo.initModule();
+		return mo;
+	}
+
+	private ModuleObject resolveModule(String name,
+			StringObject moduleResolvePath) {
+		ModuleProvider provider = null;
+		for (PythonDataSourceResolver resolver : resolvers){
+			provider = resolver.resolve(name, moduleResolvePath.value);
+		}
+		if (provider != null)
+			return loadModule(provider);
+		return null;
 	}
 
 	public MapObject generateGlobals() {
 		MapObject globals = new MapObject();
+		globals.newObject();
 		
 		globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 		globals.put(TypeTypeObject.TYPE_CALL, new TypeTypeObject());

@@ -17,6 +17,7 @@ public class PythonBytecode extends PythonObject {
 	public PythonObject exceptionType;
 	public int jumpAfter;
 	public List<PythonBytecode> ast;
+	public String moduleName;
 	
 	public PythonBytecode(){
 		
@@ -162,6 +163,12 @@ public class PythonBytecode extends PythonObject {
 	public static class EndException extends PythonBytecode {
 		{
 			bytecode = Bytecode.END_EXCEPTION;
+		}
+	}
+	
+	public static class Import extends PythonBytecode {
+		{
+			bytecode = Bytecode.IMPORT;
 		}
 	}
 	

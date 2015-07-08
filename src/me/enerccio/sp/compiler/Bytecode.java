@@ -1,6 +1,7 @@
 package me.enerccio.sp.compiler;
 
 import me.enerccio.sp.compiler.PythonBytecode.Call;
+import me.enerccio.sp.compiler.PythonBytecode.Import;
 import me.enerccio.sp.compiler.PythonBytecode.Dup;
 import me.enerccio.sp.compiler.PythonBytecode.EndException;
 import me.enerccio.sp.compiler.PythonBytecode.Goto;
@@ -29,6 +30,7 @@ public enum Bytecode {
 	// System
 	NOP(0), 
 	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), 
+	IMPORT(11), 
 	
 	// control
 	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23),
@@ -152,6 +154,10 @@ public enum Bytecode {
 			break;
 		case SAVENONLOCAL:
 			bytecode = new SaveNonLocal();
+			bytecode.newObject();
+			break;
+		case IMPORT:
+			bytecode = new Import();
 			bytecode.newObject();
 			break;
 		}

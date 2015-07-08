@@ -242,19 +242,23 @@ import_name
 ;
 
 import_from
-: ('from' ('.'* dotted_name | '.'+)
-              'import' ('*' | '(' import_as_names ')' | import_as_names))
+: ('from' dotted_name 'import' (star | '(' import_as_names ')' | import_as_names))
 ;
 
-import_as_name: NAME ('as' NAME)?
+star
+: '*'
+;
+
+import_as_name
+: nname ('as' nname)?
 ;
 
 dotted_as_name
-: dotted_name ('as' NAME)?
+: dotted_name ('as' nname)?
 ;
 
 import_as_names
-: import_as_name (',' import_as_name)* (',')
+: import_as_name (',' import_as_name)* (',')?
 ;
 
 dotted_as_names
@@ -262,7 +266,11 @@ dotted_as_names
 ;
 
 dotted_name
-: NAME ('.' NAME)*
+: nname ('.' nname)*
+;
+
+nname
+: NAME
 ;
 
 global_stmt

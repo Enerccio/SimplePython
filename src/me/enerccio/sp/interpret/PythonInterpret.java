@@ -8,6 +8,7 @@ import java.util.Stack;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
@@ -93,8 +94,8 @@ public class PythonInterpret extends PythonObject {
 		if (o == null)
 			return ExecutionResult.FINISHED;
 		if (o.pc >= o.bytecode.size()){
-			currentFrame.pop();
-			return executeOnce();
+			currentFrame.removeLast();
+			return ExecutionResult.EOF;
 		}
 		executeSingleInstruction(o, o.bytecode.get(o.pc++));
 		return ExecutionResult.OK;
@@ -154,7 +155,7 @@ public class PythonInterpret extends PythonObject {
 			PythonObject retVal = pythonBytecode.value;
 			if (retVal == null)
 				retVal = NoneObject.NONE;
-			currentFrame.pop();
+			currentFrame.removeLast();
 			if (currentFrame.size() != 0)
 				currentFrame.getLast().stack.add(retVal);
 			break;
@@ -188,8 +189,78 @@ public class PythonInterpret extends PythonObject {
 		case END_EXCEPTION:
 			// TODO
 			break;
+		case IMPORT:
+			ModuleObject mm = (ModuleObject) 
+				environment().get(new StringObject(ModuleObject.__THISMODULE__), true, false);
+			String resolvePath = mm.provider.getPackageResolve() != null ? mm.provider.getPackageResolve() : "";
+			resolvePath += resolvePath.equals("") ? pythonBytecode.moduleName : "." + pythonBytecode.moduleName;
+			pythonImport(environment(), pythonBytecode.variable, resolvePath, null);
+			break;
 		}
 		
+	}
+
+	private void pythonImport(EnvironmentObject environment, String variable,
+			String modulePath, PythonObject target) {
+		if (modulePath == null || modulePath.equals("")){
+			if (target == null){
+				synchronized (PythonRuntime.runtime){
+					target = PythonRuntime.runtime.root.get(variable);
+					if (target == null)
+						target = PythonRuntime.runtime.getModule(variable, null);
+				}
+			} else if (!variable.equals("*")){
+				environment.set(new StringObject(variable), 
+						target,
+						false, false);
+			} else {
+				MapObject dict = (MapObject) target.fields.get(ModuleObject.__DICT__).object;
+				synchronized (dict){
+					synchronized (dict.backingMap){
+						for (PythonObject key : dict.backingMap.keySet()){
+							if (key instanceof StringObject){
+								String kkey = ((StringObject)key).value;
+								if (!kkey.startsWith("__"))
+									environment.set((StringObject)key, 
+											dict.backingMap.get(key),
+											false, false);
+							}
+						}
+					}
+				}
+				
+			}
+		} else {
+			String[] split = modulePath.split("\\.");
+			String mm = split[0];
+			modulePath = modulePath.replaceFirst(mm, "");
+			modulePath = modulePath.replaceFirst("\\.", "");
+			if (target == null){
+				target = (ModuleObject) environment.get(new StringObject(mm), false, false);
+				if (target == null)
+					synchronized (PythonRuntime.runtime){
+						target = PythonRuntime.runtime.root.get(mm);
+						if (target == null)
+							target = PythonRuntime.runtime.getModule(mm, null);
+					}
+			} else {
+				if (target instanceof ModuleObject){
+					ModuleObject mod = (ModuleObject)target;
+					PythonObject target2 = ((MapObject)mod.fields.get(ModuleObject.__DICT__).object).doGet(mm);
+					if (target2 != null){
+						pythonImport(environment, variable, modulePath, target2);
+						return;
+					}
+				} 
+				if (target.fields.containsKey(mm)) {
+					pythonImport(environment, variable, modulePath, target.fields.get(mm).object);
+					return;
+				} else {
+					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve()));
+				}
+			}
+			pythonImport(environment, variable, modulePath, target);
+		}
 	}
 
 	@Override
