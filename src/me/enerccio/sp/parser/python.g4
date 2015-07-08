@@ -163,15 +163,15 @@ docstring
 ;
 
 funcdef
-: (docstring NEWLINE)? 'def' NAME '(' fpdef* vararg? ')' ':' suite
+: (docstring NEWLINE)? 'def' nname '(' fpdef* vararg? ')' ':' suite
 ;
 
 fpdef
-: NAME
+: nname
 ;
 
 vararg
-: '*' NAME
+: '*' nname
 ; 
 
 stmt
@@ -274,7 +274,7 @@ nname
 ;
 
 global_stmt
-: 'global' NAME (',' NAME)*
+: 'global' nname (',' nname)*
 ;
 
 compound_stmt
@@ -381,7 +381,7 @@ atom: ('(' testlist_comp? ')' |
        '[' listmaker? ']' |
        '{' dictorsetmaker? '}' |
        '`' testlist1 '`' |
-       NAME | number | string+)
+       nname | number | string+)
 ;
 
 listmaker
@@ -426,7 +426,7 @@ dictorsetmaker
 ;
 
 classdef
-: (docstring NEWLINE)? 'class' NAME '(' testlist? ')' ':' suite
+: (docstring NEWLINE)? 'class' nname '(' testlist? ')' ':' suite
 ;
 
 arglist

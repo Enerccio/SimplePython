@@ -1,8 +1,11 @@
 package me.enerccio.sp.interpret;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
@@ -23,10 +26,21 @@ public class PythonInterpret extends PythonObject {
 
 		@Override
 		protected PythonInterpret initialValue() {
-			return new PythonInterpret();
+			try {
+				PythonRuntime.runtime.waitForNewInterpretAvailability();
+			} catch (InterruptedException e){
+				
+			}
+			
+			PythonInterpret i = new PythonInterpret();
+			i.newObject();
+			interprets.add(i);
+			return i;
 		}
 		
 	};
+	
+	public static final Set<PythonInterpret> interprets = Collections.synchronizedSet(new HashSet<PythonInterpret>());
 	
 	public PythonInterpret(){
 		bind();
@@ -39,6 +53,11 @@ public class PythonInterpret extends PythonObject {
 	public Stack<EnvironmentObject> currentEnvironment = new Stack<EnvironmentObject>();
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
+	private volatile int accessCount = 0;
+	
+	public boolean isInterpretStoppable(){
+		return accessCount == 0;
+	}
 
 	public PythonObject executeCall(String function, PythonObject... data) {
 		return execute(environment().get(new StringObject(function), false, false), data);
@@ -82,7 +101,7 @@ public class PythonInterpret extends PythonObject {
 
 	public ExecutionResult executeOnce(){
 		try {
-			PythonRuntime.runtime.waitIfSaving();
+			PythonRuntime.runtime.waitIfSaving(this);
 		} catch (InterruptedException e) {
 			return ExecutionResult.INTERRUPTED;
 		}
@@ -90,15 +109,23 @@ public class PythonInterpret extends PythonObject {
 		if (Thread.interrupted()){
 			return ExecutionResult.INTERRUPTED;
 		}
-		FrameObject o = currentFrame.getLast();
-		if (o == null)
-			return ExecutionResult.FINISHED;
-		if (o.pc >= o.bytecode.size()){
-			currentFrame.removeLast();
-			return ExecutionResult.EOF;
+		
+		++accessCount;
+		try {
+			if (currentFrame.size() == 0)
+				return ExecutionResult.FINISHED;
+			FrameObject o = currentFrame.getLast();
+			if (o == null)
+				return ExecutionResult.FINISHED;
+			if (o.pc >= o.bytecode.size()){
+				currentFrame.removeLast();
+				return ExecutionResult.EOF;
+			}
+			executeSingleInstruction(o, o.bytecode.get(o.pc++));
+			return ExecutionResult.OK;
+		} finally {
+			--accessCount;
 		}
-		executeSingleInstruction(o, o.bytecode.get(o.pc++));
-		return ExecutionResult.OK;
 	}
 
 	private void executeSingleInstruction(FrameObject o,

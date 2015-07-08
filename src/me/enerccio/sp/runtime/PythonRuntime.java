@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonInterpret;
@@ -34,15 +36,51 @@ public class PythonRuntime {
 	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
 	
 	private long key = Long.MIN_VALUE;
-	private volatile boolean saving = false;
 	
-	public synchronized void addResolver(PythonDataSourceResolver resolver){
-		resolvers.add(resolver);
+	private CyclicBarrier awaitBarrierEntry;
+	private CyclicBarrier awaitBarrierExit;
+	private volatile boolean isSaving = false;
+	private volatile boolean allowedNewInterpret = true;
+	
+	public void waitForNewInterpretAvailability() throws InterruptedException{
+		if (!allowedNewInterpret)
+			Thread.sleep(10);
 	}
 	
-	public void waitIfSaving() throws InterruptedException {
-		while (saving)
-			Thread.sleep(10);
+	public void waitIfSaving(PythonInterpret i) throws InterruptedException {
+		if (!isSaving)
+			return;
+		if (!i.isInterpretStoppable())
+			return; // continue working
+		try {
+			awaitBarrierEntry.await();
+			awaitBarrierExit.await();
+		} catch (BrokenBarrierException e) {
+			throw new InterruptedException(e.getMessage());
+		}
+	}
+	
+	public synchronized String serializeRuntime() throws Exception{
+		allowedNewInterpret = false;
+		int numInterprets = PythonInterpret.interprets.size();
+		awaitBarrierEntry = new CyclicBarrier(numInterprets + 1); // include self
+		awaitBarrierExit = new CyclicBarrier(numInterprets + 1); // include self
+		isSaving = true;
+		
+		awaitBarrierEntry.await();
+		String content = doSerializeRuntime();
+		awaitBarrierExit.await();
+		
+		return content;
+	}
+	
+	private String doSerializeRuntime() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public synchronized void addResolver(PythonDataSourceResolver resolver){
+		resolvers.add(resolver);
 	}
 	
 	public synchronized void newInstanceInitialization(PythonObject o){

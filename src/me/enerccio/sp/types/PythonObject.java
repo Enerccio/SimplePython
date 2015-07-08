@@ -79,4 +79,6 @@ public abstract class PythonObject implements Serializable {
 	}
 
 	protected abstract String doToString();
+	
+	public volatile boolean mark = false;
 }
