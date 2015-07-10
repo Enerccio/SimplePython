@@ -15,19 +15,6 @@ public class Test {
 		PythonInterpret i = PythonInterpret.interpret.get();
 		r.getRoot("x");
 		
-		new Thread(){
-
-			@Override
-			public void run() {
-				try {
-					r.serializeRuntime();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}.start();
-		
 		while (i.executeOnce() == ExecutionResult.OK)
 			;
 	}

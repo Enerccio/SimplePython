@@ -155,11 +155,19 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode.newObject();
 				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
 				break;
+			case IMPORT:
+				bytecode = new Import();
+				bytecode.moduleName = ((StringObject) args.getObjects()[1]).value;
+				bytecode.variable = ((StringObject) args.getObjects()[2]).value;
+				bytecode.newObject();
+				break;
 			}
 			
 			return bytecode;
 		} catch (ClassCastException e){
 			throw Utils.throwException("TypeError", "Incorrect type of arguments");
+		} catch (ArrayIndexOutOfBoundsException e){
+			throw Utils.throwException("TypeError", "Incorrect number of arguments");
 		}
 		
 	}
