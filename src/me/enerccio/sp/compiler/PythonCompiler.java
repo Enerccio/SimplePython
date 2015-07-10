@@ -57,6 +57,7 @@ public class PythonCompiler {
 	}
 
 	private void compileSmallStatement(Small_stmtContext smstmt, List<PythonBytecode> bytecode) {
+		// Import Statement
 		if (smstmt.import_stmt() != null){
 			Import_stmtContext imps = smstmt.import_stmt();
 			if (imps.import_name() != null){
@@ -83,6 +84,10 @@ public class PythonCompiler {
 						compileImport2(asname, bytecode, packageName);
 					}
 			}
+		}
+		
+		if (smstmt.pass_stmt() != null){
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
 		}
 	}
 
