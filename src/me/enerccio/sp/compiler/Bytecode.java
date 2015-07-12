@@ -1,29 +1,6 @@
 package me.enerccio.sp.compiler;
 
-import me.enerccio.sp.compiler.PythonBytecode.Call;
-import me.enerccio.sp.compiler.PythonBytecode.Import;
-import me.enerccio.sp.compiler.PythonBytecode.Dup;
-import me.enerccio.sp.compiler.PythonBytecode.EndException;
-import me.enerccio.sp.compiler.PythonBytecode.Goto;
-import me.enerccio.sp.compiler.PythonBytecode.JumpIfFalse;
-import me.enerccio.sp.compiler.PythonBytecode.JumpIfTrue;
-import me.enerccio.sp.compiler.PythonBytecode.Load;
-import me.enerccio.sp.compiler.PythonBytecode.LoadGlobal;
-import me.enerccio.sp.compiler.PythonBytecode.LoadNonLocal;
-import me.enerccio.sp.compiler.PythonBytecode.Nop;
-import me.enerccio.sp.compiler.PythonBytecode.Pop;
-import me.enerccio.sp.compiler.PythonBytecode.PopEnvironment;
-import me.enerccio.sp.compiler.PythonBytecode.PopExceptionHandler;
-import me.enerccio.sp.compiler.PythonBytecode.PopFinallyHandler;
-import me.enerccio.sp.compiler.PythonBytecode.Push;
-import me.enerccio.sp.compiler.PythonBytecode.PushDict;
-import me.enerccio.sp.compiler.PythonBytecode.PushEnvironment;
-import me.enerccio.sp.compiler.PythonBytecode.PushExceptionHandler;
-import me.enerccio.sp.compiler.PythonBytecode.PushFinallyHandler;
-import me.enerccio.sp.compiler.PythonBytecode.Return;
-import me.enerccio.sp.compiler.PythonBytecode.Save;
-import me.enerccio.sp.compiler.PythonBytecode.SaveGlobal;
-import me.enerccio.sp.compiler.PythonBytecode.SaveNonLocal;
+import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.types.base.CustomBytecode;
 
 public enum Bytecode {
@@ -33,7 +10,7 @@ public enum Bytecode {
 	IMPORT(11), 
 	
 	// control
-	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23),
+	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
 	// variables
 	LOAD(32), LOADGLOBAL(33), LOADNONLOCAL(34), SAVE(35), SAVEGLOBAL(36), SAVENONLOCAL(37),
 	// exceptions
@@ -158,6 +135,10 @@ public enum Bytecode {
 			break;
 		case IMPORT:
 			bytecode = new Import();
+			bytecode.newObject();
+			break;
+		case SWAP_STACK:
+			bytecode = new SwapStack();
 			bytecode.newObject();
 			break;
 		}

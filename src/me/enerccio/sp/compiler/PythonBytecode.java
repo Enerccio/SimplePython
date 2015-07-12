@@ -172,6 +172,12 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class SwapStack extends PythonBytecode {
+		{
+			bytecode = Bytecode.SWAP_STACK;
+		}
+	}
+	
 	@Override
 	public boolean truthValue() {
 		return true;

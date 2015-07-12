@@ -7,6 +7,7 @@ import me.enerccio.sp.parser.pythonParser.Compound_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
+import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Import_fromContext;
@@ -21,8 +22,10 @@ import me.enerccio.sp.types.mappings.MapObject;
 public class PythonCompiler {
 
 	private PythonBytecode cb;
+	private VariableStack stack = new VariableStack();
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict) {
+		stack.push();
 		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		// create new environment
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
@@ -33,6 +36,7 @@ public class PythonCompiler {
 			compileStatement(sctx, bytecode);
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT));
+		stack.pop();
 		return bytecode;
 	}
 
@@ -83,6 +87,26 @@ public class PythonCompiler {
 						compileImport2(asname, bytecode, packageName);
 					}
 			}
+		}
+		
+		if (smstmt.pass_stmt() != null){
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
+		}
+		
+		
+		if (smstmt.expr_stmt() != null){
+			compile(smstmt.expr_stmt(), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP));
+		}
+			
+	}
+
+	private void compile(Expr_stmtContext expr,
+			List<PythonBytecode> bytecode) {
+		
+		
+		if (smstmt.pass_stmt() != null){
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
 		}
 	}
 
