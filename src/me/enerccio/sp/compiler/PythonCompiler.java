@@ -110,7 +110,16 @@ public class PythonCompiler {
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
 			compileAugAssign(leftHand, rightHand);
 		} else {
-			compileRightHand(rightHand, bytecode);
+			List<TestContext> tl = new ArrayList<TestContext>();
+			System.err.println();
+			for (int i=1; i<expr.testlist().size(); i++){
+				System.err.println(expr.testlist(i).getText());
+				tl.addAll(expr.testlist(i).test());
+			}
+			System.err.println();
+			for (TestContext tc : tl){
+				System.err.println(tc.getText());
+			}
 			if (leftHand.test().size() > 1) {
 				// x,y,z = ...
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
