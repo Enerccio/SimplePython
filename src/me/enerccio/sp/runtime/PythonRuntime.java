@@ -24,6 +24,7 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
+import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -165,6 +166,8 @@ public class PythonRuntime {
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
 					o.newObject();
 					globals.put(TupleTypeObject.TUPLE_CALL, o = new TupleTypeObject());
+					o.newObject();
+					globals.put(ListTypeObject.LIST_CALL, o = new ListTypeObject());
 					o.newObject();
 					globals.put(ObjectTypeObject.OBJECT_CALL, o = new ObjectTypeObject());
 					o.newObject();

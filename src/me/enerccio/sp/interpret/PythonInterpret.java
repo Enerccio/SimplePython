@@ -137,6 +137,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
+			break;
 		case PUSH_DICT:{
 				EnvironmentObject env = Utils.peek(currentEnvironment);
 				env.add(pythonBytecode.dict);

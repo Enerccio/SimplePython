@@ -397,19 +397,7 @@ lambdef
 ;
 
 trailer
-: '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME
-;
-
-subscriptlist
-: subscript (',' subscript)* ','?
-;
-
-subscript
-: '.' '.' '.' | test | test? ':' test? sliceop?
-;
-
-sliceop
-: ':' test?
+: '(' arglist? ')' | '[' arglist? ']' | '.' NAME
 ;
 
 exprlist
@@ -430,8 +418,7 @@ classdef
 ;
 
 arglist
-: (argument ',')* (argument ','?
-                         |'*' test )
+: (argument ',')* (argument ','? argument)
 ;
 
 argument
@@ -468,7 +455,6 @@ testlist1
 
 string
  : STRING_LITERAL
- | BYTES_LITERAL
  ;
 
 number

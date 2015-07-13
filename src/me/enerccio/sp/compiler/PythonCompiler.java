@@ -4,9 +4,13 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.enerccio.sp.parser.pythonParser.ArglistContext;
+import me.enerccio.sp.parser.pythonParser.ArgumentContext;
+import me.enerccio.sp.parser.pythonParser.TrailerContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
@@ -236,16 +240,75 @@ public class PythonCompiler {
 	private void compile(PowerContext ctx, List<PythonBytecode> bytecode) {
 		compile(ctx.atom(), bytecode);
 		if (ctx.trailer().size() > 0){
-			// TODO
+			for (TrailerContext tc : ctx.trailer()){
+				compile(tc, bytecode);
+			}
 		}
 		if (ctx.factor() != null){
 			// TODO
 		}
 	}
 
+	private void compile(TrailerContext tc, List<PythonBytecode> bytecode) {
+		// [left size]
+		if (tc.getText().startsWith("(")){
+			if (tc.arglist() == null){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 0;
+			} else {
+				int argc = compileArguments(tc.arglist(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = argc;
+			}
+		} else if (tc.getText().startsWith("[")) {
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			cb.variable = "getattr";
+			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+			cb.variable = "__getitem__";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 2;
+			if (tc.arglist() == null){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 0;
+			} else {
+				int argc = compileArguments(tc.arglist(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = argc;
+			}
+		} else {
+			
+		}
+	}
+
+	private int compileArguments(ArglistContext arglist,
+			List<PythonBytecode> bytecode) {
+		for (ArgumentContext ac : arglist.argument())
+			compile(ac, bytecode);
+		return arglist.argument().size();
+	}
+
+	private void compile(ArgumentContext ac, List<PythonBytecode> bytecode) {
+		if (ac.test().size() == 1){
+			if (ac.comp_for() == null){
+				compile(ac.test(0), bytecode);
+			} else {
+				// TODO
+			}
+		} else {
+			// TODO
+		}
+	}
+
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.nname() != null){
-			// TODO
+			String name = ctx.nname().getText();
+			if (stack.isGlobalVariable(name))
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			else
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD));
+			cb.variable = name;
 		} else if (ctx.number() != null) {
 			NumberContext nb = ctx.number();
 			if (nb.integer() != null){
@@ -265,8 +328,14 @@ public class PythonCompiler {
 				IntObject o = new IntObject(bi);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 				cb.value = o;
-			}
-			// TODO			
+			} else if (nb.FLOAT_NUMBER() != null){
+				String numberValue = nb.FLOAT_NUMBER().getText();
+				RealObject r = new RealObject(Double.parseDouble(numberValue));
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+				cb.value = r;
+			} else {
+				// TODO
+			}			
 		} else if (ctx.string().size() != 0){
 			// TODO
 		} else if (ctx.testlist1() != null){
