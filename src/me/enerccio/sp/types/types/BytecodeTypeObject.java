@@ -165,6 +165,16 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new SwapStack();
 				bytecode.newObject();
 				break;
+			case UNPACK_SEQUENCE:
+				bytecode = new UnpackSequence();
+				bytecode.newObject();
+				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				break;
+			case PUSH_LOCAL_CONTEXT:
+				bytecode = new PushLocalContext();
+				bytecode.newObject();
+				bytecode.value = args.getObjects()[1];
+				break;
 			}
 			
 			return bytecode;

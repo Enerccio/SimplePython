@@ -1,5 +1,1 @@
-import anca
-import anca.x as y
-from anca import x as z
-from mara import *
-from anca import x
+x, y = 3, 4

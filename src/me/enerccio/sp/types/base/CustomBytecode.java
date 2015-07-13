@@ -19,7 +19,7 @@ public class CustomBytecode extends PythonBytecode {
 		
 		try {
 			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(this, OPERATION, NoneObject.NONE);
 		} catch (NoSuchMethodException e){
 			// will not happen

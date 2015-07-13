@@ -40,6 +40,12 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class PushLocalContext extends PythonBytecode {
+		{
+			bytecode = Bytecode.PUSH_LOCAL_CONTEXT;
+		}
+	}
+	
 	public static class PopEnvironment extends PythonBytecode {
 		{
 			bytecode = Bytecode.POP_ENVIRONMENT;

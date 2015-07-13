@@ -6,8 +6,8 @@ import me.enerccio.sp.types.base.CustomBytecode;
 public enum Bytecode {
 	// System
 	NOP(0), 
-	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), 
-	IMPORT(11), 
+	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
+	IMPORT(12), 
 	
 	// control
 	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
@@ -143,6 +143,10 @@ public enum Bytecode {
 			break;
 		case UNPACK_SEQUENCE:
 			bytecode = new UnpackSequence();
+			bytecode.newObject();
+			break;
+		case PUSH_LOCAL_CONTEXT:
+			bytecode = new PushLocalContext();
 			bytecode.newObject();
 			break;
 		}

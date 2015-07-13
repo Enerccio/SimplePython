@@ -19,7 +19,7 @@ public class MapObject extends PythonObject {
 	private static final String __LEN__ = "__len__";
 	
 	public MapObject(){
-		
+		newObject();
 	}
 	
 	@Override
@@ -28,11 +28,11 @@ public class MapObject extends PythonObject {
 		
 		try {
 			Utils.putPublic(this, __GETITEM__, new JavaMethodObject(this, this.getClass().getMethod("getItem", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(this, __SETITEM__, new JavaMethodObject(this, this.getClass().getMethod("setItem", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(this, __LEN__, new JavaMethodObject(this, this.getClass().getMethod("len", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
@@ -116,5 +116,11 @@ public class MapObject extends PythonObject {
 		}
 		bd.append("}");
 		return bd.toString();
+	}
+
+	public MapObject cloneMap() {
+		MapObject c = new MapObject();
+		c.backingMap.putAll(backingMap);
+		return c;
 	}
 }

@@ -13,9 +13,10 @@ import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -121,14 +122,13 @@ public class PythonInterpret extends PythonObject {
 				currentFrame.removeLast();
 				return ExecutionResult.EOF;
 			}
-			executeSingleInstruction(o, o.bytecode.get(o.pc++));
-			return ExecutionResult.OK;
+			return executeSingleInstruction(o, o.bytecode.get(o.pc++));
 		} finally {
 			--accessCount;
 		}
 	}
 
-	private void executeSingleInstruction(FrameObject o,
+	private ExecutionResult executeSingleInstruction(FrameObject o,
 			PythonBytecode pythonBytecode) {
 		
 		Stack<PythonObject> stack = o.stack;
@@ -137,7 +137,6 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
-			break;
 		case PUSH_DICT:{
 				EnvironmentObject env = Utils.peek(currentEnvironment);
 				env.add(pythonBytecode.dict);
@@ -147,9 +146,10 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case CALL:
 			PythonObject[] args = new PythonObject[pythonBytecode.argc];
-			for (int i=0; i<args.length; i++)
+			for (int i=args.length-1; i>=0; i--)
 				args[i] = stack.pop();
-			
+			PythonObject runnable = stack.pop();
+			stack.push(execute(runnable, args));
 			break;
 		case GOTO:
 			o.pc = pythonBytecode.idx;
@@ -179,13 +179,11 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case RETURN:
 			currentEnvironment.pop();
-			PythonObject retVal = pythonBytecode.value;
-			if (retVal == null)
-				retVal = NoneObject.NONE;
+			PythonObject retVal = stack.pop();
 			currentFrame.removeLast();
 			if (currentFrame.size() != 0)
 				currentFrame.getLast().stack.add(retVal);
-			break;
+			return ExecutionResult.EOF;
 		case SAVE:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
 			break;
@@ -229,8 +227,42 @@ public class PythonInterpret extends PythonObject {
 			stack.push(top);
 			stack.push(bot);
 			break;
+		case UNPACK_SEQUENCE:
+			PythonObject seq = stack.pop();
+			PythonObject iterator = execute(Utils.get(seq, SequenceObject.__ITER__));
+			PythonObject[] ss = new PythonObject[pythonBytecode.argc];
+			PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
+			
+			try {
+				for (int i=ss.length-1; i>=0; i--){
+					ss[i] = execute(Utils.get(iterator, OrderedSequenceIterator.NEXT));
+				}
+			} catch (PythonExecutionException e){
+				if (Utils.run("isinstance", e.getException(), stype).truthValue()){
+					Utils.throwException("ValueError", "Too few values to unpack");
+				} else
+					throw e;
+			}
+			
+			try {
+				execute(Utils.get(iterator, OrderedSequenceIterator.NEXT));
+				Utils.throwException("ValueError", "Too many values to unpack");
+			} catch (PythonExecutionException e){
+				if (!Utils.run("isinstance", e.getException(), stype).truthValue()){
+					throw e;
+				}
+			}
+			
+			for (PythonObject obj : ss)
+				stack.push(obj);
+			
+			break;
+		case PUSH_LOCAL_CONTEXT:
+			currentContext.add(stack.pop());
+			break;
 		}
 		
+		return ExecutionResult.OK;
 	}
 
 	private void pythonImport(EnvironmentObject environment, String variable,

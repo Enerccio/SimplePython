@@ -24,7 +24,7 @@ public abstract class NumberObject extends PythonObject {
 		try {
 			fields.put(__INT__, new AugumentedPythonObject(
 					new JavaMethodObject(this, this.getClass().getMethod("intValue", 
-							new Class<?>[]{TupleObject.class, MapObject.class})), AccessRestrictions.PUBLIC));
+							new Class<?>[]{TupleObject.class, MapObject.class}), true), AccessRestrictions.PUBLIC));
 		} catch (Exception e) {
 			
 		}

@@ -1,10 +1,11 @@
 package me.enerccio.sp.types.callables;
 
+import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
-import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -30,9 +31,9 @@ public class ClassObject extends CallableObject {
 		
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(this, __NEW__, new JavaMethodObject(this, this.getClass().getMethod("newInstance", 
-					new Class<?>[]{TupleObject.class})));
+					new Class<?>[]{TupleObject.class}), true));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
@@ -55,13 +56,19 @@ public class ClassObject extends CallableObject {
 		}
 		addToInstance(dict, instance);
 		
-		PythonObject ret = instance.runMethod(ClassInstanceObject.__INIT__, args);
-		if (ret != NoneObject.NONE)
-			throw Utils.throwException("TypeError", "__init__ returned value other than None");
+		instance.runMethod(ClassInstanceObject.__INIT__, args);
+		while (PythonInterpret.interpret.get().executeOnce() != ExecutionResult.EOF)
+			;
 		return instance;
 	}
 
 	private void addToInstance(PythonObject s, ClassInstanceObject instance) {
+		if (s instanceof TupleObject){
+			for (int i=0; i<((TupleObject) s).getObjects().length; i++){
+				addToInstance(((TupleObject) s).getObjects()[i].fields.get(__BASES__).object, instance);
+			}
+			return;
+		}
 		
 		MapObject dict = (MapObject)s;
 		synchronized (dict.backingMap){
@@ -71,6 +78,7 @@ public class ClassObject extends CallableObject {
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.fields.get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();
+					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, this);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				} else if (value instanceof StaticMethodObject){
@@ -78,6 +86,13 @@ public class ClassObject extends CallableObject {
 				} else if (value instanceof UserFunctionObject){
 					PythonObject data = value;
 					value = new UserMethodObject();
+					value.newObject();
+					Utils.putPublic(value, UserMethodObject.SELF, instance);
+					Utils.putPublic(value, UserMethodObject.FUNC, data);
+				} else if ((value instanceof JavaFunctionObject) && ((JavaFunctionObject)value).isWrappedMethod()){
+					PythonObject data = value;
+					value = new UserMethodObject();
+					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				}

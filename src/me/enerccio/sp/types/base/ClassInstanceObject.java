@@ -41,7 +41,7 @@ public class ClassInstanceObject extends PythonObject {
 	public void initObject() {
 		try {
 			Utils.putPublic(this, __HASH__, new JavaMethodObject(this, this.getClass().getMethod("pyHash", 
-						new Class<?>[]{TupleObject.class})));
+						new Class<?>[]{TupleObject.class}), true));
 		} catch (Exception e) {
 			// won't happen
 		}

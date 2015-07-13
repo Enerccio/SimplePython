@@ -1,8 +1,10 @@
 package me.enerccio.sp.types.sequences;
 
+import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.utils.Utils;
 
-public class StringObject extends ImmutableSequenceObject {
+public class StringObject extends ImmutableSequenceObject implements SimpleIDAccessor {
 	private static final long serialVersionUID = 11L;
 	
 	public StringObject(){
@@ -44,5 +46,27 @@ public class StringObject extends ImmutableSequenceObject {
 	@Override
 	protected String doToString() {
 		return value;
+	}
+
+	@Override
+	public PythonObject get(PythonObject key) {
+		return Utils.doGet(this, key);
+	}
+
+	@Override
+	public PythonObject createIterator() {
+		PythonObject o = new OrderedSequenceIterator(this);
+		o.newObject();
+		return o;
+	}
+
+	@Override
+	public int len() {
+		return value.length();
+	}
+
+	@Override
+	public PythonObject valueAt(int idx) {
+		return new StringObject(Character.toString(value.charAt(idx)));
 	}
 }

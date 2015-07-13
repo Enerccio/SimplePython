@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Stack;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -13,6 +14,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
@@ -27,8 +29,10 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
+import me.enerccio.sp.types.sequences.SimpleIDAccessor;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -141,6 +145,10 @@ public class Utils {
 	public static RuntimeException throwException(String type, String text) {
 		return new PythonExecutionException(run(type, new StringObject(text)));
 	}
+	
+	public static RuntimeException throwException(String type) {
+		return new PythonExecutionException(run(type));
+	}
 
 	public static void putPublic(PythonObject target, String key, PythonObject value) {
 		target.fields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
@@ -155,7 +163,7 @@ public class Utils {
 	public static PythonObject staticMethodCall(Class<?> clazz,
 			String method, Class<?>... signature) {
 		try {
-			return new JavaFunctionObject(clazz.getMethod(method, signature));
+			return new JavaFunctionObject(clazz.getMethod(method, signature), false);
 		} catch (NoSuchMethodException e){
 			// will not happen
 			return null;
@@ -201,5 +209,50 @@ public class Utils {
 			pa.addAll(((ListObject)pythonObject).objects);
 		return (ArrayList<PythonBytecode>)(Object)pa;
 	}
-	
+
+	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
+		if (!(idx instanceof IntObject))
+			throw throwException("TypeError", "Index must be int");
+		int i = ((IntObject)idx).intValue();
+		if (i >= o.len() || i<0)
+			throw  throwException("IndexError", "Incorrect index, expected <0, " + o.len() + "), got " + i);
+		return o.valueAt(i);
+	}
+
+	public static List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {
+		PythonBytecode b = null;
+		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
+
+		// []
+		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
+		b.value = o.get(UserMethodObject.SELF, o);
+		// [ python object self ]
+		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
+		// []
+		
+		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
+		b.value = o.get(UserMethodObject.FUNC, o);
+		// [ callable ]
+		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
+		b.value = o.get(UserMethodObject.SELF, o);
+		// [ callable, python object ]
+		
+		for (int i=0; i<args.len(); i++){
+			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
+			b.value = args.valueAt(i);
+			// [ callable, python object, python object*++ ]
+		}
+		// [ callable, python object, python object* ]
+		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
+		b.argc = args.len() + 1;
+		// [ python object ]
+		l.add(Bytecode.makeBytecode(Bytecode.RETURN));
+		// []
+		return l;
+	}
+
+	public static boolean equals(PythonObject a, PythonObject b) {
+		return a.equals(b);
+	}
 }

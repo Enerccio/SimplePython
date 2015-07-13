@@ -2,24 +2,30 @@ package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class UserMethodObject extends CallableObject {
+public class UserMethodObject extends PythonObject {
 	private static final long serialVersionUID = 6184279154550720464L;
 	public static final String SELF = "__self__";
 	public static final String FUNC = "__func__";
 	
 	@Override
-	public PythonObject call(TupleObject args) {
+	public void newObject() {
+		super.newObject();
+		
 		try {
-			PythonInterpret.interpret.get().currentContext.push(fields.get(SELF).object);
-			return ((UserFunctionObject)fields.get(FUNC).object)
-					.call(new TupleObject((PythonObject[]) Utils.pushLeft(fields
-							.get(SELF).object, args.getObjects())));
-		} finally {
-			PythonInterpret.interpret.get().currentContext.pop();
+			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
+					new Class<?>[]{TupleObject.class}), true));
+		} catch (NoSuchMethodException e){
+			// will not happen
 		}
+	};
+	
+	public PythonObject call(TupleObject args) {
+		PythonInterpret.interpret.get().executeBytecode(Utils.methodCall(this, args));
+		return NoneObject.NONE; // returns immediately
 	}
 
 	@Override
@@ -33,6 +39,11 @@ public class UserMethodObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
-		return "<method xxx of object " + fields.get(SELF) + ">"; // TODO
+		return "<method xxx of object " + fields.get(SELF).object + ">"; // TODO
+	}
+
+	@Override
+	public boolean truthValue() {
+		return true;
 	}
 }

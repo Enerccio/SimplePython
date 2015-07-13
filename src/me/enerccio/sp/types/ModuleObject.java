@@ -31,7 +31,7 @@ public class ModuleObject extends PythonObject {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw Utils.throwException("ParseException", "Failed to parse source code of " + provider);
+			throw Utils.throwException("ParserError", "Failed to parse source code of " + provider);
 		}
 		
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));

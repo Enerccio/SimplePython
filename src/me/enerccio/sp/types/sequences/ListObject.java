@@ -7,7 +7,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.utils.Utils;
 
-public class ListObject extends MutableSequenceObject {
+public class ListObject extends MutableSequenceObject implements SimpleIDAccessor  {
 	private static final long serialVersionUID = 16L;
 
 	public ListObject(){
@@ -34,5 +34,27 @@ public class ListObject extends MutableSequenceObject {
 	@Override
 	public int hashCode(){
 		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+	}
+
+	@Override
+	public PythonObject get(PythonObject key) {
+		return Utils.doGet(this, key);
+	}
+
+	@Override
+	public PythonObject createIterator() {
+		PythonObject o = new OrderedSequenceIterator(this);
+		o.newObject();
+		return o;
+	}
+
+	@Override
+	public int len() {
+		return objects.size();
+	}
+
+	@Override
+	public PythonObject valueAt(int idx) {
+		return objects.get(idx);
 	}
 }

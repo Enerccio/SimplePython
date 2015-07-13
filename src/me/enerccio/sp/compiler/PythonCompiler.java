@@ -1,38 +1,14 @@
 package me.enerccio.sp.compiler;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.enerccio.sp.parser.pythonParser.And_exprContext;
-import me.enerccio.sp.parser.pythonParser.And_testContext;
-import me.enerccio.sp.parser.pythonParser.Arith_exprContext;
-import me.enerccio.sp.parser.pythonParser.AtomContext;
-import me.enerccio.sp.parser.pythonParser.ComparisonContext;
-import me.enerccio.sp.parser.pythonParser.Compound_stmtContext;
-import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
-import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
-import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
-import me.enerccio.sp.parser.pythonParser.ExprContext;
-import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
-import me.enerccio.sp.parser.pythonParser.FactorContext;
-import me.enerccio.sp.parser.pythonParser.File_inputContext;
-import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
-import me.enerccio.sp.parser.pythonParser.Import_fromContext;
-import me.enerccio.sp.parser.pythonParser.Import_nameContext;
-import me.enerccio.sp.parser.pythonParser.Import_stmtContext;
-import me.enerccio.sp.parser.pythonParser.NnameContext;
-import me.enerccio.sp.parser.pythonParser.Not_testContext;
-import me.enerccio.sp.parser.pythonParser.Or_testContext;
-import me.enerccio.sp.parser.pythonParser.PowerContext;
-import me.enerccio.sp.parser.pythonParser.Shift_exprContext;
-import me.enerccio.sp.parser.pythonParser.Simple_stmtContext;
-import me.enerccio.sp.parser.pythonParser.Small_stmtContext;
-import me.enerccio.sp.parser.pythonParser.StmtContext;
-import me.enerccio.sp.parser.pythonParser.TermContext;
-import me.enerccio.sp.parser.pythonParser.TestContext;
-import me.enerccio.sp.parser.pythonParser.TestlistContext;
-import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
+import me.enerccio.sp.parser.pythonParser.*;
+import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 public class PythonCompiler {
@@ -45,6 +21,10 @@ public class PythonCompiler {
 		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		// create new environment
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		// context
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = NoneObject.NONE;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT)); 
 		cb.dict = dict;
@@ -126,7 +106,7 @@ public class PythonCompiler {
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
 			compileAugAssign(leftHand, rightHand);
 		} else {
-			compile(rightHand, bytecode);
+			compileRightHand(rightHand, bytecode);
 			if (leftHand.test().size() > 1) {
 				// x,y,z = ...
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
@@ -138,6 +118,8 @@ public class PythonCompiler {
 				compileAssignment(leftHand.test(0), bytecode);
 			}
 		}
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = NoneObject.NONE;
 	}
 
 	private void compileAugAssign(TestlistContext leftHand, TestlistContext rightHand) {
@@ -145,8 +127,167 @@ public class PythonCompiler {
 		
 	}
 
-	private void compile(TestlistContext rightHand, List<PythonBytecode> bytecode) {
+	private void compileRightHand(TestlistContext rightHand, List<PythonBytecode> bytecode) {
+		if (rightHand.test().size() > 1){
+			compileAsTuple(rightHand, bytecode);
+		} else {
+			compile(rightHand.test(0), bytecode);
+		}
+	}
+
+	private void compileAsTuple(TestlistContext tlc,
+			List<PythonBytecode> bytecode) {
+		// []
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+		cb.variable = TupleTypeObject.TUPLE_CALL;
+		// [getattr ]
+		for (TestContext t : tlc.test())
+			compile(t, bytecode);
+		// [getattr {n arguments} ]
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = tlc.test().size();
+	}
+
+	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.lambdef() != null)
+			compile(ctx.lambdef(), bytecode);
+		if (ctx.getChildCount() > 1)
+			compileTernary(ctx, bytecode);
+		compile(ctx.or_test(0), bytecode);
+	}
+
+	private void compile(Or_testContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.and_test(0), bytecode);
+	}
+	
+	private void compile(And_testContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.not_test(0), bytecode);
+	}
+	
+	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.not_test() != null){
+			// TODO
+		} else
+			compile(ctx.comparison(), bytecode);
+	}
+	
+	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.expr(0), bytecode);
+	}
+	
+	private void compile(ExprContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.xor_expr(0), bytecode);
+	}
+	
+	private void compile(Xor_exprContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.and_expr(0), bytecode);
+	}
+	
+	private void compile(And_exprContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.shift_expr(0), bytecode);
+	}
+	
+	private void compile(Shift_exprContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.arith_expr(0), bytecode);
+	}
+	
+	private void compile(Arith_exprContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.term(0), bytecode);
+	}
+	
+	private void compile(TermContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.getChildCount() > 1){
+			// TODO
+		} else 
+			compile(ctx.factor(0), bytecode);
+	}
+	
+	private void compile(FactorContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.factor() != null){
+			// TODO
+		} else 
+			compile(ctx.power(), bytecode);
+	}
+	
+	private void compile(PowerContext ctx, List<PythonBytecode> bytecode) {
+		compile(ctx.atom(), bytecode);
+		if (ctx.trailer().size() > 0){
+			// TODO
+		}
+		if (ctx.factor() != null){
+			// TODO
+		}
+	}
+
+	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.nname() != null){
+			// TODO
+		} else if (ctx.number() != null) {
+			NumberContext nb = ctx.number();
+			if (nb.integer() != null){
+				IntegerContext ic = nb.integer();
+				String numberValue = nb.integer().getText();
+				BigInteger bi = null;
+				
+				if (ic.BIN_INTEGER() != null)
+					bi = new BigInteger(numberValue, 2);
+				if (ic.OCT_INTEGER() != null)
+					bi = new BigInteger(numberValue, 8);
+				if (ic.DECIMAL_INTEGER() != null)
+					bi = new BigInteger(numberValue, 10);
+				if (ic.HEX_INTEGER() != null)
+					bi = new BigInteger(numberValue, 16);
+				
+				IntObject o = new IntObject(bi);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+				cb.value = o;
+			}
+			// TODO			
+		} else if (ctx.string().size() != 0){
+			// TODO
+		} else if (ctx.testlist1() != null){
+			// TODO
+		} else if (ctx.getText().startsWith("(")){
+			// TODO
+		} else if (ctx.getText().startsWith("[")){
+			// TODO
+		} else if (ctx.getText().startsWith("{")){
+			// TODO
+		}
+	}
+
+	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	private void compile(LambdefContext ctx, List<PythonBytecode> bytecode) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
