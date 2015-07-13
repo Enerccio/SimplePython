@@ -239,14 +239,14 @@ public class PythonInterpret extends PythonObject {
 				}
 			} catch (PythonExecutionException e){
 				if (Utils.run("isinstance", e.getException(), stype).truthValue()){
-					Utils.throwException("ValueError", "Too few values to unpack");
+					throw Utils.throwException("ValueError", "Too few values to unpack");
 				} else
 					throw e;
 			}
 			
 			try {
 				execute(Utils.get(iterator, OrderedSequenceIterator.NEXT));
-				Utils.throwException("ValueError", "Too many values to unpack");
+				throw Utils.throwException("ValueError", "Too many values to unpack");
 			} catch (PythonExecutionException e){
 				if (!Utils.run("isinstance", e.getException(), stype).truthValue()){
 					throw e;
