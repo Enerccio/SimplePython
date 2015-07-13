@@ -223,6 +223,12 @@ public class PythonInterpret extends PythonObject {
 			resolvePath += resolvePath.equals("") ? pythonBytecode.moduleName : "." + pythonBytecode.moduleName;
 			pythonImport(environment(), pythonBytecode.variable, resolvePath, null);
 			break;
+		case SWAP_STACK:
+			PythonObject top = stack.pop();
+			PythonObject bot = stack.pop();
+			stack.push(top);
+			stack.push(bot);
+			break;
 		}
 		
 	}

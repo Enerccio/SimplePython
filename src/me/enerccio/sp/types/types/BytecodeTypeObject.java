@@ -161,6 +161,10 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode.variable = ((StringObject) args.getObjects()[2]).value;
 				bytecode.newObject();
 				break;
+			case SWAP_STACK:
+				bytecode = new SwapStack();
+				bytecode.newObject();
+				break;
 			}
 			
 			return bytecode;
