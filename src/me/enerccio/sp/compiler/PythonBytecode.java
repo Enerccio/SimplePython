@@ -177,7 +177,13 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.SWAP_STACK;
 		}
 	}
-	
+
+	public static class UnpackSequence extends PythonBytecode {
+		{
+			bytecode = Bytecode.UNPACK_SEQUENCE;
+		}
+	}
+
 	@Override
 	public boolean truthValue() {
 		return true;
