@@ -4,14 +4,15 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.enerccio.sp.parser.pythonParser.ArglistContext;
-import me.enerccio.sp.parser.pythonParser.ArgumentContext;
-import me.enerccio.sp.parser.pythonParser.TrailerContext;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -108,17 +109,21 @@ public class PythonCompiler {
 			// AugAssign
 			if (rightHand.test().size() > 1)
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
-			compileAugAssign(leftHand, rightHand);
+			// TODO
 		} else {
-			List<TestContext> tl = new ArrayList<TestContext>();
-			System.err.println();
-			for (int i=1; i<expr.testlist().size(); i++){
-				System.err.println(expr.testlist(i).getText());
-				tl.addAll(expr.testlist(i).test());
+			int tlc = countActualTests(expr);
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+				cb.variable = TupleTypeObject.TUPLE_CALL;
 			}
-			System.err.println();
-			for (TestContext tc : tl){
-				System.err.println(tc.getText());
+			for (int i=1; i<expr.testlist().size(); i++){
+				List<TestContext> tlist = expr.testlist().get(i).test();
+				for (int j=0; j<tlist.size(); j++)
+					compile(tlist.get(j), bytecode);
+			}
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = tlc;
 			}
 			if (leftHand.test().size() > 1) {
 				// x,y,z = ...
@@ -135,30 +140,38 @@ public class PythonCompiler {
 		cb.value = NoneObject.NONE;
 	}
 
-	private void compileAugAssign(TestlistContext leftHand, TestlistContext rightHand) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void compileRightHand(TestlistContext rightHand, List<PythonBytecode> bytecode) {
-		if (rightHand.test().size() > 1){
-			compileAsTuple(rightHand, bytecode);
-		} else {
-			compile(rightHand.test(0), bytecode);
+	private int countActualTests(Expr_stmtContext expr) {
+		int exprc = 0;
+		for (int i=1; i<expr.testlist().size(); i++){
+			List<TestContext> tlist = expr.testlist().get(i).test();
+			for (int j=0; j<tlist.size(); j++){
+				TestContext tc = tlist.get(j);
+				
+				if (j != 0)
+					++exprc;
+				else if (i == 1)
+					++exprc;
+				else {
+					if (isType(ListmakerContext.class, tc))
+						continue;
+					if (isType(Testlist_compContext.class, tc))
+						continue;
+					++exprc;
+				}
+			}
 		}
+		return exprc;
 	}
-
-	private void compileAsTuple(TestlistContext tlc,
-			List<PythonBytecode> bytecode) {
-		// []
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-		cb.variable = TupleTypeObject.TUPLE_CALL;
-		// [getattr ]
-		for (TestContext t : tlc.test())
-			compile(t, bytecode);
-		// [getattr {n arguments} ]
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-		cb.argc = tlc.test().size();
+	
+	private boolean isType(Class<? extends ParserRuleContext> cls, ParserRuleContext rule) {
+		for (ParseTree x: rule.children) {
+			if (cls.isInstance(x))
+				return true;
+			if (x instanceof ParserRuleContext)
+				if (isType(cls, (ParserRuleContext)x))
+					return true;
+		}
+		return false;
 	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
@@ -259,7 +272,6 @@ public class PythonCompiler {
 	}
 
 	private void compile(TrailerContext tc, List<PythonBytecode> bytecode) {
-		// [left size]
 		if (tc.getText().startsWith("(")){
 			if (tc.arglist() == null){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
@@ -270,24 +282,44 @@ public class PythonCompiler {
 				cb.argc = argc;
 			}
 		} else if (tc.getText().startsWith("[")) {
-			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP));
+			compileSubscript(tc.arglist(), bytecode);
+		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 			cb.variable = "getattr";
 			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-			cb.variable = "__getitem__";
+			cb.value = new StringObject(tc.NAME().getText());
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 2;
-			if (tc.arglist() == null){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-				cb.argc = 0;
-			} else {
-				int argc = compileArguments(tc.arglist(), bytecode);
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-				cb.argc = argc;
+		}
+	}
+
+	private void compileSubscript(ParserRuleContext arglist,
+			List<PythonBytecode> bytecode) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+		cb.variable = "getattr";
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = new StringObject("__getitem__");
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = 2;
+		if (arglist == null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 0;
+		} else if (arglist instanceof ArglistContext) {
+			int argc = compileArguments((ArglistContext) arglist, bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = argc;
+		} else if (arglist instanceof ListmakerContext){
+			if (((ListmakerContext) arglist).list_for() != null)
+				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
+			int c = 0;
+			for (TestContext ac : ((ListmakerContext) arglist).test()){
+				compile(ac, bytecode);
+				++c;
 			}
-		} else {
-			
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = c;
 		}
 	}
 
@@ -350,12 +382,56 @@ public class PythonCompiler {
 		} else if (ctx.testlist1() != null){
 			// TODO
 		} else if (ctx.getText().startsWith("(")){
-			// TODO
+			if (isSubscript(ctx)){
+				if (ctx.testlist_comp() == null){
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+					cb.argc = 0;
+				} else {
+					if (ctx.testlist_comp().comp_for() != null)
+						throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
+					int c = 0;
+					for (TestContext ac : ctx.testlist_comp().test()){
+						compile(ac, bytecode);
+						++c;
+					}
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+					cb.argc = c;
+				}
+			} else {
+				// TODO
+			}
 		} else if (ctx.getText().startsWith("[")){
-			// TODO
+			if (isSubscript(ctx)){
+				compileSubscript(ctx.listmaker(), bytecode);
+			} else {
+				// TODO
+			}
 		} else if (ctx.getText().startsWith("{")){
 			// TODO
 		}
+	}
+
+	private boolean isSubscript(ParserRuleContext ctx) {
+		return isSubscript(ctx, ctx.getParent());
+	}
+
+	private boolean isSubscript(ParserRuleContext ctx, ParserRuleContext p) {
+		if (p == null)
+			return false;
+		if (p instanceof TestlistContext){
+			return compareDeep(ctx, ((TestlistContext)p).test(0));
+		}
+		return isSubscript(ctx, p.getParent());
+	}
+
+	private boolean compareDeep(ParserRuleContext ctx, ParserRuleContext t) {
+		if (ctx.equals(t))
+			return true;
+		for (ParseTree c : t.children){
+			if ((c instanceof ParserRuleContext) && compareDeep(ctx, (ParserRuleContext) c))
+				return true;
+		}
+		return false;
 	}
 
 	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {
