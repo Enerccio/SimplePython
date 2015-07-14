@@ -2,15 +2,18 @@ package me.enerccio.sp.compiler;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -20,6 +23,7 @@ public class PythonCompiler {
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
+	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict) {
 		stack.push();
@@ -33,11 +37,14 @@ public class PythonCompiler {
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT)); 
 		cb.dict = dict;
+		environments.add(dict);
+		
 		for (StmtContext sctx : fcx.stmt())
 			compileStatement(sctx, bytecode);
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT));
 		stack.pop();
+		environments.removeLast();
 		return bytecode;
 	}
 
@@ -51,8 +58,54 @@ public class PythonCompiler {
 
 	private void compileCompoundStatement(Compound_stmtContext cstmt,
 			List<PythonBytecode> bytecode) {
-		// TODO Auto-generated method stub
+		if (cstmt.funcdef() != null){
+			compileFunction(cstmt.funcdef(), bytecode);
+		}
+		// TODO
+	}
+
+	private void compileFunction(FuncdefContext funcdef,
+			List<PythonBytecode> bytecodeorig) {
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
 		
+		if (funcdef.docstring() != null)
+			Utils.putPublic(fnc, "__doc__", new StringObject(funcdef.docstring().DOCCOMMENT().getText()));
+		String functionName = funcdef.nname(0).getText();
+		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
+		
+		List<String> arguments = new ArrayList<String>();
+		for (int i=1; i<funcdef.nname().size(); i++){
+			arguments.add(funcdef.nname(i).getText());
+		}
+		
+		fnc.args = arguments;
+		if (funcdef.vararg() != null){
+			fnc.isVararg = true;
+			fnc.vararg = funcdef.vararg().nname().getText();
+		}
+		
+		doCompileFunction(funcdef.suite(), fnc.bytecode);
+	}
+
+	private void doCompileFunction(SuiteContext suite,
+			List<PythonBytecode> bytecode) {
+		
+		stack.push();
+		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		MapObject dict = new MapObject();
+		environments.add(dict);
+		for (MapObject d : environments){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT)); 
+			cb.dict = d;
+		}
+		
+		for (StmtContext c : suite.stmt())
+			compileStatement(c, bytecode);
+		
+
+		environments.removeLast();
+		stack.pop();
 	}
 
 	private void compileSimpleStatement(Simple_stmtContext sstmt,

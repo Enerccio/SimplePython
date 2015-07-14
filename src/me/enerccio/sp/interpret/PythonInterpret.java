@@ -13,6 +13,7 @@ import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
@@ -55,6 +56,8 @@ public class PythonInterpret extends PythonObject {
 	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 	private volatile int accessCount = 0;
+	private MapObject args = null;
+	private PythonObject returnee;
 	
 	public boolean isInterpretStoppable(){
 		return accessCount == 0;
@@ -182,8 +185,7 @@ public class PythonInterpret extends PythonObject {
 			currentEnvironment.pop();
 			PythonObject retVal = stack.pop();
 			currentFrame.removeLast();
-			if (currentFrame.size() != 0)
-				currentFrame.getLast().stack.add(retVal);
+			returnee = retVal;
 			return ExecutionResult.EOF;
 		case SAVE:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
@@ -260,6 +262,19 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case PUSH_LOCAL_CONTEXT:
 			currentContext.add(stack.pop());
+			break;
+		case RESOLVE_ARGS:
+			synchronized (this.args.backingMap){
+				for (PythonObject key : this.args.backingMap.keySet()){
+					environment().set((StringObject) key, this.args.backingMap.get(key), false, false);
+				}
+			}
+			break;
+		case ACCEPT_RETURN:
+			if (returnee == null)
+				stack.push(NoneObject.NONE);
+			else
+				stack.push(returnee);
 			break;
 		}
 		

@@ -163,11 +163,7 @@ docstring
 ;
 
 funcdef
-: (docstring NEWLINE)? 'def' nname '(' fpdef* vararg? ')' ':' suite
-;
-
-fpdef
-: nname
+: (docstring NEWLINE)? 'def' nname '(' nname* vararg? ')' ':' suite
 ;
 
 vararg
@@ -318,7 +314,7 @@ old_test
 ;
 
 old_lambdef
-: 'lambda' fpdef* vararg? ':' suite
+: 'lambda' nname* vararg? ':' suite
 ;
 
 test
@@ -393,7 +389,7 @@ testlist_comp
 ;
 
 lambdef
-: 'lambda' fpdef* vararg? ':' suite
+: 'lambda' nname* vararg? ':' suite
 ;
 
 trailer

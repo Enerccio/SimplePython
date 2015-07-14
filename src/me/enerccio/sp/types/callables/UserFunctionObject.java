@@ -1,5 +1,9 @@
 package me.enerccio.sp.types.callables;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -7,8 +11,11 @@ import me.enerccio.sp.utils.Utils;
 
 public class UserFunctionObject extends PythonObject {
 	private static final long serialVersionUID = 22L;
-	public static final String GLOBALS = "__globals__";
-	public static final String CLOSURE = "__closure__";
+	
+	public List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+	public List<String> args;
+	public boolean isVararg;
+	public String vararg;
 	
 	public UserFunctionObject(){
 		
@@ -28,21 +35,13 @@ public class UserFunctionObject extends PythonObject {
 
 	public PythonObject call(TupleObject args) {
 		// TODO
+		
 		return NoneObject.NONE; // returns immediately
 	}
 
 	@Override
-	public PythonObject set(String key, PythonObject localContext,
-			PythonObject value) {
-		if (key.equals(GLOBALS) || key.equals(CLOSURE))
-			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
-		return super.set(key, localContext, value);
-	}
-
-	@Override
 	protected String doToString() {
-		return "<function >"; // TODO
+		return "<function " + fields.get("__name__").object + ">"; // TODO
 	}
 
 	@Override

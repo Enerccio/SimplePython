@@ -246,6 +246,8 @@ public class Utils {
 		// [ callable, python object, python object* ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
 		b.argc = args.len() + 1;
+		// []
+		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]
 		l.add(Bytecode.makeBytecode(Bytecode.RETURN));
 		// []
@@ -254,5 +256,9 @@ public class Utils {
 
 	public static boolean equals(PythonObject a, PythonObject b) {
 		return a.equals(b);
+	}
+
+	public static PythonObject list2tuple(List<? extends PythonObject> list) {
+		return new TupleObject(list.toArray(new PythonObject[list.size()]));
 	}
 }

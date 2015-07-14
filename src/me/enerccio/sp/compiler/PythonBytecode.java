@@ -34,6 +34,12 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class AcceptReturn extends PythonBytecode {
+		{
+			bytecode = Bytecode.ACCEPT_RETURN;
+		}
+	}
+	
 	public static class PushEnvironment extends PythonBytecode {
 		{
 			bytecode = Bytecode.PUSH_ENVIRONMENT;
@@ -187,6 +193,12 @@ public class PythonBytecode extends PythonObject {
 	public static class UnpackSequence extends PythonBytecode {
 		{
 			bytecode = Bytecode.UNPACK_SEQUENCE;
+		}
+	}
+	
+	public static class ResolveArgs extends PythonBytecode {
+		{
+			bytecode = Bytecode.RESOLVE_ARGS;
 		}
 	}
 

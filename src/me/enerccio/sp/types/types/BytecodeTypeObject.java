@@ -175,6 +175,14 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode.newObject();
 				bytecode.value = args.getObjects()[1];
 				break;
+			case RESOLVE_ARGS:
+				bytecode = new ResolveArgs();
+				bytecode.newObject();
+				break;
+			case ACCEPT_RETURN:
+				bytecode = new AcceptReturn();
+				bytecode.newObject();
+				break;
 			}
 			
 			return bytecode;
