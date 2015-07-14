@@ -2,3 +2,4 @@ def anca(a):
 	y = a
 
 x = anca(0)
+print x

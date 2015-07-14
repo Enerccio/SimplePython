@@ -197,8 +197,16 @@ augassign
 ;
 
 print_stmt
-: 'print' ( (test (',' test)* (',')?)? |
-                      '>>' test ((',' test)+ (',')?)?)
+: 'print' ( (test (',' test)* endp?)? |
+                      push test ((',' test)+ endp?)?)
+;
+
+push
+: '>>'
+;
+
+endp
+: (',')
 ;
 
 del_stmt

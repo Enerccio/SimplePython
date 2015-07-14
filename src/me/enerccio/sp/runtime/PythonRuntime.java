@@ -37,6 +37,7 @@ public class PythonRuntime {
 	public static final String GETATTR = "getattr";
 	public static final String ISINSTANCE = "isinstance";
 	public static final String PRINT_JAVA = "print_java";
+	public static final String PRINT_JAVA_EOL = "print_java_eol";
 	
 	private PythonRuntime(){
 		
@@ -159,6 +160,7 @@ public class PythonRuntime {
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
+					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -184,8 +186,13 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject print_java(PythonObject a){
-		System.out.println(a);
-		return a;
+		System.out.print(a);
+		return NoneObject.NONE;
+	}
+	
+	public static PythonObject print_java_eol(){
+		System.out.println();
+		return NoneObject.NONE;
 	}
 	
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){

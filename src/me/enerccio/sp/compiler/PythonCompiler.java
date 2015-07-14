@@ -8,8 +8,10 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
@@ -160,6 +162,32 @@ public class PythonCompiler {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP));
 		}
 			
+		if (smstmt.print_stmt() != null){
+			compile(smstmt.print_stmt(), bytecode);
+		}
+	}
+
+	private void compile(Print_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.push() != null){
+			// TODO
+		} else {
+			boolean eol = (ctx.endp() == null);
+			for (TestContext tc : ctx.test()){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+				cb.variable = PythonRuntime.PRINT_JAVA;
+				compile(tc, bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
+			
+			if (eol){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+				cb.variable = PythonRuntime.PRINT_JAVA_EOL;
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 0;
+			}
+		}
 	}
 
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {
