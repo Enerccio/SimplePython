@@ -123,6 +123,7 @@ public class PythonInterpret extends PythonObject {
 				return ExecutionResult.FINISHED;
 			if (o.pc >= o.bytecode.size()){
 				currentFrame.removeLast();
+				returnee = null;
 				return ExecutionResult.EOF;
 			}
 			return executeSingleInstruction(o, o.bytecode.get(o.pc++));
@@ -153,7 +154,7 @@ public class PythonInterpret extends PythonObject {
 			for (int i=args.length-1; i>=0; i--)
 				args[i] = stack.pop();
 			PythonObject runnable = stack.pop();
-			stack.push(execute(runnable, args));
+			returnee = execute(runnable, args);
 			break;
 		case GOTO:
 			o.pc = pythonBytecode.idx;

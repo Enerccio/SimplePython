@@ -36,6 +36,7 @@ public class PythonRuntime {
 	public static final PythonRuntime runtime = new PythonRuntime();
 	public static final String GETATTR = "getattr";
 	public static final String ISINSTANCE = "isinstance";
+	public static final String PRINT_JAVA = "print_java";
 	
 	private PythonRuntime(){
 		
@@ -157,6 +158,7 @@ public class PythonRuntime {
 					
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
+					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -179,6 +181,11 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject print_java(PythonObject a){
+		System.out.println(a);
+		return a;
 	}
 	
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){

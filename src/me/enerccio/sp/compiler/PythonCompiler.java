@@ -184,6 +184,7 @@ public class PythonCompiler {
 			if (tlc > 1){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = tlc;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 			if (leftHand.test().size() > 1) {
 				// x,y,z = ...
@@ -341,6 +342,7 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = argc;
 			}
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else if (tc.getText().startsWith("[")) {
 			compileSubscript(tc.arglist(), bytecode);
 		} else {
@@ -351,6 +353,7 @@ public class PythonCompiler {
 			cb.value = new StringObject(tc.NAME().getText());
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 2;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
 	}
 
@@ -363,13 +366,16 @@ public class PythonCompiler {
 		cb.value = new StringObject("__getitem__");
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 		cb.argc = 2;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		if (arglist == null){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else if (arglist instanceof ArglistContext) {
 			int argc = compileArguments((ArglistContext) arglist, bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = argc;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else if (arglist instanceof ListmakerContext){
 			if (((ListmakerContext) arglist).list_for() != null)
 				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
@@ -380,6 +386,7 @@ public class PythonCompiler {
 			}
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = c;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
 	}
 
@@ -457,6 +464,7 @@ public class PythonCompiler {
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 					cb.argc = c;
 				}
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			} else {
 				// TODO
 			}
