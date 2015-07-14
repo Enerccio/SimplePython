@@ -353,4 +353,8 @@ public class PythonInterpret extends PythonObject {
 	protected String doToString() {
 		return "<bound python interpret for thread 0x" + Long.toHexString(Thread.currentThread().getId()) + ">";
 	}
+
+	public void setArgs(MapObject a) {
+		args = a;
+	}
 }

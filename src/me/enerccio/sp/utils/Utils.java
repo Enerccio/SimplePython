@@ -4,6 +4,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -30,6 +32,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
@@ -260,5 +263,11 @@ public class Utils {
 
 	public static PythonObject list2tuple(List<? extends PythonObject> list) {
 		return new TupleObject(list.toArray(new PythonObject[list.size()]));
+	}
+
+	public static <T> List<T> reverse(List<T> l) {
+		List<T> tlist = new ArrayList<T>(l);
+		Collections.reverse(tlist);
+		return tlist;
 	}
 }

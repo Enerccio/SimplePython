@@ -1,1 +1,4 @@
-a = tuple(1, 2)[0], ValueError()
+def anca(a):
+	y = a
+
+x = anca(0)

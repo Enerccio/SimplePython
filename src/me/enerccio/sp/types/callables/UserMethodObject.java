@@ -39,7 +39,7 @@ public class UserMethodObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<method xxx of object " + fields.get(SELF).object + ">"; // TODO
+		return "<method " + fields.get(FUNC) + " of object " + fields.get(SELF).object + ">"; // TODO
 	}
 
 	@Override

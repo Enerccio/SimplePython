@@ -65,7 +65,7 @@ public class PythonCompiler {
 	}
 
 	private void compileFunction(FuncdefContext funcdef,
-			List<PythonBytecode> bytecodeorig) {
+			List<PythonBytecode> bytecode) {
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
 		
@@ -86,6 +86,12 @@ public class PythonCompiler {
 		}
 		
 		doCompileFunction(funcdef.suite(), fnc.bytecode);
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = fnc;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE));
+		cb.variable = functionName;
+		
 	}
 
 	private void doCompileFunction(SuiteContext suite,
@@ -95,10 +101,11 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
 		MapObject dict = new MapObject();
 		environments.add(dict);
-		for (MapObject d : environments){
+		for (MapObject d : Utils.reverse(environments)){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT)); 
 			cb.dict = d;
 		}
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS));
 		
 		for (StmtContext c : suite.stmt())
 			compileStatement(c, bytecode);
