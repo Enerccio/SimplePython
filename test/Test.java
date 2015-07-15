@@ -1,3 +1,4 @@
+import java.io.File;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -10,7 +11,7 @@ public class Test {
 	
 	public static void main(String[] args) throws Exception {
 		final PythonRuntime r = PythonRuntime.runtime;
-		r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + "\\bin"));
+		r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 		
 		PythonInterpret i = PythonInterpret.interpret.get();
 		r.getRoot("x");

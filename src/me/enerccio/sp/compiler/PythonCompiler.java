@@ -72,7 +72,7 @@ public class PythonCompiler {
 		fnc.newObject();
 		
 		if (funcdef.docstring() != null)
-			Utils.putPublic(fnc, "__doc__", new StringObject(funcdef.docstring().DOCCOMMENT().getText()));
+			Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
 		String functionName = funcdef.nname(0).getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
 		
@@ -94,6 +94,10 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE));
 		cb.variable = functionName;
 		
+	}
+
+	private String doGetLongString(String text) {
+		return text.substring(3, text.length()-4);
 	}
 
 	private void doCompileFunction(SuiteContext suite,

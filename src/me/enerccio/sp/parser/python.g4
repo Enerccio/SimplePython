@@ -159,7 +159,7 @@ decorated
 ;
 
 docstring
-: DOCCOMMENT
+: LONG_STRING
 ;
 
 funcdef
@@ -557,10 +557,6 @@ NAME
 /// stringprefix    ::=  "r" | "R"
 stringLiterar
  : ( SHORT_STRING | LONG_STRING )
- ;
- 
-DOCCOMMENT
- : LONG_STRING
  ;
 
 /// decimalinteger ::=  nonzerodigit digit* | "0"+
