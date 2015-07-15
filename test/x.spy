@@ -1,5 +1,15 @@
 def anca(a):
-	y = a
+	y = "mara"
 
 x = anca(0)
-print x
+print "xxxx ",
+print anca
+print anca.__name__
+print """
+ aaaaa
+   vvvvv
+      vvvvv
+         cccc
+           dddd
+   """
+   

@@ -473,9 +473,20 @@ public class PythonCompiler {
 				// TODO
 			}			
 		} else if (ctx.string().size() != 0){
-			// TODO
-		} else if (ctx.testlist1() != null){
-			// TODO
+			StringBuilder bd = new StringBuilder();
+			for (StringContext s : ctx.string()){
+				if (s.stringLiterar().SHORT_STRING() != null){
+					String ss = s.getText();
+					ss = ss.substring(1, ss.length()-1);
+					bd.append(ss);
+				} else {
+					String ss = s.getText();
+					ss = ss.substring(3, ss.length()-4);
+					bd.append(ss);
+				}
+			}
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+			cb.value = new StringObject(bd.toString());
 		} else if (ctx.getText().startsWith("(")){
 			if (isSubscript(ctx)){
 				if (ctx.testlist_comp() == null){
@@ -624,8 +635,6 @@ public class PythonCompiler {
 	}
 
 	private void compileAssignment(AtomContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.testlist1() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to repr");
 		if (ctx.listmaker() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
 		if (ctx.dictorsetmaker() != null)

@@ -384,7 +384,6 @@ power
 atom: ('(' testlist_comp? ')' |
        '[' listmaker? ']' |
        '{' dictorsetmaker? '}' |
-       '`' testlist1 '`' |
        nname | number | string+)
 ;
 
@@ -458,7 +457,7 @@ testlist1
 ;
 
 string
- : STRING_LITERAL
+ : stringLiterar
  ;
 
 number
@@ -556,18 +555,12 @@ NAME
 
 /// stringliteral   ::=  [stringprefix](shortstring | longstring)
 /// stringprefix    ::=  "r" | "R"
-STRING_LITERAL
- : [uU]? [rR]? ( SHORT_STRING | LONG_STRING )
+stringLiterar
+ : ( SHORT_STRING | LONG_STRING )
  ;
  
 DOCCOMMENT
  : LONG_STRING
- ;
-
-/// bytesliteral   ::=  bytesprefix(shortbytes | longbytes)
-/// bytesprefix    ::=  "b" | "B" | "br" | "Br" | "bR" | "BR"
-BYTES_LITERAL
- : [bB] [rR]? ( SHORT_BYTES | LONG_BYTES )
  ;
 
 /// decimalinteger ::=  nonzerodigit digit* | "0"+
@@ -664,13 +657,13 @@ UNKNOWN_CHAR
 /// shortstring     ::=  "'" shortstringitem* "'" | '"' shortstringitem* '"'
 /// shortstringitem ::=  shortstringchar | stringescapeseq
 /// shortstringchar ::=  <any source character except "\" or newline or the quote>
-fragment SHORT_STRING
+SHORT_STRING
  : '\'' ( STRING_ESCAPE_SEQ | ~[\\\r\n'] )* '\''
  | '"' ( STRING_ESCAPE_SEQ | ~[\\\r\n"] )* '"'
  ;
 
 /// longstring      ::=  "'''" longstringitem* "'''" | '"""' longstringitem* '"""'
-fragment LONG_STRING
+LONG_STRING
  : '\'\'\'' LONG_STRING_ITEM*? '\'\'\''
  | '"""' LONG_STRING_ITEM*? '"""'
  ;
