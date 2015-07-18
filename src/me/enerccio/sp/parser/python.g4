@@ -463,7 +463,20 @@ string
 number
  : integer
  | FLOAT_NUMBER
- | IMAG_NUMBER
+ | imagNumber
+ ;
+ 
+/// imagnumber ::=  (floatnumber | intpart) ("j" | "J")
+imagNumber
+ : IMAG_NUMBER IMAG_SYM
+ ;
+ 
+ IMAG_NUMBER
+ : ( FLOAT_NUMBER | INT_PART )
+ ;
+ 
+ IMAG_SYM
+ : [jJ]
  ;
 
 /// integer        ::=  decimalinteger | octinteger | hexinteger | bininteger
@@ -584,11 +597,6 @@ BIN_INTEGER
 FLOAT_NUMBER
  : POINT_FLOAT
  | EXPONENT_FLOAT
- ;
-
-/// imagnumber ::=  (floatnumber | intpart) ("j" | "J")
-IMAG_NUMBER
- : ( FLOAT_NUMBER | INT_PART ) [jJ]
  ;
 
 DOT : '.';

@@ -12,6 +12,7 @@ import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
@@ -474,7 +475,11 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 				cb.value = r;
 			} else {
-				// TODO
+				ImagNumberContext icx = nb.imagNumber();
+				String n = icx.IMAG_NUMBER().getText();
+				ComplexObject c = new ComplexObject(0, Double.parseDouble(n));
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+				cb.value = c;
 			}			
 		} else if (ctx.string().size() != 0){
 			StringBuilder bd = new StringBuilder();
