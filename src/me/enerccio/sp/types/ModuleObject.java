@@ -21,6 +21,8 @@ public class ModuleObject extends PythonObject {
 
 	public ModuleObject(MapObject globals, ModuleProvider provider) {
 		this.provider = provider;
+
+		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
 		Utils.putPublic(this, __DICT__, globals);
 		
 		try {
@@ -33,8 +35,6 @@ public class ModuleObject extends PythonObject {
 			e.printStackTrace();
 			throw Utils.throwException("ParserError", "Failed to parse source code of " + provider);
 		}
-		
-		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
 		globals.backingMap.put(new StringObject(__THISMODULE__), this);
 		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
 	}
