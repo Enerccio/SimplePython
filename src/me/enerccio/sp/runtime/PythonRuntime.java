@@ -12,6 +12,7 @@ import java.util.concurrent.CyclicBarrier;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -36,6 +37,7 @@ public class PythonRuntime {
 	
 	public static final PythonRuntime runtime = new PythonRuntime();
 	public static final String GETATTR = "getattr";
+	public static final String SETATTR = "setattr";
 	public static final String ISINSTANCE = "isinstance";
 	public static final String PRINT_JAVA = "print_java";
 	public static final String PRINT_JAVA_EOL = "print_java_eol";
@@ -159,6 +161,7 @@ public class PythonRuntime {
 					PythonObject o;
 					
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
+					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
@@ -233,6 +236,7 @@ public class PythonRuntime {
 		}
 		
 	};
+	
 	public static PythonObject getattr(PythonObject o, String attribute){
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
@@ -246,6 +250,17 @@ public class PythonRuntime {
 			value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
 		}
 		return value;
+	}
+	
+	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
+		if (o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext()) != null){
+			return PythonInterpret.interpret.get().execute(false, o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext())
+					, new StringObject(attribute), v);
+		}
+		if (o.get(attribute, PythonInterpret.interpret.get().getLocalContext()) == null)
+			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC);
+		o.set(attribute, PythonInterpret.interpret.get().getLocalContext(), v);
+		return NoneObject.NONE;
 	}
 	
 	private void addExceptions(MapObject globals) {
