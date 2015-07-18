@@ -326,42 +326,100 @@ public class PythonCompiler {
 	private void compile(Xor_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.and_expr(0), bytecode);
-			putGetAttr(Arithmetics.__XOR__, bytecode);
+			String operation = Arithmetics.__XOR__;
+			for (int i=1; i<ctx.and_expr().size(); i++){
+				putGetAttr(operation, bytecode);
+				compile(ctx.and_expr(i), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
 		} else 
 			compile(ctx.and_expr(0), bytecode);
 	}
 
+
 	private void compile(And_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.shift_expr(0), bytecode);
+			String operation = Arithmetics.__AND__;
+			for (int i=1; i<ctx.shift_expr().size(); i++){
+				putGetAttr(operation, bytecode);
+				compile(ctx.shift_expr(i), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
 		} else 
 			compile(ctx.shift_expr(0), bytecode);
 	}
 	
 	private void compile(Shift_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.arith_expr(0), bytecode);
+			for (int i=1; i<ctx.getChildCount(); i+=2){
+				String operation = ctx.getChild(i).getText().equals("<<") ? Arithmetics.__LSHIFT__ : Arithmetics.__RSHIFT__;
+				putGetAttr(operation, bytecode);
+				compile(ctx.arith_expr(i+1), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
 		} else 
 			compile(ctx.arith_expr(0), bytecode);
 	}
 	
 	private void compile(Arith_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.term(0), bytecode);
+			for (int i=1; i<ctx.getChildCount(); i+=2){
+				String operation = ctx.getChild(i).getText().equals("+") ? Arithmetics.__ADD__ : Arithmetics.__SUB__;
+				putGetAttr(operation, bytecode);
+				compile(ctx.term(i+1), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
 		} else 
 			compile(ctx.term(0), bytecode);
 	}
 	
 	private void compile(TermContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.factor(0), bytecode);
+			for (int i=1; i<ctx.getChildCount(); i+=2){
+				String operation = ctx.getChild(i).getText();
+				if (operation.equals("*"))
+					operation = Arithmetics.__MUL__;
+				if (operation.equals("/"))
+					operation = Arithmetics.__DIV__;
+				if (operation.equals("%"))
+					operation = Arithmetics.__MOD__;
+				putGetAttr(operation, bytecode);
+				compile(ctx.factor(i+1), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+			}
 		} else 
 			compile(ctx.factor(0), bytecode);
 	}
 	
 	private void compile(FactorContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.factor() != null){
-			// TODO
+			if (ctx.getText().startsWith("~")){
+				putGetAttr(Arithmetics.__NOT__, bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 0;
+				return;
+			}
+			
+			String operation = null;
+			if (ctx.getText().startsWith("+"))
+				operation = Arithmetics.__ADD__;
+			if (ctx.getText().startsWith("-"))
+				operation = Arithmetics.__SUB__;
+			putGetAttr(operation, bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+			cb.value = new IntObject(0);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 1;
+			compile(ctx.factor(), bytecode);
 		} else 
 			compile(ctx.power(), bytecode);
 	}
@@ -374,7 +432,11 @@ public class PythonCompiler {
 			}
 		}
 		if (ctx.factor() != null){
-			// TODO
+			String operation = Arithmetics.__POW__;
+			putGetAttr(operation, bytecode);
+			compile(ctx.factor(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 1;
 		}
 	}
 
@@ -474,9 +536,8 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 				cb.value = r;
 			} else {
-				ImagNumberContext icx = nb.imagNumber();
-				String n = icx.IMAG_NUMBER().getText();
-				ComplexObject c = new ComplexObject(0, Double.parseDouble(n));
+				String n = nb.IMAG_NUMBER().getText();
+				ComplexObject c = new ComplexObject(0, Double.parseDouble(n.substring(0, n.length()-1)));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 				cb.value = c;
 			}			

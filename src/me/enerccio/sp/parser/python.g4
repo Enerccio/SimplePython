@@ -463,20 +463,12 @@ string
 number
  : integer
  | FLOAT_NUMBER
- | imagNumber
+ | IMAG_NUMBER
  ;
  
 /// imagnumber ::=  (floatnumber | intpart) ("j" | "J")
-imagNumber
- : IMAG_NUMBER IMAG_SYM
- ;
- 
- IMAG_NUMBER
- : ( FLOAT_NUMBER | INT_PART )
- ;
- 
- IMAG_SYM
- : [jJ]
+IMAG_NUMBER
+ : ( FLOAT_NUMBER | INT_PART ) [jJ]
  ;
 
 /// integer        ::=  decimalinteger | octinteger | hexinteger | bininteger
