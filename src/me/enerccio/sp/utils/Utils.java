@@ -215,9 +215,15 @@ public class Utils {
 		if (!(idx instanceof IntObject))
 			throw throwException("TypeError", "Index must be int");
 		int i = ((IntObject)idx).intValue();
-		if (i >= o.len() || i<0)
-			throw  throwException("IndexError", "Incorrect index, expected <0, " + o.len() + "), got " + i);
-		return o.valueAt(i);
+		if (i >= o.len() || i<-(o.len()))
+			throw  throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
+		return o.valueAt(morphAround(i, o.len()));
+	}
+
+	public static int morphAround(int i, int len) {
+		if (i<0)
+			return len-(Math.abs(i));
+		return i;
 	}
 
 	public static List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {

@@ -62,4 +62,22 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	public PythonObject valueAt(int idx) {
 		return objects.get(idx);
 	}
+
+	@Override
+	public PythonObject set(PythonObject key, PythonObject value) {
+		
+		if (key instanceof IntObject){
+			int i = ((IntObject)key).intValue();
+			if (i >= len() || i<-(len()))
+				throw Utils.throwException("IndexError", "Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+			int idx = Utils.morphAround(i, len());
+			objects.set(idx, value);
+		} else if (key instanceof SliceObject){
+			
+		} else {
+			throw Utils.throwException("TypeError", "Key must be int or slice");
+		}
+		
+		return this;
+	}
 }
