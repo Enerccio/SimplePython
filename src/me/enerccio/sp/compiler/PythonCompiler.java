@@ -4,13 +4,16 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import me.enerccio.sp.parser.pythonParser.ListmakerContext;
 import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.SubscriptContext;
 import me.enerccio.sp.parser.pythonParser.SuiteContext;
+import me.enerccio.sp.parser.pythonParser.Testlist_compContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -23,6 +26,7 @@ import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
@@ -32,6 +36,7 @@ public class PythonCompiler {
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
 	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
+	private Stack<Boolean> subscript = new Stack<Boolean>();
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		stack.push();
@@ -186,7 +191,9 @@ public class PythonCompiler {
 			for (TestContext tc : ctx.test()){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 				cb.variable = PythonRuntime.PRINT_JAVA;
+				subscript.push(false);
 				compile(tc, bytecode);
+				subscript.pop();
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
 			}
@@ -216,9 +223,13 @@ public class PythonCompiler {
 			}
 			for (int i=1; i<expr.testlist().size(); i++){
 				List<TestContext> tlist = expr.testlist().get(i).test();
-				for (int j=0; j<tlist.size(); j++)
+				for (int j=0; j<tlist.size(); j++){
+					subscript.push(i != 1 && j == 0);
 					compile(tlist.get(j), bytecode);
+					subscript.pop();
+				}
 			}
+			
 			if (tlc > 1){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = tlc;
@@ -494,7 +505,9 @@ public class PythonCompiler {
 		} else if (arglist instanceof ListmakerContext){
 			if (((ListmakerContext) arglist).list_for() != null)
 				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
+			subscript.push(false);
 			compile(((ListmakerContext) arglist).test(0), bytecode);
+			subscript.pop();
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
@@ -523,6 +536,7 @@ public class PythonCompiler {
 			return;
 		}
 		
+		subscript.push(false);
 		if (s.stest() != null){
 			compile(s.stest().test(), bytecode);
 		} else {
@@ -563,6 +577,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 3;
 		}
+		subscript.pop();
 	}
 
 	private int compileArguments(ArglistContext arglist,
@@ -570,7 +585,9 @@ public class PythonCompiler {
 		for (ArgumentContext ac : arglist.argument())
 			compile(ac, bytecode);
 		if (arglist.test() != null){
+			subscript.push(false);
 			compile(arglist.test(), bytecode);
+			subscript.pop();
 			return -(arglist.argument().size() + 1);
 		}
 		return arglist.argument().size();
@@ -579,7 +596,9 @@ public class PythonCompiler {
 	private void compile(ArgumentContext ac, List<PythonBytecode> bytecode) {
 		if (ac.test().size() == 1){
 			if (ac.comp_for() == null){
+				subscript.push(false);
 				compile(ac.test(0), bytecode);
+				subscript.pop();
 			} else {
 				// TODO
 			}
@@ -650,49 +669,66 @@ public class PythonCompiler {
 					if (ctx.testlist_comp().comp_for() != null)
 						throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
 					int c = 0;
+					subscript.push(false);
 					for (TestContext ac : ctx.testlist_comp().test()){
 						compile(ac, bytecode);
 						++c;
 					}
+					subscript.pop();
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 					cb.argc = c;
 				}
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			} else {
-				// TODO
+				compile(ctx.testlist_comp(), bytecode);
 			}
 		} else if (ctx.getText().startsWith("[")){
 			if (isSubscript(ctx)){
 				compileSubscript(ctx.listmaker(), bytecode);
 			} else {
-				// TODO
+				compile(ctx.listmaker(), bytecode);
 			}
 		} else if (ctx.getText().startsWith("{")){
 			// TODO
 		}
 	}
 
+	private void compile(Testlist_compContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.comp_for() != null){
+			// TODO
+		} else {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			cb.variable = TupleTypeObject.TUPLE_CALL;
+			subscript.add(false);
+			for (TestContext t : ctx.test())
+				compile(t, bytecode);
+			subscript.pop();
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = ctx.test().size();
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		}
+	}
+
+	private void compile(ListmakerContext listmaker,
+			List<PythonBytecode> bytecode) {
+		if (listmaker.list_for() != null){
+			// TODO
+		} else {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			cb.variable = ListTypeObject.LIST_CALL;
+			subscript.add(false);
+			for (TestContext t : listmaker.test())
+				compile(t, bytecode);
+			subscript.pop();
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = listmaker.test().size();
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		}
+	}
+
 	private boolean isSubscript(ParserRuleContext ctx) {
-		return isSubscript(ctx, ctx.getParent());
-	}
-
-	private boolean isSubscript(ParserRuleContext ctx, ParserRuleContext p) {
-		if (p == null)
-			return false;
-		if (p instanceof TestlistContext){
-			return compareDeep(ctx, ((TestlistContext)p).test(0));
-		}
-		return isSubscript(ctx, p.getParent());
-	}
-
-	private boolean compareDeep(ParserRuleContext ctx, ParserRuleContext t) {
-		if (ctx.equals(t))
-			return true;
-		for (ParseTree c : t.children){
-			if ((c instanceof ParserRuleContext) && compareDeep(ctx, (ParserRuleContext) c))
-				return true;
-		}
-		return false;
+		return subscript.peek();
 	}
 
 	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {

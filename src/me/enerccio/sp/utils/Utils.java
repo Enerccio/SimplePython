@@ -195,6 +195,7 @@ public class Utils {
 		lexer.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
 		CommonTokenStream stream = new CommonTokenStream(lexer);
 		pythonParser parser = new pythonParser(stream);
+		
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
 		return parser;

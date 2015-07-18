@@ -34,7 +34,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 
 	@Override
 	public int hashCode(){
-		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+		return super.hashCode();
 	}
 
 	@Override
