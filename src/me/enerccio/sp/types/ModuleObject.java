@@ -27,7 +27,7 @@ public class ModuleObject extends PythonObject {
 			pythonParser p = Utils.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx, globals);
+				frame = new PythonCompiler().doCompile(fcx, globals, this);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

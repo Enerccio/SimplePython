@@ -62,6 +62,11 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.PUSH_DICT;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), dict);
+		}
 	}
 	
 	public static class Return extends PythonBytecode {
@@ -91,11 +96,21 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.CALL;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
 	}
 	
 	public static class Goto extends PythonBytecode {
 		{
 			bytecode = Bytecode.GOTO;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
 		}
 	}
 	
@@ -103,11 +118,21 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.JUMPIFTRUE;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
 	}
 	
 	public static class JumpIfFalse extends PythonBytecode {
 		{
 			bytecode = Bytecode.JUMPIFFALSE;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
 		}
 	}
 	

@@ -13,6 +13,7 @@ import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
+import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -29,14 +30,14 @@ public class PythonCompiler {
 	private VariableStack stack = new VariableStack();
 	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
 	
-	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict) {
+	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		stack.push();
 		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		// create new environment
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
 		// context
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-		cb.value = NoneObject.NONE;
+		cb.value = m;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT)); 
