@@ -157,7 +157,7 @@ public class PythonInterpret extends PythonObject {
 		case PUSH_ENVIRONMENT:
 			currentEnvironment.push(new EnvironmentObject());
 			break;
-		case CALL:
+		case CALL: {
 			int argl = pythonBytecode.argc >= 0 ? pythonBytecode.argc : -pythonBytecode.argc;
 			boolean va = false;
 			if (pythonBytecode.argc < 0)
@@ -183,6 +183,17 @@ public class PythonInterpret extends PythonObject {
 			
 			returnee = execute(true, runnable, args);
 			break;
+		}
+		case RCALL: {
+			PythonObject[] args = new PythonObject[pythonBytecode.argc];
+			
+			for (int i=0; i<args.length; i++)
+				args[i] = stack.pop();
+			PythonObject runnable = stack.pop();
+			
+			returnee = execute(true, runnable, args);
+			break;
+		}
 		case GOTO:
 			o.pc = pythonBytecode.idx;
 			break;

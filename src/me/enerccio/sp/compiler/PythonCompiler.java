@@ -209,32 +209,34 @@ public class PythonCompiler {
 
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {
 		TestlistContext leftHand = expr.testlist(0);
-		TestlistContext rightHand = expr.testlist(1);
 		if (expr.augassignexp() != null) {
 			// AugAssign
-			if (rightHand.test().size() > 1)
+			if (leftHand.test().size() > 1)
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
 			// TODO
+			// Bytecode.makeBytecode(
+			compileRightHand(expr.testlist(), 0, bytecode);
+			List<TestlistContext> l = new ArrayList<>();
+			if (expr.augassignexp().augassign().getText().equals("+="))
+				putGetAttr(Arithmetics.__ADD__, bytecode);
+			else if (expr.augassignexp().augassign().getText().equals("-="))
+				putGetAttr(Arithmetics.__SUB__, bytecode);
+			else if (expr.augassignexp().augassign().getText().equals("*="))
+				putGetAttr(Arithmetics.__MUL__, bytecode);
+			else if (expr.augassignexp().augassign().getText().equals("/="))
+				putGetAttr(Arithmetics.__DIV__, bytecode);
+			else if (expr.augassignexp().augassign().getText().equals("%="))
+				putGetAttr(Arithmetics.__MOD__, bytecode);
+			else
+				throw Utils.throwException("SyntaxError", "illegal augmented assignment");
+			l.add(expr.augassignexp().testlist());
+			compileRightHand(l, 0, bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 2;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
-			int tlc = countActualTests(expr);
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-				cb.variable = TupleTypeObject.TUPLE_CALL;
-			}
-			for (int i=1; i<expr.testlist().size(); i++){
-				List<TestContext> tlist = expr.testlist().get(i).test();
-				for (int j=0; j<tlist.size(); j++){
-					subscript.push(i != 1 && j == 0);
-					compile(tlist.get(j), bytecode);
-					subscript.pop();
-				}
-			}
-			
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-				cb.argc = tlc;
-				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-			}
+			compileRightHand(expr.testlist(), 1, bytecode);
 			if (leftHand.test().size() > 1) {
 				// x,y,z = ...
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
@@ -250,10 +252,36 @@ public class PythonCompiler {
 		cb.value = NoneObject.NONE;
 	}
 
-	private int countActualTests(Expr_stmtContext expr) {
+	/** 
+	 * Compiles right side of assignment, leaving value of right hand on top of stack
+	 * Offset can be used to skip left-side test.
+	 */
+	private void compileRightHand(List<TestlistContext> testlist, int offset, List<PythonBytecode> bytecode) {
+		int tlc = countActualTests(testlist, offset);
+		if (tlc > 1){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			cb.variable = TupleTypeObject.TUPLE_CALL;
+		}
+		for (int i=offset; i<testlist.size(); i++){
+			List<TestContext> tlist = testlist.get(i).test();
+			for (int j=0; j<tlist.size(); j++){
+				subscript.push(i != 1 && j == 0);
+				compile(tlist.get(j), bytecode);
+				subscript.pop();
+			}
+		}
+		
+		if (tlc > 1){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = tlc;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		}
+	}
+
+	private int countActualTests(List<TestlistContext> testlist, int offset) {
 		int exprc = 0;
-		for (int i=1; i<expr.testlist().size(); i++){
-			List<TestContext> tlist = expr.testlist().get(i).test();
+		for (int i=offset; i<testlist.size(); i++){
+			List<TestContext> tlist = testlist.get(i).test();
 			for (int j=0; j<tlist.size(); j++){
 				TestContext tc = tlist.get(j);
 				
@@ -820,13 +848,69 @@ public class PythonCompiler {
 	}
 
 	private void compileAssignment(PowerContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.trailer().size() > 0)
-			throw Utils.throwException("SyntaxError", "can't assign to function call");
 		if (ctx.factor() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to operator");
-		compileAssignment(ctx.atom(), bytecode);
+		if (ctx.trailer().size() > 0)
+			compileTrailers(ctx.atom(), ctx.trailer(), 0, bytecode);
+		else
+			compileAssignment(ctx.atom(), bytecode);
 	}
 
+	private void compileTrailers(AtomContext atom, List<TrailerContext> trailers, int offset, List<PythonBytecode> bytecode) {
+		if (offset == trailers.size() - 1) {
+			// Last trailer - set item
+			if (trailers.size() == 1) {
+				// Last trailer is also first one
+				compile(atom, bytecode);
+			}
+			TrailerContext t = trailers.get(offset);
+			if (t.arglist() != null) {
+				// ... xyz(something)
+				throw Utils.throwException("SyntaxError", "can't assign to function call");
+			} else if (t.subscriptlist() != null) {
+				// ... xyz[something]
+				if (t.subscriptlist().subscript().size() > 1)
+					throw Utils.throwException("SyntaxError", "list indices must be integers, not tuple");
+				SubscriptContext s = t.subscriptlist().subscript(0);
+				if (s.stest() != null) {
+					// xyz[a] = ...
+					putGetAttr("__setitem__", bytecode);
+					bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+					compile(s.stest().test(), bytecode);
+					bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+					cb.argc = 2;
+					bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+				} else {
+					// xyz[a:b] = ...
+					throw Utils.throwException("SyntaxError", "assignment to splice not yet implemented");
+				}
+			} else {
+				// ... xyz.something
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+				cb.value = new StringObject(t.NAME().toString());
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+				cb.variable = "setattr";
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL));
+				cb.argc = 3;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+				
+				System.out.println("A");
+			}
+		} else if (offset == 0) {
+			// First trailer - push atom on stack
+			compile(atom, bytecode);
+			compile(trailers.get(0), bytecode);
+			compileTrailers(atom, trailers, offset + 1, bytecode);
+		} else {
+			// Not last - still get item
+			compile(trailers.get(offset), bytecode);
+			compileTrailers(atom, trailers, offset + 1, bytecode);
+		}
+	}
+	
+	
 	private void compileAssignment(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.listmaker() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
