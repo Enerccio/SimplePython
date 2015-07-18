@@ -5,6 +5,7 @@ import java.util.List;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.utils.Utils;
 
 public class ListObject extends MutableSequenceObject implements SimpleIDAccessor  {
@@ -38,6 +39,10 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 
 	@Override
 	public PythonObject get(PythonObject key) {
+		if (key instanceof SliceObject){
+			// TODO
+			return null;
+		} else 
 		return Utils.doGet(this, key);
 	}
 

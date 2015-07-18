@@ -2,6 +2,7 @@ package me.enerccio.sp.types.sequences;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.utils.Utils;
 
 public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAccessor {
@@ -39,7 +40,11 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	@Override
 	public PythonObject get(PythonObject key) {
-		return Utils.doGet(this, key);
+		if (key instanceof SliceObject){
+			// TODO
+			return null;
+		} else 
+			return Utils.doGet(this, key);
 	}
 
 	@Override

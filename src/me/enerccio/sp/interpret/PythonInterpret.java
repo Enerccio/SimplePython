@@ -158,10 +158,29 @@ public class PythonInterpret extends PythonObject {
 			currentEnvironment.push(new EnvironmentObject());
 			break;
 		case CALL:
-			PythonObject[] args = new PythonObject[pythonBytecode.argc];
+			int argl = pythonBytecode.argc >= 0 ? pythonBytecode.argc : -pythonBytecode.argc;
+			boolean va = false;
+			if (pythonBytecode.argc < 0)
+				va = true;
+			PythonObject[] args = new PythonObject[argl];
+			
 			for (int i=args.length-1; i>=0; i--)
 				args[i] = stack.pop();
 			PythonObject runnable = stack.pop();
+			
+			if (va){
+				PythonObject[] va2 = args;
+				PythonObject tp = va2[va2.length-1];
+				if (!(tp instanceof TupleObject))
+					throw Utils.throwException("TypeError", "Last argument must be a 'tuple'");
+				PythonObject[] vra = ((TupleObject)tp).getObjects();
+				args = new PythonObject[va2.length - 1 + vra.length];
+				for (int i=0; i<va2.length; i++)
+					args[i] = va2[i];
+				for (int i=0; i<vra.length; i++)
+					args[i + va2.length] = va2[i];
+			}
+			
 			returnee = execute(true, runnable, args);
 			break;
 		case GOTO:
@@ -176,10 +195,16 @@ public class PythonInterpret extends PythonObject {
 				o.pc = pythonBytecode.idx;
 			break;
 		case LOAD:
-			stack.push(environment().get(new StringObject(pythonBytecode.variable), false, false));
+			PythonObject value = environment().get(new StringObject(pythonBytecode.variable), false, false);
+			if (value == null)
+				throw Utils.throwException("NameError", "name " + pythonBytecode.variable + " is not defined");
+			stack.push(value);
 			break;
 		case LOADGLOBAL:
-			stack.push(environment().get(new StringObject(pythonBytecode.variable), true, false));
+			value = environment().get(new StringObject(pythonBytecode.variable), true, false);
+			if (value == null)
+				throw Utils.throwException("NameError", "name " + pythonBytecode.variable + " is not defined");
+			stack.push(value);
 			break;
 		case POP:
 			stack.pop();

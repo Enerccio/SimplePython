@@ -370,7 +370,7 @@ arith_expr
 ;
 
 term
-: factor (('*'|'/'|'%'|'//') factor)*
+: factor (('*'|'/'|'%') factor)*
 ;
 
 factor
@@ -378,8 +378,8 @@ factor
 ;
 
 power
-: atom trailer* ('**' factor)?
-;
+: atom trailer* ('**' factor)? 
+; 
 
 atom: ('(' testlist_comp? ')' |
        '[' listmaker? ']' |
@@ -397,10 +397,30 @@ testlist_comp
 
 lambdef
 : 'lambda' nname? (',' nname)* (', ' vararg)? ':' suite
-;
+; 
 
 trailer
-: '(' arglist? ')' | '[' arglist? ']' | '.' NAME
+: '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME
+;
+
+subscriptlist
+: subscript (',' subscript)* ','?
+;
+
+ellipsis
+: '.' '.' '.'
+;
+
+subscript
+: ellipsis | stest | test? ':' test? sliceop?
+;
+
+stest
+: test
+;
+
+sliceop
+: ':' test?
 ;
 
 exprlist
@@ -421,7 +441,8 @@ classdef
 ;
 
 arglist
-: (argument ',')* (argument ','? argument)
+: (argument ',')* (argument ','?
+                         |'*' test )
 ;
 
 argument

@@ -26,6 +26,7 @@ import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
+import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
@@ -175,6 +176,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(ObjectTypeObject.OBJECT_CALL, o = new ObjectTypeObject());
 					o.newObject();
+					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
+					o.newObject();
 					
 					addExceptions(globals);
 					
@@ -258,6 +261,7 @@ public class PythonRuntime {
 		addException(globals, "ValueError", "Exception", true);
 		addException(globals, "AttributeError", "Exception", true);
 		addException(globals, "ImportError", "Exception", true);
+		addException(globals, "NameError", "Exception", true);
 		addException(globals, "ParseError", "Exception", true);
 		addException(globals, "IndexError", "Exception", true);
 		addException(globals, "StopIteration", "Exception", false);

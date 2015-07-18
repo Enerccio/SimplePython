@@ -1,6 +1,1 @@
-z = 1
-y = 2
-a = 3
-
-x = y + z + a
-print x
+a = x[1:]

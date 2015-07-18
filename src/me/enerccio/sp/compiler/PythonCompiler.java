@@ -9,18 +9,21 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
+import me.enerccio.sp.parser.pythonParser.SubscriptContext;
 import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.base.ComplexObject;
+import me.enerccio.sp.types.base.EllipsisObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -470,7 +473,7 @@ public class PythonCompiler {
 			}
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else if (tc.getText().startsWith("[")) {
-			compileSubscript(tc.arglist(), bytecode);
+			compileSubscript(tc.subscriptlist(), bytecode);
 		} else {			
 			putGetAttr(tc.NAME().getText(), bytecode);
 		}
@@ -491,14 +494,74 @@ public class PythonCompiler {
 		} else if (arglist instanceof ListmakerContext){
 			if (((ListmakerContext) arglist).list_for() != null)
 				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
-			int c = 0;
-			for (TestContext ac : ((ListmakerContext) arglist).test()){
-				compile(ac, bytecode);
-				++c;
-			}
+			compile(((ListmakerContext) arglist).test(0), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-			cb.argc = c;
+			cb.argc = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		} else if (arglist instanceof SubscriptlistContext){
+			SubscriptlistContext sc = (SubscriptlistContext) arglist;
+			int tlc = sc.subscript().size();
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+				cb.variable = TupleTypeObject.TUPLE_CALL;
+			}
+			for (SubscriptContext s : sc.subscript()){
+				compile(s, bytecode);
+			}
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = tlc;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+			}
+		}
+	}
+
+	private void compile(SubscriptContext s, List<PythonBytecode> bytecode) {
+		if (s.ellipsis() != null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+			cb.value = EllipsisObject.ELLIPSIS;
+			return;
+		}
+		
+		if (s.stest() != null){
+			compile(s.stest().test(), bytecode);
+		} else {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+			cb.variable = SliceTypeObject.SLICE_CALL;
+			if (s.test().size() == 0){
+				for (int i=0; i<3; i++){
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+				}
+			} else if (s.test().size() == 2){
+				if (s.sliceop() == null){
+					compile(s.test(0), bytecode);
+					compile(s.test(1), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+				} else {
+					compile(s.test(0), bytecode);
+					compile(s.test(1), bytecode);
+					compile(s.sliceop().test(), bytecode);
+				}
+			} else if (s.test().size() == 1){
+				if (s.getText().startsWith(":")){
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+					compile(s.test(0), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+				} else {
+					compile(s.test(0), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+					cb.value = NoneObject.NONE;
+				}
+			}
+			
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 3;
 		}
 	}
 
@@ -506,6 +569,10 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		for (ArgumentContext ac : arglist.argument())
 			compile(ac, bytecode);
+		if (arglist.test() != null){
+			compile(arglist.test(), bytecode);
+			return -(arglist.argument().size() + 1);
+		}
 		return arglist.argument().size();
 	}
 
