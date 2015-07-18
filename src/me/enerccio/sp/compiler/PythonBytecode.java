@@ -133,18 +133,7 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
-
-	public static class LoadNonLocal extends PythonBytecode {
-		{
-			bytecode = Bytecode.LOADNONLOCAL;
-		}
-		
-		@Override
-		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), variable);
-		}
-	}
-
+	
 	public static class Save extends PythonBytecode {
 		{
 			bytecode = Bytecode.SAVE;
@@ -166,18 +155,7 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
-	
-	public static class SaveNonLocal extends PythonBytecode {
-		{
-			bytecode = Bytecode.SAVENONLOCAL;
-		}
-		
-		@Override
-		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), variable);
-		}
-	}
-	
+
 	public static class PushExceptionHandler extends PythonBytecode {
 		{
 			bytecode = Bytecode.PUSH_EXCEPTION_HANDLER;

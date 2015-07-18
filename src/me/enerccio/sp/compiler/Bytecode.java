@@ -12,7 +12,7 @@ public enum Bytecode {
 	// control
 	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
 	// variables
-	LOAD(32), LOADGLOBAL(33), LOADNONLOCAL(34), SAVE(35), SAVEGLOBAL(36), SAVENONLOCAL(37), UNPACK_SEQUENCE(38),
+	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
 	PUSH_EXCEPTION_HANDLER(64), PUSH_FINALLY_HANDLER(65), POP_EXCEPTION_HANDLER(66), POP_FINALLY_HANDLER(67),
 	END_EXCEPTION(68),
@@ -73,10 +73,6 @@ public enum Bytecode {
 			bytecode = new LoadGlobal();
 			bytecode.newObject();
 			break;
-		case LOADNONLOCAL:
-			bytecode = new LoadNonLocal();
-			bytecode.newObject();
-			break;
 		case NOP:
 			bytecode = new Nop();
 			bytecode.newObject();
@@ -127,10 +123,6 @@ public enum Bytecode {
 			break;
 		case SAVEGLOBAL:
 			bytecode = new SaveGlobal();
-			bytecode.newObject();
-			break;
-		case SAVENONLOCAL:
-			bytecode = new SaveNonLocal();
 			bytecode.newObject();
 			break;
 		case IMPORT:

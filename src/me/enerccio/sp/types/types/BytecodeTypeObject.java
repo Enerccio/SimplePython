@@ -80,11 +80,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode.newObject();
 				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
 				break;
-			case LOADNONLOCAL:
-				bytecode = new LoadNonLocal();
-				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
-				break;
 			case NOP:
 				bytecode = new Nop();
 				bytecode.newObject();
@@ -147,11 +142,6 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case SAVEGLOBAL:
 				bytecode = new SaveGlobal();
-				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
-				break;
-			case SAVENONLOCAL:
-				bytecode = new SaveNonLocal();
 				bytecode.newObject();
 				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
 				break;

@@ -181,9 +181,6 @@ public class PythonInterpret extends PythonObject {
 		case LOADGLOBAL:
 			stack.push(environment().get(new StringObject(pythonBytecode.variable), true, false));
 			break;
-		case LOADNONLOCAL:
-			stack.push(environment().get(new StringObject(pythonBytecode.variable), false, true));
-			break;
 		case POP:
 			stack.pop();
 			break;
@@ -201,9 +198,6 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case SAVEGLOBAL:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), true, false);
-			break;
-		case SAVENONLOCAL:
-			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, true);
 			break;
 		case CUSTOM:
 			execute(true, pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
