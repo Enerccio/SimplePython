@@ -63,10 +63,11 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_DICT;
 		}
 		
+		/*
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), dict);
-		}
+		}*/
 	}
 	
 	public static class Return extends PythonBytecode {
@@ -88,13 +89,28 @@ public class PythonBytecode extends PythonObject {
 		
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), value.toString());
+			try {
+				return String.format("%s(%s)", getOpcode().toString(), value.toString());
+			} catch (Exception e) {
+				return String.format("%s(%s)", getOpcode().toString(), e);
+			}
 		}
 	}
 
 	public static class Call extends PythonBytecode {
 		{
 			bytecode = Bytecode.CALL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
+	}
+
+	public static class RCall extends PythonBytecode {
+		{
+			bytecode = Bytecode.RCALL;
 		}
 		
 		@Override

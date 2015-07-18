@@ -10,7 +10,8 @@ public enum Bytecode {
 	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), 
 	
 	// control
-	RETURN(16), POP(17), PUSH(18), CALL(19), GOTO(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
+	RETURN(16), POP(17), PUSH(18), CALL(19), RCALL(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
+	GOTO(25), 
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
@@ -39,6 +40,10 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
+			bytecode.newObject();
+			break;
+		case RCALL:
+			bytecode = new RCall();
 			bytecode.newObject();
 			break;
 		case CUSTOM:
