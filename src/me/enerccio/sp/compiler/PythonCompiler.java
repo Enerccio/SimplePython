@@ -528,6 +528,7 @@ public class PythonCompiler {
 			}
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
 	}
 
