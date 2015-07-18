@@ -32,6 +32,6 @@ public class CustomBytecode extends PythonBytecode {
 	}
 
 	public PythonObject call(TupleObject args){
-		return PythonInterpret.interpret.get().execute(get(OPERATION, this), args.getObjects());
+		return PythonInterpret.interpret.get().execute(false, get(OPERATION, this), args.getObjects());
 	}
 }

@@ -34,7 +34,7 @@ public class IntTypeObject extends TypeObject {
 		}
 		
 		if (arg2 == null)
-			return PythonInterpret.interpret.get().execute(Utils.get(arg1, IntObject.__INT__));
+			return PythonInterpret.interpret.get().execute(false, Utils.get(arg1, IntObject.__INT__));
 		else if (arg1 != null && arg2 != null){
 			try {
 				PythonObject strArg = Utils.run(StringTypeObject.STRING_CALL, arg2);

@@ -240,7 +240,7 @@ public class PythonRuntime {
 			accessor.get().push(o);
 			PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
 			accessor.get().pop();
-			value = PythonInterpret.interpret.get().execute(getattr, new StringObject(attribute));
+			value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
 		}
 		return value;
 	}

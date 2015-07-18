@@ -15,6 +15,8 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
+import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
@@ -64,7 +66,7 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	public PythonObject executeCall(String function, PythonObject... data) {
-		return execute(environment().get(new StringObject(function), false, false), data);
+		return execute(false, environment().get(new StringObject(function), false, false), data);
 	}
 
 	public EnvironmentObject environment() {
@@ -75,16 +77,22 @@ public class PythonInterpret extends PythonObject {
 		return Utils.peek(currentContext);
 	}
 
-	public PythonObject execute(PythonObject callable, PythonObject... args) {
+	public PythonObject execute(boolean internalCall, PythonObject callable, PythonObject... args) {
 		if (callable instanceof CallableObject){
-			return ((CallableObject)callable).call(new TupleObject(args));
+			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
+				((CallableObject)callable).call(new TupleObject(args));
+				while (executeOnce() != ExecutionResult.EOF)
+					;
+				return returnee;
+			} else
+				return ((CallableObject)callable).call(new TupleObject(args));
 		} else {
-			return execute(callable.get(CallableObject.__CALL__, getLocalContext()), args);
+			return execute(false, callable.get(CallableObject.__CALL__, getLocalContext()), args);
 		}
 	}
 
 	public PythonObject invoke(PythonObject callable, TupleObject args) {
-		return execute(callable, args.getObjects());
+		return execute(false, callable, args.getObjects());
 	}
 
 	public PythonObject getGlobal(String key) {
@@ -154,7 +162,7 @@ public class PythonInterpret extends PythonObject {
 			for (int i=args.length-1; i>=0; i--)
 				args[i] = stack.pop();
 			PythonObject runnable = stack.pop();
-			returnee = execute(runnable, args);
+			returnee = execute(true, runnable, args);
 			break;
 		case GOTO:
 			o.pc = pythonBytecode.idx;
@@ -198,7 +206,7 @@ public class PythonInterpret extends PythonObject {
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, true);
 			break;
 		case CUSTOM:
-			execute(pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
+			execute(true, pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
 			break;
 		case POP_EXCEPTION_HANDLER:
 			// TODO
@@ -233,13 +241,13 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case UNPACK_SEQUENCE:
 			PythonObject seq = stack.pop();
-			PythonObject iterator = execute(Utils.get(seq, SequenceObject.__ITER__));
+			PythonObject iterator = execute(true, Utils.get(seq, SequenceObject.__ITER__));
 			PythonObject[] ss = new PythonObject[pythonBytecode.argc];
 			PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
 			
 			try {
 				for (int i=ss.length-1; i>=0; i--){
-					ss[i] = execute(Utils.get(iterator, OrderedSequenceIterator.NEXT));
+					ss[i] = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
 				}
 			} catch (PythonExecutionException e){
 				if (Utils.run("isinstance", e.getException(), stype).truthValue()){
@@ -249,7 +257,7 @@ public class PythonInterpret extends PythonObject {
 			}
 			
 			try {
-				execute(Utils.get(iterator, OrderedSequenceIterator.NEXT));
+				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
 				throw Utils.throwException("ValueError", "Too many values to unpack");
 			} catch (PythonExecutionException e){
 				if (!Utils.run("isinstance", e.getException(), stype).truthValue()){
