@@ -263,12 +263,13 @@ public class PythonInterpret extends PythonObject {
 			resolvePath += resolvePath.equals("") ? pythonBytecode.moduleName : "." + pythonBytecode.moduleName;
 			pythonImport(environment(), pythonBytecode.variable, resolvePath, null);
 			break;
-		case SWAP_STACK:
+		case SWAP_STACK: {
 			PythonObject top = stack.pop();
 			PythonObject bot = stack.pop();
 			stack.push(top);
 			stack.push(bot);
 			break;
+		}
 		case UNPACK_SEQUENCE:
 			PythonObject seq = stack.pop();
 			PythonObject iterator = execute(true, Utils.get(seq, SequenceObject.__ITER__));
@@ -315,8 +316,39 @@ public class PythonInterpret extends PythonObject {
 			else
 				stack.push(returnee);
 			break;
+		case GETATTR: {
+			PythonObject runnable = environment().get(new StringObject("getattr"), true, false);
+			PythonObject[] args = new PythonObject[2];
+			// If argument for GETATTR is not set, attribute name is pop()ed from stack   
+			if (pythonBytecode.variable == null) {
+				args[1] = stack.pop();	// attribute
+				args[0] = stack.pop();	// object
+			} else {
+				args[0] = stack.pop();									// object
+				args[1] = new StringObject(pythonBytecode.variable);	// attribute
+			} 
+			returnee = execute(true, runnable, args);
+			stack.push(returnee);
+			break;
 		}
-		
+		case SETATTR: {
+			PythonObject runnable = environment().get(new StringObject("setattr"), true, false);
+			PythonObject[] args = new PythonObject[3];
+			// If argument for SETATTR is not set, attribute name is pop()ed from stack   
+			if (pythonBytecode.value == null) {
+				args[1] = stack.pop();	// attribute
+				args[0] = stack.pop();	// object
+				args[2] = stack.pop();	// value
+			} else {
+				args[1] = new StringObject(pythonBytecode.variable);	// attribute
+				args[0] = stack.pop();									// object
+				args[2] = stack.pop();									// value
+			} 
+			returnee = execute(true, runnable, args);
+			stack.push(returnee);
+			break;
+		}
+		}
 		return ExecutionResult.OK;
 	}
 

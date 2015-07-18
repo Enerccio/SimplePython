@@ -232,7 +232,7 @@ public class PythonCompiler {
 			l.add(expr.augassignexp().testlist());
 			compileRightHand(l, 0, bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-			cb.argc = 2;
+			cb.argc = 1;
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
@@ -302,14 +302,8 @@ public class PythonCompiler {
 	}
 	
 	private void putGetAttr(String attr, List<PythonBytecode> bytecode) {
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-		cb.variable = "getattr";
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-		cb.value = new StringObject(attr);
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-		cb.argc = 2;
-		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GETATTR));
+		cb.variable = attr;
 	}
 	
 	private boolean isType(Class<? extends ParserRuleContext> cls, ParserRuleContext rule) {
@@ -889,14 +883,7 @@ public class PythonCompiler {
 				// ... xyz.something
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 				cb.value = new StringObject(t.NAME().toString());
-				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-				cb.variable = "setattr";
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL));
-				cb.argc = 3;
-				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-				
-				System.out.println("A");
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR));
 			}
 		} else if (offset == 0) {
 			// First trailer - push atom on stack

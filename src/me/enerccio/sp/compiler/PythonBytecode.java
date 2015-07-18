@@ -267,6 +267,28 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.RESOLVE_ARGS;
 		}
 	}
+	
+	public static class GetAttr extends PythonBytecode {
+		{
+			bytecode = Bytecode.GETATTR;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
+	}
+	
+	public static class SetAttr extends PythonBytecode {
+		{
+			bytecode = Bytecode.SETATTR;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
+	}
 
 	@Override
 	public boolean truthValue() {
