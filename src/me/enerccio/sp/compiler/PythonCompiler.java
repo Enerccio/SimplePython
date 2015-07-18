@@ -12,6 +12,7 @@ import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.SuiteContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -257,6 +258,17 @@ public class PythonCompiler {
 		return exprc;
 	}
 	
+	private void putGetAttr(String attr, List<PythonBytecode> bytecode) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+		cb.variable = "getattr";
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = new StringObject(attr);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = 2;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+	}
+	
 	private boolean isType(Class<? extends ParserRuleContext> cls, ParserRuleContext rule) {
 		for (ParseTree x: rule.children) {
 			if (cls.isInstance(x))
@@ -313,11 +325,12 @@ public class PythonCompiler {
 	
 	private void compile(Xor_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.and_expr(0), bytecode);
+			putGetAttr(Arithmetics.__XOR__, bytecode);
 		} else 
 			compile(ctx.and_expr(0), bytecode);
 	}
-	
+
 	private void compile(And_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
 			// TODO
@@ -378,28 +391,14 @@ public class PythonCompiler {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else if (tc.getText().startsWith("[")) {
 			compileSubscript(tc.arglist(), bytecode);
-		} else {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-			cb.variable = "getattr";
-			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-			cb.value = new StringObject(tc.NAME().getText());
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-			cb.argc = 2;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		} else {			
+			putGetAttr(tc.NAME().getText(), bytecode);
 		}
 	}
 
 	private void compileSubscript(ParserRuleContext arglist,
 			List<PythonBytecode> bytecode) {
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
-		cb.variable = "getattr";
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-		cb.value = new StringObject("__getitem__");
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-		cb.argc = 2;
-		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		putGetAttr("__getitem__", bytecode);
 		if (arglist == null){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 0;
