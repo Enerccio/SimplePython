@@ -526,9 +526,9 @@ public class PythonCompiler {
 				cb.argc = tlc;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 1;
 		}
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-		cb.argc = 1;
 	}
 
 	private void compile(SubscriptContext s, List<PythonBytecode> bytecode) {
