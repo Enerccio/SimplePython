@@ -27,7 +27,7 @@ public class PythonBytecode extends PythonObject {
 	public Bytecode getOpcode(){
 		return bytecode;
 	}
-
+	
 	public static class Nop extends PythonBytecode {
 		{
 			bytecode = Bytecode.NOP;
@@ -80,6 +80,11 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.PUSH;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), value.toString());
+		}
 	}
 
 	public static class Call extends PythonBytecode {
@@ -110,11 +115,22 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.LOAD;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
+
 	}
 
 	public static class LoadGlobal extends PythonBytecode {
 		{
 			bytecode = Bytecode.LOADGLOBAL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
 
@@ -122,11 +138,21 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.LOADNONLOCAL;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
 	}
 
 	public static class Save extends PythonBytecode {
 		{
 			bytecode = Bytecode.SAVE;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
 	
@@ -134,11 +160,21 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SAVEGLOBAL;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
 	}
 	
 	public static class SaveNonLocal extends PythonBytecode {
 		{
 			bytecode = Bytecode.SAVENONLOCAL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
 	
@@ -182,6 +218,12 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.IMPORT;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s, %s)", getOpcode().toString(), moduleName, variable);
+		}
+		
 	}
 	
 	public static class SwapStack extends PythonBytecode {
@@ -193,6 +235,11 @@ public class PythonBytecode extends PythonObject {
 	public static class UnpackSequence extends PythonBytecode {
 		{
 			bytecode = Bytecode.UNPACK_SEQUENCE;
+		}
+
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
 		}
 	}
 	
@@ -209,7 +256,7 @@ public class PythonBytecode extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<bytecode " + getOpcode().toString() + ">";
+		return getOpcode().toString();
 	}
 	
 }
