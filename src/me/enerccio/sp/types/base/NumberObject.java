@@ -4,7 +4,6 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -18,13 +17,11 @@ public abstract class NumberObject extends PythonObject {
 	
 
 	@Override
-	public void newObject() {
-		super.newObject();
-		
+	public void newObject() {		
 		try {
 			fields.put(__INT__, new AugumentedPythonObject(
 					new JavaMethodObject(this, this.getClass().getMethod("intValue", 
-							new Class<?>[]{TupleObject.class, MapObject.class}), true), AccessRestrictions.PUBLIC));
+							new Class<?>[]{TupleObject.class}), true), AccessRestrictions.PUBLIC));
 		} catch (Exception e) {
 			
 		}
@@ -32,9 +29,9 @@ public abstract class NumberObject extends PythonObject {
 	
 	protected abstract PythonObject getIntValue();
 	
-	public PythonObject intValue(TupleObject args, MapObject kwargs){
-		// TODO check for 0 arity
-		
+	public PythonObject intValue(TupleObject args){
+		if (args.len() != 0)
+			throw Utils.throwException("TypeError", "__int__ requires zero parameters");
 		return getIntValue();
 	}
 	
