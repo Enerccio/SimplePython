@@ -318,7 +318,15 @@ public class PythonCompiler {
 	
 	private void compile(ExprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.xor_expr(0), bytecode);
+			String operation = Arithmetics.__OR__;
+			for (int i=1; i<ctx.xor_expr().size(); i++){
+				putGetAttr(operation, bytecode);
+				compile(ctx.xor_expr(i), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+			}
 		} else 
 			compile(ctx.xor_expr(0), bytecode);
 	}
@@ -332,6 +340,7 @@ public class PythonCompiler {
 				compile(ctx.and_expr(i), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 		} else 
 			compile(ctx.and_expr(0), bytecode);
@@ -347,6 +356,7 @@ public class PythonCompiler {
 				compile(ctx.shift_expr(i), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 		} else 
 			compile(ctx.shift_expr(0), bytecode);
@@ -358,9 +368,10 @@ public class PythonCompiler {
 			for (int i=1; i<ctx.getChildCount(); i+=2){
 				String operation = ctx.getChild(i).getText().equals("<<") ? Arithmetics.__LSHIFT__ : Arithmetics.__RSHIFT__;
 				putGetAttr(operation, bytecode);
-				compile(ctx.arith_expr(i+1), bytecode);
+				compile((Arith_exprContext) ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 		} else 
 			compile(ctx.arith_expr(0), bytecode);
@@ -372,9 +383,10 @@ public class PythonCompiler {
 			for (int i=1; i<ctx.getChildCount(); i+=2){
 				String operation = ctx.getChild(i).getText().equals("+") ? Arithmetics.__ADD__ : Arithmetics.__SUB__;
 				putGetAttr(operation, bytecode);
-				compile(ctx.term(i+1), bytecode);
+				compile((TermContext)ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 		} else 
 			compile(ctx.term(0), bytecode);
@@ -392,9 +404,10 @@ public class PythonCompiler {
 				if (operation.equals("%"))
 					operation = Arithmetics.__MOD__;
 				putGetAttr(operation, bytecode);
-				compile(ctx.factor(i+1), bytecode);
+				compile((FactorContext)ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			}
 		} else 
 			compile(ctx.factor(0), bytecode);
@@ -406,6 +419,7 @@ public class PythonCompiler {
 				putGetAttr(Arithmetics.__NOT__, bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 0;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 				return;
 			}
 			
@@ -414,12 +428,14 @@ public class PythonCompiler {
 				operation = Arithmetics.__ADD__;
 			if (ctx.getText().startsWith("-"))
 				operation = Arithmetics.__SUB__;
-			putGetAttr(operation, bytecode);
+			
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 			cb.value = new IntObject(0);
+			putGetAttr(operation, bytecode);
+			compile(ctx.factor(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
-			compile(ctx.factor(), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		} else 
 			compile(ctx.power(), bytecode);
 	}
@@ -437,6 +453,7 @@ public class PythonCompiler {
 			compile(ctx.factor(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
 	}
 

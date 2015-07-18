@@ -17,14 +17,17 @@ public class IntObject extends NumberObject {
 	
 	public IntObject(int v){
 		value = BigInteger.valueOf(v);
+		newObject();
 	}
 	
 	public IntObject(long v){
 		value = BigInteger.valueOf(v);
+		newObject();
 	}
 	
 	public IntObject(BigInteger v){
 		value = v;
+		newObject();
 	}
 	
 	private BigInteger value;

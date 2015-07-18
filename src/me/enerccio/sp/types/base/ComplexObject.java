@@ -13,7 +13,7 @@ public class ComplexObject extends NumberObject {
 	private static final String IMAG_ACCESSOR = "imag";
 	
 	public ComplexObject(){
-		
+		newObject();
 	}
 	
 	public ComplexObject(double r, double i){
@@ -23,6 +23,7 @@ public class ComplexObject extends NumberObject {
 	public ComplexObject(RealObject r, RealObject i) {
 		fields.put(REAL_ACCESSOR, new AugumentedPythonObject(r, AccessRestrictions.PUBLIC));
 		fields.put(IMAG_ACCESSOR, new AugumentedPythonObject(i, AccessRestrictions.PUBLIC));
+		newObject();
 	}
 
 	@Override

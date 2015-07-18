@@ -10,15 +10,17 @@ public class RealObject extends NumberObject {
 	private static final long serialVersionUID = 8L;
 	
 	public RealObject(){
-		
+		newObject();
 	}
 
 	public RealObject(double v){
 		value = v;
+		newObject();
 	}
 	
 	public RealObject(float v){
 		value = v;
+		newObject();
 	}
 	
 	private double value;
