@@ -1,1 +1,1 @@
-setattr("anca", 1)
+x = setattr(2, "anca", 1)

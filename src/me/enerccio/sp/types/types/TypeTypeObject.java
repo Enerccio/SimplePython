@@ -1,9 +1,14 @@
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -51,8 +56,23 @@ public class TypeTypeObject extends TypeObject {
 		return type;
 	}
 
-	private PythonObject getTypeInformation(PythonObject pythonObject) {
-		// TODO Auto-generated method stub
+	private PythonObject getTypeInformation(PythonObject py) {
+		if (py instanceof PythonBytecode)
+			return new BytecodeTypeObject();
+		if (py instanceof IntObject)
+			return new IntTypeObject();
+		if (py instanceof ListObject)
+			return new ListTypeObject();
+		if (py instanceof ClassInstanceObject)
+			return ((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
+		if (py instanceof ClassObject)
+			return new TypeTypeObject();
+		if (py instanceof SliceObject)
+			return new SliceTypeObject();
+		if (py instanceof TupleObject)
+			return new TupleTypeObject();
+		if (py instanceof StringObject)
+			return new StringTypeObject();
 		return null;
 	}
 	
