@@ -17,6 +17,8 @@ public enum Bytecode {
 	// exceptions
 	PUSH_EXCEPTION_HANDLER(64), PUSH_FINALLY_HANDLER(65), POP_EXCEPTION_HANDLER(66), POP_FINALLY_HANDLER(67),
 	END_EXCEPTION(68),
+	// macros
+	GETATTR(90), SETATTR(90),
 	
 	// custom
 	CUSTOM(255);
@@ -152,6 +154,14 @@ public enum Bytecode {
 			break;
 		case ACCEPT_RETURN:
 			bytecode = new AcceptReturn();
+			bytecode.newObject();
+			break;
+		case GETATTR:
+			bytecode = new GetAttr();
+			bytecode.newObject();
+			break;
+		case SETATTR:
+			bytecode = new SetAttr();
 			bytecode.newObject();
 			break;
 		}
