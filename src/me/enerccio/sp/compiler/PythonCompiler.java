@@ -27,6 +27,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.types.ListTypeObject;
+import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
@@ -306,6 +307,13 @@ public class PythonCompiler {
 		cb.variable = attr;
 	}
 	
+	private void putNot(List<PythonBytecode> bytecode) {
+		putGetAttr("__not__", bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = 0;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+	}
+	
 	private boolean isType(Class<? extends ParserRuleContext> cls, ParserRuleContext rule) {
 		for (ParseTree x: rule.children) {
 			if (cls.isInstance(x))
@@ -348,7 +356,46 @@ public class PythonCompiler {
 	
 	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
-			// TODO
+			compile(ctx.expr(0), bytecode);
+			for (int i=1; i<ctx.getChildCount(); i+=2){
+				String operation = null;
+				if (ctx.getChild(i).getText().equals("<"))
+					operation = Arithmetics.__LT__;
+				else if (ctx.getChild(i).getText().equals(">"))
+					operation = Arithmetics.__GT__;
+				else if (ctx.getChild(i).getText().equals("=="))
+					operation = Arithmetics.__EQ__;
+				else if (ctx.getChild(i).getText().equals(">="))
+					operation = Arithmetics.__GE__;
+				else if (ctx.getChild(i).getText().equals("<="))
+					operation = Arithmetics.__LE__;
+				else if (ctx.getChild(i).getText().equals("<>"))
+					operation = Arithmetics.__NE__;
+				else if (ctx.getChild(i).getText().equals("!="))
+					operation = Arithmetics.__NE__;
+				else if (ctx.getChild(i).getText().equals("in") || ctx.getChild(i).getText().equals("notin"))
+					operation = ObjectTypeObject.__CONTAINS__;
+				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+					cb.variable = ObjectTypeObject.IS;
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SWAP_STACK));
+					compile((ExprContext) ctx.getChild(i+1), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+					cb.argc = 2;
+					bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+					if (ctx.getChild(i).getText().equals("isnot"))
+						putNot(bytecode);
+					return;
+				} else
+					throw Utils.throwException("SyntaxError", "unsupported comparison operation");
+				putGetAttr(operation, bytecode);
+				compile((ExprContext) ctx.getChild(i+1), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+				cb.argc = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+				if (ctx.getChild(i).getText().equals("notin"))
+					putNot(bytecode);
+			}
 		} else 
 			compile(ctx.expr(0), bytecode);
 	}

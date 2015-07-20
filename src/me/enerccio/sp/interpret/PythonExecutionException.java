@@ -7,8 +7,14 @@ public class PythonExecutionException extends RuntimeException {
 	private PythonObject exception;
 
 	public PythonExecutionException(PythonObject o){
-		super(o.toString());
+		super(getMessage(o));
 		this.setException(o);
+	}
+	
+	public static String getMessage(PythonObject o) {
+		if (o.fields.containsKey("__msg__"))
+			return o.fields.get("__msg__").object.toString();
+		return o.toString();
 	}
 
 	public PythonObject getException() {
