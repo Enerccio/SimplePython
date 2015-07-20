@@ -2,18 +2,12 @@ package me.enerccio.sp.compiler;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
 
-import me.enerccio.sp.parser.pythonParser.ListmakerContext;
-import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
-import me.enerccio.sp.parser.pythonParser.SubscriptContext;
-import me.enerccio.sp.parser.pythonParser.SuiteContext;
-import me.enerccio.sp.parser.pythonParser.Testlist_compContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -206,15 +200,14 @@ public class PythonCompiler {
 	}
 
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {
-		TestlistContext leftHand = expr.testlist(0);
 		if (expr.augassignexp() != null) {
 			// AugAssign
+			TestlistContext leftHand = expr.testlist(0);
 			if (leftHand.test().size() > 1)
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
 			// TODO
 			// Bytecode.makeBytecode(
-			compileRightHand(expr.testlist(), 0, bytecode);
-			List<TestlistContext> l = new ArrayList<>();
+			compileRightHand(leftHand, bytecode);
 			if (expr.augassignexp().augassign().getText().equals("+="))
 				putGetAttr(Arithmetics.__ADD__, bytecode);
 			else if (expr.augassignexp().augassign().getText().equals("-="))
@@ -227,27 +220,34 @@ public class PythonCompiler {
 				putGetAttr(Arithmetics.__MOD__, bytecode);
 			else
 				throw Utils.throwException("SyntaxError", "illegal augmented assignment");
-			l.add(expr.augassignexp().testlist());
-			compileRightHand(l, 0, bytecode);
+			compileRightHand(expr.augassignexp().testlist(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
-			compileRightHand(expr.testlist(), 1, bytecode);
-			if (leftHand.test().size() > 1) {
-				// x,y,z = ...
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
-				cb.argc = leftHand.test().size();
-				for (int i=0; leftHand.test(i) != null; i++)
-					compileAssignment(leftHand.test(i), bytecode);
-			} else {
-				// x = y
-				compileAssignment(leftHand.test(0), bytecode);
+			TestlistContext rightHand = expr.testlist(expr.testlist().size()-1);
+			List<TestlistContext> rest = new ArrayList<TestlistContext>();
+			for (int i=0; i<expr.testlist().size()-1; i++)
+				rest.add(expr.testlist(i));
+			
+			Collections.reverse(rest);
+			compileRightHand(rightHand, bytecode);
+			
+			for (TestlistContext tc : rest){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP));
+				if (tc.test().size() > 1) {
+					// x,y,z = ...
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
+					cb.argc = tc.test().size();
+					for (int i=0; tc.test(i) != null; i++)
+						compileAssignment(tc.test(i), bytecode);
+				} else {
+					// x = y
+					compileAssignment(tc.test(0), bytecode);
+				}
 			}
 		}
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
-		cb.value = NoneObject.NONE;
 	}
 
 	/** 
