@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -174,6 +176,24 @@ public class PythonCompiler {
 		if (smstmt.print_stmt() != null){
 			compile(smstmt.print_stmt(), bytecode);
 		}
+		
+		if (smstmt.flow_stmt() != null){
+			compile(smstmt.flow_stmt(), bytecode);
+		}
+	}
+
+	private void compile(Flow_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.return_stmt() != null){
+			compile(ctx.return_stmt(), bytecode);
+		}
+	}
+
+	private void compile(Return_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.testlist() != null)
+			compileRightHand(ctx.testlist(), bytecode);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN));
 	}
 
 	private void compile(Print_stmtContext ctx,

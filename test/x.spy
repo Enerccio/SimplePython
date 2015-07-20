@@ -1,6 +1,5 @@
-x = y, z, k = (1, 2, 3) 
-print x
-print y
-print z
-print k
-
+def anca(x, y):
+	z = x + y
+	return z
+	
+print anca(10, 20)
