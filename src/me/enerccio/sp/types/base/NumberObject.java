@@ -61,6 +61,27 @@ public abstract class NumberObject extends PythonObject {
 			fields.put(Arithmetics.__LSHIFT__, new AugumentedPythonObject(
 					new JavaMethodObject(this, this.getClass().getMethod("ls", 
 							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			
+			
+			fields.put(Arithmetics.__LT__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("lt", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__LE__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("le", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("eq", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__NE__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("ne", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__GE__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("ge", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__GT__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("gt", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+
 		} catch (Exception e) {
 			
 		}
@@ -140,5 +161,29 @@ public abstract class NumberObject extends PythonObject {
 	
 	public PythonObject rs(PythonObject arg){
 		return Arithmetics.doOperator(this, arg, Arithmetics.__RSHIFT__);
+	}
+	
+	public PythonObject lt(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__LT__);
+	}
+	
+	public PythonObject le(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__LE__);
+	}
+	
+	public PythonObject eq(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__EQ__);
+	}
+	
+	public PythonObject ne(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__NE__);
+	}
+	
+	public PythonObject gt(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__GT__);
+	}
+	
+	public PythonObject ge(PythonObject arg){
+		return Arithmetics.doOperator(this, arg, Arithmetics.__GE__);
 	}
 }
