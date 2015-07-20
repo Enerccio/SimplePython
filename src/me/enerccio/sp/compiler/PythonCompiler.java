@@ -12,6 +12,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
+import me.enerccio.sp.parser.pythonParser.ArgumentContext;
+import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -66,6 +68,8 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		if (sctx.simple_stmt() != null)
 			compileSimpleStatement(sctx.simple_stmt(), bytecode);
+		else if (sctx.parenthesesless_call() != null)
+			compileParentheseslessCall(sctx.parenthesesless_call(), bytecode);
 		else
 			compileCompoundStatement(sctx.compound_stmt(), bytecode);
 	}
@@ -188,6 +192,23 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		for (Small_stmtContext smstmt : sstmt.small_stmt())
 			compileSmallStatement(smstmt, bytecode);
+	}
+
+	private void compileParentheseslessCall(Parenthesesless_callContext ctx, List<PythonBytecode> bytecode) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD));
+		cb.variable = ctx.nname().getText();
+		if (ctx.arglist() == null) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = 0;
+		} else {
+			int argc = compileArguments(ctx.arglist(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.argc = argc;
+		}
+		if (ctx.testlist() != null) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+			compileAssignment(ctx.testlist(), bytecode);
+		}
 	}
 
 	private void compileSmallStatement(Small_stmtContext smstmt, List<PythonBytecode> bytecode) {
@@ -314,20 +335,11 @@ public class PythonCompiler {
 			
 			for (TestlistContext tc : rest){
 				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP));
-				if (tc.test().size() > 1) {
-					// x,y,z = ...
-					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
-					cb.argc = tc.test().size();
-					for (int i=0; tc.test(i) != null; i++)
-						compileAssignment(tc.test(i), bytecode);
-				} else {
-					// x = y
-					compileAssignment(tc.test(0), bytecode);
-				}
+				compileAssignment(tc, bytecode);
 			}
 		}
 	}
-
+	
 	/** 
 	 * Compiles right side of assignment, leaving value of right hand on top of stack
 	 * Offset can be used to skip left-side test.
@@ -809,7 +821,20 @@ public class PythonCompiler {
 		
 	}
 
-	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
+	/** Generates bytecode that stores top of stack into whatever is passed as parameter */
+	private void compileAssignment(TestlistContext tc, List<PythonBytecode> bytecode) {
+		if (tc.test().size() > 1) {
+			// x,y,z = ...
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
+			cb.argc = tc.test().size();
+			for (int i=0; tc.test(i) != null; i++)
+				compileAssignment(tc.test(i), bytecode);
+		} else {
+			// x = y
+			compileAssignment(tc.test(0), bytecode);
+		}
+	}
+
 	private void compileAssignment(TestContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.lambdef() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to lambda");

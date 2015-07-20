@@ -171,7 +171,7 @@ vararg
 ; 
 
 stmt
-: simple_stmt | compound_stmt
+: simple_stmt | parenthesesless_call | compound_stmt
 ;
 
 simple_stmt
@@ -181,6 +181,11 @@ simple_stmt
 small_stmt
 : (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
              import_stmt | global_stmt)
+;
+
+parenthesesless_call
+: nname arglist?
+| testlist '=' nname arglist?
 ;
 
 expr_stmt
