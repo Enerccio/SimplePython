@@ -1,5 +1,7 @@
 package me.enerccio.sp.types.base;
 
+import java.math.BigInteger;
+
 import me.enerccio.sp.types.PythonObject;
 
 public class BoolObject extends NumberObject {
@@ -12,6 +14,16 @@ public class BoolObject extends NumberObject {
 	
 	private BoolObject(boolean v){
 		this.value = v;
+	}
+	
+	@Override 
+	public BigInteger getJavaInt() {
+		return BigInteger.valueOf(value ? 1L : 0L);
+	}
+	
+	@Override
+	public double getJavaFloat() {
+		return value ? 1.0 : 0.0;
 	}
 	
 	@Override
