@@ -12,6 +12,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.interpret.EnvironmentObject;
+import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
@@ -247,17 +248,21 @@ public class PythonRuntime {
 		
 	};
 	
-	public static PythonObject getattr(PythonObject o, String attribute){
+	public static PythonObject getattr(PythonObject o, String attribute) {
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
 			if (accessor.get().size() != 0 && accessor.get().peek() == o){
 				accessor.get().pop();
-				throw Utils.throwException("AttributeError", "Unknown attribute " + attribute);
+				throw new NoGetattrException();
 			}
 			accessor.get().push(o);
-			PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
-			accessor.get().pop();
-			value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+			try {
+				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
+				accessor.get().pop();
+				value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+			} catch (NoGetattrException e) {
+				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", o), attribute));
+			}
 		}
 		return value;
 	}
