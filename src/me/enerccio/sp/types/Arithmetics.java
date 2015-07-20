@@ -11,19 +11,20 @@ import me.enerccio.sp.utils.Utils;
 
 public final class Arithmetics {
 
+	// Arithmetics
 	public static final String __ADD__ = "__add__";
 	public static final String __SUB__ = "__sub__";
 	public static final String __MUL__ = "__mul__";
 	public static final String __DIV__ = "__div__";
 	public static final String __MOD__ = "__mod__";
 	public static final String __POW__ = "__pow__";
+	// Bitwise stuff
 	public static final String __AND__ = "__and__";
 	public static final String __OR__  = "__or__";
 	public static final String __NOT__ = "__not__";
 	public static final String __XOR__ = "__xor__";
 	public static final String __LSHIFT__ = "__lshift__";
 	public static final String __RSHIFT__ = "__rshift__";
-	
 	
 	public static PythonObject doOperator(PythonObject a, PythonObject b, String m) {
 		if (a instanceof ClassInstanceObject){
@@ -121,36 +122,22 @@ public final class Arithmetics {
 				if (isInt){
 					return new IntObject(a.intValue() & ((IntObject) b).intValue());
 				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __OR__:
 				if (isInt){
 					return new IntObject(a.intValue() | ((IntObject) b).intValue());
 				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __XOR__:
 				if (isInt){
 					return new IntObject(a.intValue() ^ ((IntObject) b).intValue());
 				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __NOT__:
 				if (isInt){
 					return new IntObject(~a.intValue());
 				}
+				break; // Unknown operation
 			case __POW__:
 				if (isInt){
 					return new IntObject((int) Math.pow(a.intValue(),  ((IntObject) b).intValue()));
@@ -165,22 +152,12 @@ public final class Arithmetics {
 				if (isInt){
 					return new IntObject(a.intValue() >> ((IntObject) b).intValue());
 				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __LSHIFT__:
 				if (isInt){
 					return new IntObject(a.intValue() << ((IntObject) b).intValue());
 				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			}
 		}
 		
@@ -249,45 +226,13 @@ public final class Arithmetics {
 					return new ComplexObject(a.doubleValue() % ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __AND__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __OR__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __XOR__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __NOT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __POW__:
 				if (isInt){
 					return new RealObject(Math.pow(a.doubleValue(), ((IntObject) b).intValue()));
@@ -299,25 +244,9 @@ public final class Arithmetics {
 					return new ComplexObject(Math.pow(a.doubleValue(), ((ComplexObject) b).getRealPart()), ((ComplexObject) b).getImagPart());
 				}
 			case __RSHIFT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __LSHIFT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			}
 		}
 		
@@ -391,45 +320,13 @@ public final class Arithmetics {
 							 a.getImagPart() % ((ComplexObject)b).getImagPart());
 				}
 			case __AND__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __OR__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __XOR__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __NOT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __POW__:
 				if (isInt){
 					return new ComplexObject(Math.pow(a.getRealPart(), ((IntObject)b).intValue()), a.getImagPart());
@@ -442,25 +339,9 @@ public final class Arithmetics {
 							 Math.pow(a.getImagPart(), ((ComplexObject)b).getImagPart()));
 				}
 			case __RSHIFT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			case __LSHIFT__:
-				if (isInt){
-					
-				}
-				if (isFloat){
-					
-				}
-				if (isComplex){
-					
-				}
+				break; // Unknown operation
 			}
 		}
 		
