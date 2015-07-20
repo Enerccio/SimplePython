@@ -1,9 +1,11 @@
 package me.enerccio.sp.types;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -25,6 +27,13 @@ public final class Arithmetics {
 	public static final String __XOR__ = "__xor__";
 	public static final String __LSHIFT__ = "__lshift__";
 	public static final String __RSHIFT__ = "__rshift__";
+	// Comparisons
+	public static final String __LT__ = "__lt__";
+	public static final String __LE__ = "__le__";
+	public static final String __EQ__ = "__eq__";
+	public static final String __NE__ = "__ne__";
+	public static final String __GT__ = "__gt__";
+	public static final String __GE__ = "__ge__";
 	
 	public static PythonObject doOperator(PythonObject a, PythonObject b, String m) {
 		if (a instanceof ClassInstanceObject){
@@ -65,6 +74,7 @@ public final class Arithmetics {
 		boolean isInt = b instanceof IntObject;
 		boolean isFloat = b instanceof RealObject;
 		boolean isComplex = b instanceof ComplexObject;
+		boolean isNumber = b instanceof NumberObject;
 		
 		if (isInt || isFloat || isComplex){
 			switch (m){
@@ -157,6 +167,30 @@ public final class Arithmetics {
 				if (isInt){
 					return new IntObject(a.intValue() << ((IntObject) b).intValue());
 				}
+				break; // Unknown operation
+			case __LT__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) < 0);
+				break; // Unknown operation
+			case __GT__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) > 0);
+				break; // Unknown operation
+			case __LE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) <= 0);
+				break; // Unknown operation
+			case __GE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) >= 0);
+				break; // Unknown operation
+			case __EQ__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) == 0);
+				break; // Unknown operation
+			case __NE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) != 0);
 				break; // Unknown operation
 			}
 		}

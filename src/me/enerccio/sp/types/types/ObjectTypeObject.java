@@ -9,6 +9,8 @@ import me.enerccio.sp.utils.Utils;
 public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
 	public static final String OBJECT_CALL = "object";
+	public static final String __CONTAINS__ = "__contains__";
+	public static final String IS = "is";
 	
 	@Override
 	public void newObject() {
