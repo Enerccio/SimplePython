@@ -42,7 +42,11 @@ public class UserFunctionObject extends PythonObject {
 			++rargs;
 		
 		if (argc < rargs)
-			throw Utils.throwException("TypeError", "Incorrect amount of arguments, expected at least " + rargs + ", got " + args);
+			throw Utils.throwException("TypeError", "Incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
+		
+		if (!isVararg && argc > rargs)
+			throw Utils.throwException("TypeError", "Incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
+			
 		
 		MapObject a = new MapObject();
 		a.newObject();
