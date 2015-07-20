@@ -11,6 +11,7 @@ public class Test {
 	
 	public static void main(String[] args) throws Exception {
 		final PythonRuntime r = PythonRuntime.runtime;
+		r.setAllowAutowraps(true);
 		r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 		
 		PythonInterpret i = PythonInterpret.interpret.get();

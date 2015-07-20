@@ -8,6 +8,7 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -73,6 +74,8 @@ public class TypeTypeObject extends TypeObject {
 			return new TupleTypeObject();
 		if (py instanceof StringObject)
 			return new StringTypeObject();
+		if (py instanceof PointerObject)
+			return new JavaInstanceTypeObject();
 		return null;
 	}
 	

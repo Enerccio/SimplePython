@@ -22,6 +22,7 @@ import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -77,7 +78,9 @@ public class Utils {
 			return BoolObject.fromBoolean((Boolean) ret);
 		if (ret instanceof PythonObject)
 			return (PythonObject) ret;
-		return new PointerObject(ret);
+		if (ret == null)
+			return NoneObject.NONE;
+		return PythonRuntime.runtime.getJavaClass(ret.getClass().getCanonicalName(), ret);
 	}
 	
 	public static Object asJavaObject(Class<?> aType, PythonObject datum)
@@ -274,5 +277,16 @@ public class Utils {
 		List<T> tlist = new ArrayList<T>(l);
 		Collections.reverse(tlist);
 		return tlist;
+	}
+
+	public static <T> T[] removeFirst(T[] objects) {
+		if (objects.length == 0)
+			return null;
+		@SuppressWarnings("unchecked")
+		T[] copy = (T[]) Array.newInstance(objects.getClass()
+				.getComponentType(), objects.length - 1);
+		for (int i=1; i<objects.length; i++)
+			copy[i-1] = objects[i];
+		return copy;
 	}
 }

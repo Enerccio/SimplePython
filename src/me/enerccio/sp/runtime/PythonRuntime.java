@@ -1,5 +1,7 @@
 package me.enerccio.sp.runtime;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
+import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
@@ -21,16 +24,21 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.pointer.PointerFactory;
+import me.enerccio.sp.types.pointer.PointerObject;
+import me.enerccio.sp.types.pointer.WrapPublicFactory;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
+import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
+import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
 public class PythonRuntime {
@@ -181,6 +189,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
 					o.newObject();
+					globals.put(JavaInstanceTypeObject.JAVA_CALL, o = new JavaInstanceTypeObject());
+					o.newObject();
 					
 					addExceptions(globals);
 					
@@ -312,6 +322,109 @@ public class PythonRuntime {
 	public static PythonObject initException(PythonObject e, PythonObject text){
 		Utils.putPublic(e, "__msg__", text);
 		return NoneObject.NONE;
+	}
+	
+	private Map<String, PointerFactory> factories = Collections.synchronizedMap(new HashMap<String, PointerFactory>());
+	private boolean allowAutowraps;
+	private PointerFactory baseFactory = new WrapPublicFactory();
+	private List<String> excludedPackages = new ArrayList<String>();
+	private Map<String, String> aliases = Collections.synchronizedMap(new HashMap<String, String>());
+	
+	public synchronized void setBaseFactory(PointerFactory f){
+		baseFactory = f;
+	}
+	
+	public synchronized void addExcludePackageOrClass(String packageOrClass){
+		excludedPackages.add(packageOrClass);
+	}
+	
+	public synchronized void addAlias(String fullName, String alias){
+		aliases.put(alias, fullName);
+	}
+	
+	public synchronized void setAllowAutowraps(boolean allowAutowraps){
+		this.allowAutowraps = allowAutowraps;
+	}
+	
+	public synchronized void addClass(String fullName, Class<? extends PointerFactory> clazz) throws InstantiationException, IllegalAccessException {
+		aliases.put(fullName, fullName);
+		factories.put(fullName, clazz.newInstance());
+	}
+	
+	public PointerObject getJavaClass(String cls, Object pointedObject, PythonObject... args) {
+		if (!aliases.containsKey(cls) && !allowAutowraps)
+			throw Utils.throwException("TypeError", "unknown java type '" + cls + "'. Type is not wrapped");
+		if (!aliases.containsKey(cls))
+			synchronized (factories) {
+				synchronized (aliases){
+					factories.put(cls, generateFactory(cls));
+					aliases.put(cls, cls);
+				}
+				
+			}
+		
+		cls = aliases.get(cls);
+		
+		Object o;
+		if (pointedObject != null)
+			o = pointedObject;
+		else {
+			Class<?> clazz;
+			try {
+				clazz = Class.forName(cls);
+			} catch (ClassNotFoundException e1) {
+				throw Utils.throwException("TypeError", "unknown java type " + cls);
+			}
+			
+			Object[] jargs = new Object[args.length];
+			
+			Constructor<?> selected = null;
+			outer:
+			for (Constructor<?> c : clazz.getConstructors()){
+				Class<?>[] types = c.getParameterTypes();
+				if (types.length != jargs.length)
+					continue;
+				
+				int i=0;
+				for (PythonObject oo : args){
+					try {
+						jargs[i] = Utils.asJavaObject(types[i], oo);
+						++i;
+					} catch (PointerMethodIncompatibleException e){
+						continue outer;
+					}
+				}
+				
+				selected = c;
+				break;
+			}
+			
+			if (selected == null)
+				throw Utils.throwException("TypeError", "no compatibile constructor for type " + cls + " found ");
+			
+			try {
+				o = selected.newInstance(jargs);
+			} catch (PythonExecutionException e){
+				throw e;
+			} catch (InvocationTargetException e){
+				if (e.getTargetException() instanceof PythonExecutionException)
+					throw (RuntimeException)e.getTargetException();
+				throw Utils.throwException("TypeError", "failed java constructor call");
+			} catch (Exception e) {
+				throw Utils.throwException("TypeError", "failed java constructor call");
+			}
+		}
+		
+		return factories.get(cls).doInitialize(o);
+	}
+
+	private synchronized PointerFactory generateFactory(String cls) {
+		for (String s : excludedPackages)
+			if (cls.startsWith(s))
+				throw Utils.throwException("TypeError", "package '" + s + "' is not allowed for automatic wrapping");
+		if (baseFactory == null)
+			throw Utils.throwException("TypeError", "runtime has no base wrapper for java objects!");
+		return baseFactory;
 	}
 
 	public PythonObject runtimeWrapper() {

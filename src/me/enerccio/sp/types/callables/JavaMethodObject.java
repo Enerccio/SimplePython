@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
@@ -17,6 +16,7 @@ public class JavaMethodObject extends CallableObject {
 	public JavaMethodObject(Object caller, Method m, boolean noTypeConversion){
 		this.caller = caller;
 		this.boundHandle = m;
+		m.setAccessible(true);
 		this.noTypeConversion = noTypeConversion;
 	}
 	
@@ -35,19 +35,16 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			// TODO
-						return NoneObject.NONE;
+			throw Utils.throwException("TypeError", "failed java call");
 		} catch (Exception e){
-			// TODO
-			
-			return NoneObject.NONE;
+			throw Utils.throwException("TypeError", "failed java call");
 		}
 		
 		Object[] jargs = new Object[args.size().intValue()];
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
-			// TODO
+			throw Utils.throwException("TypeError", "wrong number of parameters, expected " + types.length + ", got " + jargs.length);
 		}
 		
 		int i=0;
@@ -56,7 +53,7 @@ public class JavaMethodObject extends CallableObject {
 				jargs[i] = Utils.asJavaObject(types[i], o);
 				++i;
 			} catch (PointerMethodIncompatibleException e){
-				// TODO
+				throw Utils.throwException("TypeError", "cannot convert python objects to java objects for arguments of this method");
 			}
 		}
 		
@@ -67,11 +64,9 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			// TODO
-						return NoneObject.NONE;
+			throw Utils.throwException("TypeError", "failed java call");
 		} catch (Exception e) {
-			// TODO
-			return NoneObject.NONE;
+			throw Utils.throwException("TypeError", "failed java call");
 		}
 	}
 
