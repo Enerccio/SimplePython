@@ -184,9 +184,9 @@ small_stmt
 ;
 
 expr_stmt
-: testlist (augassignexp | ('=' testlist*))
+: testlist (augassignexp | ('=' testlist)*)
 ;                
-
+ 
 augassignexp
 : (augassign testlist)
 ;

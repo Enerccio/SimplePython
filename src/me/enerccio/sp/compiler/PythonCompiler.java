@@ -37,7 +37,6 @@ public class PythonCompiler {
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
 	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
-	private Stack<Boolean> subscript = new Stack<Boolean>();
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		stack.push();
@@ -192,9 +191,7 @@ public class PythonCompiler {
 			for (TestContext tc : ctx.test()){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 				cb.variable = PythonRuntime.PRINT_JAVA;
-				subscript.push(false);
 				compile(tc, bytecode);
-				subscript.pop();
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 				cb.argc = 1;
 			}
@@ -257,49 +254,21 @@ public class PythonCompiler {
 	 * Compiles right side of assignment, leaving value of right hand on top of stack
 	 * Offset can be used to skip left-side test.
 	 */
-	private void compileRightHand(List<TestlistContext> testlist, int offset, List<PythonBytecode> bytecode) {
-		int tlc = countActualTests(testlist, offset);
+	private void compileRightHand(TestlistContext testlist, List<PythonBytecode> bytecode) {
+		int tlc = testlist.test().size();
 		if (tlc > 1){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 			cb.variable = TupleTypeObject.TUPLE_CALL;
 		}
-		for (int i=offset; i<testlist.size(); i++){
-			List<TestContext> tlist = testlist.get(i).test();
-			for (int j=0; j<tlist.size(); j++){
-				subscript.push(i != 1 && j == 0);
-				compile(tlist.get(j), bytecode);
-				subscript.pop();
-			}
-		}
+		
+		for (TestContext tc : testlist.test())
+			compile(tc, bytecode);
 		
 		if (tlc > 1){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = tlc;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
-	}
-
-	private int countActualTests(List<TestlistContext> testlist, int offset) {
-		int exprc = 0;
-		for (int i=offset; i<testlist.size(); i++){
-			List<TestContext> tlist = testlist.get(i).test();
-			for (int j=0; j<tlist.size(); j++){
-				TestContext tc = tlist.get(j);
-				
-				if (j != 0)
-					++exprc;
-				else if (i == 1)
-					++exprc;
-				else {
-					if (isType(ListmakerContext.class, tc))
-						continue;
-					if (isType(Testlist_compContext.class, tc))
-						continue;
-					++exprc;
-				}
-			}
-		}
-		return exprc;
 	}
 	
 	private void putGetAttr(String attr, List<PythonBytecode> bytecode) {
@@ -312,17 +281,6 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 		cb.argc = 0;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-	}
-	
-	private boolean isType(Class<? extends ParserRuleContext> cls, ParserRuleContext rule) {
-		for (ParseTree x: rule.children) {
-			if (cls.isInstance(x))
-				return true;
-			if (x instanceof ParserRuleContext)
-				if (isType(cls, (ParserRuleContext)x))
-					return true;
-		}
-		return false;
 	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
@@ -574,9 +532,7 @@ public class PythonCompiler {
 		} else if (arglist instanceof ListmakerContext){
 			if (((ListmakerContext) arglist).list_for() != null)
 				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
-			subscript.push(false);
 			compile(((ListmakerContext) arglist).test(0), bytecode);
-			subscript.pop();
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
@@ -608,7 +564,6 @@ public class PythonCompiler {
 			return;
 		}
 		
-		subscript.push(false);
 		if (s.stest() != null){
 			compile(s.stest().test(), bytecode);
 		} else {
@@ -649,7 +604,6 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = 3;
 		}
-		subscript.pop();
 	}
 
 	private int compileArguments(ArglistContext arglist,
@@ -657,9 +611,7 @@ public class PythonCompiler {
 		for (ArgumentContext ac : arglist.argument())
 			compile(ac, bytecode);
 		if (arglist.test() != null){
-			subscript.push(false);
 			compile(arglist.test(), bytecode);
-			subscript.pop();
 			return -(arglist.argument().size() + 1);
 		}
 		return arglist.argument().size();
@@ -668,9 +620,7 @@ public class PythonCompiler {
 	private void compile(ArgumentContext ac, List<PythonBytecode> bytecode) {
 		if (ac.test().size() == 1){
 			if (ac.comp_for() == null){
-				subscript.push(false);
 				compile(ac.test(0), bytecode);
-				subscript.pop();
 			} else {
 				// TODO
 			}
@@ -733,33 +683,9 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 			cb.value = new StringObject(bd.toString());
 		} else if (ctx.getText().startsWith("(")){
-			if (isSubscript(ctx)){
-				if (ctx.testlist_comp() == null){
-					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-					cb.argc = 0;
-				} else {
-					if (ctx.testlist_comp().comp_for() != null)
-						throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
-					int c = 0;
-					subscript.push(false);
-					for (TestContext ac : ctx.testlist_comp().test()){
-						compile(ac, bytecode);
-						++c;
-					}
-					subscript.pop();
-					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-					cb.argc = c;
-				}
-				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-			} else {
-				compile(ctx.testlist_comp(), bytecode);
-			}
+			compile(ctx.testlist_comp(), bytecode);
 		} else if (ctx.getText().startsWith("[")){
-			if (isSubscript(ctx)){
-				compileSubscript(ctx.listmaker(), bytecode);
-			} else {
-				compile(ctx.listmaker(), bytecode);
-			}
+			compile(ctx.listmaker(), bytecode);
 		} else if (ctx.getText().startsWith("{")){
 			// TODO
 		}
@@ -772,10 +698,8 @@ public class PythonCompiler {
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 			cb.variable = TupleTypeObject.TUPLE_CALL;
-			subscript.add(false);
 			for (TestContext t : ctx.test())
 				compile(t, bytecode);
-			subscript.pop();
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = ctx.test().size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
@@ -789,18 +713,12 @@ public class PythonCompiler {
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
 			cb.variable = ListTypeObject.LIST_CALL;
-			subscript.add(false);
 			for (TestContext t : listmaker.test())
 				compile(t, bytecode);
-			subscript.pop();
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
 			cb.argc = listmaker.test().size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		}
-	}
-
-	private boolean isSubscript(ParserRuleContext ctx) {
-		return subscript.peek();
 	}
 
 	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {
