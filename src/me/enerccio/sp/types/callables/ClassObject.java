@@ -7,6 +7,7 @@ import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
@@ -79,9 +80,10 @@ public class ClassObject extends CallableObject {
 		
 		MapObject dict = (MapObject)s;
 		synchronized (dict.backingMap){
-			for (PythonObject key : dict.backingMap.keySet()){
+			for (PythonProxy pkey : dict.backingMap.keySet()){
+				PythonObject key = pkey.o;
 				String kkey = ((StringObject)key).getString();
-				PythonObject value = dict.backingMap.get(key);
+				PythonObject value = dict.backingMap.get(pkey);
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.fields.get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();

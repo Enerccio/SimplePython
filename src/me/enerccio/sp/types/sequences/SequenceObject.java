@@ -2,11 +2,12 @@ package me.enerccio.sp.types.sequences;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
-public abstract class SequenceObject extends PythonObject {
+public abstract class SequenceObject extends ContainerObject {
 	private static final long serialVersionUID = 10L;
 	
 	public static final String __ITER__ = "__iter__";

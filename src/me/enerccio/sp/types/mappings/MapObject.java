@@ -1,18 +1,15 @@
 package me.enerccio.sp.types.mappings;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class MapObject extends PythonObject {
+public class MapObject extends ContainerObject {
 	private static final long serialVersionUID = 20L;
 	private static final String __GETITEM__ = "__getitem__";
 	private static final String __SETITEM__ = "__setitem__";
@@ -38,11 +35,12 @@ public class MapObject extends PythonObject {
 		}
 	};
 	
-	public Map<PythonObject, PythonObject> backingMap = 
-			Collections.synchronizedMap(new HashMap<PythonObject, PythonObject>());
+	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();
 	
 	public IntObject size(){
-		return new IntObject(backingMap.size());
+		synchronized (backingMap){
+			return new IntObject(backingMap.size());
+		}
 	}
 	
 	@Override
@@ -67,20 +65,26 @@ public class MapObject extends PythonObject {
 
 	// Internal use only
 	public boolean contains(String key) {
-		return backingMap.containsKey(new StringObject(key));
+		synchronized (backingMap){
+			return backingMap.containsKey(new StringObject(key));
+		}
 	}
 
 	public void put(String key, PythonObject value) {
-		backingMap.put(new StringObject(key), value);
+		synchronized (backingMap){
+			backingMap.put(new StringObject(key), value);
+		}
 	}
 	
 	public PythonObject getItem(TupleObject a){
 		if (a.size().intValue() != 1)
 			throw Utils.throwException("TypeError", "__getitem__ requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
-		if (!backingMap.containsKey(key))
-			throw Utils.throwException("KeyError", "Unknown key " + key);
-		return backingMap.get(key);
+		synchronized (backingMap){
+			if (!backingMap.containsKey(key))
+				throw Utils.throwException("KeyError", "Unknown key " + key);
+			return backingMap.get(key);
+		}
 	}
 	
 	public PythonObject setItem(TupleObject a){
@@ -88,7 +92,9 @@ public class MapObject extends PythonObject {
 			throw Utils.throwException("TypeError", "__setitem__ requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
 		PythonObject value = a.getObjects()[1];
-		return backingMap.put(key, value);
+		synchronized (backingMap){
+			return backingMap.put(key, value);
+		}
 	}
 	
 	public PythonObject len(TupleObject a){
@@ -110,8 +116,8 @@ public class MapObject extends PythonObject {
 		StringBuilder bd = new StringBuilder();
 		bd.append("{");
 		synchronized (backingMap){
-			for (PythonObject key : backingMap.keySet()){
-				bd.append(key.toString() + ":" + backingMap.get(key).toString() + " ");
+			for (PythonProxy key : backingMap.keySet()){
+				bd.append(key.o.toString() + ":" + backingMap.get(key).toString() + " ");
 			}
 		}
 		bd.append("}");
@@ -120,12 +126,21 @@ public class MapObject extends PythonObject {
 
 	public MapObject cloneMap() {
 		MapObject c = new MapObject();
-		c.backingMap.putAll(backingMap);
+		synchronized (backingMap){
+			c.backingMap.putAll(backingMap);
+		}
 		return c;
 	}
 	
 	@Override
 	public IntObject getId(){
 		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+	}
+
+	@Override
+	protected boolean containsItem(PythonObject o) {
+		synchronized (backingMap){
+			return backingMap.containsKey(o);
+		}
 	}
 }

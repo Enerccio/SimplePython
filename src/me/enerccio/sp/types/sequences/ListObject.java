@@ -80,4 +80,9 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		
 		return this;
 	}
+
+	@Override
+	protected boolean containsItem(PythonObject o) {
+		return objects.contains(o);
+	}
 }

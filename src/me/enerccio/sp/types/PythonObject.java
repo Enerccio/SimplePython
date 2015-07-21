@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 public abstract class PythonObject implements Serializable {
@@ -26,6 +28,32 @@ public abstract class PythonObject implements Serializable {
 	
 	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
+		
+		try {
+			fields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("eq", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put(Arithmetics.__NE__, new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("ne", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			fields.put("__not__", new AugumentedPythonObject(
+					new JavaMethodObject(this, this.getClass().getMethod("not", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+		} catch (Exception e){
+			
+		} 
+	}
+	
+	protected PythonObject eq(PythonObject other){
+		return BoolObject.fromBoolean(other == this);
+	}
+	
+	protected PythonObject neq(PythonObject other){
+		return BoolObject.fromBoolean(other != this);
+	}
+	
+	protected PythonObject not(PythonObject other){
+		return BoolObject.fromBoolean(!truthValue());
 	}
 
 	public PythonObject getType(){

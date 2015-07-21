@@ -45,6 +45,8 @@ import me.enerccio.sp.utils.Utils;
 public class PythonRuntime {
 	
 	public static final PythonRuntime runtime = new PythonRuntime();
+	public static final String IS = "is";
+	public static final String SUPER = "super";
 	public static final String GETATTR = "getattr";
 	public static final String SETATTR = "setattr";
 	public static final String ISINSTANCE = "isinstance";
@@ -174,6 +176,8 @@ public class PythonRuntime {
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
+					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
+					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class, ClassInstanceObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -200,6 +204,15 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public PythonObject superClass(ClassObject clazz, ClassInstanceObject inst){
+		// TODO
+		return null;
+	}
+	
+	public PythonObject is(PythonObject a, PythonObject b){
+		return BoolObject.fromBoolean(a == b);
 	}
 	
 	public static PythonObject print_java(PythonObject a){
@@ -437,3 +450,4 @@ public class PythonRuntime {
 		return null;
 	}
 }
+

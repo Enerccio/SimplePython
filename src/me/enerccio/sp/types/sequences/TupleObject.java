@@ -76,4 +76,12 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		return array[idx];
 	}
 
+	@Override
+	protected boolean containsItem(PythonObject o) {
+		for (int i=0; i<len(); i++)
+			if (o.equals(array[i]))
+				return true;
+		return false;
+	}
+
 }

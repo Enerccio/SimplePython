@@ -69,4 +69,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	public PythonObject valueAt(int idx) {
 		return new StringObject(Character.toString(value.charAt(idx)));
 	}
+
+	@Override
+	protected boolean containsItem(PythonObject o) {
+		if (o instanceof StringObject)
+			return value.contains(((StringObject)o).value);
+		return false;
+	}
 }

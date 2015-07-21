@@ -18,6 +18,7 @@ import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -309,8 +310,8 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case RESOLVE_ARGS:
 			synchronized (this.args.backingMap){
-				for (PythonObject key : this.args.backingMap.keySet()){
-					environment().set((StringObject) key, this.args.backingMap.get(key), false, false);
+				for (PythonProxy key : this.args.backingMap.keySet()){
+					environment().set((StringObject) key.o, this.args.backingMap.get(key), false, false);
 				}
 			}
 			break;
@@ -373,11 +374,11 @@ public class PythonInterpret extends PythonObject {
 				MapObject dict = (MapObject) target.fields.get(ModuleObject.__DICT__).object;
 				synchronized (dict){
 					synchronized (dict.backingMap){
-						for (PythonObject key : dict.backingMap.keySet()){
-							if (key instanceof StringObject){
-								String kkey = ((StringObject)key).value;
+						for (PythonProxy key : dict.backingMap.keySet()){
+							if (key.o instanceof StringObject){
+								String kkey = ((StringObject)key.o).value;
 								if (!kkey.startsWith("__"))
-									environment.set((StringObject)key, 
+									environment.set((StringObject)key.o, 
 											dict.backingMap.get(key),
 											false, false);
 							}
