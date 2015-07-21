@@ -12,6 +12,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.interpret.EnvironmentObject;
+import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -46,6 +47,7 @@ public class PythonRuntime {
 	
 	public static final PythonRuntime runtime = new PythonRuntime();
 	public static final String IS = "is";
+	public static final String GO = "go";
 	public static final String SUPER = "super";
 	public static final String GETATTR = "getattr";
 	public static final String SETATTR = "setattr";
@@ -177,6 +179,7 @@ public class PythonRuntime {
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
+					globals.put(GO, Utils.staticMethodCall(PythonRuntime.class, GO, String.class));
 					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
@@ -204,6 +207,15 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject go(String where){
+		PythonInterpret current = PythonInterpret.interpret.get();
+		FrameObject frame = current.frame();
+		if (!frame.labelMap.containsKey(where))
+			throw Utils.throwException("Error", "label '" + where + "' undefined");
+		frame.pc = frame.labelMap.get(where);
+		return NoneObject.NONE;
 	}
 	
 	public static PythonObject superClass(ClassObject clazz){
