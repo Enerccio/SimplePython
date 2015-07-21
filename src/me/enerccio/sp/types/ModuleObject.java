@@ -68,11 +68,15 @@ public class ModuleObject extends PythonObject {
 	}
 
 	private void doInitModule() {
+		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 		PythonInterpret.interpret.get().executeBytecode(frame);
 		while (true){
 			ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
-			if (res == ExecutionResult.FINISHED || res == ExecutionResult.INTERRUPTED || res == ExecutionResult.EOF)
+			if (res == ExecutionResult.INTERRUPTED)
 				return;
+			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
+				if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+					return;
 		}
 	}
 }

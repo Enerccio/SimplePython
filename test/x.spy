@@ -2,4 +2,6 @@ def anca(x, y):
 	z = x + y
 	return z
 	
-print anca(10, 20, 30)
+anca(10, 20)
+anca(10, 30)
+print "ahoj"

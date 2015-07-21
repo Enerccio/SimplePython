@@ -56,10 +56,17 @@ public class ClassObject extends CallableObject {
 		}
 		addToInstance(dict, instance);
 		
+		int cfc = PythonInterpret.interpret.get().currentFrame.size();
+
 		instance.runMethod(ClassInstanceObject.__INIT__, args);
-		while (PythonInterpret.interpret.get().executeOnce() != ExecutionResult.EOF)
-			;
-		return instance;
+		while (true){
+			ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
+			if (res == ExecutionResult.INTERRUPTED)
+				return instance;
+			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
+				if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+					return instance;
+		}
 	}
 
 	private void addToInstance(PythonObject s, ClassInstanceObject instance) {

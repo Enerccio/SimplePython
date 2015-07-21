@@ -13,6 +13,7 @@ import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -80,10 +81,14 @@ public class PythonInterpret extends PythonObject {
 	public PythonObject execute(boolean internalCall, PythonObject callable, PythonObject... args) {
 		if (callable instanceof CallableObject){
 			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
+				int cfc = currentFrame.size();
 				((CallableObject)callable).call(new TupleObject(args));
-				while (executeOnce() != ExecutionResult.EOF)
-					;
-				return returnee;
+				while (true){
+					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
+					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
+						if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+							return returnee;
+				}
 			} else
 				return ((CallableObject)callable).call(new TupleObject(args));
 		} else {
