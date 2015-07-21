@@ -114,7 +114,6 @@ public class PythonInterpret extends PythonObject {
 		FrameObject o;
 		currentFrame.add(o = new FrameObject());
 		o.bytecode = new ArrayList<PythonBytecode>(frame);
-		o.recalculateLabels();
 	}
 
 	public ExecutionResult executeOnce(){
@@ -152,8 +151,6 @@ public class PythonInterpret extends PythonObject {
 		Stack<PythonObject> stack = o.stack;
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
-			break;
-		case LABEL:
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
@@ -435,9 +432,5 @@ public class PythonInterpret extends PythonObject {
 
 	public void setArgs(MapObject a) {
 		args = a;
-	}
-
-	public FrameObject frame() {
-		return currentFrame.peekLast();
 	}
 }

@@ -21,7 +21,7 @@ public enum Bytecode {
 	GETATTR(90), SETATTR(90),
 	
 	// custom
-	CUSTOM(255), LABEL(254);
+	CUSTOM(255);
 	
 	Bytecode(int id){
 		this.id = id;
@@ -162,10 +162,6 @@ public enum Bytecode {
 			break;
 		case SETATTR:
 			bytecode = new SetAttr();
-			bytecode.newObject();
-			break;
-		case LABEL:
-			bytecode = new Label();
 			bytecode.newObject();
 			break;
 		}

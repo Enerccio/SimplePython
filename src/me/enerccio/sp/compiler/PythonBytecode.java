@@ -34,12 +34,6 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
-	public static class Label extends PythonBytecode {
-		{
-			bytecode = Bytecode.LABEL;
-		}
-	}
-	
 	public static class AcceptReturn extends PythonBytecode {
 		{
 			bytecode = Bytecode.ACCEPT_RETURN;
