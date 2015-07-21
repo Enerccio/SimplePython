@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.LabelContext;
+import me.enerccio.sp.parser.pythonParser.Label_or_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ArgumentContext;
 import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
@@ -54,8 +56,8 @@ public class PythonCompiler {
 		cb.dict = dict;
 		environments.add(dict);
 		
-		for (StmtContext sctx : fcx.stmt())
-			compileStatement(sctx, bytecode);
+		for (Label_or_stmtContext ls : fcx.label_or_stmt())
+			compile(ls, bytecode);
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT));
 		compilingClass.pop();
@@ -68,8 +70,6 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		if (sctx.simple_stmt() != null)
 			compileSimpleStatement(sctx.simple_stmt(), bytecode);
-		else if (sctx.parenthesesless_call() != null)
-			compileParentheseslessCall(sctx.parenthesesless_call(), bytecode);
 		else
 			compileCompoundStatement(sctx.compound_stmt(), bytecode);
 	}
@@ -83,6 +83,21 @@ public class PythonCompiler {
 			compileClass(cstmt.classdef(), bytecode);
 		// TODO
 	}
+	
+	private void compile(Label_or_stmtContext ls, List<PythonBytecode> bytecode) {
+		if (ls.label() != null)
+			compile(ls.label(), bytecode);
+		else
+			compileStatement(ls.stmt(), bytecode);
+	}
+	
+	private void compile(LabelContext label, List<PythonBytecode> bytecode) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL));
+		cb.variable = label.nname().getText();
+		if (label.suite() != null)
+			for (StmtContext c : label.suite().stmt())
+				compileStatement(c, bytecode);
+		}
 
 	private void compileClass(ClassdefContext classdef,
 			List<PythonBytecode> bytecode) {
@@ -239,35 +254,26 @@ public class PythonCompiler {
 						compileImport2(asname, bytecode, packageName);
 					}
 			}
-		}
-		
-		if (smstmt.pass_stmt() != null){
+		} else if (smstmt.parenthesesless_call() != null) {
+			compileParentheseslessCall(smstmt.parenthesesless_call(), bytecode);
+		} else if (smstmt.pass_stmt() != null) {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
-		}
-		
-		if (smstmt.expr_stmt() != null){
+		} else if (smstmt.expr_stmt() != null){
 			compile(smstmt.expr_stmt(), bytecode);
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP));
-		}
-			
-		if (smstmt.print_stmt() != null){
+		} else  if (smstmt.print_stmt() != null){
 			compile(smstmt.print_stmt(), bytecode);
-		}
-		
-		if (smstmt.flow_stmt() != null){
+		} else if (smstmt.flow_stmt() != null){
 			compile(smstmt.flow_stmt(), bytecode);
 		}
 	}
 
-	private void compile(Flow_stmtContext ctx,
-			List<PythonBytecode> bytecode) {
-		if (ctx.return_stmt() != null){
+	private void compile(Flow_stmtContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.return_stmt() != null)
 			compile(ctx.return_stmt(), bytecode);
-		}
 	}
 
-	private void compile(Return_stmtContext ctx,
-			List<PythonBytecode> bytecode) {
+	private void compile(Return_stmtContext ctx, List<PythonBytecode> bytecode) {
 		if (compilingClass.peek() != null)
 			throw Utils.throwException("SyntaxError", "return cannot be inside class definition");
 		if (ctx.testlist() != null)

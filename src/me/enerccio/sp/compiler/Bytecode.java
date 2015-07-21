@@ -11,7 +11,7 @@ public enum Bytecode {
 	
 	// control
 	RETURN(16), POP(17), PUSH(18), CALL(19), RCALL(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
-	GOTO(25), 
+	GOTO(25), LABEL(26),
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
@@ -62,6 +62,10 @@ public enum Bytecode {
 			break;
 		case GOTO:
 			bytecode = new Goto();
+			bytecode.newObject();
+			break;
+		case LABEL:
+			bytecode = new Label();
 			bytecode.newObject();
 			break;
 		case JUMPIFFALSE:
