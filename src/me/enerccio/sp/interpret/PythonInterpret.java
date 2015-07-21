@@ -151,6 +151,7 @@ public class PythonInterpret extends PythonObject {
 		Stack<PythonObject> stack = o.stack;
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
+		case LABEL:
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();

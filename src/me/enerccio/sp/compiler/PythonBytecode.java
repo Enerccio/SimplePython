@@ -130,6 +130,17 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class Label extends PythonBytecode {
+		{
+			bytecode = Bytecode.LABEL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), variable);
+		}
+	}
+	
 	public static class JumpIfTrue extends PythonBytecode {
 		{
 			bytecode = Bytecode.JUMPIFTRUE;

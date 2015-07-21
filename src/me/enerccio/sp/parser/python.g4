@@ -143,7 +143,7 @@ tokens { INDENT, DEDENT }
 
 /// file_input: (NEWLINE | stmt)* ENDMARKER
 file_input
- : ( NEWLINE | stmt )* EOF
+ : ( NEWLINE | label_or_stmt )* EOF
  ;
 
 decorator
@@ -170,8 +170,16 @@ vararg
 : '*' nname
 ; 
 
+label_or_stmt
+: stmt | label
+;
+
 stmt
 : simple_stmt | compound_stmt
+;
+
+label
+: nname ':' suite?
 ;
 
 simple_stmt
@@ -179,8 +187,13 @@ simple_stmt
 ;
 
 small_stmt
-: (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
+: (expr_stmt | print_stmt | parenthesesless_call | del_stmt | pass_stmt | flow_stmt |
              import_stmt | global_stmt)
+;
+
+parenthesesless_call
+: nname arglist?
+| testlist '=' nname arglist?
 ;
 
 expr_stmt
