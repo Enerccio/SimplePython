@@ -437,7 +437,7 @@ dictorsetmaker
 ;
 
 classdef
-: (docstring NEWLINE)? 'class' nname '(' testlist? ')' ':' suite
+: 'class' nname '(' testlist? ')' ':' suite
 ;
 
 arglist

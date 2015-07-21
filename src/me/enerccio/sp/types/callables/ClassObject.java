@@ -23,6 +23,7 @@ public class ClassObject extends CallableObject {
 	public static final String __DICT__ = "__dict__";
 	public static final String __NEW__ = "__new__";
 	public static final String __CLASS__ = "__class__";
+	public static final String __GETATTR__ = "__getattr__";
 	
 	public ClassObject(){
 		
@@ -35,12 +36,20 @@ public class ClassObject extends CallableObject {
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
 					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(this, __NEW__, new JavaMethodObject(this, this.getClass().getMethod("newInstance", 
-					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
+					new Class<?>[]{StringObject.class}), false));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
 	};
+	
+	public PythonObject getAttr(StringObject o){
+		try {
+			return ((MapObject)fields.get(__DICT__).object).doGet(o);
+		} catch (NullPointerException e){
+			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", this), o.value));
+		}
+	}
 
 	@Override
 	public PythonObject call(TupleObject args) {
@@ -59,7 +68,7 @@ public class ClassObject extends CallableObject {
 		
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 
-		instance.runMethod(ClassInstanceObject.__INIT__, args);
+		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), args);
 		while (true){
 			ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
 			if (res == ExecutionResult.INTERRUPTED)
@@ -76,7 +85,7 @@ public class ClassObject extends CallableObject {
 			for (PythonProxy pkey : dict.backingMap.keySet()){
 				PythonObject key = pkey.o;
 				String kkey = ((StringObject)key).getString();
-				PythonObject value = dict.backingMap.get(pkey);
+				PythonObject value = dict.backingMap.get(key);
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.fields.get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();

@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
@@ -33,9 +35,11 @@ public class PythonCompiler {
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
 	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
+	private Stack<String> compilingClass = new Stack<String>();
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		stack.push();
+		compilingClass.push(null);
 		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		// create new environment
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
@@ -52,6 +56,7 @@ public class PythonCompiler {
 			compileStatement(sctx, bytecode);
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT));
+		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();
 		return bytecode;
@@ -70,7 +75,50 @@ public class PythonCompiler {
 		if (cstmt.funcdef() != null){
 			compileFunction(cstmt.funcdef(), bytecode);
 		}
+		if (cstmt.classdef() != null)
+			compileClass(cstmt.classdef(), bytecode);
 		// TODO
+	}
+
+	private void compileClass(ClassdefContext classdef,
+			List<PythonBytecode> bytecode) {
+		String className = classdef.nname().getText();
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+		cb.variable = "type";
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = new StringObject(className);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL));
+		cb.variable = "tuple";
+		int c = classdef.testlist() != null ? classdef.testlist().test().size() : 0;
+		if (classdef.testlist() != null)
+			for (TestContext tc : classdef.testlist().test())
+				compile(tc, bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = c;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
+		Utils.putPublic(fnc, "__name__", new StringObject("$$__classBodyFncFor" + className + "$$"));
+		fnc.args = new ArrayList<String>();
+		
+		compilingClass.push(className);
+		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode);
+		compilingClass.pop();
+		
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = cdc;
+		fnc.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN));
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = fnc;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = 0;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+		cb.argc = 3;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE));
+		cb.variable = className;
 	}
 
 	private void compileFunction(FuncdefContext funcdef,
@@ -81,7 +129,7 @@ public class PythonCompiler {
 		if (funcdef.docstring() != null)
 			Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
 		String functionName = funcdef.nname(0).getText();
-		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
+		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
 		
 		List<String> arguments = new ArrayList<String>();
 		for (int i=1; i<funcdef.nname().size(); i++){
@@ -94,7 +142,13 @@ public class PythonCompiler {
 			fnc.vararg = funcdef.vararg().nname().getText();
 		}
 		
+		compilingClass.push(null);
 		doCompileFunction(funcdef.suite(), fnc.bytecode);
+		compilingClass.pop();
+		
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		cb.value = NoneObject.NONE;
+		fnc.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN));
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 		cb.value = fnc;
@@ -107,7 +161,7 @@ public class PythonCompiler {
 		return text.substring(3, text.length()-4);
 	}
 
-	private void doCompileFunction(SuiteContext suite,
+	private MapObject doCompileFunction(SuiteContext suite,
 			List<PythonBytecode> bytecode) {
 		
 		stack.push();
@@ -126,6 +180,8 @@ public class PythonCompiler {
 
 		environments.removeLast();
 		stack.pop();
+		
+		return dict;
 	}
 
 	private void compileSimpleStatement(Simple_stmtContext sstmt,
@@ -191,6 +247,8 @@ public class PythonCompiler {
 
 	private void compile(Return_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
+		if (compilingClass.peek() != null)
+			throw Utils.throwException("SyntaxError", "return cannot be inside class definition");
 		if (ctx.testlist() != null)
 			compileRightHand(ctx.testlist(), bytecode);
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN));

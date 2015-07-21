@@ -190,7 +190,7 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(ListTypeObject.LIST_CALL, o = new ListTypeObject());
 					o.newObject();
-					globals.put(ObjectTypeObject.OBJECT_CALL, o = new ObjectTypeObject());
+					globals.put(ObjectTypeObject.OBJECT_CALL, o = ObjectTypeObject.inst);
 					o.newObject();
 					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
 					o.newObject();
@@ -206,14 +206,14 @@ public class PythonRuntime {
 		return globals.cloneMap();
 	}
 	
-	public PythonObject superClass(ClassObject clazz){
+	public static PythonObject superClass(ClassObject clazz){
 		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
 		if (ll.size() == 1)
 			return NoneObject.NONE;
-		return ll.get(ll.size()-1);
+		return ll.get(ll.size()-2);
 	}
 	
-	public PythonObject is(PythonObject a, PythonObject b){
+	public static PythonObject is(PythonObject a, PythonObject b){
 		return BoolObject.fromBoolean(a == b);
 	}
 	
@@ -271,10 +271,12 @@ public class PythonRuntime {
 			accessor.get().push(o);
 			try {
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
-				accessor.get().pop();
 				value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
 			} catch (NoGetattrException e) {
 				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", o), attribute));
+			} finally {
+
+				accessor.get().pop();
 			}
 		}
 		return value;

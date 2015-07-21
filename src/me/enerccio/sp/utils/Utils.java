@@ -297,7 +297,7 @@ public class Utils {
 	}
 
 	public static List<ClassObject> resolveDiamonds(ClassObject clo) {
-		List<ClassObject> ll = asListOfClasses((TupleObject) clo.fields.get(ClassObject.__BASES__).object);
+		List<ClassObject> ll = asListOfClasses(clo);
 		List<ClassObject> linear = linearize(ll);
 		Collections.reverse(linear);
 		return linear;
@@ -310,7 +310,7 @@ public class Utils {
 			return merged;
 		List<List<ClassObject>> mergeList = new ArrayList<List<ClassObject>>();
 		for (int i=1; i<ll.size(); i++)
-			mergeList.add(linearize(asListOfClasses((TupleObject) ll.get(i).fields.get(ClassObject.__BASES__).object)));
+			mergeList.add(linearize(asListOfClasses(ll.get(i))));
 		for (ClassObject o : merge(mergeList, ll.subList(1, ll.size())))
 			merged.add(o);
 		return merged;
@@ -321,13 +321,13 @@ public class Utils {
 		mergeList.add(subList);
 		
 		List<ClassObject> m = new ArrayList<ClassObject>();
-		while (mergeList.size() != 0){
+		while (true){
 			List<ClassObject> suitable = null;
-			if (mergeList.size() == 1)
-				suitable = mergeList.get(0);
 			
 			outer:
 			for (List<ClassObject> testee : mergeList){
+				if (testee.size() == 0)
+					continue;
 				ClassObject head = testee.get(0);
 				for (List<ClassObject> tested : mergeList)
 					if (testee != tested)
@@ -336,25 +336,31 @@ public class Utils {
 							break outer;
 						}
 			}
-			if (suitable == null)
-				throw Utils.throwException("TypeError", "unsuitable class hierarchy!");
+			if (suitable == null) {
+				for (List<ClassObject> cllist : mergeList)
+					if (cllist.size() != 0)
+						throw Utils.throwException("TypeError", "unsuitable class hierarchy!");
+				return m;
+			}
 			
-			m.add(suitable.get(0));
-			mergeList.remove(suitable);
+			ClassObject head = suitable.get(0);
+			m.add(head);
+			for (List<ClassObject> cllist : mergeList)
+				cllist.remove(head);
 		}
-		
-		return m;
 	}
 
 	private static List<ClassObject> tails(List<ClassObject> tested) {
+		if (tested.size() == 0)
+			return new ArrayList<ClassObject>();
 		return tested.subList(1, tested.size());
 	}
 
-	private static List<ClassObject> asListOfClasses(TupleObject bases) {
+	private static List<ClassObject> asListOfClasses(ClassObject clo) {
 		List<ClassObject> cl = new ArrayList<ClassObject>();
-		for (PythonObject o : bases.getObjects())
+		cl.add(clo);
+		for (PythonObject o : ((TupleObject) clo.fields.get(ClassObject.__BASES__).object).getObjects())
 			cl.add((ClassObject) o);
-		cl.add(PythonRuntime.runtime.getObject());
 		return cl;
 	}
 }

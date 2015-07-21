@@ -1,7 +1,10 @@
-def anca(x, y):
-	z = x + y
-	return z
+class HelloWorld(object):
+	print "hello, "
 	
-anca(10, 20)
-anca(10, 30)
-print "ahoj"
+	def __init__(self):
+		super(HelloWorld).__init__(self)
+		print "world"
+	
+x = HelloWorld()
+
+

@@ -8,7 +8,16 @@ public class HashHashMap<T> extends HashMap<PythonProxy, T> {
 	private static final long serialVersionUID = -6880977211393857008L;
 
 	@Override
+	public T get(Object key) {
+		if (key instanceof PythonProxy)
+			return super.get(key);
+		return super.get(new PythonProxy((PythonObject) key));
+	}
+
+	@Override
 	public boolean containsKey(Object key) {
+		if (key instanceof PythonProxy)
+			return super.containsKey(key);
 		return super.containsKey(new PythonProxy((PythonObject) key));
 	}
 
@@ -18,6 +27,8 @@ public class HashHashMap<T> extends HashMap<PythonProxy, T> {
 
 	@Override
 	public T remove(Object key) {
+		if (key instanceof PythonProxy)
+			return super.remove(key);
 		return super.remove(new PythonProxy((PythonObject) key));
 	}
 
