@@ -1,7 +1,6 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -41,15 +40,7 @@ public class TypeTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "Bases must be a tuple");
 		if (!(dict instanceof MapObject))
 			throw Utils.throwException("TypeError", "Dict must be a dict");
-		
-		PythonObject object = PythonInterpret.interpret.get().getGlobal("object");
-		TupleObject bb = (TupleObject)bases;
-		if (bb.size().intValue() == 0){
-			bases = new TupleObject(object);
-		} else if (bb.getObjects()[0] != object){
-			bases = new TupleObject(Utils.pushLeft(object, bb.getObjects()));
-		}
-		
+
 		ClassObject type = new ClassObject();
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);

@@ -177,7 +177,7 @@ public class PythonRuntime {
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
-					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class, ClassInstanceObject.class));
+					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -206,9 +206,11 @@ public class PythonRuntime {
 		return globals.cloneMap();
 	}
 	
-	public PythonObject superClass(ClassObject clazz, ClassInstanceObject inst){
-		// TODO
-		return null;
+	public PythonObject superClass(ClassObject clazz){
+		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
+		if (ll.size() == 1)
+			return NoneObject.NONE;
+		return ll.get(ll.size()-1);
 	}
 	
 	public PythonObject is(PythonObject a, PythonObject b){
@@ -228,9 +230,7 @@ public class PythonRuntime {
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
 		if (testee instanceof ClassInstanceObject && clazz instanceof ClassObject)
 			return isClassInstance((ClassInstanceObject)testee, (ClassObject)clazz) ? BoolObject.TRUE : BoolObject.FALSE;
-		
-		// TODO
-		return NoneObject.NONE;
+		return Utils.run("type", testee).equals(Utils.run("type", clazz)) ? BoolObject.TRUE : BoolObject.FALSE;
 	}
 
 	private static boolean isClassInstance(ClassInstanceObject testee,
@@ -445,6 +445,11 @@ public class PythonRuntime {
 		return baseFactory;
 	}
 
+	public synchronized ClassObject getObject() {
+		ObjectTypeObject o = (ObjectTypeObject) globals.doGet(ObjectTypeObject.OBJECT_CALL);
+		return o;
+	}
+	
 	public PythonObject runtimeWrapper() {
 		// TODO Auto-generated method stub
 		return null;

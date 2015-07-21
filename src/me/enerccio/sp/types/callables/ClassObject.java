@@ -1,5 +1,7 @@
 package me.enerccio.sp.types.callables;
 
+import java.util.List;
+
 import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -46,16 +48,14 @@ public class ClassObject extends CallableObject {
 	}
 
 	private PythonObject newObject(TupleObject args) {
-		MapObject dict = (MapObject) fields.get(__DICT__).object;
-		TupleObject bases = (TupleObject) fields.get(__BASES__).object;
-		
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
 		
-		for (int i=0; i<bases.getObjects().length; i++){
-			addToInstance(bases.getObjects()[i].fields.get(__BASES__).object, instance);
+		List<ClassObject> bbases = Utils.resolveDiamonds(this);
+		
+		for (ClassObject o : bbases){
+			addToInstance(o.fields.get(__DICT__).object, instance);
 		}
-		addToInstance(dict, instance);
 		
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 
@@ -71,13 +71,6 @@ public class ClassObject extends CallableObject {
 	}
 
 	private void addToInstance(PythonObject s, ClassInstanceObject instance) {
-		if (s instanceof TupleObject){
-			for (int i=0; i<((TupleObject) s).getObjects().length; i++){
-				addToInstance(((TupleObject) s).getObjects()[i].fields.get(__BASES__).object, instance);
-			}
-			return;
-		}
-		
 		MapObject dict = (MapObject)s;
 		synchronized (dict.backingMap){
 			for (PythonProxy pkey : dict.backingMap.keySet()){

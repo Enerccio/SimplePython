@@ -30,6 +30,7 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.pointer.PointerObject;
@@ -164,14 +165,19 @@ public class Utils {
 		return stack.peek();
 	}
 
-	public static PythonObject staticMethodCall(Class<?> clazz,
+	public static PythonObject staticMethodCall(boolean noTypeConversion, Class<?> clazz,
 			String method, Class<?>... signature) {
 		try {
-			return new JavaFunctionObject(clazz.getMethod(method, signature), false);
+			return new JavaFunctionObject(clazz.getMethod(method, signature), noTypeConversion);
 		} catch (NoSuchMethodException e){
 			// will not happen
 			return null;
 		}
+	}
+	
+	public static PythonObject staticMethodCall(Class<?> clazz,
+			String method, Class<?>... signature) {
+		return staticMethodCall(false, clazz, method, signature);
 	}
 	
 	private static class ThrowingErrorListener extends BaseErrorListener {
@@ -288,5 +294,67 @@ public class Utils {
 		for (int i=1; i<objects.length; i++)
 			copy[i-1] = objects[i];
 		return copy;
+	}
+
+	public static List<ClassObject> resolveDiamonds(ClassObject clo) {
+		List<ClassObject> ll = asListOfClasses((TupleObject) clo.fields.get(ClassObject.__BASES__).object);
+		List<ClassObject> linear = linearize(ll);
+		Collections.reverse(linear);
+		return linear;
+	}
+
+	private static List<ClassObject> linearize(List<ClassObject> ll) {
+		List<ClassObject> merged = new ArrayList<ClassObject>();
+		merged.add(ll.get(0));
+		if (ll.size() == 1)
+			return merged;
+		List<List<ClassObject>> mergeList = new ArrayList<List<ClassObject>>();
+		for (int i=1; i<ll.size(); i++)
+			mergeList.add(linearize(asListOfClasses((TupleObject) ll.get(i).fields.get(ClassObject.__BASES__).object)));
+		for (ClassObject o : merge(mergeList, ll.subList(1, ll.size())))
+			merged.add(o);
+		return merged;
+	}
+
+	private static List<ClassObject> merge(List<List<ClassObject>> mergeList,
+			List<ClassObject> subList) {
+		mergeList.add(subList);
+		
+		List<ClassObject> m = new ArrayList<ClassObject>();
+		while (mergeList.size() != 0){
+			List<ClassObject> suitable = null;
+			if (mergeList.size() == 1)
+				suitable = mergeList.get(0);
+			
+			outer:
+			for (List<ClassObject> testee : mergeList){
+				ClassObject head = testee.get(0);
+				for (List<ClassObject> tested : mergeList)
+					if (testee != tested)
+						if (!tails(tested).contains(head)){
+							suitable = testee;
+							break outer;
+						}
+			}
+			if (suitable == null)
+				throw Utils.throwException("TypeError", "unsuitable class hierarchy!");
+			
+			m.add(suitable.get(0));
+			mergeList.remove(suitable);
+		}
+		
+		return m;
+	}
+
+	private static List<ClassObject> tails(List<ClassObject> tested) {
+		return tested.subList(1, tested.size());
+	}
+
+	private static List<ClassObject> asListOfClasses(TupleObject bases) {
+		List<ClassObject> cl = new ArrayList<ClassObject>();
+		for (PythonObject o : bases.getObjects())
+			cl.add((ClassObject) o);
+		cl.add(PythonRuntime.runtime.getObject());
+		return cl;
 	}
 }

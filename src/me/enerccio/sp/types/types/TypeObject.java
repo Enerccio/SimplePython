@@ -29,5 +29,12 @@ public abstract class TypeObject extends ClassObject {
 	protected String doToString() {
 		return "<type " + getTypeIdentificator() + ">";
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof TypeObject)
+			return ((TypeObject) o).getTypeIdentificator().equals(getTypeIdentificator());
+		return false;
+	}
 
 }
