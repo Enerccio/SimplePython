@@ -123,4 +123,9 @@ public class MapObject extends PythonObject {
 		c.backingMap.putAll(backingMap);
 		return c;
 	}
+	
+	@Override
+	public IntObject getId(){
+		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+	}
 }

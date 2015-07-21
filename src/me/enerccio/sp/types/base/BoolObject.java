@@ -14,6 +14,12 @@ public class BoolObject extends NumberObject {
 	
 	private BoolObject(boolean v){
 		this.value = v;
+		newObject();
+	}
+	
+	@Override
+	protected void registerObject(){
+		
 	}
 	
 	@Override 

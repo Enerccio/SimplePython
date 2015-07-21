@@ -21,6 +21,10 @@ public abstract class PythonObject implements Serializable {
 	}
 	
 	public void newObject(){
+		registerObject();
+	}
+	
+	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
 	}
 

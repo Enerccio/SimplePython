@@ -8,7 +8,7 @@ public class EllipsisObject extends PythonObject {
 	public static final EllipsisObject ELLIPSIS = new EllipsisObject();
 
 	private EllipsisObject(){
-		
+		newObject();
 	}
 	
 	@Override
@@ -21,4 +21,8 @@ public class EllipsisObject extends PythonObject {
 		return "...";
 	}
 
+	@Override
+	protected void registerObject(){
+		
+	}
 }

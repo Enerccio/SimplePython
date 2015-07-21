@@ -1,6 +1,7 @@
 package me.enerccio.sp.types.sequences;
 
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -21,4 +22,10 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	}
 	
 	public abstract PythonObject set(PythonObject key, PythonObject value);
+	
+	
+	@Override
+	public IntObject getId(){
+		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+	}
 }

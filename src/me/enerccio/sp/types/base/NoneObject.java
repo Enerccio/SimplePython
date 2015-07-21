@@ -10,12 +10,17 @@ public class NoneObject extends PythonObject {
 	public static final NoneObject NONE = new NoneObject();
 	
 	private NoneObject(){
-		
+		newObject();
 	}
 	
 	@Override
 	public boolean truthValue() {
 		return false;
+	}
+	
+	@Override
+	protected void registerObject(){
+		
 	}
 
 	@Override
