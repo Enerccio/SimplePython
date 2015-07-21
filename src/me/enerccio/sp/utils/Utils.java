@@ -328,13 +328,16 @@ public class Utils {
 			for (List<ClassObject> testee : mergeList){
 				if (testee.size() == 0)
 					continue;
+				suitable = testee;
 				ClassObject head = testee.get(0);
 				for (List<ClassObject> tested : mergeList)
 					if (testee != tested)
-						if (!tails(tested).contains(head)){
-							suitable = testee;
-							break outer;
+						if (tails(tested).contains(head)){
+							suitable = null;
+							continue outer;
 						}
+				if (testee != null)
+					break;
 			}
 			if (suitable == null) {
 				for (List<ClassObject> cllist : mergeList)

@@ -8,3 +8,27 @@ class HelloWorld(object):
 x = HelloWorld()
 
 
+class Super(object):
+	pass
+	
+class Super2(object):
+	pass
+
+class X(Super):
+	pass
+	
+class Y(X, Super):
+	pass
+	
+class Z(Y, X):
+	pass
+	
+class W(Z, X, object):
+	pass
+	
+x = W()
+
+class Fail(X, Z):
+	pass
+	
+x = Fail()
