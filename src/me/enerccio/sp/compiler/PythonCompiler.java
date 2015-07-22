@@ -17,6 +17,7 @@ import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
+import me.enerccio.sp.parser.pythonParser.While_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -87,7 +88,9 @@ public class PythonCompiler {
 		} else if (cstmt.classdef() != null) {
 			compileClass(cstmt.classdef(), bytecode, null);
 		} else if (cstmt.try_stmt() != null) {
-			compileTry(cstmt.try_stmt(), bytecode, null);
+			compileTry(cstmt.try_stmt(), bytecode);
+		} else if (cstmt.while_stmt() != null) {
+			compileWhile(cstmt.while_stmt(), bytecode);
 		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
@@ -104,7 +107,7 @@ public class PythonCompiler {
 			compileStatement(sctx, bytecode);
 	}
 
-	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, Object object) {
+	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode) {
 		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, try_stmt.start);
 		PythonBytecode elseJump = null;
 		List<PythonBytecode> exceptJumps = new ArrayList<>();
@@ -216,6 +219,24 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
 
+	
+	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode) {
+		int start = bytecode.size();
+		// Compile condition
+		compile(ctx.test(), bytecode);
+		PythonBytecode jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start);
+		bytecode.add(jump);
+		// Compile body
+		compileSuite(ctx.suite(0), bytecode);
+		// Jump back
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+		cb.intValue = start;
+		// Compile else block, if needed
+		jump.intValue = bytecode.size();;
+		if (ctx.suite(1) != null)
+			compileSuite(ctx.suite(1), bytecode);
+	}
+	
 	private void compileClass(ClassdefContext classdef,
 			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		
