@@ -7,6 +7,10 @@ import me.enerccio.sp.types.mappings.MapObject;
 
 @SuppressWarnings("serial")
 public class PythonBytecode extends PythonObject {
+	
+	public int debugLine;
+	public int debugInLine;
+	public String debugModule = "";
 
 	public PythonObject value;
 	public String variable;

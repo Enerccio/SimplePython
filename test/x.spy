@@ -1,3 +1,16 @@
-&gohere
-print "Hello, recursion"
-go("gohere")
+def anca():
+	def mara():
+		def jano():
+			type(10, 20)
+		return jano
+	return mara
+	
+x = anca()()
+
+def xxx(x):
+	def yyy(x):
+		x()
+	yyy(x)
+	
+xxx(x)
+

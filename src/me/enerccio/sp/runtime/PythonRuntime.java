@@ -31,6 +31,7 @@ import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
+import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
@@ -309,6 +310,9 @@ public class PythonRuntime {
 	
 	private void addExceptions(MapObject globals) {
 		MapObject base = addException(globals, "Error", null, false);
+		ListObject lo = new ListObject();
+		lo.newObject();
+		base.backingMap.put(new StringObject("stack"), lo);
 		JavaFunctionObject str = (JavaFunctionObject) Utils.staticMethodCall(PythonRuntime.class, "baseExcToStr", PythonObject.class);
 		str.setWrappedMethod(true);
 		base.backingMap.put(new StringObject("__str__"), str);

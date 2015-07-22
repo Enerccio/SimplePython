@@ -19,6 +19,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
+import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -61,6 +62,7 @@ public class PythonInterpret extends PythonObject {
 	private volatile int accessCount = 0;
 	private MapObject args = null;
 	private PythonObject returnee;
+	public PythonObject exception;
 	
 	public boolean isInterpretStoppable(){
 		return accessCount == 0;
@@ -86,8 +88,11 @@ public class PythonInterpret extends PythonObject {
 				while (true){
 					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
 					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
-						if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+						if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
+							if (PythonInterpret.interpret.get().exception != null)
+								throw new PythonExecutionException(PythonInterpret.interpret.get().exception);
 							return returnee;
+						}
 				}
 			} else
 				return ((CallableObject)callable).call(new TupleObject(args));
@@ -128,6 +133,11 @@ public class PythonInterpret extends PythonObject {
 			return ExecutionResult.INTERRUPTED;
 		}
 		
+		if (exception != null){
+			handleException(new PythonExecutionException(exception));
+			return ExecutionResult.EOF;
+		}
+		
 		++accessCount;
 		try {
 			if (currentFrame.size() == 0)
@@ -140,14 +150,44 @@ public class PythonInterpret extends PythonObject {
 				returnee = null;
 				return ExecutionResult.EOF;
 			}
-			return executeSingleInstruction(o, o.bytecode.get(o.pc++));
+			try {
+				return executeSingleInstruction(o, o.bytecode.get(o.pc++));
+			} catch (PythonExecutionException e){
+				handleException(e);
+				return ExecutionResult.EOF;
+			}
 		} finally {
 			--accessCount;
 		}
 	}
 
+	private void handleException(PythonExecutionException e) {
+		exception = e.getException();
+		PythonObject stack = Utils.run("getattr", exception, new StringObject("stack"));
+		if (stack instanceof ListObject){
+			ListObject s = (ListObject)stack;
+			s.objects.add(makeStack());
+		}
+		currentFrame.removeLast();
+	}
+
+	private StringObject makeStack() {
+		return new StringObject(makeStackString());
+	}
+
+	private String makeStackString() {
+		FrameObject o = currentFrame.getLast();
+		if (o == null)
+			return "<last frame>";
+		return String.format("<at module %s, line %s, char %s>", o.debugModule, o.debugLine, o.debugInLine);
+	}
+
 	private ExecutionResult executeSingleInstruction(FrameObject o,
 			PythonBytecode pythonBytecode) {
+		
+		o.debugModule = pythonBytecode.debugModule;
+		o.debugLine = pythonBytecode.debugLine;
+		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
 		switch (pythonBytecode.getOpcode()){

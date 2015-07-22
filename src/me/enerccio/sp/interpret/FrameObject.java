@@ -27,6 +27,9 @@ public class FrameObject extends PythonObject {
 	}
 	
 	public Map<String, Integer> labelMap = new HashMap<String, Integer>();
+	public String debugModule;
+	public int debugLine;
+	public int debugInLine;
 
 	public void recalculateLabels() {
 		int i=0;

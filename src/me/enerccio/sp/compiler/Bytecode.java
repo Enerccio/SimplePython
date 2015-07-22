@@ -1,5 +1,7 @@
 package me.enerccio.sp.compiler;
 
+import org.antlr.v4.runtime.Token;
+
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.types.base.CustomBytecode;
 
@@ -35,8 +37,12 @@ public enum Bytecode {
 				return b;
 		return null;
 	}
-
+	
 	public static PythonBytecode makeBytecode(Bytecode b) {
+		return makeBytecode(b, null);
+	}
+
+	public static PythonBytecode makeBytecode(Bytecode b, Token t) {
 		PythonBytecode bytecode = null;
 		
 		switch (b) {
@@ -168,6 +174,12 @@ public enum Bytecode {
 			bytecode = new Label();
 			bytecode.newObject();
 			break;
+		}
+		
+		bytecode.debugModule = PythonCompiler.moduleName.get();
+		if (t != null){
+			bytecode.debugLine = t.getLine();
+			bytecode.debugInLine = t.getCharPositionInLine();
 		}
 		
 		return bytecode;
