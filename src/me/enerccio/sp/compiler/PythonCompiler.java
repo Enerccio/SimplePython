@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.Token;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
@@ -91,6 +92,8 @@ public class PythonCompiler {
 			compileTry(cstmt.try_stmt(), bytecode);
 		} else if (cstmt.while_stmt() != null) {
 			compileWhile(cstmt.while_stmt(), bytecode);
+		} else if (cstmt.if_stmt() != null) {
+			compileIf(cstmt.if_stmt(), bytecode);
 		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
@@ -100,8 +103,7 @@ public class PythonCompiler {
 		} else
 			throw Utils.throwException("SyntaxError", "statament type not implemented");
 	}
-	
-	
+
 	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode) {
 		for (StmtContext sctx : ctx.stmt())
 			compileStatement(sctx, bytecode);
@@ -235,6 +237,25 @@ public class PythonCompiler {
 		jump.intValue = bytecode.size();;
 		if (ctx.suite(1) != null)
 			compileSuite(ctx.suite(1), bytecode);
+	}
+	
+	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode) {
+		List<PythonBytecode> endJumps = new ArrayList<>();
+		PythonBytecode jump = null;
+		// If and elif blocks
+		for (int i=0; i<ctx.test().size(); i++) {
+			compile(ctx.test(i), bytecode);
+			bytecode.add(jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
+			compileSuite(ctx.suite(i), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+			jump.intValue = bytecode.size();
+		}
+		// Else block
+		if (ctx.if_else() != null)
+			compileSuite(ctx.if_else().suite(), bytecode);
+		// End if..else block
+		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
 	}
 	
 	private void compileClass(ClassdefContext classdef,
