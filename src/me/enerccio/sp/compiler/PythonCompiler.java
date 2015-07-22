@@ -15,6 +15,8 @@ import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
+import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -81,20 +83,117 @@ public class PythonCompiler {
 
 	private void compileCompoundStatement(Compound_stmtContext cstmt,
 			List<PythonBytecode> bytecode) {
-		if (cstmt.funcdef() != null)
+		if (cstmt.funcdef() != null) {
 			compileFunction(cstmt.funcdef(), bytecode, null);
-		
-		if (cstmt.classdef() != null)
+		} else if (cstmt.classdef() != null) {
 			compileClass(cstmt.classdef(), bytecode, null);
-		
-		if (cstmt.decorated() != null){
+		} else if (cstmt.try_stmt() != null) {
+			compileTry(cstmt.try_stmt(), bytecode, null);
+		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
 				compileClass(dc.classdef(), bytecode, dc.decorators());
 			else if (dc.funcdef() != null)
 				compileFunction(dc.funcdef(), bytecode, dc.decorators());
+		} else
+			throw Utils.throwException("SyntaxError", "statament type not implemented");
+	}
+	
+	
+	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode) {
+		for (StmtContext sctx : ctx.stmt())
+			compileStatement(sctx, bytecode);
+	}
+
+	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, Object object) {
+		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, try_stmt.start);
+		List<PythonBytecode> exceptJumps = new ArrayList<>();
+		List<PythonBytecode> finallyJumps = new ArrayList<>();
+		List<PythonBytecode> endJumps = new ArrayList<>();
+		bytecode.add(makeFrame);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, try_stmt.start));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, try_stmt.start));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_EXCEPTION, try_stmt.start));
+		// TOP -> return value -> frame -> exception
+		if (try_stmt.try_except().size() > 0) {
+			// There is at least one except block defined  
+			boolean alwaysHandled = false;
+			// Stack contains TOP -> return value -> frame -> exception when execution reaches here
+			for (Try_exceptContext ex : try_stmt.try_except()) {
+				if (ex.except_clause().test().size() == 0) {
+					// try ... except:
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+					exceptJumps.add(cb);
+					alwaysHandled = true;
+				} else {
+					// try ... except ErrorType, xyz:
+					// or 
+					// try ... except ErrorType:
+					compile(ex.except_clause().test(0), bytecode); 
+					bytecode.add(Bytecode.makeBytecode(Bytecode.ISINSTANCE, try_stmt.start));
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFTRUE, try_stmt.start));
+					exceptJumps.add(cb);
+				}
+			}
+			if (!alwaysHandled) {
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+				finallyJumps.add(cb);
+			}
+			
+			// Compile actual except blocks
+			// Stack contains TOP -> return value -> frame -> exception if any of those is executed
+			int i = 0;
+			for (Try_exceptContext ex : try_stmt.try_except()) {
+				if (ex.except_clause().test().size() <= 1) {
+					// try ... except:
+					// or
+					// try ... except ErrorType:
+					// -> remove exception from top of stack
+					exceptJumps.get(i++).argc = bytecode.size();
+					bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
+					compileSuite(ex.suite(), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
+					cb.value = NoneObject.NONE;
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+					finallyJumps.add(cb);
+				} else {
+					// try ... except ErrorType, xyz:
+					exceptJumps.get(i++).argc = bytecode.size();
+					// Store exception from top of stack
+					compileAssignment(ex.except_clause().test(1), bytecode);
+					compileSuite(ex.suite(), bytecode);
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
+					cb.value = NoneObject.NONE;
+					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+					finallyJumps.add(cb);
+				}
+			}
 		}
-		// TODO
+		
+		// Compile finally block (if any)
+		for (PythonBytecode c : finallyJumps) c.argc = bytecode.size();
+		if (try_stmt.try_finally() != null)
+			compileSuite(try_stmt.try_finally().suite(), bytecode);
+		// Stack contains TOP -> return value -> frame -> exception here, exception may be None
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RERAISE, try_stmt.start));
+		// If execution reaches here, there was no exception and there is still frame on top of stack.
+		// If this frame returned value, it should be returned from here as well.
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFNORETURN, try_stmt.start));
+		endJumps.add(cb);
+		// There is TOP -> return value -> frame on stack if execution reaches here
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
+		cb.argc = 1;
+		
+		// Compile try block
+		makeFrame.argc = bytecode.size();
+		compileSuite(try_stmt.suite(), bytecode);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
+		
+		// Very end of try...catch block. Return value and frame is still on stack
+		for (PythonBytecode c : endJumps) c.argc = bytecode.size();
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
 
 	private void compileClass(ClassdefContext classdef,
@@ -127,7 +226,8 @@ public class PythonCompiler {
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
-		fnc.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
+		cb.argc = 1;
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = fnc;
@@ -173,7 +273,8 @@ public class PythonCompiler {
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = NoneObject.NONE;
-		fnc.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, funcdef.stop));
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, funcdef.stop));
+		cb.argc = 1;
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = fnc;
@@ -361,7 +462,8 @@ public class PythonCompiler {
 			throw Utils.throwException("SyntaxError", "return cannot be inside class definition");
 		if (ctx.testlist() != null)
 			compileRightHand(ctx.testlist(), bytecode);
-		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, ctx.start));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.start));
+		cb.argc = 1;
 	}
 
 	private void compile(Print_stmtContext ctx,

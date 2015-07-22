@@ -306,12 +306,23 @@ for_stmt
 ;
 
 try_stmt
-: ('try' ':' suite
-           ((except_clause ':' suite)+
-            ('else' ':' suite)?
-            ('finally' ':' suite)? |
-           'finally' ':' suite))
+: 'try' ':' suite (
+       (try_except+ try_else? try_finally?)
+       | try_finally
+   )
 ;
+
+try_except
+: except_clause ':' suite
+; 
+
+try_else
+: 'else' ':' suite
+; 
+
+try_finally
+: 'finally' ':' suite
+; 
 
 except_clause
 : 'except' (test (('as' | ',') test)?)?

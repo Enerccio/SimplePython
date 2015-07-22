@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -201,6 +203,7 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
+		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode)); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -254,17 +257,23 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case GOTO:
-			o.pc = pythonBytecode.idx;
+			o.pc = pythonBytecode.argc;
 			break;
 		case JUMPIFFALSE:
 			if (!stack.pop().truthValue())
-				o.pc = pythonBytecode.idx;
+				o.pc = pythonBytecode.argc;
 			break;
 		case JUMPIFTRUE:
 			if (stack.pop().truthValue())
-				o.pc = pythonBytecode.idx;
+				o.pc = pythonBytecode.argc;
 			break;
-		case LOAD:
+		case JUMPIFNORETURN:
+			FrameObject frame = (FrameObject) stack.peek();
+			if (!frame.returnHappened)
+				// Frame ended without return, jump to specified label and keep frame on stack
+				o.pc = pythonBytecode.argc;
+			break;
+		case LOAD: 
 			PythonObject value = environment().get(new StringObject(pythonBytecode.variable), false, false);
 			if (value == null)
 				throw Utils.throwException("NameError", "name " + pythonBytecode.variable + " is not defined");
@@ -283,12 +292,14 @@ public class PythonInterpret extends PythonObject {
 			stack.push(pythonBytecode.value);
 			break;
 		case RETURN:
-			o.returnHappened = true;
-			PythonObject retVal = stack.pop();
+			if (pythonBytecode.argc == 1) {
+				o.returnHappened = true;
+				PythonObject retVal = stack.pop();
+				returnee = retVal;
+			}
 			if (o.parentFrame == null)
 				currentEnvironment.pop();
 			removeLastFrame();
-			returnee = retVal;
 			return ExecutionResult.EOF;
 		case SAVE:
 			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
@@ -392,6 +403,11 @@ public class PythonInterpret extends PythonObject {
 			returnee = execute(true, runnable, args);
 			break;
 		}
+		case ISINSTANCE:
+			PythonObject type = stack.pop();
+			value = stack.peek();
+			stack.push(BoolObject.fromBoolean(PythonRuntime.doIsInstance(value, type, true)));
+			break;
 		case RAISE: {
 			PythonObject s;
 			s = stack.pop();
@@ -399,16 +415,33 @@ public class PythonInterpret extends PythonObject {
 				Utils.throwException("InterpretError", "no exception is being handled but raise called");
 			throw new PythonExecutionException(s);
 		}
+		case RERAISE: {
+			PythonObject s = stack.pop();
+			if (s != NoneObject.NONE)
+				throw new PythonExecutionException(s);
+			break;
+		}
 		case PUSH_FRAME:
 			FrameObject nf = new FrameObject();
 			nf.newObject();
 			nf.parentFrame = o;
 			nf.bytecode = o.bytecode;
 			nf.stack = o.stack;
-			nf.pc = pythonBytecode.idx;
+			nf.pc = pythonBytecode.argc;
 			currentFrame.add(nf);
 			break;
+		case PUSH_EXCEPTION:
+			frame = (FrameObject) stack.peek();
+			if (frame.exception == null)
+				stack.push(NoneObject.NONE);
+			else
+				stack.push(frame.exception);
+			break;
+		default:
+			Utils.throwException("InterpretError", "unhandled bytecode " + pythonBytecode.getOpcode().toString());
 		}
+
+			
 		return ExecutionResult.OK;
 	}
 

@@ -1,10 +1,29 @@
 package me.enerccio.sp.types.types;
 
-import java.util.ArrayList;
-
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.compiler.PythonBytecode.AcceptReturn;
+import me.enerccio.sp.compiler.PythonBytecode.Call;
+import me.enerccio.sp.compiler.PythonBytecode.Dup;
+import me.enerccio.sp.compiler.PythonBytecode.Goto;
+import me.enerccio.sp.compiler.PythonBytecode.Import;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfFalse;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfTrue;
+import me.enerccio.sp.compiler.PythonBytecode.Load;
+import me.enerccio.sp.compiler.PythonBytecode.LoadGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.Nop;
+import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.compiler.PythonBytecode.PopEnvironment;
+import me.enerccio.sp.compiler.PythonBytecode.Push;
+import me.enerccio.sp.compiler.PythonBytecode.PushDict;
+import me.enerccio.sp.compiler.PythonBytecode.PushEnvironment;
+import me.enerccio.sp.compiler.PythonBytecode.PushLocalContext;
+import me.enerccio.sp.compiler.PythonBytecode.ResolveArgs;
+import me.enerccio.sp.compiler.PythonBytecode.Return;
+import me.enerccio.sp.compiler.PythonBytecode.Save;
+import me.enerccio.sp.compiler.PythonBytecode.SaveGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.SwapStack;
+import me.enerccio.sp.compiler.PythonBytecode.UnpackSequence;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.CustomBytecode;
 import me.enerccio.sp.types.base.IntObject;
@@ -54,17 +73,17 @@ public class BytecodeTypeObject extends TypeObject {
 			case GOTO:
 				bytecode = new Goto();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFFALSE:
 				bytecode = new JumpIfFalse();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFTRUE:
 				bytecode = new JumpIfTrue();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case LOAD:
 				bytecode = new Load();

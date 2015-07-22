@@ -16,7 +16,6 @@ public class PythonBytecode extends PythonObject {
 	public String variable;
 	public MapObject dict;
 	public PythonObject callable;
-	public int idx;
 	public int argc;
 	public PythonObject exceptionType;
 	public int jumpAfter;
@@ -42,6 +41,12 @@ public class PythonBytecode extends PythonObject {
 	public static class Raise extends PythonBytecode {
 		{
 			bytecode = Bytecode.RAISE;
+		}
+	}
+
+	public static class Reraise extends PythonBytecode {
+		{
+			bytecode = Bytecode.RERAISE;
 		}
 	}
 	
@@ -80,17 +85,24 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_DICT;
 		}
 		
-		/*
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), dict);
-		}*/
+		}
 	}
 	
 	public static class Return extends PythonBytecode {
 		{
 			bytecode = Bytecode.RETURN;
 		}
+
+		@Override
+		protected String doToString() {
+			if (argc == 1)
+				return String.format("%s (%s - returns value)", getOpcode().toString(), argc);
+			return String.format("%s (%s - exits frame)", getOpcode().toString(), argc);
+		}
+
 	}
 	
 	public static class Pop extends PythonBytecode {
@@ -157,7 +169,24 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), argc);
 		}
 	}
+
+	public static class IsInstance extends PythonBytecode {
+		{
+			bytecode = Bytecode.ISINSTANCE;
+		}
+	}
 	
+	public static class JumpIfNoReturn extends PythonBytecode {
+		{
+			bytecode = Bytecode.JUMPIFNORETURN;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
+	}
+
 	public static class JumpIfFalse extends PythonBytecode {
 		{
 			bytecode = Bytecode.JUMPIFFALSE;
@@ -223,6 +252,17 @@ public class PythonBytecode extends PythonObject {
 	public static class PushFrame extends PythonBytecode {
 		{
 			bytecode = Bytecode.PUSH_FRAME;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
+	}
+
+	public static class PushException extends PythonBytecode {
+		{
+			bytecode = Bytecode.PUSH_EXCEPTION;
 		}
 	}
 	
