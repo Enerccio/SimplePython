@@ -179,6 +179,8 @@ public class PythonInterpret extends PythonObject {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
 			return "<last frame>";
+		if (o.debugLine < 0)
+			return "<method-call>";
 		return String.format("<at module %s, line %s, char %s>", o.debugModule, o.debugLine, o.debugInLine);
 	}
 
