@@ -9,5 +9,6 @@ def decor_gener(arg):
 @decor_gener("hello")
 def test(o):
 	print o
+	raise AttributeError("anca")
 	
 test(", world")

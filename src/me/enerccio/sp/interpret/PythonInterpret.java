@@ -88,8 +88,10 @@ public class PythonInterpret extends PythonObject {
 					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
 					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 						if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
-							if (PythonInterpret.interpret.get().exception() != null)
+							if (PythonInterpret.interpret.get().exception() != null){
+								PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
 								throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+							}
 							return returnee;
 						}
 				}
@@ -413,6 +415,10 @@ public class PythonInterpret extends PythonObject {
 		if (o.parentFrame != null){
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.stack.add(o);
+		} else {
+			if (currentFrame.size() == 0)
+				throw new PythonExecutionException(o.exception);
+			currentFrame.peekLast().exception = o.exception;
 		}
 	}
 

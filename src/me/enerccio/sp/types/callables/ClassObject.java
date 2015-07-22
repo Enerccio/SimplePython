@@ -76,8 +76,10 @@ public class ClassObject extends CallableObject {
 				return instance;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
-					if (PythonInterpret.interpret.get().exception() != null)
+					if (PythonInterpret.interpret.get().exception() != null){
+						PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
 						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+					}
 					return instance;
 				}
 		}
