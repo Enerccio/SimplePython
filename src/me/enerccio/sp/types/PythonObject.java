@@ -74,7 +74,7 @@ public abstract class PythonObject implements Serializable {
 		AugumentedPythonObject field = fields.get(key);
 		if (field.restrictions == AccessRestrictions.PRIVATE && 
 				(localContext == null || this != localContext))
-			throw Utils.throwException("AttributeError", "Access to field '" + key + "' is restricted for type '" + 
+			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)));
 		return field.object;
 	}
@@ -86,7 +86,7 @@ public abstract class PythonObject implements Serializable {
 					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
 		AugumentedPythonObject field = fields.get(key);
 		if (field.restrictions == AccessRestrictions.PRIVATE && this != localContext)
-			throw Utils.throwException("AttributeError", "Access to field '" + key + "' is restricted for type '" + 
+			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)));
 		field.object = value;
 		return NoneObject.NONE;

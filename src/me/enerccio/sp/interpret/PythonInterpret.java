@@ -180,7 +180,7 @@ public class PythonInterpret extends PythonObject {
 				PythonObject[] va2 = args;
 				PythonObject tp = va2[va2.length-1];
 				if (!(tp instanceof TupleObject))
-					throw Utils.throwException("TypeError", "Last argument must be a 'tuple'");
+					throw Utils.throwException("TypeError", returnee + ": last argument must be a 'tuple'");
 				PythonObject[] vra = ((TupleObject)tp).getObjects();
 				args = new PythonObject[va2.length - 1 + vra.length];
 				for (int i=0; i<va2.length; i++)

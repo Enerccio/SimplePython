@@ -64,9 +64,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
 	}
 	
 	private static PythonObject doOperatorInt(IntObject a, PythonObject b,
@@ -285,9 +285,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
 	}
 	
 	private static PythonObject doOperatorComplex(ComplexObject a,
@@ -380,9 +380,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
 	}
 	
 }

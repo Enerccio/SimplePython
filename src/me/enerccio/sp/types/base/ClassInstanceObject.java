@@ -37,7 +37,7 @@ public class ClassInstanceObject extends PythonObject {
 	
 	public IntObject pyHash(TupleObject args){
 		if (args.size().intValue() != 0)
-			throw Utils.throwException("TypeError", "__hash__ requires 0 parameters");
+			throw Utils.throwException("TypeError", "__hash__(): requires 0 parameters");
 		return getId();
 	}
 }

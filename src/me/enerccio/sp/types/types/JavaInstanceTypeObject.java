@@ -18,11 +18,11 @@ public class JavaInstanceTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args) {
 		if (args.len() < 1)
-			throw Utils.throwException("TypeError", "requires at least 1 parameter");
+			throw Utils.throwException("TypeError", "javainstance(): requires at least 1 parameter");
 		
 		PythonObject clsName = args.valueAt(0);
 		if (!(clsName instanceof StringObject))
-			throw Utils.throwException("TypeError", "first argument must be str");
+			throw Utils.throwException("TypeError", "javainstance():  first argument must be str");
 		
 		String cls = ((StringObject)clsName).value;
 		

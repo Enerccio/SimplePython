@@ -24,6 +24,9 @@ public class UserMethodObject extends PythonObject {
 	};
 	
 	public PythonObject call(TupleObject args) {
+		if (args.len() == 0){
+			throw Utils.throwException("TypeError", "method " + fields.get(FUNC).object.fields.get("__name__").object + "(): requires at least 1 parameter, got 0");
+		}
 		PythonInterpret.interpret.get().executeBytecode(Utils.methodCall(this, args));
 		return NoneObject.NONE; // returns immediately
 	}
@@ -39,7 +42,7 @@ public class UserMethodObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<method " + fields.get(FUNC) + " of object " + fields.get(SELF).object + ">"; // TODO
+		return "<method " + fields.get(FUNC).object + " of object " + fields.get(SELF).object + ">"; // TODO
 	}
 
 	@Override

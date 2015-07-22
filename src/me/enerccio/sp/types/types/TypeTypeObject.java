@@ -29,17 +29,17 @@ public class TypeTypeObject extends TypeObject {
 		else if (args.size().intValue() == 3)
 			return newClassType(args.getObjects()[0], args.getObjects()[1], args.getObjects()[2]);
 		
-		throw Utils.throwException("TypeError", "Incorrect number of parameters");
+		throw Utils.throwException("TypeError", " type(): incorrect number of parameters");
 	}
 
 	private PythonObject newClassType(PythonObject name,
 			PythonObject bases, PythonObject dict) {
 		if (!(name instanceof StringObject))
-			throw Utils.throwException("TypeError", "Name must be a string");
+			throw Utils.throwException("TypeError", "type(): name must be a string");
 		if (!(bases instanceof TupleObject))
-			throw Utils.throwException("TypeError", "Bases must be a tuple");
+			throw Utils.throwException("TypeError", "type(): bases must be a tuple");
 		if (!(dict instanceof MapObject))
-			throw Utils.throwException("TypeError", "Dict must be a dict");
+			throw Utils.throwException("TypeError", "type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
 		Utils.putPublic(type, ClassObject.__NAME__, name);

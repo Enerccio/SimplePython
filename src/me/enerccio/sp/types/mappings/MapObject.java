@@ -78,7 +78,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject getItem(TupleObject a){
 		if (a.size().intValue() != 1)
-			throw Utils.throwException("TypeError", "__getitem__ requires 1 parameter");
+			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
 		synchronized (backingMap){
 			if (!backingMap.containsKey(key))
@@ -89,7 +89,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject setItem(TupleObject a){
 		if (a.size().intValue() != 2)
-			throw Utils.throwException("TypeError", "__setitem__ requires 2 parameters");
+			throw Utils.throwException("TypeError", "__setitem__(): requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
 		PythonObject value = a.getObjects()[1];
 		synchronized (backingMap){
@@ -99,7 +99,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject len(TupleObject a){
 		if (a.size().intValue() != 0)
-			throw Utils.throwException("TypeError", "__len__ requires zero parameters");
+			throw Utils.throwException("TypeError", "__len__(): requires zero parameters");
 		return size();
 	}
 
@@ -134,7 +134,7 @@ public class MapObject extends ContainerObject {
 	
 	@Override
 	public IntObject getId(){
-		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("type", this) + "'");
 	}
 
 	@Override

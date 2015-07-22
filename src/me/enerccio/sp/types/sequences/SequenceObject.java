@@ -36,7 +36,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public PythonObject __iter__(TupleObject args){
 		if (args.size().intValue() > 0)
-			throw Utils.throwException("TypeError", "__iter__ method requires no arguments");
+			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return createIterator();
 	}
 	

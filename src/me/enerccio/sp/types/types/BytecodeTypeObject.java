@@ -26,14 +26,14 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args) {
 		if (args.size().intValue() == 0)
-			throw Utils.throwException("TypeError", "Incorrect number of parameters, must be >0");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
 		
 		try {
 			IntObject byteNum = (IntObject) args.getObjects()[0];
 			
 			Bytecode b = Bytecode.fromNumber(byteNum.intValue());
 			if (b == null)
-				throw Utils.throwException("TypeError", "Unknown bytecode number");
+				throw Utils.throwException("TypeError", "unknown bytecode number");
 			PythonBytecode bytecode = null;
 			
 			switch (b) {
@@ -177,9 +177,9 @@ public class BytecodeTypeObject extends TypeObject {
 			
 			return bytecode;
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", "Incorrect type of arguments");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect type of arguments");
 		} catch (ArrayIndexOutOfBoundsException e){
-			throw Utils.throwException("TypeError", "Incorrect number of arguments");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect number of arguments");
 		}
 		
 	}
