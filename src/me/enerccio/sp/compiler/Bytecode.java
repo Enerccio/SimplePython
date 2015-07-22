@@ -1,5 +1,7 @@
 package me.enerccio.sp.compiler;
 
+import java.util.List;
+
 import org.antlr.v4.runtime.Token;
 
 import me.enerccio.sp.compiler.PythonBytecode.*;
@@ -9,17 +11,18 @@ public enum Bytecode {
 	// System
 	NOP(0), 
 	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
-	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), PUSH_FRAME(15), 
+	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), PUSH_FRAME(15), PUSH_EXCEPTION(16),
 	
 	// control
-	RETURN(16), POP(17), PUSH(18), CALL(19), RCALL(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
-	GOTO(25), 
+	POP(17), PUSH(18), CALL(19), RCALL(20), DUP(21), SWAP_STACK(22),
+	JUMPIFTRUE(23), JUMPIFFALSE(24), JUMPIFNONE(25), JUMPIFNORETURN(26),
+	GOTO(27), RETURN(28), 
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
-	RAISE(69),
+	RAISE(69), RERAISE(70),
 	// macros
-	GETATTR(90), SETATTR(90),
+	GETATTR(90), SETATTR(90), ISINSTANCE(91), 
 	// frames 
 	
 	// custom
@@ -72,6 +75,14 @@ public enum Bytecode {
 			break;
 		case JUMPIFTRUE:
 			bytecode = new JumpIfTrue();
+			bytecode.newObject();
+			break;
+		case JUMPIFNONE:
+			bytecode = new JumpIfNone();
+			bytecode.newObject();
+			break;
+		case JUMPIFNORETURN:
+			bytecode = new JumpIfNoReturn();
 			bytecode.newObject();
 			break;
 		case LOAD:
@@ -150,6 +161,10 @@ public enum Bytecode {
 			bytecode = new SetAttr();
 			bytecode.newObject();
 			break;
+		case ISINSTANCE:
+			bytecode = new IsInstance();
+			bytecode.newObject();
+			break;
 		case LABEL:
 			bytecode = new Label();
 			bytecode.newObject();
@@ -158,8 +173,16 @@ public enum Bytecode {
 			bytecode = new Raise();
 			bytecode.newObject();
 			break;
+		case RERAISE:
+			bytecode = new Reraise();
+			bytecode.newObject();
+			break;
 		case PUSH_FRAME:
 			bytecode = new PushFrame();
+			bytecode.newObject();
+			break;
+		case PUSH_EXCEPTION:
+			bytecode = new PushException();
 			bytecode.newObject();
 			break;
 		}
@@ -171,5 +194,26 @@ public enum Bytecode {
 		}
 		
 		return bytecode;
+	}
+	
+	public static String dis(List<PythonBytecode> bcl) {
+		return dis(bcl, 0);
+	}
+	
+	public static String dis(int i, PythonBytecode bc) {
+		String s = bc.toString();
+		int cut = s.length();
+		if (cut > 80) cut  = 80;
+		return String.format("%05d \t%S" , i, s.substring(0, cut));
+	}
+
+	
+	public static String dis(List<PythonBytecode> bcl, int offset) {
+		StringBuilder b = new StringBuilder();
+		for (int i=offset; i<bcl.size(); i++) {
+			b.append(dis(i, bcl.get(i)));
+			b.append("\n");
+		}
+		return b.toString();
 	}
 }

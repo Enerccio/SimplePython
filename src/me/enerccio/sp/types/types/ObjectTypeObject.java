@@ -39,7 +39,8 @@ public class ObjectTypeObject extends ClassObject {
 		usf.bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
 		usf.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 		cb.value = NoneObject.NONE;
-		usf.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN));
+		usf.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN));
+		cb.argc = 1;
 		
 		md.put(ClassInstanceObject.__INIT__, usf);
 	}
