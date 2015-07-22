@@ -327,6 +327,7 @@ public class PythonRuntime {
 		addException(globals, "NameError", "Exception", true);
 		addException(globals, "ParseError", "Exception", true);
 		addException(globals, "IndexError", "Exception", true);
+		addException(globals, "InterpretError", "Exception", true);
 		addException(globals, "StopIteration", "Exception", false);
 	}
 

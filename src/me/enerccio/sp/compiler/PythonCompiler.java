@@ -12,11 +12,13 @@ import org.antlr.v4.runtime.Token;
 
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.EllipsisObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -25,6 +27,7 @@ import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
@@ -111,6 +114,8 @@ public class PythonCompiler {
 		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode);
 		compilingClass.pop();
 		
+		Utils.putPublic(fnc, "function_defaults", new MapObject());
+		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
 		fnc.bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
@@ -158,8 +163,11 @@ public class PythonCompiler {
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = fnc;
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop));
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop));
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // function_defaults
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // locals
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // closure
+		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
 		cb.variable = functionName;
 		
@@ -188,6 +196,19 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
 		cb.variable = "locals";
+		
+		List<MapObject> ll = new ArrayList<MapObject>();
+		ll.add(locals);
+		for (MapObject d : Utils.reverse(environments)){
+			ll.add(d);
+		}
+		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
+		cb.value = closure;
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
+		cb.variable = "closure";
 	}
 
 	private String doGetLongString(String text) {
@@ -274,6 +295,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL, smstmt.start));
 			cb.variable = smstmt.label_stmt().nname().getText();
 		}
+		
 	}
 
 	private void compile(Flow_stmtContext ctx,
@@ -281,6 +303,18 @@ public class PythonCompiler {
 		if (ctx.return_stmt() != null){
 			compile(ctx.return_stmt(), bytecode);
 		}
+		
+		if (ctx.raise_stmt() != null)
+			compile(ctx.raise_stmt(), bytecode);
+	}
+
+	private void compile(Raise_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.test() != null)
+			compile(ctx.test(), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RAISE, ctx.start));
+		if (ctx.test() != null)
+			cb.stackException = true;
 	}
 
 	private void compile(Return_stmtContext ctx,

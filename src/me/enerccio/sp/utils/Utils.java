@@ -32,7 +32,9 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
@@ -240,16 +242,32 @@ public class Utils {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
 
+		PythonObject callable = o.get(UserMethodObject.SELF, o);
+		PythonObject caller = o.get(UserMethodObject.FUNC, o);
+		
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		// environments
+		if (caller instanceof UserFunctionObject && caller.fields.containsKey("closure")){
+			// add closure
+			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
+				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
+				b.dict = (MapObject) d;	
+			}
+		} else {
+			// add globals
+			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
+			b.dict = PythonRuntime.runtime.generateGlobals();
+		}
+		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.SELF, o);
+		b.value = callable;
 		// [ python object self ]
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
 		// []
 		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.FUNC, o);
+		b.value = caller;
 		// [ callable ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
 		b.value = o.get(UserMethodObject.SELF, o);

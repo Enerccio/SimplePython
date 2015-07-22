@@ -18,7 +18,7 @@ public enum Bytecode {
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
 	PUSH_EXCEPTION_HANDLER(64), PUSH_FINALLY_HANDLER(65), POP_EXCEPTION_HANDLER(66), POP_FINALLY_HANDLER(67),
-	END_EXCEPTION(68),
+	END_EXCEPTION(68), RAISE(69),
 	// macros
 	GETATTR(90), SETATTR(90),
 	
@@ -172,6 +172,10 @@ public enum Bytecode {
 			break;
 		case LABEL:
 			bytecode = new Label();
+			bytecode.newObject();
+			break;
+		case RAISE:
+			bytecode = new Raise();
 			bytecode.newObject();
 			break;
 		}

@@ -1,5 +1,8 @@
-def anca(a, b=20):
-	return a + b
-	
-print anca(5)
-print anca(5, 10)
+def anca():
+	class X(object):
+		def __init__(self):
+			raise AttributeError("wtf")
+		
+	X()
+
+anca()

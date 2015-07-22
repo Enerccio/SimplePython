@@ -394,6 +394,17 @@ public class PythonInterpret extends PythonObject {
 			returnee = execute(true, runnable, args);
 			break;
 		}
+		case RAISE: {
+			PythonObject s;
+			if (pythonBytecode.stackException){
+				s = stack.pop();
+			} else {
+				s = o.handledException;
+			}
+			if (s == null)
+				Utils.throwException("InterpretError", "no exception is being handled but raise called");
+			throw new PythonExecutionException(s);
+		} 
 		}
 		return ExecutionResult.OK;
 	}

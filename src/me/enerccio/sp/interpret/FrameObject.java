@@ -30,6 +30,7 @@ public class FrameObject extends PythonObject {
 	public String debugModule;
 	public int debugLine;
 	public int debugInLine;
+	public PythonObject handledException;
 
 	public void recalculateLabels() {
 		int i=0;

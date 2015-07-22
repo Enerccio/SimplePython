@@ -22,6 +22,7 @@ public class PythonBytecode extends PythonObject {
 	public int jumpAfter;
 	public List<PythonBytecode> ast;
 	public String moduleName;
+	public boolean stackException = false;
 	
 	public PythonBytecode(){
 		
@@ -35,6 +36,12 @@ public class PythonBytecode extends PythonObject {
 	public static class Nop extends PythonBytecode {
 		{
 			bytecode = Bytecode.NOP;
+		}
+	}
+	
+	public static class Raise extends PythonBytecode {
+		{
+			bytecode = Bytecode.RAISE;
 		}
 	}
 	
