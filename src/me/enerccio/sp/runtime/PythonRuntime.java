@@ -38,6 +38,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
+import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
@@ -182,6 +183,10 @@ public class PythonRuntime {
 					PythonInterpret.interpret.get().currentEnvironment.push(e);
 					PythonObject o;
 					
+					globals.put("None", NoneObject.NONE);
+					globals.put("True", BoolObject.TRUE);
+					globals.put("False", BoolObject.FALSE);
+					globals.put("globals", globals);
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
@@ -209,6 +214,8 @@ public class PythonRuntime {
 					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
 					o.newObject();
 					globals.put(JavaInstanceTypeObject.JAVA_CALL, o = new JavaInstanceTypeObject());
+					o.newObject();
+					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					
 					addExceptions(globals);

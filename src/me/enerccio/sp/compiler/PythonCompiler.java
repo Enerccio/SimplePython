@@ -9,6 +9,7 @@ import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
@@ -38,6 +39,7 @@ import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 public class PythonCompiler {
+	private static volatile int genFunc = 0;
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
@@ -45,6 +47,41 @@ public class PythonCompiler {
 	private Stack<String> compilingClass = new Stack<String>();
 	
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
+	
+	public UserFunctionObject doCompile(String_inputContext sctx, List<MapObject> globals, 
+			List<String> args, String vargarg, MapObject defaults) {
+		moduleName.set("generated-functions");
+		stack.push();
+		
+		for (MapObject global : globals)
+			environments.add(global);
+		
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
+		
+		String functionName = "generated-function-" + (++genFunc);
+		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
+		
+		
+		fnc.args = args;
+		if (vargarg != null){
+			fnc.isVararg = true;
+			fnc.vararg = vargarg;
+		}
+		
+		compilingClass.push(null);
+		MapObject locals = doCompileFunction(sctx, fnc.bytecode, sctx.start);
+		compilingClass.pop();
+		
+		globals.add(locals);
+		Collections.reverse(globals);
+		
+		Utils.putPublic(fnc, "closure", new TupleObject(globals.toArray(new PythonObject[globals.size()])));
+		Utils.putPublic(fnc, "locals", locals);
+		Utils.putPublic(fnc, "function_defaults", defaults);
+		
+		return fnc;
+	}
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		moduleName.set(m.fields.get(ModuleObject.__NAME__).object.toString());
@@ -240,7 +277,7 @@ public class PythonCompiler {
 		fnc.args = new ArrayList<String>();
 		
 		compilingClass.push(className);
-		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode);
+		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode, classdef.suite().start);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "function_defaults", new MapObject());
@@ -289,7 +326,7 @@ public class PythonCompiler {
 		}
 		
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode);
+		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode, funcdef.suite().start);
 		compilingClass.pop();
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
@@ -375,21 +412,27 @@ public class PythonCompiler {
 		return text.substring(3, text.length()-4);
 	}
 
-	private MapObject doCompileFunction(SuiteContext suite,
-			List<PythonBytecode> bytecode) {
+	private MapObject doCompileFunction(ParseTree suite,
+			List<PythonBytecode> bytecode, Token t) {
+		
+		
 		
 		stack.push();
-		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, suite.start));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, t));
 		MapObject dict = new MapObject();
 		environments.add(dict);
 		for (MapObject d : Utils.reverse(environments)){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, suite.start)); 
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, t)); 
 			cb.mapValue = d;
 		}
-		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, suite.start));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, t));
 		
-		for (StmtContext c : suite.stmt())
-			compileStatement(c, bytecode);
+		if (suite instanceof SuiteContext)
+			for (StmtContext c : ((SuiteContext)suite).stmt())
+				compileStatement(c, bytecode);
+		else
+			for (StmtContext c : ((String_inputContext) suite).stmt())
+				compileStatement(c, bytecode);
 		
 
 		environments.removeLast();

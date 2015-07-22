@@ -6,6 +6,7 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -67,6 +68,8 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(StringTypeObject.STRING_CALL);
 		if (py instanceof PointerObject)
 			return Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
+		if (py instanceof UserFunctionObject)
+			return Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
 		return null;
 	}
 	

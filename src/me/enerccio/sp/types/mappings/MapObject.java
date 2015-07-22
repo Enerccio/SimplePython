@@ -1,5 +1,8 @@
 package me.enerccio.sp.types.mappings;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -111,9 +114,25 @@ public class MapObject extends ContainerObject {
 		return backingMap.get(key);
 	}
 
+	
+	private static ThreadLocal<Set<MapObject>> printMap = new ThreadLocal<Set<MapObject>>(){
+
+		@Override
+		protected Set<MapObject> initialValue() {
+			return new HashSet<MapObject>();
+		}
+		
+	};
 	@Override
 	protected String doToString() {
-		return backingMap.toString();
+		if (printMap.get().contains(this))
+			return "...";
+		else try {
+			printMap.get().add(this);
+			return backingMap.toString();
+		} finally {
+			printMap.get().remove(this);
+		}
 	}
 
 	public MapObject cloneMap() {

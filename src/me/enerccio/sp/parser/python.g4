@@ -145,6 +145,10 @@ tokens { INDENT, DEDENT }
 file_input
  : ( NEWLINE | stmt )* EOF
  ;
+ 
+ string_input
+ : (stmt | NEWLINE)* (stmt | EOF)
+ ;
 
 decorator
 : '@' test ('(' arglist? ')')? NEWLINE
@@ -179,7 +183,7 @@ stmt
 ;
 
 simple_stmt
-: small_stmt (';' small_stmt)* ';'? NEWLINE
+: small_stmt (';' small_stmt)* ';'? (NEWLINE | EOF)
 ;
 
 small_stmt
@@ -196,7 +200,7 @@ expr_stmt
 ;                
  
 augassignexp
-: (augassign testlist)
+: augassign testlist
 ;
 
 augassign
@@ -545,9 +549,6 @@ OR : 'or';
 AND : 'and';
 NOT : 'not';
 IS : 'is';
-NONE : 'None';
-TRUE : 'True';
-FALSE : 'False';
 CLASS : 'class';
 DEL : 'del';
 PASS : 'pass';

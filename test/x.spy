@@ -1,22 +1,3 @@
-class Test(object):
-	@classmethod
-	def test_a(cls):
-		print cls
-		
-	@staticmethod
-	def test_b():
-		try:
-			print "static"
-		finally:
-			print "final moj"
-		
-x = Test()
-x.test_a()
-x.test_b()
+x = function("print x + y", (globals,), ["x", "y"], None, None)
 
-print type(x)
-print type(type(x))
-
-print type(1)
-int = "anca"
-print type(1)
+x(5, 15) 

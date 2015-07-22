@@ -182,7 +182,7 @@ public class Utils {
 		return staticMethodCall(false, clazz, method, signature);
 	}
 	
-	private static class ThrowingErrorListener extends BaseErrorListener {
+	public static class ThrowingErrorListener extends BaseErrorListener {
 		private String source;
 
 		public ThrowingErrorListener(String loc) {
