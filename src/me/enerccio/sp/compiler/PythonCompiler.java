@@ -81,8 +81,7 @@ public class PythonCompiler {
 			compileCompoundStatement(sctx.compound_stmt(), bytecode);
 	}
 
-	private void compileCompoundStatement(Compound_stmtContext cstmt,
-			List<PythonBytecode> bytecode) {
+	private void compileCompoundStatement(Compound_stmtContext cstmt, List<PythonBytecode> bytecode) {
 		if (cstmt.funcdef() != null) {
 			compileFunction(cstmt.funcdef(), bytecode, null);
 		} else if (cstmt.classdef() != null) {
@@ -440,7 +439,6 @@ public class PythonCompiler {
 		
 		if (smstmt.expr_stmt() != null){
 			compile(smstmt.expr_stmt(), bytecode);
-			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, smstmt.stop));
 		}
 			
 		if (smstmt.print_stmt() != null){
@@ -558,6 +556,7 @@ public class PythonCompiler {
 					compileAssignment(tc.test(0), bytecode);
 				}
 			}
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, expr.stop));
 		}
 	}
 
