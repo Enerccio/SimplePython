@@ -69,7 +69,7 @@ public class PythonInterpret extends PythonObject {
 
 	public PythonObject executeCall(String function, PythonObject... data) {
 		if (currentEnvironment.size() == 0)
-			execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
+			return execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
 		return execute(false, environment().get(new StringObject(function), false, false), data);
 	}
 
@@ -418,9 +418,11 @@ public class PythonInterpret extends PythonObject {
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.stack.add(o);
 		} else {
-			if (currentFrame.size() == 0)
-				throw new PythonExecutionException(o.exception);
-			currentFrame.peekLast().exception = o.exception;
+			if (currentFrame.size() == 0) {
+				if (o.exception != null) 
+					throw new PythonExecutionException(o.exception);
+			} else
+				currentFrame.peekLast().exception = o.exception;
 		}
 	}
 
