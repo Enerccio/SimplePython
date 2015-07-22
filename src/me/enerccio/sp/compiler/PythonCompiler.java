@@ -14,10 +14,13 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Switch_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
+import me.enerccio.sp.parser.pythonParser.While_stmtContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -123,14 +126,19 @@ public class PythonCompiler {
 			compileCompoundStatement(sctx.compound_stmt(), bytecode);
 	}
 
-	private void compileCompoundStatement(Compound_stmtContext cstmt,
-			List<PythonBytecode> bytecode) {
+	private void compileCompoundStatement(Compound_stmtContext cstmt, List<PythonBytecode> bytecode) {
 		if (cstmt.funcdef() != null) {
 			compileFunction(cstmt.funcdef(), bytecode, null);
 		} else if (cstmt.classdef() != null) {
 			compileClass(cstmt.classdef(), bytecode, null);
 		} else if (cstmt.try_stmt() != null) {
-			compileTry(cstmt.try_stmt(), bytecode, null);
+			compileTry(cstmt.try_stmt(), bytecode);
+		} else if (cstmt.while_stmt() != null) {
+			compileWhile(cstmt.while_stmt(), bytecode);
+		} else if (cstmt.if_stmt() != null) {
+			compileIf(cstmt.if_stmt(), bytecode);
+		} else if (cstmt.switch_stmt() != null) {
+			compileSwitch(cstmt.switch_stmt(), bytecode);
 		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
@@ -140,14 +148,13 @@ public class PythonCompiler {
 		} else
 			throw Utils.throwException("SyntaxError", "statament type not implemented");
 	}
-	
-	
+
 	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode) {
 		for (StmtContext sctx : ctx.stmt())
 			compileStatement(sctx, bytecode);
 	}
 
-	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, Object object) {
+	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode) {
 		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, try_stmt.start);
 		PythonBytecode elseJump = null;
 		List<PythonBytecode> exceptJumps = new ArrayList<>();
@@ -160,7 +167,7 @@ public class PythonCompiler {
 		// TOP -> return value -> frame -> exception
 		if (try_stmt.try_except().size() > 0) {
 			// There is at least one except block defined
-			if (try_stmt.try_else() != null)
+			if (try_stmt.else_block() != null)
 				// ... and else on top of that
 				bytecode.add(elseJump = Bytecode.makeBytecode(Bytecode.JUMPIFNONE, try_stmt.start));
 			boolean alwaysHandled = false;
@@ -196,7 +203,7 @@ public class PythonCompiler {
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
 				finallyJumps.add(cb);
-				compileSuite(try_stmt.try_else().suite(), bytecode);
+				compileSuite(try_stmt.else_block().suite(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -259,6 +266,79 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
 
+	
+	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode) {
+		int start = bytecode.size();
+		// Compile condition
+		compile(ctx.test(), bytecode);
+		PythonBytecode jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start);
+		bytecode.add(jump);
+		// Compile body
+		compileSuite(ctx.suite(0), bytecode);
+		// Jump back
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+		cb.intValue = start;
+		// Compile else block, if needed
+		jump.intValue = bytecode.size();;
+		if (ctx.suite(1) != null)
+			compileSuite(ctx.suite(1), bytecode);
+	}
+	
+	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode) {
+		List<PythonBytecode> endJumps = new ArrayList<>();
+		PythonBytecode jump = null;
+		// If and elif blocks
+		for (int i=0; i<ctx.test().size(); i++) {
+			compile(ctx.test(i), bytecode);
+			bytecode.add(jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
+			compileSuite(ctx.suite(i), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+			jump.intValue = bytecode.size();
+		}
+		// Else block
+		if (ctx.else_block() != null)
+			compileSuite(ctx.else_block().suite(), bytecode);
+		// End if..else block
+		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
+	}
+	
+
+	private void compileSwitch(Switch_stmtContext ctx, List<PythonBytecode> bytecode) {
+		List<PythonBytecode> jumps = new ArrayList<>();
+		List<PythonBytecode> endJumps = new ArrayList<>();
+		// Compile value to compare with
+		compile(ctx.test(), bytecode);
+		// Compile comparisons
+		for (int i=0; i<ctx.case_block().size(); i++) {
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			putGetAttr(Arithmetics.__EQ__, bytecode, ctx.case_block(i).test().start);
+			compile(ctx.case_block(i).test(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, ctx.start));
+			cb.intValue = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFTRUE, ctx.start));
+			jumps.add(cb);
+		}
+		// If there is else block, compile it here
+		if (ctx.else_block() != null) {
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			compileSuite(ctx.else_block().suite(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+		}
+		// Compile actual case blocks
+		for (int i=0; i<ctx.case_block().size(); i++) {
+			jumps.get(i).intValue = bytecode.size();
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			compileSuite(ctx.case_block(i).suite(), bytecode);
+			// Unlike traditional case, this one jumps to end of switch block automatically 
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+		}
+		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
+	}
+	
 	private void compileClass(ClassdefContext classdef,
 			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		
@@ -488,7 +568,6 @@ public class PythonCompiler {
 		
 		if (smstmt.expr_stmt() != null){
 			compile(smstmt.expr_stmt(), bytecode);
-			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, smstmt.stop));
 		}
 			
 		if (smstmt.print_stmt() != null){
@@ -606,6 +685,7 @@ public class PythonCompiler {
 					compileAssignment(tc.test(0), bytecode);
 				}
 			}
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, expr.stop));
 		}
 	}
 
