@@ -290,15 +290,27 @@ global_stmt
 ;
 
 compound_stmt
-: if_stmt | while_stmt | for_stmt | try_stmt | funcdef | classdef | decorated
+: if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated
 ;
 
 if_stmt
-: 'if' test ':' suite ('elif' test ':' suite)* if_else?
+: 'if' test ':' suite ('elif' test ':' suite)* else_block?
 ;
 
-if_else
+else_block
 : 'else' ':' suite
+;
+
+switch_stmt
+: 'switch' test ':' NEWLINE INDENT case_block+ else_block? DEDENT
+;
+
+case_block
+: 'case' test ':' suite
+;
+
+default_block
+: 'default' ':' suite
 ;
 
 while_stmt
@@ -311,18 +323,14 @@ for_stmt
 
 try_stmt
 : 'try' ':' suite (
-       (try_except+ try_else? try_finally?)
+       (try_except+ else_block? try_finally?)
        | try_finally
    )
 ;
 
 try_except
 : except_clause ':' suite
-; 
-
-try_else
-: 'else' ':' suite
-; 
+;
 
 try_finally
 : 'finally' ':' suite

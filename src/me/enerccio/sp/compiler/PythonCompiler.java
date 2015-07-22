@@ -16,6 +16,7 @@ import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Switch_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
 import me.enerccio.sp.parser.pythonParser.While_stmtContext;
@@ -94,6 +95,8 @@ public class PythonCompiler {
 			compileWhile(cstmt.while_stmt(), bytecode);
 		} else if (cstmt.if_stmt() != null) {
 			compileIf(cstmt.if_stmt(), bytecode);
+		} else if (cstmt.switch_stmt() != null) {
+			compileSwitch(cstmt.switch_stmt(), bytecode);
 		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
@@ -122,7 +125,7 @@ public class PythonCompiler {
 		// TOP -> return value -> frame -> exception
 		if (try_stmt.try_except().size() > 0) {
 			// There is at least one except block defined
-			if (try_stmt.try_else() != null)
+			if (try_stmt.else_block() != null)
 				// ... and else on top of that
 				bytecode.add(elseJump = Bytecode.makeBytecode(Bytecode.JUMPIFNONE, try_stmt.start));
 			boolean alwaysHandled = false;
@@ -158,7 +161,7 @@ public class PythonCompiler {
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
 				finallyJumps.add(cb);
-				compileSuite(try_stmt.try_else().suite(), bytecode);
+				compileSuite(try_stmt.else_block().suite(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -252,9 +255,45 @@ public class PythonCompiler {
 			jump.intValue = bytecode.size();
 		}
 		// Else block
-		if (ctx.if_else() != null)
-			compileSuite(ctx.if_else().suite(), bytecode);
+		if (ctx.else_block() != null)
+			compileSuite(ctx.else_block().suite(), bytecode);
 		// End if..else block
+		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
+	}
+	
+
+	private void compileSwitch(Switch_stmtContext ctx, List<PythonBytecode> bytecode) {
+		List<PythonBytecode> jumps = new ArrayList<>();
+		List<PythonBytecode> endJumps = new ArrayList<>();
+		// Compile value to compare with
+		compile(ctx.test(), bytecode);
+		// Compile comparisons
+		for (int i=0; i<ctx.case_block().size(); i++) {
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			putGetAttr(Arithmetics.__EQ__, bytecode, ctx.case_block(i).test().start);
+			compile(ctx.case_block(i).test(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, ctx.start));
+			cb.intValue = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFTRUE, ctx.start));
+			jumps.add(cb);
+		}
+		// If there is else block, compile it here
+		if (ctx.else_block() != null) {
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			compileSuite(ctx.else_block().suite(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+		}
+		// Compile actual case blocks
+		for (int i=0; i<ctx.case_block().size(); i++) {
+			jumps.get(i).intValue = bytecode.size();
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			compileSuite(ctx.case_block(i).suite(), bytecode);
+			// Unlike traditional case, this one jumps to end of switch block automatically 
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			endJumps.add(cb);
+		}
 		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
 	}
 	
