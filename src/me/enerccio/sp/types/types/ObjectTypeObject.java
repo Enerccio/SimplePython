@@ -34,6 +34,7 @@ public class ObjectTypeObject extends ClassObject {
 		Utils.putPublic(usf, "__name__", new StringObject("object.__init__"));
 		usf.args = new ArrayList<String>();
 		usf.args.add("self");
+		Utils.putPublic(usf, "function_defaults", new MapObject());
 		PythonBytecode cb;
 		usf.bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
 		usf.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));

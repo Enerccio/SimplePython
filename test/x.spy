@@ -1,14 +1,13 @@
-def decor_gener(arg):
-	def decorated(func):
-		def dc(a):
-			print arg
-			func(a)
-		return dc
-	return decorated
+class Test(object):
+	@classmethod
+	def test_a(cls):
+		print cls
+		
+	@staticmethod
+	def test_b():
+		print "static"
+		
+x = Test()
+x.test_a()
+x.test_b()
 
-@decor_gener("hello")
-def test(o):
-	print o
-	raise AttributeError("anca")
-	
-test(", world")
