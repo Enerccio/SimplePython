@@ -77,8 +77,8 @@ public class ModuleObject extends PythonObject {
 				return;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
-					if (PythonInterpret.interpret.get().exception != null)
-						throw new PythonExecutionException(PythonInterpret.interpret.get().exception);
+					if (PythonInterpret.interpret.get().exception() != null)
+						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
 					return;
 				}
 		}

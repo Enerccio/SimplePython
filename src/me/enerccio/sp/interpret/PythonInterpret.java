@@ -62,7 +62,6 @@ public class PythonInterpret extends PythonObject {
 	private volatile int accessCount = 0;
 	private MapObject args = null;
 	private PythonObject returnee;
-	public PythonObject exception;
 	
 	public boolean isInterpretStoppable(){
 		return accessCount == 0;
@@ -89,8 +88,8 @@ public class PythonInterpret extends PythonObject {
 					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
 					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 						if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
-							if (PythonInterpret.interpret.get().exception != null)
-								throw new PythonExecutionException(PythonInterpret.interpret.get().exception);
+							if (PythonInterpret.interpret.get().exception() != null)
+								throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
 							return returnee;
 						}
 				}
@@ -99,6 +98,12 @@ public class PythonInterpret extends PythonObject {
 		} else {
 			return execute(false, callable.get(CallableObject.__CALL__, getLocalContext()), args);
 		}
+	}
+
+	public PythonObject exception() {
+		if (currentFrame.size() != 0)
+			return currentFrame.peekLast().exception;
+		return null;
 	}
 
 	public PythonObject invoke(PythonObject callable, TupleObject args) {
@@ -133,8 +138,8 @@ public class PythonInterpret extends PythonObject {
 			return ExecutionResult.INTERRUPTED;
 		}
 		
-		if (exception != null){
-			handleException(new PythonExecutionException(exception));
+		if (exception() != null){
+			handleException(new PythonExecutionException(exception()));
 			return ExecutionResult.EOF;
 		}
 		
@@ -146,7 +151,7 @@ public class PythonInterpret extends PythonObject {
 			if (o == null)
 				return ExecutionResult.FINISHED;
 			if (o.pc >= o.bytecode.size()){
-				currentFrame.removeLast();
+				removeLastFrame();
 				returnee = null;
 				return ExecutionResult.EOF;
 			}
@@ -162,13 +167,13 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	private void handleException(PythonExecutionException e) {
-		exception = e.getException();
-		PythonObject stack = Utils.run("getattr", exception, new StringObject("stack"));
+		currentFrame.peekLast().exception = e.getException();
+		PythonObject stack = Utils.run("getattr", exception(), new StringObject("stack"));
 		if (stack instanceof ListObject){
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
 		}
-		currentFrame.removeLast();
+		removeLastFrame();
 	}
 
 	private StringObject makeStack() {
@@ -274,9 +279,11 @@ public class PythonInterpret extends PythonObject {
 			stack.push(pythonBytecode.value);
 			break;
 		case RETURN:
-			currentEnvironment.pop();
+			o.returnHappened = true;
 			PythonObject retVal = stack.pop();
-			currentFrame.removeLast();
+			if (o.parentFrame == null)
+				currentEnvironment.pop();
+			removeLastFrame();
 			returnee = retVal;
 			return ExecutionResult.EOF;
 		case SAVE:
@@ -288,23 +295,8 @@ public class PythonInterpret extends PythonObject {
 		case CUSTOM:
 			execute(true, pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
 			break;
-		case POP_EXCEPTION_HANDLER:
-			// TODO
-			break;
-		case POP_FINALLY_HANDLER:
-			// TODO
-			break;
-		case PUSH_EXCEPTION_HANDLER:
-			// TODO
-			break;
-		case PUSH_FINALLY_HANDLER:
-			// TODO
-			break;
 		case DUP:
 			stack.push(stack.peek());
-			break;
-		case END_EXCEPTION:
-			// TODO
 			break;
 		case IMPORT:
 			ModuleObject mm = (ModuleObject) 
@@ -398,17 +390,30 @@ public class PythonInterpret extends PythonObject {
 		}
 		case RAISE: {
 			PythonObject s;
-			if (pythonBytecode.stackException){
-				s = stack.pop();
-			} else {
-				s = o.handledException;
-			}
+			s = stack.pop();
 			if (s == null)
 				Utils.throwException("InterpretError", "no exception is being handled but raise called");
 			throw new PythonExecutionException(s);
-		} 
+		}
+		case PUSH_FRAME:
+			FrameObject nf = new FrameObject();
+			nf.newObject();
+			nf.parentFrame = o;
+			nf.bytecode = o.bytecode;
+			nf.stack = o.stack;
+			nf.pc = pythonBytecode.idx;
+			currentFrame.add(nf);
+			break;
 		}
 		return ExecutionResult.OK;
+	}
+
+	private void removeLastFrame() {
+		FrameObject o = this.currentFrame.removeLast();
+		if (o.parentFrame != null){
+			o.parentFrame.returnHappened = o.returnHappened;
+			o.parentFrame.stack.add(o);
+		}
 	}
 
 	private void pythonImport(EnvironmentObject environment, String variable,

@@ -12,6 +12,10 @@ import me.enerccio.sp.types.PythonObject;
 public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
 	
+	public FrameObject parentFrame;
+	public boolean returnHappened;
+	
+	public PythonObject exception;
 	public List<PythonBytecode> bytecode;
 	public int pc;
 	public Stack<PythonObject> stack = new Stack<PythonObject>();
@@ -30,7 +34,6 @@ public class FrameObject extends PythonObject {
 	public String debugModule;
 	public int debugLine;
 	public int debugInLine;
-	public PythonObject handledException;
 
 	public void recalculateLabels() {
 		int i=0;

@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
+import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
@@ -80,16 +81,24 @@ public class PythonCompiler {
 
 	private void compileCompoundStatement(Compound_stmtContext cstmt,
 			List<PythonBytecode> bytecode) {
-		if (cstmt.funcdef() != null){
-			compileFunction(cstmt.funcdef(), bytecode);
-		}
+		if (cstmt.funcdef() != null)
+			compileFunction(cstmt.funcdef(), bytecode, null);
+		
 		if (cstmt.classdef() != null)
-			compileClass(cstmt.classdef(), bytecode);
+			compileClass(cstmt.classdef(), bytecode, null);
+		
+		if (cstmt.decorated() != null){
+			DecoratedContext dc = cstmt.decorated();
+			if (dc.classdef() != null)
+				compileClass(dc.classdef(), bytecode, dc.decorators());
+			else if (dc.funcdef() != null)
+				compileFunction(dc.funcdef(), bytecode, dc.decorators());
+		}
 		// TODO
 	}
 
 	private void compileClass(ClassdefContext classdef,
-			List<PythonBytecode> bytecode) {
+			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		
 		String className = classdef.nname().getText();
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, classdef.start));
@@ -128,12 +137,17 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
 		cb.argc = 3;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, classdef.stop));
+		
+		if (dc != null){
+			compile(dc, bytecode);
+		}
+		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, classdef.stop));
 		cb.variable = className;
 	}
 
 	private void compileFunction(FuncdefContext funcdef,
-			List<PythonBytecode> bytecode) {
+			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
 		
@@ -167,9 +181,6 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // function_defaults
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // locals
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // closure
-		
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
-		cb.variable = functionName;
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = new MapObject();
@@ -209,6 +220,33 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
 		cb.variable = "closure";
+		
+		if (dc != null){
+			compile(dc, bytecode);
+		}
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
+		cb.variable = functionName;
+	}
+
+	private void compile(DecoratorsContext dc, List<PythonBytecode> bytecode) {
+		// function on stack
+		for (int i=dc.decorator().size()-1; i>=0; i--){
+			DecoratorContext d = dc.decorator(i);
+			// compile decorator
+			compile(d.test(), bytecode);
+			if (d.arglist() != null){
+				int argc = compileArguments(d.arglist(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, d.stop));
+				cb.argc = argc;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, d.stop));
+			}
+			// call
+			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, dc.stop));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, dc.stop));
+			cb.argc = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, dc.stop));
+		}
 	}
 
 	private String doGetLongString(String text) {

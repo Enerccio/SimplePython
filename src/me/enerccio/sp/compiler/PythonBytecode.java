@@ -213,30 +213,6 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), variable);
 		}
 	}
-
-	public static class PushExceptionHandler extends PythonBytecode {
-		{
-			bytecode = Bytecode.PUSH_EXCEPTION_HANDLER;
-		}
-	}
-	
-	public static class PushFinallyHandler extends PythonBytecode {
-		{
-			bytecode = Bytecode.PUSH_FINALLY_HANDLER;
-		}
-	}
-	
-	public static class PopExceptionHandler extends PythonBytecode {
-		{
-			bytecode = Bytecode.POP_EXCEPTION_HANDLER;
-		}
-	}
-	
-	public static class PopFinallyHandler extends PythonBytecode {
-		{
-			bytecode = Bytecode.POP_FINALLY_HANDLER;
-		}
-	}
 	
 	public static class Dup extends PythonBytecode {
 		{
@@ -244,9 +220,9 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
-	public static class EndException extends PythonBytecode {
+	public static class PushFrame extends PythonBytecode {
 		{
-			bytecode = Bytecode.END_EXCEPTION;
+			bytecode = Bytecode.PUSH_FRAME;
 		}
 	}
 	

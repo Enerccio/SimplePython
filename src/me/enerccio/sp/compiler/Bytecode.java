@@ -9,7 +9,7 @@ public enum Bytecode {
 	// System
 	NOP(0), 
 	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
-	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), 
+	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), PUSH_FRAME(15), 
 	
 	// control
 	RETURN(16), POP(17), PUSH(18), CALL(19), RCALL(20), JUMPIFTRUE(21), JUMPIFFALSE(22), DUP(23), SWAP_STACK(24),
@@ -17,10 +17,10 @@ public enum Bytecode {
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
-	PUSH_EXCEPTION_HANDLER(64), PUSH_FINALLY_HANDLER(65), POP_EXCEPTION_HANDLER(66), POP_FINALLY_HANDLER(67),
-	END_EXCEPTION(68), RAISE(69),
+	RAISE(69),
 	// macros
 	GETATTR(90), SETATTR(90),
+	// frames 
 	
 	// custom
 	CUSTOM(255), LABEL(254);
@@ -62,10 +62,6 @@ public enum Bytecode {
 			bytecode = new Dup();
 			bytecode.newObject();
 			break;
-		case END_EXCEPTION:
-			bytecode = new EndException();
-			bytecode.newObject();
-			break;
 		case GOTO:
 			bytecode = new Goto();
 			bytecode.newObject();
@@ -98,14 +94,6 @@ public enum Bytecode {
 			bytecode = new PopEnvironment();
 			bytecode.newObject();
 			break;
-		case POP_EXCEPTION_HANDLER:
-			bytecode = new PopExceptionHandler();
-			bytecode.newObject();
-			break;
-		case POP_FINALLY_HANDLER:
-			bytecode = new PopFinallyHandler();
-			bytecode.newObject();
-			break;
 		case PUSH:
 			bytecode = new Push();
 			bytecode.newObject();
@@ -116,14 +104,6 @@ public enum Bytecode {
 			break;
 		case PUSH_ENVIRONMENT:
 			bytecode = new PushEnvironment();
-			bytecode.newObject();
-			break;
-		case PUSH_EXCEPTION_HANDLER:
-			bytecode = new PushExceptionHandler();
-			bytecode.newObject();
-			break;
-		case PUSH_FINALLY_HANDLER:
-			bytecode = new PushFinallyHandler();
 			bytecode.newObject();
 			break;
 		case RETURN:
@@ -176,6 +156,10 @@ public enum Bytecode {
 			break;
 		case RAISE:
 			bytecode = new Raise();
+			bytecode.newObject();
+			break;
+		case PUSH_FRAME:
+			bytecode = new PushFrame();
 			bytecode.newObject();
 			break;
 		}

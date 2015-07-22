@@ -1,8 +1,13 @@
-def anca():
-	class X(object):
-		def __init__(self):
-			raise AttributeError("wtf")
-		
-	X()
+def decor_gener(arg):
+	def decorated(func):
+		def dc(a):
+			print arg
+			func(a)
+		return dc
+	return decorated
 
-anca()
+@decor_gener("hello")
+def test(o):
+	print o
+	
+test(", world")

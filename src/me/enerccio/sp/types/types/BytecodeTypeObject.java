@@ -51,10 +51,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new Dup();
 				bytecode.newObject();
 				break;
-			case END_EXCEPTION:
-				bytecode = new EndException();
-				bytecode.newObject();
-				break;
 			case GOTO:
 				bytecode = new Goto();
 				bytecode.newObject();
@@ -92,18 +88,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new PopEnvironment();
 				bytecode.newObject();
 				break;
-			case POP_EXCEPTION_HANDLER:
-				bytecode = new PopExceptionHandler();
-				bytecode.newObject();
-				bytecode.exceptionType = args.getObjects()[1];
-				break;
-			case POP_FINALLY_HANDLER:
-				bytecode = new PopFinallyHandler();
-				bytecode.newObject();
-				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
-				for (PythonBytecode pb : bytecode.ast)
-					; // just check that it is all inded python bytecode not some other crap data
-				break;
 			case PUSH:
 				bytecode = new Push();
 				bytecode.newObject();
@@ -118,18 +102,10 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new PushEnvironment();
 				bytecode.newObject();
 				break;
-			case PUSH_EXCEPTION_HANDLER:
-				bytecode = new PushExceptionHandler();
-				bytecode.newObject();
-				bytecode.exceptionType = args.getObjects()[1];
-				break;
-			case PUSH_FINALLY_HANDLER:
-				bytecode = new PushFinallyHandler();
-				bytecode.newObject();
-				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
-				for (PythonBytecode pb : bytecode.ast)
-					; // just check that it is all inded python bytecode not some other crap data
-				break;
+//				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
+//				for (PythonBytecode pb : bytecode.ast)
+//					; // just check that it is all inded python bytecode not some other crap data
+//				break;
 			case RETURN:
 				bytecode = new Return();
 				bytecode.newObject();

@@ -27,6 +27,7 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
@@ -34,6 +35,8 @@ import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.system.ClassMethodObject;
+import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
@@ -57,6 +60,8 @@ public class PythonRuntime {
 	public static final String ISINSTANCE = "isinstance";
 	public static final String PRINT_JAVA = "print_java";
 	public static final String PRINT_JAVA_EOL = "print_java_eol";
+	public static final String STATICMETHOD = "staticmethod";
+	public static final String CLASSMETHOD = "classmethod";
 	
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
@@ -181,6 +186,8 @@ public class PythonRuntime {
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
 					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
+					globals.put(CLASSMETHOD, Utils.staticMethodCall(PythonRuntime.class, CLASSMETHOD, UserFunctionObject.class));
+					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(GO, Utils.staticMethodCall(PythonRuntime.class, GO, String.class));
 					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class));
@@ -210,6 +217,18 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject classmethod(UserFunctionObject o){
+		ClassMethodObject cmo = new ClassMethodObject();
+		Utils.putPublic(cmo, ClassMethodObject.__FUNC__, o);
+		return cmo;
+	}
+	
+	public static PythonObject staticmethod(UserFunctionObject o){
+		StaticMethodObject smo = new StaticMethodObject();
+		Utils.putPublic(smo, StaticMethodObject.__FUNC__, o);
+		return smo;
 	}
 	
 	public static PythonObject go(String where){
