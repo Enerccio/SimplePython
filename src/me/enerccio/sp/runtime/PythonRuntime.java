@@ -45,6 +45,7 @@ import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
+import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
@@ -262,13 +263,33 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
-		if (testee instanceof ClassInstanceObject && clazz instanceof ClassObject)
-			return isClassInstance((ClassInstanceObject)testee, (ClassObject)clazz) ? BoolObject.TRUE : BoolObject.FALSE;
-		return Utils.run("type", testee).equals(Utils.run("type", clazz)) ? BoolObject.TRUE : BoolObject.FALSE;
+		return doIsInstance(testee, clazz) ? BoolObject.TRUE : BoolObject.FALSE;
 	}
 
-	private static boolean isClassInstance(ClassInstanceObject testee,
+	private static boolean doIsInstance(PythonObject testee, PythonObject clazz) {
+		if (clazz instanceof ClassObject){
+			return isClassInstance(testee, (ClassObject)clazz);
+		}
+		
+		if (clazz instanceof TupleObject){
+			for (PythonObject o : ((TupleObject) clazz).getObjects())
+				if (doIsInstance(testee, o))
+					return true;
+			return false;
+		}
+		
+		if (clazz instanceof TypeObject){
+			return Utils.run("type", testee).equals(clazz);
+		}
+		
+		throw Utils.throwException("TypeError", "isinstance() arg 2 must be a class, type, or tuple of classes and types");
+	}
+
+	private static boolean isClassInstance(PythonObject testee,
 			ClassObject clazz) {
+		if (!(testee instanceof ClassInstanceObject)){
+			return false;
+		}
 		ClassObject cls = (ClassObject) Utils.get(testee, "__class__");
 		return checkClassAssignable(cls, clazz);
 	}
