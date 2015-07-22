@@ -59,7 +59,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case CALL:
 				bytecode = new Call();
 				bytecode.newObject();
-				bytecode.callable = args.getObjects()[1];
+				bytecode.value = args.getObjects()[1];
 				break;
 			case CUSTOM:
 				bytecode = new CustomBytecode();
@@ -73,27 +73,27 @@ public class BytecodeTypeObject extends TypeObject {
 			case GOTO:
 				bytecode = new Goto();
 				bytecode.newObject();
-				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFFALSE:
 				bytecode = new JumpIfFalse();
 				bytecode.newObject();
-				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFTRUE:
 				bytecode = new JumpIfTrue();
 				bytecode.newObject();
-				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case LOAD:
 				bytecode = new Load();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case LOADGLOBAL:
 				bytecode = new LoadGlobal();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case NOP:
 				bytecode = new Nop();
@@ -115,7 +115,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case PUSH_DICT:
 				bytecode = new PushDict();
 				bytecode.newObject();
-				bytecode.dict = (MapObject) args.getObjects()[1];
+				bytecode.mapValue = (MapObject) args.getObjects()[1];
 				break;
 			case PUSH_ENVIRONMENT:
 				bytecode = new PushEnvironment();
@@ -133,17 +133,17 @@ public class BytecodeTypeObject extends TypeObject {
 			case SAVE:
 				bytecode = new Save();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case SAVEGLOBAL:
 				bytecode = new SaveGlobal();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case IMPORT:
 				bytecode = new Import();
-				bytecode.moduleName = ((StringObject) args.getObjects()[1]).value;
-				bytecode.variable = ((StringObject) args.getObjects()[2]).value;
+				bytecode.stringValue2 = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[2]).value;
 				bytecode.newObject();
 				break;
 			case SWAP_STACK:
@@ -153,7 +153,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case UNPACK_SEQUENCE:
 				bytecode = new UnpackSequence();
 				bytecode.newObject();
-				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case PUSH_LOCAL_CONTEXT:
 				bytecode = new PushLocalContext();

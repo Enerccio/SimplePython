@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -214,15 +213,15 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case PUSH_DICT:{
 				EnvironmentObject env = Utils.peek(currentEnvironment);
-				env.add(pythonBytecode.dict);
+				env.add(pythonBytecode.mapValue);
 			} break;
 		case PUSH_ENVIRONMENT:
 			currentEnvironment.push(new EnvironmentObject());
 			break;
 		case CALL: {
-			int argl = pythonBytecode.argc >= 0 ? pythonBytecode.argc : -pythonBytecode.argc;
+			int argl = pythonBytecode.intValue >= 0 ? pythonBytecode.intValue : -pythonBytecode.intValue;
 			boolean va = false;
-			if (pythonBytecode.argc < 0)
+			if (pythonBytecode.intValue < 0)
 				va = true;
 			PythonObject[] args = new PythonObject[argl];
 			
@@ -247,7 +246,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case RCALL: {
-			PythonObject[] args = new PythonObject[pythonBytecode.argc];
+			PythonObject[] args = new PythonObject[pythonBytecode.intValue];
 			
 			for (int i=0; i<args.length; i++)
 				args[i] = stack.pop();
@@ -257,37 +256,37 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case GOTO:
-			o.pc = pythonBytecode.argc;
+			o.pc = pythonBytecode.intValue;
 			break;
 		case JUMPIFFALSE:
 			if (!stack.pop().truthValue())
-				o.pc = pythonBytecode.argc;
+				o.pc = pythonBytecode.intValue;
 			break;
 		case JUMPIFTRUE:
 			if (stack.pop().truthValue())
-				o.pc = pythonBytecode.argc;
+				o.pc = pythonBytecode.intValue;
 			break;
 		case JUMPIFNONE:
 			// Peeks, leaves value on stack
 			if (stack.peek() == NoneObject.NONE)
-				o.pc = pythonBytecode.argc;
+				o.pc = pythonBytecode.intValue;
 			break;
 		case JUMPIFNORETURN:
 			FrameObject frame = (FrameObject) stack.peek();
 			if (!frame.returnHappened)
 				// Frame ended without return, jump to specified label and keep frame on stack
-				o.pc = pythonBytecode.argc;
+				o.pc = pythonBytecode.intValue;
 			break;
 		case LOAD: 
-			PythonObject value = environment().get(new StringObject(pythonBytecode.variable), false, false);
+			PythonObject value = environment().get(new StringObject(pythonBytecode.stringValue), false, false);
 			if (value == null)
-				throw Utils.throwException("NameError", "name " + pythonBytecode.variable + " is not defined");
+				throw Utils.throwException("NameError", "name " + pythonBytecode.stringValue + " is not defined");
 			stack.push(value);
 			break;
 		case LOADGLOBAL:
-			value = environment().get(new StringObject(pythonBytecode.variable), true, false);
+			value = environment().get(new StringObject(pythonBytecode.stringValue), true, false);
 			if (value == null)
-				throw Utils.throwException("NameError", "name " + pythonBytecode.variable + " is not defined");
+				throw Utils.throwException("NameError", "name " + pythonBytecode.stringValue + " is not defined");
 			stack.push(value);
 			break;
 		case POP:
@@ -297,7 +296,7 @@ public class PythonInterpret extends PythonObject {
 			stack.push(pythonBytecode.value);
 			break;
 		case RETURN:
-			if (pythonBytecode.argc == 1) {
+			if (pythonBytecode.intValue == 1) {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
 				returnee = retVal;
@@ -307,10 +306,10 @@ public class PythonInterpret extends PythonObject {
 			removeLastFrame();
 			return ExecutionResult.EOF;
 		case SAVE:
-			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), false, false);
+			environment().set(new StringObject(((Save)pythonBytecode).stringValue), stack.pop(), false, false);
 			break;
 		case SAVEGLOBAL:
-			environment().set(new StringObject(((Save)pythonBytecode).variable), stack.pop(), true, false);
+			environment().set(new StringObject(((Save)pythonBytecode).stringValue), stack.pop(), true, false);
 			break;
 		case CUSTOM:
 			execute(true, pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
@@ -322,8 +321,8 @@ public class PythonInterpret extends PythonObject {
 			ModuleObject mm = (ModuleObject) 
 				environment().get(new StringObject(ModuleObject.__THISMODULE__), true, false);
 			String resolvePath = mm.provider.getPackageResolve() != null ? mm.provider.getPackageResolve() : "";
-			resolvePath += resolvePath.equals("") ? pythonBytecode.moduleName : "." + pythonBytecode.moduleName;
-			pythonImport(environment(), pythonBytecode.variable, resolvePath, null);
+			resolvePath += resolvePath.equals("") ? pythonBytecode.stringValue2 : "." + pythonBytecode.stringValue2;
+			pythonImport(environment(), pythonBytecode.stringValue, resolvePath, null);
 			break;
 		case SWAP_STACK: {
 			PythonObject top = stack.pop();
@@ -335,7 +334,7 @@ public class PythonInterpret extends PythonObject {
 		case UNPACK_SEQUENCE:
 			PythonObject seq = stack.pop();
 			PythonObject iterator = execute(true, Utils.get(seq, SequenceObject.__ITER__));
-			PythonObject[] ss = new PythonObject[pythonBytecode.argc];
+			PythonObject[] ss = new PythonObject[pythonBytecode.intValue];
 			PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
 			
 			try {
@@ -382,12 +381,12 @@ public class PythonInterpret extends PythonObject {
 			PythonObject runnable = environment().get(new StringObject("getattr"), true, false);
 			PythonObject[] args = new PythonObject[2];
 			// If argument for GETATTR is not set, attribute name is pop()ed from stack   
-			if (pythonBytecode.variable == null) {
+			if (pythonBytecode.stringValue == null) {
 				args[1] = stack.pop();	// attribute
 				args[0] = stack.pop();	// object
 			} else {
 				args[0] = stack.pop();									// object
-				args[1] = new StringObject(pythonBytecode.variable);	// attribute
+				args[1] = new StringObject(pythonBytecode.stringValue);	// attribute
 			} 
 			returnee = execute(true, runnable, args);
 			break;
@@ -396,12 +395,12 @@ public class PythonInterpret extends PythonObject {
 			PythonObject runnable = environment().get(new StringObject("setattr"), true, false);
 			PythonObject[] args = new PythonObject[3];
 			// If argument for SETATTR is not set, attribute name is pop()ed from stack   
-			if (pythonBytecode.variable == null) {
+			if (pythonBytecode.stringValue == null) {
 				args[1] = stack.pop();	// attribute
 				args[0] = stack.pop();	// object
 				args[2] = stack.pop();	// value
 			} else {
-				args[1] = new StringObject(pythonBytecode.variable);	// attribute
+				args[1] = new StringObject(pythonBytecode.stringValue);	// attribute
 				args[0] = stack.pop();									// object
 				args[2] = stack.pop();									// value
 			} 
@@ -432,7 +431,7 @@ public class PythonInterpret extends PythonObject {
 			nf.parentFrame = o;
 			nf.bytecode = o.bytecode;
 			nf.stack = o.stack;
-			nf.pc = pythonBytecode.argc;
+			nf.pc = pythonBytecode.intValue;
 			currentFrame.add(nf);
 			break;
 		case PUSH_EXCEPTION:

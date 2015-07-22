@@ -8,7 +8,6 @@ import java.util.Stack;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.NoneObject;
 
 public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
@@ -40,7 +39,7 @@ public class FrameObject extends PythonObject {
 		int i=0;
 		for (PythonBytecode b : bytecode){
 			if (b.getOpcode() == Bytecode.LABEL)
-				labelMap.put(b.variable, i);
+				labelMap.put(b.stringValue, i);
 			++i;
 		}
 	}

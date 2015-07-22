@@ -5,7 +5,10 @@ class Test(object):
 		
 	@staticmethod
 	def test_b():
-		print "static"
+		try:
+			print "static"
+		finally:
+			print "final moj"
 		
 x = Test()
 x.test_a()

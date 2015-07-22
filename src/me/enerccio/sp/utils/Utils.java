@@ -252,12 +252,12 @@ public class Utils {
 			// add closure
 			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
 				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-				b.dict = (MapObject) d;	
+				b.mapValue = (MapObject) d;	
 			}
 		} else {
 			// add globals
 			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.dict = PythonRuntime.runtime.generateGlobals();
+			b.mapValue = PythonRuntime.runtime.generateGlobals();
 		}
 		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
@@ -280,7 +280,7 @@ public class Utils {
 		}
 		// [ callable, python object, python object* ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
-		b.argc = args.len() + 1;
+		b.intValue = args.len() + 1;
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]

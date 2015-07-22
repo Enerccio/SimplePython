@@ -60,7 +60,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT, fcx.start));
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, fcx.start)); 
-		cb.dict = dict;
+		cb.mapValue = dict;
 		environments.add(dict);
 		
 		for (StmtContext sctx : fcx.stmt())
@@ -146,10 +146,10 @@ public class PythonCompiler {
 			
 			// Compile else block, if any
 			if (elseJump != null) {
-				elseJump.argc = bytecode.size();
+				elseJump.intValue = bytecode.size();
 				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFNORETURN, try_stmt.start));
-				cb.argc = bytecode.size() + 2;
+				cb.intValue = bytecode.size() + 2;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -170,7 +170,7 @@ public class PythonCompiler {
 					// or
 					// try ... except ErrorType:
 					// -> remove exception from top of stack
-					exceptJumps.get(i++).argc = bytecode.size();
+					exceptJumps.get(i++).intValue = bytecode.size();
 					bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 					compileSuite(ex.suite(), bytecode);
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
@@ -179,7 +179,7 @@ public class PythonCompiler {
 					finallyJumps.add(cb);
 				} else {
 					// try ... except ErrorType, xyz:
-					exceptJumps.get(i++).argc = bytecode.size();
+					exceptJumps.get(i++).intValue = bytecode.size();
 					// Store exception from top of stack
 					compileAssignment(ex.except_clause().test(1), bytecode);
 					compileSuite(ex.suite(), bytecode);
@@ -192,7 +192,7 @@ public class PythonCompiler {
 		}
 		
 		// Compile finally block (if any)
-		for (PythonBytecode c : finallyJumps) c.argc = bytecode.size();
+		for (PythonBytecode c : finallyJumps) c.intValue = bytecode.size();
 		if (try_stmt.try_finally() != null)
 			compileSuite(try_stmt.try_finally().suite(), bytecode);
 		// Stack contains TOP -> return value -> frame -> exception here, exception may be None
@@ -204,15 +204,15 @@ public class PythonCompiler {
 		// There is TOP -> return value -> frame on stack if execution reaches here
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
-		cb.argc = 1;
+		cb.intValue = 1;
 		
 		// Compile try block
-		makeFrame.argc = bytecode.size();
+		makeFrame.intValue = bytecode.size();
 		compileSuite(try_stmt.suite(), bytecode);
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
 		
 		// Very end of try...catch block. Return value and frame is still on stack
-		for (PythonBytecode c : endJumps) c.argc = bytecode.size();
+		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
@@ -222,17 +222,17 @@ public class PythonCompiler {
 		
 		String className = classdef.nname().getText();
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, classdef.start));
-		cb.variable = "type";
+		cb.stringValue = "type";
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.start));
 		cb.value = new StringObject(className);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, classdef.start));
-		cb.variable = "tuple";
+		cb.stringValue = "tuple";
 		int c = classdef.testlist() != null ? classdef.testlist().test().size() : 0;
 		if (classdef.testlist() != null)
 			for (TestContext tc : classdef.testlist().test())
 				compile(tc, bytecode);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.start));
-		cb.argc = c;
+		cb.intValue = c;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, classdef.start));
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
@@ -248,15 +248,15 @@ public class PythonCompiler {
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
-		cb.argc = 1;
+		cb.intValue = 1;
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = fnc;
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
-		cb.argc = 0;
+		cb.intValue = 0;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, classdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
-		cb.argc = 3;
+		cb.intValue = 3;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, classdef.stop));
 		
 		if (dc != null){
@@ -264,7 +264,7 @@ public class PythonCompiler {
 		}
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, classdef.stop));
-		cb.variable = className;
+		cb.stringValue = className;
 	}
 
 	private void compileFunction(FuncdefContext funcdef,
@@ -295,7 +295,7 @@ public class PythonCompiler {
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = NoneObject.NONE;
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, funcdef.stop));
-		cb.argc = 1;
+		cb.intValue = 1;
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = fnc;
@@ -316,19 +316,19 @@ public class PythonCompiler {
 				cb.value = new StringObject(ctx.nname().getText());
 				compile(ctx.test(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-				cb.argc = 2;
+				cb.intValue = 2;
 			}
 		}
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
-		cb.variable = "function_defaults";
+		cb.stringValue = "function_defaults";
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = locals;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
-		cb.variable = "locals";
+		cb.stringValue = "locals";
 		
 		List<MapObject> ll = new ArrayList<MapObject>();
 		ll.add(locals);
@@ -341,14 +341,14 @@ public class PythonCompiler {
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
-		cb.variable = "closure";
+		cb.stringValue = "closure";
 		
 		if (dc != null){
 			compile(dc, bytecode);
 		}
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
-		cb.variable = functionName;
+		cb.stringValue = functionName;
 	}
 
 	private void compile(DecoratorsContext dc, List<PythonBytecode> bytecode) {
@@ -360,13 +360,13 @@ public class PythonCompiler {
 			if (d.arglist() != null){
 				int argc = compileArguments(d.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, d.stop));
-				cb.argc = argc;
+				cb.intValue = argc;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, d.stop));
 			}
 			// call
 			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, dc.stop));
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, dc.stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, dc.stop));
 		}
 	}
@@ -384,7 +384,7 @@ public class PythonCompiler {
 		environments.add(dict);
 		for (MapObject d : Utils.reverse(environments)){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, suite.start)); 
-			cb.dict = d;
+			cb.mapValue = d;
 		}
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, suite.start));
 		
@@ -453,7 +453,7 @@ public class PythonCompiler {
 		
 		if (smstmt.label_stmt() != null){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL, smstmt.start));
-			cb.variable = smstmt.label_stmt().nname().getText();
+			cb.stringValue = smstmt.label_stmt().nname().getText();
 		}
 		
 	}
@@ -474,7 +474,7 @@ public class PythonCompiler {
 			compile(ctx.test(), bytecode);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RAISE, ctx.start));
 		if (ctx.test() != null)
-			cb.stackException = true;
+			cb.booleanValue = true;
 	}
 
 	private void compile(Return_stmtContext ctx,
@@ -484,7 +484,7 @@ public class PythonCompiler {
 		if (ctx.testlist() != null)
 			compileRightHand(ctx.testlist(), bytecode);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.start));
-		cb.argc = 1;
+		cb.intValue = 1;
 	}
 
 	private void compile(Print_stmtContext ctx,
@@ -495,17 +495,17 @@ public class PythonCompiler {
 			boolean eol = (ctx.endp() == null);
 			for (TestContext tc : ctx.test()){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, tc.start));
-				cb.variable = PythonRuntime.PRINT_JAVA;
+				cb.stringValue = PythonRuntime.PRINT_JAVA;
 				compile(tc, bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 			}
 			
 			if (eol){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));
-				cb.variable = PythonRuntime.PRINT_JAVA_EOL;
+				cb.stringValue = PythonRuntime.PRINT_JAVA_EOL;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-				cb.argc = 0;
+				cb.intValue = 0;
 			}
 		}
 	}
@@ -533,7 +533,7 @@ public class PythonCompiler {
 				throw Utils.throwException("SyntaxError", "illegal augmented assignment");
 			compileRightHand(expr.augassignexp().testlist(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, expr.stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, expr.stop));
 			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
@@ -550,7 +550,7 @@ public class PythonCompiler {
 				if (tc.test().size() > 1) {
 					// x,y,z = ...
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE, tc.start));
-					cb.argc = tc.test().size();
+					cb.intValue = tc.test().size();
 					for (int i=0; tc.test(i) != null; i++)
 						compileAssignment(tc.test(i), bytecode);
 				} else {
@@ -569,7 +569,7 @@ public class PythonCompiler {
 		int tlc = testlist.test().size();
 		if (tlc > 1){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, testlist.start));
-			cb.variable = TupleTypeObject.TUPLE_CALL;
+			cb.stringValue = TupleTypeObject.TUPLE_CALL;
 		}
 		
 		for (TestContext tc : testlist.test())
@@ -577,21 +577,21 @@ public class PythonCompiler {
 		
 		if (tlc > 1){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, testlist.stop));
-			cb.argc = tlc;
+			cb.intValue = tlc;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, testlist.stop));
 		}
 	}
 	
 	private void putGetAttr(String attr, List<PythonBytecode> bytecode, Token t) {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GETATTR, t));
-		cb.variable = attr;
+		cb.stringValue = attr;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
 	}
 	
 	private void putNot(List<PythonBytecode> bytecode, Token t) {
 		putGetAttr("__not__", bytecode, t);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-		cb.argc = 0;
+		cb.intValue = 0;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
 	}
 
@@ -647,11 +647,11 @@ public class PythonCompiler {
 					operation = ObjectTypeObject.__CONTAINS__;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ((ExprContext) ctx.getChild(i+1)).start));
-					cb.variable = ObjectTypeObject.IS;
+					cb.stringValue = ObjectTypeObject.IS;
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SWAP_STACK, ((ExprContext) ctx.getChild(i+1)).start));
 					compile((ExprContext) ctx.getChild(i+1), bytecode);
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start));
-					cb.argc = 2;
+					cb.intValue = 2;
 					bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(i+1)).start));
 					if (ctx.getChild(i).getText().equals("isnot"))
 						putNot(bytecode, ((ExprContext) ctx.getChild(i+1)).start);
@@ -661,7 +661,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ((ExprContext) ctx.getChild(i+1)).start);
 				compile((ExprContext) ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(i+1)).start));
 				if (ctx.getChild(i).getText().equals("notin"))
 					putNot(bytecode, ((ExprContext) ctx.getChild(i+1)).start);
@@ -678,7 +678,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ctx.xor_expr(i).start);
 				compile(ctx.xor_expr(i), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.xor_expr(i).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.xor_expr(i).stop));
 			}
 		} else 
@@ -693,7 +693,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ctx.and_expr(i).start);
 				compile(ctx.and_expr(i), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.and_expr(i).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.and_expr(i).stop));
 			}
 		} else 
@@ -709,7 +709,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ctx.shift_expr(i).start);
 				compile(ctx.shift_expr(i), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.shift_expr(i).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.shift_expr(i).stop));
 			}
 		} else 
@@ -724,7 +724,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ((Arith_exprContext) ctx.getChild(i+1)).start);
 				compile((Arith_exprContext) ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((Arith_exprContext) ctx.getChild(i+1)).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((Arith_exprContext) ctx.getChild(i+1)).stop));
 			}
 		} else 
@@ -739,7 +739,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ((TermContext)ctx.getChild(i+1)).start);
 				compile((TermContext)ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((TermContext)ctx.getChild(i+1)).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((TermContext)ctx.getChild(i+1)).stop));
 			}
 		} else 
@@ -760,7 +760,7 @@ public class PythonCompiler {
 				putGetAttr(operation, bytecode, ((FactorContext)ctx.getChild(i+1)).start);
 				compile((FactorContext)ctx.getChild(i+1), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((FactorContext)ctx.getChild(i+1)).stop));
-				cb.argc = 1;
+				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((FactorContext)ctx.getChild(i+1)).stop));
 			}
 		} else 
@@ -772,7 +772,7 @@ public class PythonCompiler {
 			if (ctx.getText().startsWith("~")){
 				putGetAttr(Arithmetics.__NOT__, bytecode, ctx.start);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
-				cb.argc = 0;
+				cb.intValue = 0;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
 				return;
 			}
@@ -788,7 +788,7 @@ public class PythonCompiler {
 			putGetAttr(operation, bytecode, ctx.factor().start);
 			compile(ctx.factor(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.factor().stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.factor().stop));
 		} else 
 			compile(ctx.power(), bytecode);
@@ -806,7 +806,7 @@ public class PythonCompiler {
 			putGetAttr(operation, bytecode, ctx.factor().start);
 			compile(ctx.factor(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.factor().stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.factor().stop));
 		}
 	}
@@ -815,11 +815,11 @@ public class PythonCompiler {
 		if (tc.getText().startsWith("(")){
 			if (tc.arglist() == null){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.argc = 0;
+				cb.intValue = 0;
 			} else {
 				int argc = compileArguments(tc.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.argc = argc;
+				cb.intValue = argc;
 			}
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, tc.stop));
 		} else if (tc.getText().startsWith("[")) {
@@ -834,37 +834,37 @@ public class PythonCompiler {
 		putGetAttr("__getitem__", bytecode, pt);
 		if (arglist == null){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, pt));
-			cb.argc = 0;
+			cb.intValue = 0;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, pt));
 		} else if (arglist instanceof ArglistContext) {
 			int argc = compileArguments((ArglistContext) arglist, bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ArglistContext) arglist).stop));
-			cb.argc = argc;
+			cb.intValue = argc;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ArglistContext) arglist).stop));
 		} else if (arglist instanceof ListmakerContext){
 			if (((ListmakerContext) arglist).list_for() != null)
 				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
 			compile(((ListmakerContext) arglist).test(0), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ListmakerContext) arglist).test(0).stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ListmakerContext) arglist).test(0).stop));
 		} else if (arglist instanceof SubscriptlistContext){
 			SubscriptlistContext sc = (SubscriptlistContext) arglist;
 			int tlc = sc.subscript().size();
 			if (tlc > 1){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, sc.start));
-				cb.variable = TupleTypeObject.TUPLE_CALL;
+				cb.stringValue = TupleTypeObject.TUPLE_CALL;
 			}
 			for (SubscriptContext s : sc.subscript()){
 				compile(s, bytecode);
 			}
 			if (tlc > 1){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, sc.stop));
-				cb.argc = tlc;
+				cb.intValue = tlc;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, sc.stop));
 			}
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, sc.stop));
-			cb.argc = 1;
+			cb.intValue = 1;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, sc.stop));
 		}
 	}
@@ -880,7 +880,7 @@ public class PythonCompiler {
 			compile(s.stest().test(), bytecode);
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, s.start));
-			cb.variable = SliceTypeObject.SLICE_CALL;
+			cb.stringValue = SliceTypeObject.SLICE_CALL;
 			if (s.test().size() == 0){
 				for (int i=0; i<3; i++){
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, s.start));
@@ -914,7 +914,7 @@ public class PythonCompiler {
 			}
 			
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, s.stop));
-			cb.argc = 3;
+			cb.intValue = 3;
 		}
 	}
 
@@ -948,7 +948,7 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
 			else
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD, ctx.start));
-			cb.variable = name;
+			cb.stringValue = name;
 		} else if (ctx.number() != null) {
 			NumberContext nb = ctx.number();
 			if (nb.integer() != null){
@@ -1009,11 +1009,11 @@ public class PythonCompiler {
 			// TODO
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-			cb.variable = TupleTypeObject.TUPLE_CALL;
+			cb.stringValue = TupleTypeObject.TUPLE_CALL;
 			for (TestContext t : ctx.test())
 				compile(t, bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-			cb.argc = ctx.test().size();
+			cb.intValue = ctx.test().size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.stop));
 		}
 	}
@@ -1024,11 +1024,11 @@ public class PythonCompiler {
 			// TODO
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, listmaker.start));
-			cb.variable = ListTypeObject.LIST_CALL;
+			cb.stringValue = ListTypeObject.LIST_CALL;
 			for (TestContext t : listmaker.test())
 				compile(t, bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, listmaker.stop));
-			cb.argc = listmaker.test().size();
+			cb.intValue = listmaker.test().size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, listmaker.stop));
 		}
 	}
@@ -1150,7 +1150,7 @@ public class PythonCompiler {
 					compile(s.stest().test(), bytecode);
 					bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, s.stest().stop));
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, s.stest().stop));
-					cb.argc = 2;
+					cb.intValue = 2;
 					bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, s.stest().stop));
 				} else {
 					// xyz[a:b] = ...
@@ -1194,7 +1194,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVEGLOBAL, nname.start));
 		else
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, nname.start));
-		cb.variable = name;
+		cb.stringValue = name;
 	}
 
 	private void compileImport2(Import_as_nameContext asname,
@@ -1233,8 +1233,8 @@ public class PythonCompiler {
 	private void addImport(String packageName, String as,
 			List<PythonBytecode> bytecode, Token t) {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.IMPORT, t));
-		cb.moduleName = packageName;
-		cb.variable = as;
+		cb.stringValue2 = packageName;
+		cb.stringValue = as;
 	}
 
 }
