@@ -1,16 +1,5 @@
-def anca():
-	def mara():
-		def jano():
-			type(10, 20)
-		return jano
-	return mara
+def anca(a, b=20):
+	return a + b
 	
-x = anca()()
-
-def xxx(x):
-	def yyy(x):
-		x()
-	yyy(x)
-	
-xxx(x)
-
+print anca(5)
+print anca(5, 10)

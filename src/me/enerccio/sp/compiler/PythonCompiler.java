@@ -134,12 +134,12 @@ public class PythonCompiler {
 		
 		if (funcdef.docstring() != null)
 			Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
-		String functionName = funcdef.nname(0).getText();
+		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
 		
 		List<String> arguments = new ArrayList<String>();
-		for (int i=1; i<funcdef.nname().size(); i++){
-			arguments.add(funcdef.nname(i).getText());
+		for (int i=0; i<funcdef.farg().size(); i++){
+			arguments.add(funcdef.farg(i).nname().getText());
 		}
 		
 		fnc.args = arguments;
@@ -149,7 +149,7 @@ public class PythonCompiler {
 		}
 		
 		compilingClass.push(null);
-		doCompileFunction(funcdef.suite(), fnc.bytecode);
+		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode);
 		compilingClass.pop();
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
@@ -158,9 +158,36 @@ public class PythonCompiler {
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = fnc;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
 		cb.variable = functionName;
 		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
+		cb.value = new MapObject();
+
+		for (int i=0; i<funcdef.farg().size(); i++){
+			FargContext ctx = funcdef.farg(i);
+			if (ctx.test() != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+				putGetAttr("__setitem__", bytecode, ctx.start);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.start));
+				cb.value = new StringObject(ctx.nname().getText());
+				compile(ctx.test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+				cb.argc = 2;
+			}
+		}
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
+		cb.variable = "function_defaults";
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
+		cb.value = locals;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
+		cb.variable = "locals";
 	}
 
 	private String doGetLongString(String text) {
@@ -363,6 +390,7 @@ public class PythonCompiler {
 	private void putGetAttr(String attr, List<PythonBytecode> bytecode, Token t) {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GETATTR, t));
 		cb.variable = attr;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
 	}
 	
 	private void putNot(List<PythonBytecode> bytecode, Token t) {
@@ -938,6 +966,7 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, t.start));
 				cb.value = new StringObject(t.NAME().toString());
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, t.start));
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t.start));
 			}
 		} else if (offset == 0) {
 			// First trailer - push atom on stack

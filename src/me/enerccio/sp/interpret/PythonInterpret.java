@@ -376,14 +376,13 @@ public class PythonInterpret extends PythonObject {
 				args[1] = new StringObject(pythonBytecode.variable);	// attribute
 			} 
 			returnee = execute(true, runnable, args);
-			stack.push(returnee);
 			break;
 		}
 		case SETATTR: {
 			PythonObject runnable = environment().get(new StringObject("setattr"), true, false);
 			PythonObject[] args = new PythonObject[3];
 			// If argument for SETATTR is not set, attribute name is pop()ed from stack   
-			if (pythonBytecode.value == null) {
+			if (pythonBytecode.variable == null) {
 				args[1] = stack.pop();	// attribute
 				args[0] = stack.pop();	// object
 				args[2] = stack.pop();	// value
@@ -393,7 +392,6 @@ public class PythonInterpret extends PythonObject {
 				args[2] = stack.pop();									// value
 			} 
 			returnee = execute(true, runnable, args);
-			stack.push(returnee);
 			break;
 		}
 		}
