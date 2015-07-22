@@ -263,18 +263,21 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
-		return doIsInstance(testee, clazz) ? BoolObject.TRUE : BoolObject.FALSE;
+		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE : BoolObject.FALSE;
 	}
 
-	private static boolean doIsInstance(PythonObject testee, PythonObject clazz) {
+	public static boolean doIsInstance(PythonObject testee, PythonObject clazz, boolean skipIgnore) {
 		if (clazz instanceof ClassObject){
 			return isClassInstance(testee, (ClassObject)clazz);
 		}
 		
 		if (clazz instanceof TupleObject){
-			for (PythonObject o : ((TupleObject) clazz).getObjects())
-				if (doIsInstance(testee, o))
+			for (PythonObject o : ((TupleObject) clazz).getObjects()){
+				if (skipIgnore && !(o instanceof ClassObject))
+					continue;
+				if (doIsInstance(testee, o, skipIgnore))
 					return true;
+			}
 			return false;
 		}
 		

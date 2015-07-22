@@ -11,3 +11,9 @@ x = Test()
 x.test_a()
 x.test_b()
 
+print type(x)
+print type(type(x))
+
+print type(1)
+int = "anca"
+print type(1)

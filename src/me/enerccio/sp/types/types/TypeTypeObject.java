@@ -50,23 +50,23 @@ public class TypeTypeObject extends TypeObject {
 
 	private PythonObject getTypeInformation(PythonObject py) {
 		if (py instanceof PythonBytecode)
-			return new BytecodeTypeObject();
+			return Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
 		if (py instanceof IntObject)
-			return new IntTypeObject();
+			return Utils.getGlobal(IntTypeObject.INT_CALL);
 		if (py instanceof ListObject)
-			return new ListTypeObject();
+			return Utils.getGlobal(ListTypeObject.LIST_CALL);
 		if (py instanceof ClassInstanceObject)
 			return ((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
 		if (py instanceof ClassObject)
-			return new TypeTypeObject();
+			return Utils.getGlobal(TYPE_CALL);
 		if (py instanceof SliceObject)
-			return new SliceTypeObject();
+			return Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
-			return new TupleTypeObject();
+			return Utils.getGlobal(TupleTypeObject.TUPLE_CALL);
 		if (py instanceof StringObject)
-			return new StringTypeObject();
+			return Utils.getGlobal(StringTypeObject.STRING_CALL);
 		if (py instanceof PointerObject)
-			return new JavaInstanceTypeObject();
+			return Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
 		return null;
 	}
 	

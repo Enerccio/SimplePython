@@ -384,4 +384,10 @@ public class Utils {
 			cl.add((ClassObject) o);
 		return cl;
 	}
+
+	public static PythonObject getGlobal(String globalValue) {
+		if (PythonInterpret.interpret.get().currentEnvironment.size() == 0)
+			return PythonRuntime.runtime.generateGlobals().doGet(globalValue);
+		return PythonInterpret.interpret.get().environment().get(new StringObject(globalValue), true, false);
+	}
 }
