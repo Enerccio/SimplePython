@@ -107,6 +107,7 @@ public class PythonCompiler {
 
 	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, Object object) {
 		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, try_stmt.start);
+		PythonBytecode elseJump = null;
 		List<PythonBytecode> exceptJumps = new ArrayList<>();
 		List<PythonBytecode> finallyJumps = new ArrayList<>();
 		List<PythonBytecode> endJumps = new ArrayList<>();
@@ -116,7 +117,10 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_EXCEPTION, try_stmt.start));
 		// TOP -> return value -> frame -> exception
 		if (try_stmt.try_except().size() > 0) {
-			// There is at least one except block defined  
+			// There is at least one except block defined
+			if (try_stmt.try_else() != null)
+				// ... and else on top of that
+				bytecode.add(elseJump = Bytecode.makeBytecode(Bytecode.JUMPIFNONE, try_stmt.start));
 			boolean alwaysHandled = false;
 			// Stack contains TOP -> return value -> frame -> exception when execution reaches here
 			for (Try_exceptContext ex : try_stmt.try_except()) {
@@ -136,6 +140,23 @@ public class PythonCompiler {
 				}
 			}
 			if (!alwaysHandled) {
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+				finallyJumps.add(cb);
+			}
+			
+			// Compile else block, if any
+			if (elseJump != null) {
+				elseJump.argc = bytecode.size();
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFNORETURN, try_stmt.start));
+				cb.argc = bytecode.size() + 2;
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
+				cb.value = NoneObject.NONE;
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
+				finallyJumps.add(cb);
+				compileSuite(try_stmt.try_else().suite(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
+				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
 				finallyJumps.add(cb);
 			}

@@ -267,6 +267,11 @@ public class PythonInterpret extends PythonObject {
 			if (stack.pop().truthValue())
 				o.pc = pythonBytecode.argc;
 			break;
+		case JUMPIFNONE:
+			// Peeks, leaves value on stack
+			if (stack.peek() == NoneObject.NONE)
+				o.pc = pythonBytecode.argc;
+			break;
 		case JUMPIFNORETURN:
 			FrameObject frame = (FrameObject) stack.peek();
 			if (!frame.returnHappened)

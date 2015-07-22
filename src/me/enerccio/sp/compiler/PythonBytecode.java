@@ -169,6 +169,17 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), argc);
 		}
 	}
+	
+	public static class JumpIfNone extends PythonBytecode {
+		{
+			bytecode = Bytecode.JUMPIFNONE;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), argc);
+		}
+	}
 
 	public static class IsInstance extends PythonBytecode {
 		{
