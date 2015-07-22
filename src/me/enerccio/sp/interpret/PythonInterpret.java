@@ -68,6 +68,8 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	public PythonObject executeCall(String function, PythonObject... data) {
+		if (currentEnvironment.size() == 0)
+			execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
 		return execute(false, environment().get(new StringObject(function), false, false), data);
 	}
 
