@@ -18,4 +18,8 @@ public class PythonProxy implements Serializable {
 	public boolean equals(Object p){
 		return ((PythonProxy)p).o.equals(o);
 	}
+	@Override
+	public String toString(){
+		return o.toString();
+	}
 }

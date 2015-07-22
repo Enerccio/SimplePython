@@ -125,7 +125,7 @@ public class ClassObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
-		return "class " + get(__NAME__, this).toString();
+		return "<class " + get(__NAME__, this).toString() + ">";
 	}
 
 }

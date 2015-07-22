@@ -1,5 +1,8 @@
 package me.enerccio.sp.types.sequences;
 
+import java.util.Arrays;
+import java.util.List;
+
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
@@ -42,12 +45,11 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	@Override
 	protected String doToString() {
-		StringBuilder bd = new StringBuilder();
-		bd.append("(");
-		for (int i=0; i<array.length; i++)
-			bd.append(array[i].toString() + " ");
-		bd.append(")");
-		return bd.toString();
+		if (array.length == 0)
+			return "()";
+		List<PythonObject> arr = Arrays.asList(array);
+		String text = arr.toString();
+		return "(" + text.substring(1, text.length()-1) + ")";
 	}
 
 	@Override

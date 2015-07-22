@@ -87,6 +87,8 @@ public class JavaMethodObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
-		return "<java method " + boundHandle.toString() + " of object " + caller.toString() + ">";
+		if (caller == null)
+			return "<java function " + boundHandle.getName() + ">";
+		return "<java method " + boundHandle.toString() + " of object " + caller.getClass().getName()  + ">";
 	}
 }

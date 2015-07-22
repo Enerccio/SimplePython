@@ -24,12 +24,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	@Override
 	protected String doToString() {
-		StringBuilder bd = new StringBuilder();
-		bd.append("(");
-		for (PythonObject o : objects)
-			bd.append(o.toString() + " ");
-		bd.append(")");
-		return bd.toString();
+		return objects.toString();
 	}
 
 	@Override

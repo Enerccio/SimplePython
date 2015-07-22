@@ -113,15 +113,7 @@ public class MapObject extends ContainerObject {
 
 	@Override
 	protected String doToString() {
-		StringBuilder bd = new StringBuilder();
-		bd.append("{");
-		synchronized (backingMap){
-			for (PythonProxy key : backingMap.keySet()){
-				bd.append(key.o.toString() + ":" + backingMap.get(key).toString() + " ");
-			}
-		}
-		bd.append("}");
-		return bd.toString();
+		return backingMap.toString();
 	}
 
 	public MapObject cloneMap() {
