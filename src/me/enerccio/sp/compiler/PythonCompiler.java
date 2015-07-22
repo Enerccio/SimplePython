@@ -77,7 +77,6 @@ public class PythonCompiler {
 			compileSimpleStatement(sctx.simple_stmt(), bytecode);
 		else
 			compileCompoundStatement(sctx.compound_stmt(), bytecode);
-		throw Utils.throwException("SyntaxError", "OK");
 	}
 
 	private void compileCompoundStatement(Compound_stmtContext cstmt,
