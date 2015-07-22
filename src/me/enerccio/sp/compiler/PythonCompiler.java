@@ -73,6 +73,11 @@ public class PythonCompiler {
 		MapObject locals = doCompileFunction(sctx, fnc.bytecode, sctx.start);
 		compilingClass.pop();
 		
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, sctx.stop));
+		cb.value = NoneObject.NONE;
+		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, sctx.stop));
+		cb.intValue = 1;
+		
 		globals.add(locals);
 		Collections.reverse(globals);
 		

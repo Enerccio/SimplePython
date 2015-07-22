@@ -1,3 +1,9 @@
+def anca():
+    pass
+
 x = function("print x + y", (globals,), ["x", "y"], None, None)
 
 x(5, 15) 
+print x
+x.__name__ = "anca"
+print x
