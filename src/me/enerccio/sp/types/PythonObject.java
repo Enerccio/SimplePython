@@ -110,6 +110,8 @@ public abstract class PythonObject implements Serializable {
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)) + "'");
 		field.object = value;
+		if (value == null)
+			fields.remove(key);
 		return NoneObject.NONE;
 	}
 

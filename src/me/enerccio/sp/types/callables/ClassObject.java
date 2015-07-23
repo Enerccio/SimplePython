@@ -9,6 +9,7 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -25,6 +26,7 @@ public class ClassObject extends CallableObject {
 	public static final String __NEW__ = "__new__";
 	public static final String __CLASS__ = "__class__";
 	public static final String __GETATTR__ = "__getattr__";
+	public static final String __SETATTR__ = "__setattr__";
 	
 	public ClassObject(){
 		
@@ -39,6 +41,8 @@ public class ClassObject extends CallableObject {
 					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
 					new Class<?>[]{StringObject.class}), false));
+			Utils.putPublic(this, __SETATTR__, new JavaMethodObject(this, this.getClass().getMethod("setAttr", 
+					new Class<?>[]{StringObject.class, PythonObject.class}), false));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
 		}
@@ -51,6 +55,20 @@ public class ClassObject extends CallableObject {
 			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", this), o.value));
 		}
 	}
+	
+	public PythonObject getAttr(StringObject o, PythonObject v){
+		try {
+			if (v == null)
+				((MapObject)fields.get(__DICT__).object).backingMap.remove(o);
+			else {
+				((MapObject)fields.get(__DICT__).object).put(o.value, v);
+			}
+			return NoneObject.NONE;
+		} catch (NullPointerException e){
+			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", this), o.value));
+		}
+	}
+
 
 	@Override
 	public PythonObject call(TupleObject args) {

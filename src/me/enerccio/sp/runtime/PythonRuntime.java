@@ -29,6 +29,7 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
@@ -42,10 +43,13 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
+import me.enerccio.sp.types.types.BoolTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
+import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
+import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
@@ -61,17 +65,6 @@ import me.enerccio.sp.utils.Utils;
 public class PythonRuntime {
 	
 	public static final PythonRuntime runtime = new PythonRuntime();
-	public static final String IS = "is";
-	public static final String GO = "go";
-	public static final String MRO = "mro";
-	public static final String GETATTR = "getattr";
-	public static final String SETATTR = "setattr";
-	public static final String HASATTR = "hasattr";
-	public static final String ISINSTANCE = "isinstance";
-	public static final String PRINT_JAVA = "print_java";
-	public static final String PRINT_JAVA_EOL = "print_java_eol";
-	public static final String STATICMETHOD = "staticmethod";
-	public static final String CLASSMETHOD = "classmethod";
 	
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
@@ -171,6 +164,20 @@ public class PythonRuntime {
 	}
 
 	private static volatile MapObject globals = null;
+	public static final String IS = "is";
+	public static final String GO = "go";
+	public static final String MRO = "mro";
+	public static final String GETATTR = "getattr";
+	public static final String SETATTR = "setattr";
+	public static final String HASATTR = "hasattr";
+	public static final String DELATTR = "delattr";
+	public static final String ISINSTANCE = "isinstance";
+	public static final String PRINT_JAVA = "print_java";
+	public static final String PRINT_JAVA_EOL = "print_java_eol";
+	public static final String STATICMETHOD = "staticmethod";
+	public static final String CLASSMETHOD = "classmethod";
+	public static final String CHR = "chr";
+	public static final String ORD = "ord";
 	public MapObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
@@ -190,6 +197,7 @@ public class PythonRuntime {
 					globals.put("globals", globals);
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(HASATTR, Utils.staticMethodCall(PythonRuntime.class, HASATTR, PythonObject.class, String.class));
+					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
 					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
@@ -198,7 +206,9 @@ public class PythonRuntime {
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(GO, Utils.staticMethodCall(PythonRuntime.class, GO, String.class));
-					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, "mro", ClassObject.class));
+					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
+					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
+					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -222,6 +232,12 @@ public class PythonRuntime {
 					globals.put(DictTypeObject.DICT_CALL, o = new DictTypeObject());
 					o.newObject();
 					globals.put(MethodTypeObject.METHOD_CALL, o = new MethodTypeObject());
+					o.newObject();
+					globals.put(BoolTypeObject.BOOL_CALL, o = new BoolTypeObject());
+					o.newObject();
+					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, o = new JavaCallableTypeObject());
+					o.newObject();
+					globals.put(ComplexTypeObject.COMPLEX_CALL, o = new ComplexTypeObject());
 					o.newObject();
 					
 					addExceptions(globals);
@@ -253,6 +269,20 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject chr(IntObject i){
+		int v = i.intValue();
+		if (v < 0 || v > 255)
+			throw Utils.throwException("ValueError", "chr(): value outside range");
+		return new StringObject(Character.toString((char)v));
+	}
+	
+	public static PythonObject ord(StringObject i){
+		String s = i.value;
+		if (s.length() != 1)
+			throw Utils.throwException("ValueError", "ord(): string must be single character length");
+		return IntObject.valueOf(s.charAt(0));
 	}
 	
 	public static PythonObject classmethod(UserFunctionObject o){
@@ -378,6 +408,10 @@ public class PythonRuntime {
 	public static PythonObject hasattr(PythonObject o, String attribute) {
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
+	}
+	
+	public static PythonObject delattr(PythonObject o, String attribute) {
+		return setattr(o, attribute, null);
 	}
 	
 	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){

@@ -10,6 +10,7 @@ import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
@@ -57,7 +58,27 @@ public class ModuleObject extends PythonObject {
 		if (key.equals(__NAME__) || key.equals(__DICT__))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
-		return super.set(key, localContext, value);
+		if (fields.containsKey(key))
+			return super.set(key, localContext, value);
+		else {
+			if (!globals.contains(key))
+				throw Utils.throwException("AttributeError", "'" + 
+						Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+			if (value == null)
+				globals.backingMap.remove(key);
+			else
+				globals.put(key, value);
+		}
+		return NoneObject.NONE;
+	}
+	
+
+	@Override
+	public synchronized PythonObject get(String key, PythonObject localContext) {
+		PythonObject o = super.get(key, localContext);
+		if (o == null)
+			o = globals.doGet(key);
+		return o;
 	}
 
 	@Override

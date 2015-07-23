@@ -1,3 +1,32 @@
+def abs(x):
+    if x > 0:
+        return True
+    return False
+
+def all(iterable):
+    pass
+
+def any(iterable):
+    pass
+
+def callable(object):
+    t = type(object)
+    if t == function(): return True
+    if t == method(): return True
+    if t == type(): return True
+    if t == javamethod(): return True
+    return hasattr(object, "__call__")
+
+def cmp(x, y):
+    if x < y:
+        return -1
+    elif x == y:
+        return 0
+    else:
+        return 1
+    
+
+
 def __iter():
     class iter(object):
         def __init__(self, o):

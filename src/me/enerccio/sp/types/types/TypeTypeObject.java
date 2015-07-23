@@ -2,10 +2,15 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -76,7 +81,14 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
 		if (py instanceof UserMethodObject)
 			return Utils.getGlobal(MethodTypeObject.METHOD_CALL);
-		return null;
+		if (py instanceof BoolObject)
+			return Utils.getGlobal(BoolTypeObject.BOOL_CALL);
+		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject)
+			return Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
+		if (py instanceof ComplexObject)
+			return Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
+
+		return NoneObject.NONE;
 	}
 	
 }

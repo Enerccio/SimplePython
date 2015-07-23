@@ -43,11 +43,3 @@ def test():
     x.work()
     x.work2()
     
-print mro(Y)
-y = 1, lambda a, b=10, c=20:
-        d = a + b
-        d, c
-    , 2
-    
-print y
-print y[1](5)

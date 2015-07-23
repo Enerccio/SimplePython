@@ -2,7 +2,9 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
 public abstract class TypeObject extends ClassObject {
@@ -23,6 +25,11 @@ public abstract class TypeObject extends ClassObject {
 	@Override
 	public void create(String key, AccessRestrictions restrictions) {
 		
+	}
+	
+	@Override
+	public PythonObject call(TupleObject o){
+		return NoneObject.NONE;
 	}
 	
 	@Override
