@@ -6,14 +6,13 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class ObjectTypeObject extends ClassObject {
+public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
 	public static final String OBJECT_CALL = "object";
 	public static final String __CONTAINS__ = "__contains__";
@@ -44,10 +43,10 @@ public class ObjectTypeObject extends ClassObject {
 		
 		md.put(ClassInstanceObject.__INIT__, usf);
 	}
-	
+
 	@Override
-	protected String doToString() {
-		return "<type object>";
+	public String getTypeIdentificator() {
+		return "object";
 	}
 
 }

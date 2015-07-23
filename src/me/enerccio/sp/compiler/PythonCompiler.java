@@ -52,7 +52,7 @@ public class PythonCompiler {
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
 	
 	public UserFunctionObject doCompile(String_inputContext sctx, List<MapObject> globals, 
-			List<String> args, String vargarg, MapObject defaults) {
+			List<String> args, String vargarg, MapObject defaults, MapObject locals) {
 		moduleName.set("generated-functions");
 		stack.push();
 		
@@ -73,7 +73,7 @@ public class PythonCompiler {
 		}
 		
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(sctx, fnc.bytecode, sctx.start);
+		doCompileFunction(sctx, fnc.bytecode, sctx.start, locals);
 		compilingClass.pop();
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, sctx.stop));
@@ -92,7 +92,11 @@ public class PythonCompiler {
 	}
 	
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
-		moduleName.set(m.fields.get(ModuleObject.__NAME__).object.toString());
+		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m);
+	}
+	
+	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, String mn, PythonObject locals) {
+		moduleName.set(mn);
 		
 		stack.push();
 		compilingClass.push(null);
@@ -101,7 +105,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, fcx.start));
 		// context
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, fcx.start));
-		cb.value = m;
+		cb.value = locals;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT, fcx.start));
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, fcx.start)); 
@@ -362,7 +366,7 @@ public class PythonCompiler {
 		fnc.args = new ArrayList<String>();
 		
 		compilingClass.push(className);
-		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode, classdef.suite().start);
+		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode, classdef.suite().start, null);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "function_defaults", new MapObject());
@@ -411,7 +415,7 @@ public class PythonCompiler {
 		}
 		
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode, funcdef.suite().start);
+		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode, funcdef.suite().start, null);
 		compilingClass.pop();
 		
 		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
@@ -498,13 +502,12 @@ public class PythonCompiler {
 	}
 
 	private MapObject doCompileFunction(ParseTree suite,
-			List<PythonBytecode> bytecode, Token t) {
-		
-		
-		
+			List<PythonBytecode> bytecode, Token t, MapObject dict) {
+
 		stack.push();
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, t));
-		MapObject dict = new MapObject();
+		if (dict == null)
+			dict = new MapObject();
 		environments.add(dict);
 		for (MapObject d : Utils.reverse(environments)){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, t)); 

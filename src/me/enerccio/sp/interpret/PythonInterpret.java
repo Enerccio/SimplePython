@@ -133,6 +133,14 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	public ExecutionResult executeOnce(){
+		ExecutionResult r = doExecuteOnce();
+		if (r == ExecutionResult.EOF)
+			if (currentFrame.size() == 0)
+				return ExecutionResult.FINISHED;
+		return r;
+	}
+
+	private ExecutionResult doExecuteOnce() {
 		try {
 			PythonRuntime.runtime.waitIfSaving(this);
 		} catch (InterruptedException e) {

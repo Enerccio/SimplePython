@@ -3,9 +3,8 @@ package me.enerccio.sp.interpret;
 import java.io.File;
 import java.io.FileInputStream;
 
-import org.apache.commons.io.IOUtils;
-
 import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.utils.Utils;
 
 public class PythonPathResolver implements PythonDataSourceResolver {
 
@@ -47,7 +46,7 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 
 	private ModuleProvider doResolve(File path, String name, String mname) throws Exception {
 		return new ModuleProvider(mname, path.getName(), 
-				IOUtils.toByteArray(new FileInputStream(path)), 
+				Utils.toByteArray(new FileInputStream(path)), 
 				path.getParentFile().equals(rootPath) ? "" : path.getParentFile().getName());
 	}
 

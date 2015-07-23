@@ -64,6 +64,8 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
 			return Utils.getGlobal(TupleTypeObject.TUPLE_CALL);
+		if (py instanceof MapObject)
+			return Utils.getGlobal(DictTypeObject.DICT_CALL);
 		if (py instanceof StringObject)
 			return Utils.getGlobal(StringTypeObject.STRING_CALL);
 		if (py instanceof PointerObject)

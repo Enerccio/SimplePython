@@ -1,9 +1,20 @@
-def anca():
-    pass
-
-x = function("print x + y", (globals,), ["x", "y"], None, None)
+locals = dict()
+x = function("print x + y", locals, (globals,), ["x", "y"], None, None)
 
 x(5, 15) 
 print x
 x.__name__ = "anca"
 print x
+print locals
+
+y = xrange(10);
+z = iter(y)
+print z
+print z.next()
+print z.next()
+
+y = xrange(10, 20, 5);
+z = iter(y)
+print z
+print z.next()
+print z.next()

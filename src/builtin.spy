@@ -1,0 +1,36 @@
+def iter(obj):
+    return obj.__iter__()
+
+class xrange(object):
+    class iter(object):
+        def __init__(self, range):
+            self.__range = range
+            self.__start = range.start
+            
+        def __iter__(self):
+            return self
+        
+        def next(self):
+            if self.__start >= self.__range.stop:
+                raise StopIteration()
+            value = self.__start;
+            self.__start += self.__range.step
+            return value
+    
+    def __init__(self, arg1, arg2=None, arg3=None):
+        if arg2 is None:
+            self.stop = int(arg1)
+            self.start = 0
+            self.step = 1
+        else:
+            self.start = int(arg1)
+            self.stop = int(arg2)
+            self.step = int(arg3)
+    
+    def __iter__(self):
+        return iter(self)
+    
+def range(arg1, arg2=None, arg3=None):
+    r = xrange(arg1, arg2, arg3)
+    # TODO
+    return r

@@ -1,5 +1,9 @@
 package me.enerccio.sp.utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,6 +215,19 @@ public class Utils {
 		parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
 		return parser;
 	}
+	
+	public static pythonParser parse(InputStream provider, String srcFile) throws Exception {
+		ANTLRInputStream is = new ANTLRInputStream(provider);
+		pythonLexer lexer = new pythonLexer(is);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(new ThrowingErrorListener(srcFile));
+		CommonTokenStream stream = new CommonTokenStream(lexer);
+		pythonParser parser = new pythonParser(stream);
+		
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ThrowingErrorListener(srcFile));
+		return parser;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static Collection<? extends PythonBytecode> asList(
@@ -389,5 +406,25 @@ public class Utils {
 		if (PythonInterpret.interpret.get().currentEnvironment.size() == 0)
 			return PythonRuntime.runtime.generateGlobals().doGet(globalValue);
 		return PythonInterpret.interpret.get().environment().get(new StringObject(globalValue), true, false);
+	}
+
+	public static byte[] toByteArray(InputStream input) throws IOException {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+	    copy(input, output);
+	    return output.toByteArray();
+	}
+
+	public static long copy(InputStream input, OutputStream output) throws IOException {
+		return copy(input, output, new byte[4096]);
+	}
+
+	public static long copy(InputStream input, OutputStream output, byte[] buffer) throws IOException {
+		long count = 0L;
+	    int n = 0;
+	    while (-1 != (n = input.read(buffer))) {
+	      output.write(buffer, 0, n);
+	      count += n;
+	    }
+	    return count;
 	}
 }

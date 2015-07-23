@@ -27,13 +27,14 @@ public class FunctionTypeObject extends TypeObject {
 		return "function";
 	}
 
-	// function(string, tuple_of_maps, list_of_anames, vararg_name, dict)
+	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name, dict)
 	@Override
 	public PythonObject call(TupleObject args) {
-		if (args.len() != 5)
-			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 5, got " + args.len());
+		if (args.len() != 6)
+			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 6, got " + args.len());
 		
 		String src = null;
+		MapObject dict = null;
 		List<MapObject> maps = new ArrayList<MapObject>();
 		List<String> aas = new ArrayList<String>();
 		String vararg = null;
@@ -43,19 +44,21 @@ public class FunctionTypeObject extends TypeObject {
 			PythonObject arg = args.getObjects()[0];
 			src = ((StringObject)arg).value;
 			
-			TupleObject to = (TupleObject)args.getObjects()[1];
+			dict = (MapObject)args.getObjects()[1];
+			
+			TupleObject to = (TupleObject)args.getObjects()[2];
 			for (PythonObject o : to.getObjects())
 				maps.add(((MapObject)o));
 			
-			ListObject o = (ListObject)args.getObjects()[2];
+			ListObject o = (ListObject)args.getObjects()[3];
 			for (PythonObject oo : o.objects)
 				aas.add(((StringObject)oo).value);
 			
-			arg = args.getObjects()[3];
+			arg = args.getObjects()[4];
 			if (arg != NoneObject.NONE)
 				vararg = ((StringObject)arg).value;
 			
-			arg = args.getObjects()[4];
+			arg = args.getObjects()[5];
 			if (arg != NoneObject.NONE)
 				defaults = (MapObject)arg;
 			else
@@ -77,7 +80,7 @@ public class FunctionTypeObject extends TypeObject {
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ThrowingErrorListener("<generated>"));
 		
-		return c.doCompile(parser.string_input(), maps, aas, vararg, defaults);
+		return c.doCompile(parser.string_input(), maps, aas, vararg, defaults, dict);
 	}
 
 }

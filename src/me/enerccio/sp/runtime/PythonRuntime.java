@@ -13,12 +13,17 @@ import java.util.TreeMap;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
+import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.EnvironmentObject;
+import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
+import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
@@ -38,6 +43,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
+import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
@@ -217,10 +223,34 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
+					globals.put(DictTypeObject.DICT_CALL, o = new DictTypeObject());
+					o.newObject();
 					
 					addExceptions(globals);
 					
+					pythonParser p;
+					try {
+						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.spy")), null));
+					} catch (Exception e1) {
+						throw new PythonException("Failed to initialize python!");
+					}
+					
+					PythonCompiler c = new PythonCompiler();
+					List<PythonBytecode> builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
+					
 					PythonInterpret.interpret.get().currentEnvironment.pop();
+					
+					PythonInterpret.interpret.get().executeBytecode(builtin);
+					while (true){
+						ExecutionResult r = PythonInterpret.interpret.get().executeOnce();
+						if (r == ExecutionResult.OK)
+							continue;
+						if (r == ExecutionResult.FINISHED)
+							break;
+						if (r == ExecutionResult.EOF)
+							continue;
+						throw new PythonException("Failed to initialize python!");
+					}
 				}
 			}
 		
@@ -330,7 +360,6 @@ public class PythonRuntime {
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
 			if (accessor.get().size() != 0 && accessor.get().peek() == o){
-				accessor.get().pop();
 				throw new NoGetattrException();
 			}
 			accessor.get().push(o);
