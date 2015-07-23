@@ -7,7 +7,6 @@ import java.util.Map;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.BoolObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
@@ -17,6 +16,7 @@ public abstract class PythonObject implements Serializable {
 	
 	public static final String __EQ__ = "__eq__";
 	public static final String __NEQ__ = "__neq__";
+	public static final String __NOT__ = "__not__";
 	
 	public PythonObject(){
 		
@@ -26,33 +26,53 @@ public abstract class PythonObject implements Serializable {
 		registerObject();
 	}
 	
+	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	
+	static {
+		try {
+			sfields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
+					new JavaMethodObject(null, PythonObject.class.getMethod("eq", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			sfields.put(Arithmetics.__NE__, new AugumentedPythonObject(
+					new JavaMethodObject(null, PythonObject.class.getMethod("ne", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			sfields.put(__NOT__, new AugumentedPythonObject(
+					new JavaMethodObject(null, PythonObject.class.getMethod("not", 
+							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+		} catch (Exception e){
+			e.printStackTrace();
+		} 
+	}
+	
 	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
 		
 		try {
-			fields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
-					new JavaMethodObject(this, this.getClass().getMethod("eq", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			fields.put(Arithmetics.__NE__, new AugumentedPythonObject(
-					new JavaMethodObject(this, this.getClass().getMethod("ne", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			fields.put("__not__", new AugumentedPythonObject(
-					new JavaMethodObject(this, this.getClass().getMethod("not", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-		} catch (Exception e){
+			String m;
 			
+			m = Arithmetics.__EQ__;
+			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+					AccessRestrictions.PUBLIC));
+			m = Arithmetics.__NE__;
+			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+					AccessRestrictions.PUBLIC));
+			m = __NOT__;
+			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+					AccessRestrictions.PUBLIC));
+		} catch (Exception e){
+			e.printStackTrace();
 		} 
 	}
 	
-	protected PythonObject eq(PythonObject other){
+	public PythonObject eq(PythonObject other){
 		return BoolObject.fromBoolean(other == this);
 	}
 	
-	protected PythonObject neq(PythonObject other){
+	public PythonObject ne(PythonObject other){
 		return BoolObject.fromBoolean(other != this);
 	}
 	
-	protected PythonObject not(PythonObject other){
+	public PythonObject not(PythonObject other){
 		return BoolObject.fromBoolean(!truthValue());
 	}
 
@@ -60,8 +80,8 @@ public abstract class PythonObject implements Serializable {
 		return Utils.run("type", this);
 	}
 	
-	public IntObject getId(){
-		return new IntObject(hashCode());
+	public int getId(){
+		return hashCode();
 	}
 	
 	public abstract boolean truthValue();
@@ -113,4 +133,5 @@ public abstract class PythonObject implements Serializable {
 	protected abstract String doToString();
 	
 	public volatile boolean mark = false;
+	public long linkName;
 }

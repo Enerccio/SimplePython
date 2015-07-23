@@ -19,6 +19,7 @@ public class ModuleObject extends PythonObject {
 	public static final String __NAME__ = "__name__";
 	public static final String __DICT__ = "__dict__";
 	public static final String __THISMODULE__ = "__thismodule__";
+	private MapObject globals;
 
 	public ModuleObject(MapObject globals, ModuleProvider provider) {
 		this.provider = provider;
@@ -38,6 +39,7 @@ public class ModuleObject extends PythonObject {
 		}
 		globals.backingMap.put(new StringObject(__THISMODULE__), this);
 		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
+		this.globals = globals;
 	}
 	
 	public final ModuleProvider provider;
@@ -78,11 +80,16 @@ public class ModuleObject extends PythonObject {
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
 					if (PythonInterpret.interpret.get().exception() != null){
+						PythonObject e = PythonInterpret.interpret.get().exception();
 						PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
-						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+						throw new PythonExecutionException(e);
 					}
 					return;
 				}
 		}
+	}
+
+	public PythonObject getField(String string) {
+		return globals.doGet(string);
 	}
 }

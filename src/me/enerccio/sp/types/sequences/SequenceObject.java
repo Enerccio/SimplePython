@@ -1,6 +1,11 @@
 package me.enerccio.sp.types.sequences;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -17,25 +22,38 @@ public abstract class SequenceObject extends ContainerObject {
 	public boolean truthValue() {
 		return true;
 	}
+	
+	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	
+	static {
+		try {
+			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, SequenceObject.class.getMethod("__iter__", 
+					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, SequenceObject.class.getMethod("get", 
+					new Class<?>[]{PythonObject.class}), false));
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public void newObject() {
 		super.newObject();
 		
-		try {
-			Utils.putPublic(this, __ITER__, new JavaMethodObject(this, this.getClass().getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(this, __GETITEM__, new JavaMethodObject(this, this.getClass().getMethod("get", 
-					new Class<?>[]{PythonObject.class}), false));
-		} catch (NoSuchMethodException e){
-			// will not happen
-		}
+		String m;
+		
+		m = __ITER__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+		m = __GETITEM__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
 	}
 	
 	public abstract PythonObject get(PythonObject key);
 	
 	public PythonObject __iter__(TupleObject args){
-		if (args.size().intValue() > 0)
+		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return createIterator();
 	}

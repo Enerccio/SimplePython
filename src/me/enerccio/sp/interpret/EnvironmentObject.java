@@ -68,5 +68,9 @@ public class EnvironmentObject extends PythonObject {
 	protected String doToString() {
 		return "<environment 0x" + Integer.toHexString(hashCode()) + ">"; 
 	}
+
+	public MapObject getLocals() {
+		return environments.get(0);
+	}
 	
 }

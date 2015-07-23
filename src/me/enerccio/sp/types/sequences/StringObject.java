@@ -19,12 +19,12 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	@Override
 	public IntObject size() {
-		return new IntObject(value.length());
+		return IntObject.valueOf(value.length());
 	}
 	
 	@Override
-	public IntObject getId(){
-		return new IntObject(value.hashCode());
+	public int getId(){
+		return value.hashCode();
 	}
 
 	public String getString() {

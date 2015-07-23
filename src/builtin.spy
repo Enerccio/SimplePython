@@ -17,7 +17,7 @@ class xrange(object):
             self.__start += self.__range.step
             return value
     
-    def __init__(self, arg1, arg2=None, arg3=None):
+    def __init__(self, arg1, arg2=None, arg3=1):
         if arg2 is None:
             self.stop = int(arg1)
             self.start = 0
@@ -30,7 +30,7 @@ class xrange(object):
     def __iter__(self):
         return iter(self)
     
-def range(arg1, arg2=None, arg3=None):
+def range(arg1, arg2=None, arg3=1):
     r = xrange(arg1, arg2, arg3)
     # TODO
     return r

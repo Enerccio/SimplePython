@@ -11,12 +11,30 @@ public class IntObject extends NumberObject {
 		newObject();
 	}
 	
-	public IntObject(int v){
+	private static IntObject[] baseMap = new IntObject[255];
+	static {
+		for (int i=0; i<255; i++)
+			baseMap[i] = new IntObject(i-127);
+	}
+	
+	public static IntObject valueOf(int v){
+		if (v+127 < 255 &&  v+127 > 0)
+			return baseMap[v+127];
+		return new IntObject(v);
+	}
+	
+	public static IntObject valueOf(long v){
+		if (v+127 < 255 &&  v+127 > 0)
+			return baseMap[(int) (v+127)];
+		return new IntObject(v);
+	}
+	
+	private IntObject(int v){
 		value = BigInteger.valueOf(v);
 		newObject();
 	}
 	
-	public IntObject(long v){
+	private IntObject(long v){
 		value = BigInteger.valueOf(v);
 		newObject();
 	}
@@ -44,8 +62,8 @@ public class IntObject extends NumberObject {
 	}
 	
 	@Override
-	public IntObject getId(){
-		return new IntObject(value.hashCode());
+	public int getId(){
+		return value.hashCode();
 	}
 
 	public int intValue() {

@@ -18,7 +18,7 @@ public class StringTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args) {
-		if (args.size().intValue() != 1)
+		if (args.len() != 1)
 			throw Utils.throwException("TypeError", "str(): incorrect number of parameters");
 		
 		PythonObject o = args.getObjects()[0];

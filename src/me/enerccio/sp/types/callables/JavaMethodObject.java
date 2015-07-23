@@ -20,6 +20,10 @@ public class JavaMethodObject extends CallableObject {
 		this.noTypeConversion = noTypeConversion;
 	}
 	
+	private JavaMethodObject(){
+		
+	}
+	
 	protected Method boundHandle;
 	private Object caller;
 	private boolean noTypeConversion;
@@ -28,7 +32,7 @@ public class JavaMethodObject extends CallableObject {
 	public PythonObject call(TupleObject args) {
 		try {
 			if (noTypeConversion){
-				return Utils.cast(boundHandle.invoke(caller, args), boundHandle.getReturnType());
+				return Utils.cast(invoke(args), boundHandle.getReturnType());
 			}
 		} catch (PythonExecutionException e){
 			throw e;
@@ -36,11 +40,11 @@ public class JavaMethodObject extends CallableObject {
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
 			throw Utils.throwException("TypeError", toString() + ": failed java call");
-		} catch (Exception e){
+		} catch (Throwable e){
 			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		}
 		
-		Object[] jargs = new Object[args.size().intValue()];
+		Object[] jargs = new Object[args.len()];
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
@@ -58,16 +62,20 @@ public class JavaMethodObject extends CallableObject {
 		}
 		
 		try {
-			return Utils.cast(boundHandle.invoke(caller, jargs), boundHandle.getReturnType());
+			return Utils.cast(invoke(jargs), boundHandle.getReturnType());
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
 			throw Utils.throwException("TypeError", toString() + ": failed java call");
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		}
+	}
+
+	private Object invoke(Object... args) throws Throwable {
+		return boundHandle.invoke(caller, args);
 	}
 
 	@Override
@@ -93,7 +101,10 @@ public class JavaMethodObject extends CallableObject {
 	}
 
 	public JavaMethodObject cloneWithThis(Object self) {
-		JavaMethodObject m = new JavaMethodObject(self, boundHandle, noTypeConversion);
+		JavaMethodObject m = new JavaMethodObject();
+		m.boundHandle = boundHandle;
+		m.caller = self;
+		m.noTypeConversion = noTypeConversion;
 		return m;
 	}
 }

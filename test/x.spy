@@ -1,20 +1,20 @@
-locals = dict()
-x = function("print x + y", locals, (globals,), ["x", "y"], None, None)
+def dosomething(x, y):
+    return x + y
 
-x(5, 15) 
-print x
-x.__name__ = "anca"
-print x
-print locals
-
-y = xrange(10);
-z = iter(y)
-print z
-print z.next()
-print z.next()
-
-y = xrange(10, 20, 5);
-z = iter(y)
-print z
-print z.next()
-print z.next()
+def test():
+    x = xrange(256)
+    y = xrange(256)
+    
+    xi = iter(x)
+    try:
+      while True:
+        i = xi.next()
+        yi = iter(y)
+        try:
+          while True:
+            j = yi.next()
+            dosomething(i, j)
+        except StopIteration as e:
+            pass
+    except StopIteration as e:
+        pass

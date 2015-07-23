@@ -389,7 +389,7 @@ public class PythonCompiler {
 			compile(dc, bytecode);
 		}
 		
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, classdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, classdef.stop));
 		cb.stringValue = className;
 	}
 
@@ -473,7 +473,7 @@ public class PythonCompiler {
 			compile(dc, bytecode);
 		}
 		
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, funcdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, funcdef.stop));
 		cb.stringValue = functionName;
 	}
 
@@ -915,7 +915,7 @@ public class PythonCompiler {
 				operation = Arithmetics.__SUB__;
 			
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.factor().start));
-			cb.value = new IntObject(0);
+			cb.value = IntObject.valueOf(0);
 			putGetAttr(operation, bytecode, ctx.factor().start);
 			compile(ctx.factor(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.factor().stop));
@@ -1292,7 +1292,6 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, t.start));
 				cb.value = new StringObject(t.NAME().toString());
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, t.start));
-				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t.start));
 			}
 		} else if (offset == 0) {
 			// First trailer - push atom on stack

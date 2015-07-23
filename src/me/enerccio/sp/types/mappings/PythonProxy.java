@@ -12,7 +12,7 @@ public class PythonProxy implements Serializable {
 	}
 	@Override
 	public int hashCode(){
-		return o.getId().intValue();
+		return o.getId();
 	}
 	@Override
 	public boolean equals(Object p){

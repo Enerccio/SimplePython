@@ -44,7 +44,7 @@ public class BytecodeTypeObject extends TypeObject {
 	@SuppressWarnings("unused")
 	@Override
 	public PythonObject call(TupleObject args) {
-		if (args.size().intValue() == 0)
+		if (args.len() == 0)
 			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
 		
 		try {

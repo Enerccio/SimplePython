@@ -1,6 +1,12 @@
 package me.enerccio.sp.types.sequences;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -18,32 +24,45 @@ public class OrderedSequenceIterator extends PythonObject {
 		this.len = sequence.size().intValue();
 	}
 	
+	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	
+	static {
+		try {
+			Utils.putPublic(sfields, SequenceObject.__ITER__, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("__iter__", 
+					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("next", 
+					new Class<?>[]{TupleObject.class}), true));
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void newObject() {
 		super.newObject();
 		
-		try {
-			Utils.putPublic(this, SequenceObject.__ITER__, new JavaMethodObject(this, this.getClass().getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(this, NEXT, new JavaMethodObject(this, this.getClass().getMethod("next", 
-					new Class<?>[]{TupleObject.class}), true));
-		} catch (NoSuchMethodException e){
-			// will not happen
-		}
+		String m;
+		
+		m = SequenceObject.__ITER__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+		m = NEXT;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
 	}
 	
 	public PythonObject __iter__(TupleObject args){
-		if (args.size().intValue() > 0)
+		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return this;
 	}
 	
 	public PythonObject next(TupleObject args){
-		if (args.size().intValue() > 0)
+		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "next(): method requires no arguments");
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
-		PythonObject value = PythonInterpret.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), new IntObject(cp++));
+		PythonObject value = PythonInterpret.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), IntObject.valueOf(cp++));
 		return value;
 	}
 
