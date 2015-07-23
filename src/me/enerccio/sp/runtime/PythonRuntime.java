@@ -48,6 +48,7 @@ import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
+import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
@@ -62,9 +63,10 @@ public class PythonRuntime {
 	public static final PythonRuntime runtime = new PythonRuntime();
 	public static final String IS = "is";
 	public static final String GO = "go";
-	public static final String SUPER = "super";
+	public static final String MRO = "mro";
 	public static final String GETATTR = "getattr";
 	public static final String SETATTR = "setattr";
+	public static final String HASATTR = "hasattr";
 	public static final String ISINSTANCE = "isinstance";
 	public static final String PRINT_JAVA = "print_java";
 	public static final String PRINT_JAVA_EOL = "print_java_eol";
@@ -187,6 +189,7 @@ public class PythonRuntime {
 					globals.put("False", BoolObject.FALSE);
 					globals.put("globals", globals);
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
+					globals.put(HASATTR, Utils.staticMethodCall(PythonRuntime.class, HASATTR, PythonObject.class, String.class));
 					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
 					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
@@ -195,7 +198,7 @@ public class PythonRuntime {
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(GO, Utils.staticMethodCall(PythonRuntime.class, GO, String.class));
-					globals.put(SUPER, Utils.staticMethodCall(PythonRuntime.class, "superClass", ClassObject.class));
+					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, "mro", ClassObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -217,6 +220,8 @@ public class PythonRuntime {
 					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					globals.put(DictTypeObject.DICT_CALL, o = new DictTypeObject());
+					o.newObject();
+					globals.put(MethodTypeObject.METHOD_CALL, o = new MethodTypeObject());
 					o.newObject();
 					
 					addExceptions(globals);
@@ -271,11 +276,11 @@ public class PythonRuntime {
 		return NoneObject.NONE;
 	}
 	
-	public static PythonObject superClass(ClassObject clazz){
+	public static PythonObject mro(ClassObject clazz){
 		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
-		if (ll.size() == 1)
-			return NoneObject.NONE;
-		return ll.get(ll.size()-2);
+		TupleObject to = (TupleObject) Utils.list2tuple(ll);
+		to.newObject();
+		return to;
 	}
 	
 	public static PythonObject is(PythonObject a, PythonObject b){
@@ -340,7 +345,7 @@ public class PythonRuntime {
 		return false;
 	}
 
-	private static final ThreadLocal<Stack<PythonObject>> accessor = new ThreadLocal<Stack<PythonObject>>(){
+	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>(){
 
 		@Override
 		protected Stack<PythonObject> initialValue() {
@@ -352,10 +357,10 @@ public class PythonRuntime {
 	public static PythonObject getattr(PythonObject o, String attribute) {
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
-			if (accessor.get().size() != 0 && accessor.get().peek() == o){
+			if (accessorGetattr.get().size() != 0 && accessorGetattr.get().peek() == o){
 				throw new NoGetattrException();
 			}
-			accessor.get().push(o);
+			accessorGetattr.get().push(o);
 			try {
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
 				value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
@@ -363,10 +368,15 @@ public class PythonRuntime {
 				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", o), attribute));
 			} finally {
 
-				accessor.get().pop();
+				accessorGetattr.get().pop();
 			}
 		}
 		return value;
+	}
+	
+	public static PythonObject hasattr(PythonObject o, String attribute) {
+		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
+		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
 	}
 	
 	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
@@ -408,17 +418,16 @@ public class PythonRuntime {
 		TypeTypeObject classCreator = (TypeTypeObject) globals.doGet(TypeTypeObject.TYPE_CALL);
 		MapObject dict = new MapObject();
 		
-		JavaFunctionObject init = null; 
-		if (!stringArg)
-			init = (JavaFunctionObject) Utils.staticMethodCall(PythonRuntime.class, "initException", PythonObject.class);
-		else
-			init = (JavaFunctionObject) Utils.staticMethodCall(PythonRuntime.class, "initException", PythonObject.class, PythonObject.class);
+		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class);
 		init.setWrappedMethod(true);
 		
 		dict.backingMap.put(new StringObject("__init__"), init);
 		
-		globals.put(exceptionName, classCreator.call(new TupleObject(new StringObject(exceptionName), exceptionBase == null ? new TupleObject() :
-				new TupleObject(globals.doGet(exceptionBase)), dict)));
+		TupleObject t1, t2;
+		globals.put(exceptionName, classCreator.call(t1 = new TupleObject(new StringObject(exceptionName), t2 = (exceptionBase == null ? new TupleObject() :
+				new TupleObject(globals.doGet(exceptionBase))), dict)));
+		t1.newObject();
+		t2.newObject();
 		return dict;
 	}
 	
@@ -426,8 +435,12 @@ public class PythonRuntime {
 		return new StringObject(Utils.run("str", e.get("__CLASS__", e)) + ": " + Utils.run("str", e.get("__msg__", e)));
 	}
 	
-	public static PythonObject initException(PythonObject e){
-		return initException(e, NoneObject.NONE);
+	public static PythonObject initException(TupleObject o){
+		if (o.len() == 1)
+			return initException(o.getObjects()[0], NoneObject.NONE);
+		if (o.len() == 2)
+			return initException(o.getObjects()[0], o.getObjects()[1]);
+		throw Utils.throwException("TypeError", "system exception requires 0 or 1 arguments");
 	}
 	
 	public static PythonObject initException(PythonObject e, PythonObject text){

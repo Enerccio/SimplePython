@@ -215,7 +215,7 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		//System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
+		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -359,14 +359,14 @@ public class PythonInterpret extends PythonObject {
 				}
 			} catch (PythonExecutionException e){
 				if (Utils.run("isinstance", e.getException(), stype).truthValue()){
-					throw Utils.throwException("ValueError", "Too few values to unpack");
+					throw Utils.throwException("ValueError", "too few values to unpack");
 				} else
 					throw e;
 			}
 			
 			try {
 				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
-				throw Utils.throwException("ValueError", "Too many values to unpack");
+				throw Utils.throwException("ValueError", "too many values to unpack");
 			} catch (PythonExecutionException e){
 				if (!Utils.run("isinstance", e.getException(), stype).truthValue()){
 					throw e;

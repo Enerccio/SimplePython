@@ -50,9 +50,7 @@ public class UserFunctionObject extends PythonObject {
 		if (!isVararg && argc > rargs)
 			throw Utils.throwException("TypeError", fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
-		
 		MapObject a = new MapObject();
-		a.newObject();
 		
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
 		for (int i=0; i<argc; i++){

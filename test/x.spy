@@ -1,20 +1,30 @@
-def dosomething(x, y):
-    return x + y
+"""
+class Y(object):
+    def __init__(self, x):
+        self.__x = x
+        
+    def work(self):
+        print self.__x
+        
+class Y2(Y):
+    def __init__(self, x):
+        super(Y2).__init__(self, x)
+        
+    def work2(self):
+        print self.__x
+
+def test(): 
+    y = Y(10);
+    print y
+    print y.work()
+    
+    y2 = Y2(20)
+    print y2.work()
+    print y2.work2()
+"""
+
+class Z(object):
+    pass
 
 def test():
-    x = xrange(256)
-    y = xrange(256)
-    
-    xi = iter(x)
-    try:
-      while True:
-        i = xi.next()
-        yi = iter(y)
-        try:
-          while True:
-            j = yi.next()
-            dosomething(i, j)
-        except StopIteration as e:
-            pass
-    except StopIteration as e:
-        pass
+    super(Z)

@@ -84,7 +84,9 @@ public class PythonCompiler {
 		globals.add(locals);
 		Collections.reverse(globals);
 		
-		Utils.putPublic(fnc, "closure", new TupleObject(globals.toArray(new PythonObject[globals.size()])));
+		TupleObject to = new TupleObject(globals.toArray(new PythonObject[globals.size()]));
+		to.newObject();
+		Utils.putPublic(fnc, "closure", to);
 		Utils.putPublic(fnc, "locals", locals);
 		Utils.putPublic(fnc, "function_defaults", defaults);
 		
@@ -462,6 +464,7 @@ public class PythonCompiler {
 			ll.add(d);
 		}
 		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
+		closure.newObject();
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = closure;
 		
