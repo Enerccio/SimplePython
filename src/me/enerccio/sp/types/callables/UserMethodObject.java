@@ -17,6 +17,7 @@ public class UserMethodObject extends PythonObject {
 	private static final long serialVersionUID = 6184279154550720464L;
 	public static final String SELF = "__self__";
 	public static final String FUNC = "__func__";
+	public static final String ACCESSOR = "__access__";
 	
 	@Override
 	public void newObject() {
@@ -55,8 +56,11 @@ public class UserMethodObject extends PythonObject {
 		}
 		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = callable;
-		// [ python object self ]
+		if ( fields.get(ACCESSOR) == null)
+			b.value = NoneObject.NONE;
+		else
+			b.value = fields.get(ACCESSOR).object;
+		// [ python object __accessor__ ]
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
 		// []
 		
@@ -64,7 +68,7 @@ public class UserMethodObject extends PythonObject {
 		b.value = caller;
 		// [ callable ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.SELF, o);
+		b.value = callable;
 		// [ callable, python object ]
 		
 		for (int i=0; i<args.len(); i++){
@@ -92,7 +96,7 @@ public class UserMethodObject extends PythonObject {
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		if (key.equals(SELF) || key.equals(FUNC))
+		if (key.equals(SELF) || key.equals(FUNC) || key.equals(ACCESSOR))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);

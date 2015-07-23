@@ -23,8 +23,24 @@ def test():
     print y2.work2()
 """
 
-class Z(object):
-    pass
+class X(object):
+    def __init__(self, x):
+        self.__x = x
+
+    def work(self):
+        print self.__x
+        
+
+class Y(X):
+    def __init__(self, x):
+        method(X.__init__, self, X)(x)
+        
+    def work2(self):
+        print self.__x
 
 def test():
-    super(Z)
+    x = Y(10)
+    x.work()
+    x.work2()
+    
+print mro(Y)

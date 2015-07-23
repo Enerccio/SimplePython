@@ -44,6 +44,7 @@ public class TypeTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
+		type.newObject();
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);
 		Utils.putPublic(type, ClassObject.__DICT__, dict);

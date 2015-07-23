@@ -107,7 +107,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, fcx.start));
 		// context
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, fcx.start));
-		cb.value = locals;
+		cb.value = NoneObject.NONE;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT, fcx.start));
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, fcx.start)); 

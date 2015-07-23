@@ -278,6 +278,7 @@ public class PythonRuntime {
 	
 	public static PythonObject mro(ClassObject clazz){
 		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
+		Collections.reverse(ll);
 		TupleObject to = (TupleObject) Utils.list2tuple(ll);
 		to.newObject();
 		return to;
@@ -365,7 +366,7 @@ public class PythonRuntime {
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
 				value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
 			} catch (NoGetattrException e) {
-				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", o), attribute));
+				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", o, attribute));
 			} finally {
 
 				accessorGetattr.get().pop();

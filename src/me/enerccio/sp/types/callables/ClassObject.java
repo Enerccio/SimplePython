@@ -64,7 +64,7 @@ public class ClassObject extends CallableObject {
 		List<ClassObject> bbases = Utils.resolveDiamonds(this);
 		
 		for (ClassObject o : bbases){
-			addToInstance(o.fields.get(__DICT__).object, instance);
+			addToInstance(o.fields.get(__DICT__).object, instance, o);
 		}
 		
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
@@ -86,7 +86,7 @@ public class ClassObject extends CallableObject {
 		}
 	}
 
-	private void addToInstance(PythonObject s, ClassInstanceObject instance) {
+	private void addToInstance(PythonObject s, ClassInstanceObject instance, ClassObject clazz) {
 		MapObject dict = (MapObject)s;
 		synchronized (dict.backingMap){
 			for (PythonProxy pkey : dict.backingMap.keySet()){
@@ -107,6 +107,7 @@ public class ClassObject extends CallableObject {
 					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
+					Utils.putPublic(value, UserMethodObject.ACCESSOR, clazz);
 				} else if ((value instanceof JavaFunctionObject) && ((JavaFunctionObject)value).isWrappedMethod()){
 					PythonObject data = value;
 					value = new UserMethodObject();
