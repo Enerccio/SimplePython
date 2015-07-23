@@ -15,12 +15,14 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
+import me.enerccio.sp.parser.pythonParser.ExprlistContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.LabelContext;
 import me.enerccio.sp.parser.pythonParser.Label_or_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ArgumentContext;
 import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
+import me.enerccio.sp.parser.pythonParser.For_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Switch_stmtContext;
@@ -40,6 +42,8 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.ListObject;
+import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.DictTypeObject;
@@ -149,6 +153,8 @@ public class PythonCompiler {
 			compileTry(cstmt.try_stmt(), bytecode);
 		} else if (cstmt.while_stmt() != null) {
 			compileWhile(cstmt.while_stmt(), bytecode);
+		} else if (cstmt.for_stmt() != null) {
+			compileFor(cstmt.for_stmt(), bytecode);
 		} else if (cstmt.if_stmt() != null) {
 			compileIf(cstmt.if_stmt(), bytecode);
 		} else if (cstmt.switch_stmt() != null) {
@@ -162,7 +168,7 @@ public class PythonCompiler {
 		} else
 			throw Utils.throwException("SyntaxError", "statament type not implemented");
 	}
-
+	
 	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode) {
 		for (StmtContext sctx : ctx.stmt())
 			compileStatement(sctx, bytecode);
@@ -279,7 +285,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
-	
+
 	private void compile(Label_or_stmtContext ls, List<PythonBytecode> bytecode) {
 		if (ls.label() != null)
 			compile(ls.label(), bytecode);
@@ -295,7 +301,6 @@ public class PythonCompiler {
 				compileStatement(c, bytecode);
 		}
 
-	
 	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode) {
 		int start = bytecode.size();
 		// Compile condition
@@ -313,6 +318,25 @@ public class PythonCompiler {
 			compileSuite(ctx.suite(1), bytecode);
 	}
 	
+	private void compileFor(For_stmtContext ctx, List<PythonBytecode> bytecode) {
+		// Compile getiter
+		compileRightHand(ctx.testlist(), bytecode);
+		putGetAttr(ListObject.__ITER__, bytecode, ctx.testlist().start);
+		// Compile grabbing item
+		int start = bytecode.size();
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+		putGetAttr(OrderedSequenceIterator.NEXT, bytecode, ctx.start);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
+		cb.intValue = 0;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+		// Compile storing item
+		compileAssignment(ctx.exprlist(), bytecode);
+		// Compile block
+		compileSuite(ctx.suite(0), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+		cb.intValue = start;
+	}
+
 	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode) {
 		List<PythonBytecode> endJumps = new ArrayList<>();
 		PythonBytecode jump = null;
@@ -1344,6 +1368,14 @@ public class PythonCompiler {
 		compileAssignment(ctx.or_test(0), bytecode);
 	}
 
+	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
+	private void compileAssignment(ExprlistContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.expr().size() > 1) {
+			throw Utils.throwException("SyntaxError", "can't assign to tuple");
+		}
+		compileAssignment(ctx.expr(0), bytecode);
+	}
+	
 	private void compileAssignment(Or_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.and_test(1) != null)
 			throw Utils.throwException("SyntaxError", "can't assign to operator");
@@ -1465,7 +1497,6 @@ public class PythonCompiler {
 			compileTrailers(atom, trailers, offset + 1, bytecode);
 		}
 	}
-	
 	
 	private void compileAssignment(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.listmaker() != null)

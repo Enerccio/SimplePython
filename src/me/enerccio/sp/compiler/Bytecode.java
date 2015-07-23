@@ -211,7 +211,7 @@ public enum Bytecode {
 		String s = bc.toString();
 		int cut = s.length();
 		if (cut > 80) cut  = 80;
-		return String.format("%05d \t%S" , i, s.substring(0, cut));
+		return String.format("%05d \t%s" , i, s.substring(0, cut));
 	}
 
 	

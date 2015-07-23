@@ -28,7 +28,8 @@ public class Test {
 			c2 = System.currentTimeMillis();
 			
 			UserFunctionObject fo = (UserFunctionObject) mo.getField("test");
-			fo.call(new TupleObject());
+			if (fo != null)
+				fo.call(new TupleObject());
 			while (true){
 				rr = i.executeOnce();
 				if (rr == ExecutionResult.EOF || rr == ExecutionResult.FINISHED)

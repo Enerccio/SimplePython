@@ -214,7 +214,7 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
+		System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode)); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 		case LABEL:
