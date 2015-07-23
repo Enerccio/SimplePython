@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
@@ -730,10 +731,14 @@ public class PythonCompiler {
 	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.lambdef() != null)
+		if (ctx.lambdef() != null){
 			compile(ctx.lambdef(), bytecode);
-		if (ctx.getChildCount() > 1)
+			return;
+		}
+		if (ctx.getChildCount() > 1){
 			compileTernary(ctx, bytecode);
+			return;
+		}
 		compile(ctx.or_test(0), bytecode);
 	}
 
@@ -1173,8 +1178,84 @@ public class PythonCompiler {
 	}
 
 	private void compile(LambdefContext ctx, List<PythonBytecode> bytecode) {
-		// TODO Auto-generated method stub
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
 		
+		String functionName = "lambda";
+		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
+		
+		List<String> arguments = new ArrayList<String>();
+		for (int i=0; i<ctx.farg().size(); i++){
+			arguments.add(ctx.farg(i).nname().getText());
+		}
+		
+		fnc.args = arguments;
+		if (ctx.vararg() != null){
+			fnc.isVararg = true;
+			fnc.vararg = ctx.vararg().nname().getText();
+		}
+		
+		compilingClass.push(null);
+		MapObject locals = doCompileFunction(ctx.suite(), fnc.bytecode, ctx.suite().start, null);
+		compilingClass.pop();
+		
+		if (fnc.bytecode.get(fnc.bytecode.size()-1) instanceof Pop){
+			fnc.bytecode.remove(fnc.bytecode.size()-1);
+			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
+			cb.intValue = 1;	
+		} else {
+			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+			cb.value = NoneObject.NONE;
+			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
+			cb.intValue = 1;	
+		}
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		cb.value = fnc;
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // function_defaults
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // locals
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // closure
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		cb.value = new MapObject();
+
+		for (int i=0; i<ctx.farg().size(); i++){
+			FargContext fctx = ctx.farg(i);
+			if (fctx.test() != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, fctx.start));
+				putGetAttr("__setitem__", bytecode, fctx.start);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, fctx.start));
+				cb.value = new StringObject(fctx.nname().getText());
+				compile(fctx.test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, fctx.stop));
+				cb.intValue = 2;
+			}
+		}
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
+		cb.stringValue = "function_defaults";
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		cb.value = locals;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
+		cb.stringValue = "locals";
+		
+		List<MapObject> ll = new ArrayList<MapObject>();
+		ll.add(locals);
+		for (MapObject d : Utils.reverse(environments)){
+			ll.add(d);
+		}
+		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
+		closure.newObject();
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		cb.value = closure;
+		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
+		cb.stringValue = "closure";
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 

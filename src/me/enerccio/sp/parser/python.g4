@@ -188,7 +188,7 @@ simple_stmt
 
 small_stmt
 : (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
-             import_stmt | global_stmt | label_stmt )
+             import_stmt | global_stmt | label_stmt)
 ;
 
 label_stmt
@@ -348,18 +348,6 @@ suite
 : simple_stmt | NEWLINE INDENT stmt+ DEDENT
 ;
 
-testlist_safe
-: old_test ((',' old_test)+ (',')?)?
-;
-
-old_test
-: or_test | old_lambdef
-;
-
-old_lambdef
-: 'lambda' nname? (',' nname)* (',' vararg)? ':' suite
-;
-
 test
 : or_test ('if' or_test 'else' test)? | lambdef
 ;
@@ -431,7 +419,7 @@ testlist_comp
 ;
 
 lambdef
-: 'lambda' nname? (',' nname)* (',' vararg)? ':' suite
+: 'lambda' farg? (',' farg)* (',' vararg)? ':' suite
 ; 
 
 trailer
@@ -489,11 +477,11 @@ list_iter
 ;
 
 list_for
-: 'for' exprlist 'in' testlist_safe list_iter?
+: 'for' exprlist 'in' testlist list_iter?
 ;
 
 list_if
-: 'if' old_test list_iter?
+: 'if' test list_iter?
 ;
 
 comp_iter
@@ -505,7 +493,7 @@ comp_for
 ;
 
 comp_if
-: 'if' old_test comp_iter?
+: 'if' test comp_iter?
 ;
 
 testlist1
