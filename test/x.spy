@@ -23,7 +23,18 @@ def test():
     print y2.work2()
 """
 
+class A:
+    def __init__(self):
+        self.a = 0
+    
+    def __iter__(self):
+        return self
+    
+    def next(self):
+        self.a += 1
+        if self.a > 6:
+            raise StopIteration
+        return self.a
 
-def test():
-    x, y, z = xrange(3)
-    x, y, z = xrange(3)
+def test():    
+    pass
