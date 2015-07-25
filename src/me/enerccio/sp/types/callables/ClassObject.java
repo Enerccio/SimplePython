@@ -56,7 +56,7 @@ public class ClassObject extends CallableObject {
 		}
 	}
 	
-	public PythonObject getAttr(StringObject o, PythonObject v){
+	public PythonObject setAttr(StringObject o, PythonObject v){
 		try {
 			if (v == null)
 				((MapObject)fields.get(__DICT__).object).backingMap.remove(o);

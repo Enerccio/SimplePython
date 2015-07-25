@@ -18,9 +18,9 @@ import me.enerccio.sp.utils.Utils;
 
 public class MapObject extends ContainerObject {
 	private static final long serialVersionUID = 20L;
-	private static final String __GETITEM__ = "__getitem__";
-	private static final String __SETITEM__ = "__setitem__";
-	private static final String __LEN__ = "__len__";
+	public static final String __GETITEM__ = "__getitem__";
+	public static final String __SETITEM__ = "__setitem__";
+	public static final String __LEN__ = "__len__";
 	
 	public MapObject(){
 		newObject();

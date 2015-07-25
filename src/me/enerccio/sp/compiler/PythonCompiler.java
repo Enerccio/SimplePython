@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
@@ -22,11 +23,11 @@ import me.enerccio.sp.parser.pythonParser.ArgumentContext;
 import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
-import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Switch_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
 import me.enerccio.sp.parser.pythonParser.While_stmtContext;
+import me.enerccio.sp.parser.pythonParser.DictorsetmakerContext;
 import me.enerccio.sp.parser.pythonParser.*;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
@@ -41,6 +42,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
@@ -1158,10 +1160,42 @@ public class PythonCompiler {
 		} else if (ctx.getText().startsWith("(")){
 			compile(ctx.testlist_comp(), bytecode);
 		} else if (ctx.getText().startsWith("[")){
-			compile(ctx.listmaker(), bytecode);
+			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")){
-			// TODO
+			compile(ctx.dictorsetmaker(), bytecode, ctx.getStart());
 		}
+	}
+
+	private void compile(DictorsetmakerContext ctx,
+			List<PythonBytecode> bytecode, Token t) {
+		if (ctx == null || ctx.dictentry().size() != 0){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = DictTypeObject.DICT_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
+			if (ctx != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+				putGetAttr(MapObject.__SETITEM__, bytecode, ctx.start);
+				if (ctx.comp_for() != null){
+					// TODO
+					throw new NotImplementedException();
+				} else 
+					for (DictentryContext dcx : ctx.dictentry())
+						compile(dcx, bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
+			}
+		} else {
+			// TODO set
+		}
+	}
+
+	private void compile(DictentryContext dcx, List<PythonBytecode> bytecode) {
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dcx.start));
+		compile(dcx.test(0), bytecode);
+		compile(dcx.test(1), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, dcx.start));
+		cb.intValue = 2;
 	}
 
 	private void compile(Testlist_compContext ctx,
@@ -1180,7 +1214,15 @@ public class PythonCompiler {
 	}
 
 	private void compile(ListmakerContext listmaker,
-			List<PythonBytecode> bytecode) {
+			List<PythonBytecode> bytecode, Token token) {
+		if (listmaker == null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, token));
+			cb.stringValue = ListTypeObject.LIST_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, token));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, token));
+			return;
+		}
 		if (listmaker.list_for() != null){
 			// TODO
 		} else {
