@@ -8,10 +8,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	private static final long serialVersionUID = 11L;
 	
 	public StringObject(){
-		
+		newObject();
 	}
 	
 	public StringObject(String v){
+		newObject();
 		value = v;
 	}
 	

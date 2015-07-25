@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -19,6 +20,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public static final String __ITER__ = "__iter__";
 	public static final String __GETITEM__ = "__getitem__";
+	public static final String __ADD__ = "__add__";
 
 	@Override
 	public boolean truthValue() {
@@ -32,6 +34,8 @@ public abstract class SequenceObject extends ContainerObject {
 			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, SequenceObject.class.getMethod("__iter__", 
 					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, SequenceObject.class.getMethod("get", 
+					new Class<?>[]{PythonObject.class}), false));
+			Utils.putPublic(sfields, __ADD__, new JavaMethodObject(null, SequenceObject.class.getMethod("add", 
 					new Class<?>[]{PythonObject.class}), false));
 		} catch (Exception e){
 			e.printStackTrace();
@@ -50,6 +54,13 @@ public abstract class SequenceObject extends ContainerObject {
 		m = __GETITEM__;
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
+		m = __ADD__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+	}
+	
+	public PythonObject add(PythonObject other){
+		return Arithmetics.doOperator(this, other, __ADD__);
 	}
 	
 	public abstract PythonObject get(PythonObject key);

@@ -53,7 +53,7 @@ def __iter():
     return factory
 
 class set(object):
-    def __init__(self, iterable):
+    def __init__(self, iterable=None):
         self.__inner_map = {}
         pass #TODO
     

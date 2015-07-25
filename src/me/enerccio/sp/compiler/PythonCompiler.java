@@ -620,13 +620,24 @@ public class PythonCompiler {
 			// TODO
 		} else {
 			boolean eol = (ctx.endp() == null);
-			for (TestContext tc : ctx.test()){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, tc.start));
-				cb.stringValue = PythonRuntime.PRINT_JAVA;
-				compile(tc, bytecode);
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.intValue = 1;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			cb.stringValue = PythonRuntime.PRINT_JAVA;
+			int tlc = ctx.test().size();
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+				cb.stringValue = TupleTypeObject.TUPLE_CALL;
 			}
+			
+			for (TestContext tc : ctx.test())
+				compile(tc, bytecode);
+			
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+				cb.intValue = tlc;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.stop));
+			}
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+			cb.intValue = 1;
 			
 			if (eol){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));

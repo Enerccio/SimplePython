@@ -319,7 +319,16 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject print_java(PythonObject a){
-		System.out.print(a);
+		if (a instanceof TupleObject && ((TupleObject)a).len() != 0){
+			int i=0;
+			for (PythonObject o : ((TupleObject)a).getObjects()){
+				++i;
+				print_java(o);
+				if (i != ((TupleObject)a).getObjects().length)
+					System.out.print(" ");
+			}
+		} else
+			System.out.print(a);
 		return NoneObject.NONE;
 	}
 	
