@@ -106,7 +106,7 @@ public class PythonInterpret extends PythonObject {
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
-				Utils.throwException("TypeError", callable.toString() + " is not callable");
+				throw Utils.throwException("TypeError", callable.toString() + " is not callable");
 			return execute(false, callableArg, args);
 		}
 	}

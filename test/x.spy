@@ -37,4 +37,4 @@ class A:
         return self.a
 
 def test():    
-    pass
+    A()()
