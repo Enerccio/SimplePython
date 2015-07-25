@@ -12,7 +12,7 @@ public class JavaFunctionObject extends JavaMethodObject {
 	
 	@Override
 	protected String doToString() {
-		return "<java static method " + boundHandle.toString() + ">";
+		return super.doToString();
 	}
 
 	public boolean isWrappedMethod() {

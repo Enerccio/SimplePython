@@ -1,34 +1,20 @@
-class HelloWorld(object):
-	print "hello, "
-	
-	def __init__(self):
-		super(HelloWorld).__init__(self)
-		print "world"
-	
-x = HelloWorld()
+locals = dict()
+x = function("print x + y", locals, (globals,), ["x", "y"], None, None)
 
+x(5, 15) 
+print x
+x.__name__ = "anca"
+print x
+print locals
 
-class Super(object):
-	pass
-	
-class Super2(object):
-	pass
+y = xrange(10);
+z = iter(y)
+print z
+print z.next()
+print z.next()
 
-class X(Super):
-	pass
-	
-class Y(X, Super):
-	pass
-	
-class Z(Y, X):
-	pass
-	
-class W(Z, X, object):
-	pass
-	
-x = W()
-
-class Fail(X, Z):
-	pass
-	
-x = Fail()
+y = xrange(10, 20, 5);
+z = iter(y)
+print z
+print z.next()
+print z.next()

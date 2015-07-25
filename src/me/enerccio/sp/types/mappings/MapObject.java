@@ -1,5 +1,8 @@
 package me.enerccio.sp.types.mappings;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -78,7 +81,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject getItem(TupleObject a){
 		if (a.size().intValue() != 1)
-			throw Utils.throwException("TypeError", "__getitem__ requires 1 parameter");
+			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
 		synchronized (backingMap){
 			if (!backingMap.containsKey(key))
@@ -89,7 +92,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject setItem(TupleObject a){
 		if (a.size().intValue() != 2)
-			throw Utils.throwException("TypeError", "__setitem__ requires 2 parameters");
+			throw Utils.throwException("TypeError", "__setitem__(): requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
 		PythonObject value = a.getObjects()[1];
 		synchronized (backingMap){
@@ -99,7 +102,7 @@ public class MapObject extends ContainerObject {
 	
 	public PythonObject len(TupleObject a){
 		if (a.size().intValue() != 0)
-			throw Utils.throwException("TypeError", "__len__ requires zero parameters");
+			throw Utils.throwException("TypeError", "__len__(): requires zero parameters");
 		return size();
 	}
 
@@ -111,17 +114,25 @@ public class MapObject extends ContainerObject {
 		return backingMap.get(key);
 	}
 
+	
+	private static ThreadLocal<Set<MapObject>> printMap = new ThreadLocal<Set<MapObject>>(){
+
+		@Override
+		protected Set<MapObject> initialValue() {
+			return new HashSet<MapObject>();
+		}
+		
+	};
 	@Override
 	protected String doToString() {
-		StringBuilder bd = new StringBuilder();
-		bd.append("{");
-		synchronized (backingMap){
-			for (PythonProxy key : backingMap.keySet()){
-				bd.append(key.o.toString() + ":" + backingMap.get(key).toString() + " ");
-			}
+		if (printMap.get().contains(this))
+			return "...";
+		else try {
+			printMap.get().add(this);
+			return backingMap.toString();
+		} finally {
+			printMap.get().remove(this);
 		}
-		bd.append("}");
-		return bd.toString();
 	}
 
 	public MapObject cloneMap() {
@@ -134,7 +145,7 @@ public class MapObject extends ContainerObject {
 	
 	@Override
 	public IntObject getId(){
-		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("type", this) + "'");
 	}
 
 	@Override

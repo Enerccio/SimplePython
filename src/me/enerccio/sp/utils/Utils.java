@@ -1,5 +1,9 @@
 package me.enerccio.sp.utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +36,9 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
@@ -180,7 +186,7 @@ public class Utils {
 		return staticMethodCall(false, clazz, method, signature);
 	}
 	
-	private static class ThrowingErrorListener extends BaseErrorListener {
+	public static class ThrowingErrorListener extends BaseErrorListener {
 		private String source;
 
 		public ThrowingErrorListener(String loc) {
@@ -207,6 +213,19 @@ public class Utils {
 		
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
+		return parser;
+	}
+	
+	public static pythonParser parse(InputStream provider, String srcFile) throws Exception {
+		ANTLRInputStream is = new ANTLRInputStream(provider);
+		pythonLexer lexer = new pythonLexer(is);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(new ThrowingErrorListener(srcFile));
+		CommonTokenStream stream = new CommonTokenStream(lexer);
+		pythonParser parser = new pythonParser(stream);
+		
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ThrowingErrorListener(srcFile));
 		return parser;
 	}
 
@@ -240,16 +259,32 @@ public class Utils {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
 
+		PythonObject callable = o.get(UserMethodObject.SELF, o);
+		PythonObject caller = o.get(UserMethodObject.FUNC, o);
+		
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		// environments
+		if (caller instanceof UserFunctionObject && caller.fields.containsKey("closure")){
+			// add closure
+			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
+				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
+				b.mapValue = (MapObject) d;	
+			}
+		} else {
+			// add globals
+			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
+			b.mapValue = PythonRuntime.runtime.generateGlobals();
+		}
+		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.SELF, o);
+		b.value = callable;
 		// [ python object self ]
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
 		// []
 		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.FUNC, o);
+		b.value = caller;
 		// [ callable ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
 		b.value = o.get(UserMethodObject.SELF, o);
@@ -262,7 +297,7 @@ public class Utils {
 		}
 		// [ callable, python object, python object* ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
-		b.argc = args.len() + 1;
+		b.intValue = args.len() + 1;
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]
@@ -365,5 +400,31 @@ public class Utils {
 		for (PythonObject o : ((TupleObject) clo.fields.get(ClassObject.__BASES__).object).getObjects())
 			cl.add((ClassObject) o);
 		return cl;
+	}
+
+	public static PythonObject getGlobal(String globalValue) {
+		if (PythonInterpret.interpret.get().currentEnvironment.size() == 0)
+			return PythonRuntime.runtime.generateGlobals().doGet(globalValue);
+		return PythonInterpret.interpret.get().environment().get(new StringObject(globalValue), true, false);
+	}
+
+	public static byte[] toByteArray(InputStream input) throws IOException {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+	    copy(input, output);
+	    return output.toByteArray();
+	}
+
+	public static long copy(InputStream input, OutputStream output) throws IOException {
+		return copy(input, output, new byte[4096]);
+	}
+
+	public static long copy(InputStream input, OutputStream output, byte[] buffer) throws IOException {
+		long count = 0L;
+	    int n = 0;
+	    while (-1 != (n = input.read(buffer))) {
+	      output.write(buffer, 0, n);
+	      count += n;
+	    }
+	    return count;
 	}
 }

@@ -34,13 +34,13 @@ public class OrderedSequenceIterator extends PythonObject {
 	
 	public PythonObject __iter__(TupleObject args){
 		if (args.size().intValue() > 0)
-			throw Utils.throwException("TypeError", "__iter__ method requires no arguments");
+			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return this;
 	}
 	
 	public PythonObject next(TupleObject args){
 		if (args.size().intValue() > 0)
-			throw Utils.throwException("TypeError", "next method requires no arguments");
+			throw Utils.throwException("TypeError", "next(): method requires no arguments");
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
 		PythonObject value = PythonInterpret.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), new IntObject(cp++));

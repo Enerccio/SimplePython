@@ -6,6 +6,7 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -29,17 +30,17 @@ public class TypeTypeObject extends TypeObject {
 		else if (args.size().intValue() == 3)
 			return newClassType(args.getObjects()[0], args.getObjects()[1], args.getObjects()[2]);
 		
-		throw Utils.throwException("TypeError", "Incorrect number of parameters");
+		throw Utils.throwException("TypeError", " type(): incorrect number of parameters");
 	}
 
 	private PythonObject newClassType(PythonObject name,
 			PythonObject bases, PythonObject dict) {
 		if (!(name instanceof StringObject))
-			throw Utils.throwException("TypeError", "Name must be a string");
+			throw Utils.throwException("TypeError", "type(): name must be a string");
 		if (!(bases instanceof TupleObject))
-			throw Utils.throwException("TypeError", "Bases must be a tuple");
+			throw Utils.throwException("TypeError", "type(): bases must be a tuple");
 		if (!(dict instanceof MapObject))
-			throw Utils.throwException("TypeError", "Dict must be a dict");
+			throw Utils.throwException("TypeError", "type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
 		Utils.putPublic(type, ClassObject.__NAME__, name);
@@ -50,23 +51,27 @@ public class TypeTypeObject extends TypeObject {
 
 	private PythonObject getTypeInformation(PythonObject py) {
 		if (py instanceof PythonBytecode)
-			return new BytecodeTypeObject();
+			return Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
 		if (py instanceof IntObject)
-			return new IntTypeObject();
+			return Utils.getGlobal(IntTypeObject.INT_CALL);
 		if (py instanceof ListObject)
-			return new ListTypeObject();
+			return Utils.getGlobal(ListTypeObject.LIST_CALL);
 		if (py instanceof ClassInstanceObject)
 			return ((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
 		if (py instanceof ClassObject)
-			return new TypeTypeObject();
+			return Utils.getGlobal(TYPE_CALL);
 		if (py instanceof SliceObject)
-			return new SliceTypeObject();
+			return Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
-			return new TupleTypeObject();
+			return Utils.getGlobal(TupleTypeObject.TUPLE_CALL);
+		if (py instanceof MapObject)
+			return Utils.getGlobal(DictTypeObject.DICT_CALL);
 		if (py instanceof StringObject)
-			return new StringTypeObject();
+			return Utils.getGlobal(StringTypeObject.STRING_CALL);
 		if (py instanceof PointerObject)
-			return new JavaInstanceTypeObject();
+			return Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
+		if (py instanceof UserFunctionObject)
+			return Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
 		return null;
 	}
 	

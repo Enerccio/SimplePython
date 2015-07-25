@@ -1,10 +1,29 @@
 package me.enerccio.sp.types.types;
 
-import java.util.ArrayList;
-
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.compiler.PythonBytecode.AcceptReturn;
+import me.enerccio.sp.compiler.PythonBytecode.Call;
+import me.enerccio.sp.compiler.PythonBytecode.Dup;
+import me.enerccio.sp.compiler.PythonBytecode.Goto;
+import me.enerccio.sp.compiler.PythonBytecode.Import;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfFalse;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfTrue;
+import me.enerccio.sp.compiler.PythonBytecode.Load;
+import me.enerccio.sp.compiler.PythonBytecode.LoadGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.Nop;
+import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.compiler.PythonBytecode.PopEnvironment;
+import me.enerccio.sp.compiler.PythonBytecode.Push;
+import me.enerccio.sp.compiler.PythonBytecode.PushDict;
+import me.enerccio.sp.compiler.PythonBytecode.PushEnvironment;
+import me.enerccio.sp.compiler.PythonBytecode.PushLocalContext;
+import me.enerccio.sp.compiler.PythonBytecode.ResolveArgs;
+import me.enerccio.sp.compiler.PythonBytecode.Return;
+import me.enerccio.sp.compiler.PythonBytecode.Save;
+import me.enerccio.sp.compiler.PythonBytecode.SaveGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.SwapStack;
+import me.enerccio.sp.compiler.PythonBytecode.UnpackSequence;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.CustomBytecode;
 import me.enerccio.sp.types.base.IntObject;
@@ -26,21 +45,21 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args) {
 		if (args.size().intValue() == 0)
-			throw Utils.throwException("TypeError", "Incorrect number of parameters, must be >0");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
 		
 		try {
 			IntObject byteNum = (IntObject) args.getObjects()[0];
 			
 			Bytecode b = Bytecode.fromNumber(byteNum.intValue());
 			if (b == null)
-				throw Utils.throwException("TypeError", "Unknown bytecode number");
+				throw Utils.throwException("TypeError", "unknown bytecode number");
 			PythonBytecode bytecode = null;
 			
 			switch (b) {
 			case CALL:
 				bytecode = new Call();
 				bytecode.newObject();
-				bytecode.callable = args.getObjects()[1];
+				bytecode.value = args.getObjects()[1];
 				break;
 			case CUSTOM:
 				bytecode = new CustomBytecode();
@@ -51,34 +70,30 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new Dup();
 				bytecode.newObject();
 				break;
-			case END_EXCEPTION:
-				bytecode = new EndException();
-				bytecode.newObject();
-				break;
 			case GOTO:
 				bytecode = new Goto();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFFALSE:
 				bytecode = new JumpIfFalse();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFTRUE:
 				bytecode = new JumpIfTrue();
 				bytecode.newObject();
-				bytecode.idx = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case LOAD:
 				bytecode = new Load();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case LOADGLOBAL:
 				bytecode = new LoadGlobal();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case NOP:
 				bytecode = new Nop();
@@ -92,18 +107,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new PopEnvironment();
 				bytecode.newObject();
 				break;
-			case POP_EXCEPTION_HANDLER:
-				bytecode = new PopExceptionHandler();
-				bytecode.newObject();
-				bytecode.exceptionType = args.getObjects()[1];
-				break;
-			case POP_FINALLY_HANDLER:
-				bytecode = new PopFinallyHandler();
-				bytecode.newObject();
-				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
-				for (PythonBytecode pb : bytecode.ast)
-					; // just check that it is all inded python bytecode not some other crap data
-				break;
 			case PUSH:
 				bytecode = new Push();
 				bytecode.newObject();
@@ -112,24 +115,16 @@ public class BytecodeTypeObject extends TypeObject {
 			case PUSH_DICT:
 				bytecode = new PushDict();
 				bytecode.newObject();
-				bytecode.dict = (MapObject) args.getObjects()[1];
+				bytecode.mapValue = (MapObject) args.getObjects()[1];
 				break;
 			case PUSH_ENVIRONMENT:
 				bytecode = new PushEnvironment();
 				bytecode.newObject();
 				break;
-			case PUSH_EXCEPTION_HANDLER:
-				bytecode = new PushExceptionHandler();
-				bytecode.newObject();
-				bytecode.exceptionType = args.getObjects()[1];
-				break;
-			case PUSH_FINALLY_HANDLER:
-				bytecode = new PushFinallyHandler();
-				bytecode.newObject();
-				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
-				for (PythonBytecode pb : bytecode.ast)
-					; // just check that it is all inded python bytecode not some other crap data
-				break;
+//				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
+//				for (PythonBytecode pb : bytecode.ast)
+//					; // just check that it is all inded python bytecode not some other crap data
+//				break;
 			case RETURN:
 				bytecode = new Return();
 				bytecode.newObject();
@@ -138,17 +133,17 @@ public class BytecodeTypeObject extends TypeObject {
 			case SAVE:
 				bytecode = new Save();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case SAVEGLOBAL:
 				bytecode = new SaveGlobal();
 				bytecode.newObject();
-				bytecode.variable = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
 				break;
 			case IMPORT:
 				bytecode = new Import();
-				bytecode.moduleName = ((StringObject) args.getObjects()[1]).value;
-				bytecode.variable = ((StringObject) args.getObjects()[2]).value;
+				bytecode.stringValue2 = ((StringObject) args.getObjects()[1]).value;
+				bytecode.stringValue = ((StringObject) args.getObjects()[2]).value;
 				bytecode.newObject();
 				break;
 			case SWAP_STACK:
@@ -158,7 +153,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case UNPACK_SEQUENCE:
 				bytecode = new UnpackSequence();
 				bytecode.newObject();
-				bytecode.argc = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case PUSH_LOCAL_CONTEXT:
 				bytecode = new PushLocalContext();
@@ -177,9 +172,9 @@ public class BytecodeTypeObject extends TypeObject {
 			
 			return bytecode;
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", "Incorrect type of arguments");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect type of arguments");
 		} catch (ArrayIndexOutOfBoundsException e){
-			throw Utils.throwException("TypeError", "Incorrect number of arguments");
+			throw Utils.throwException("TypeError", "bytecode(): incorrect number of arguments");
 		}
 		
 	}

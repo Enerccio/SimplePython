@@ -35,16 +35,16 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", "failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		} catch (Exception e){
-			throw Utils.throwException("TypeError", "failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		}
 		
 		Object[] jargs = new Object[args.size().intValue()];
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
-			throw Utils.throwException("TypeError", "wrong number of parameters, expected " + types.length + ", got " + jargs.length);
+			throw Utils.throwException("TypeError", toString() + ": wrong number of parameters, expected " + types.length + ", got " + jargs.length);
 		}
 		
 		int i=0;
@@ -53,7 +53,7 @@ public class JavaMethodObject extends CallableObject {
 				jargs[i] = Utils.asJavaObject(types[i], o);
 				++i;
 			} catch (PointerMethodIncompatibleException e){
-				throw Utils.throwException("TypeError", "cannot convert python objects to java objects for arguments of this method");
+				throw Utils.throwException("TypeError", toString() + ": cannot convert python objects to java objects for arguments of this method");
 			}
 		}
 		
@@ -64,9 +64,9 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", "failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		} catch (Exception e) {
-			throw Utils.throwException("TypeError", "failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call");
 		}
 	}
 
@@ -87,6 +87,13 @@ public class JavaMethodObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
-		return "<java method " + boundHandle.toString() + " of object " + caller.toString() + ">";
+		if (caller == null)
+			return "<java function " + boundHandle.getName() + ">";
+		return "<java method " + boundHandle.toString() + " of object " + caller.getClass().getName()  + ">";
+	}
+
+	public JavaMethodObject cloneWithThis(Object self) {
+		JavaMethodObject m = new JavaMethodObject(self, boundHandle, noTypeConversion);
+		return m;
 	}
 }

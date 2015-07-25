@@ -1,6 +1,7 @@
 package me.enerccio.sp.types.callables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import me.enerccio.sp.compiler.PythonBytecode;
@@ -8,6 +9,7 @@ import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -36,16 +38,17 @@ public class UserFunctionObject extends PythonObject {
 	};
 
 	public PythonObject call(TupleObject args) {
+		args = refillArgs(args);
 		int argc = args.len();
 		int rargs = this.args.size();
 		if (isVararg)
 			++rargs;
 		
 		if (argc < rargs)
-			throw Utils.throwException("TypeError", "Incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
+			throw Utils.throwException("TypeError",  fields.get("__name__").object + "(): incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
 		
 		if (!isVararg && argc > rargs)
-			throw Utils.throwException("TypeError", "Incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
+			throw Utils.throwException("TypeError", fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
 		
 		MapObject a = new MapObject();
@@ -67,6 +70,21 @@ public class UserFunctionObject extends PythonObject {
 		PythonInterpret.interpret.get().executeBytecode(bytecode);
 		
 		return NoneObject.NONE; // returns immediately
+	}
+
+	private TupleObject refillArgs(TupleObject args) {
+		MapObject m = (MapObject) fields.get("function_defaults").object;
+		List<PythonObject> pl = new ArrayList<PythonObject>(Arrays.asList(args.getObjects()));
+		
+		if (args.len() < this.args.size()){
+			for (int i=args.len(); i<this.args.size(); i++){
+				if (!m.contains(this.args.get(i)))
+					throw Utils.throwException("TypeError", fields.get("__name__").object + "(): argument '" + this.args.get(i) + "' not specified");
+				pl.add(m.backingMap.get(new StringObject(this.args.get(i))));
+			}
+		}
+		
+		return new TupleObject(pl.toArray(new PythonObject[pl.size()]));
 	}
 
 	@Override

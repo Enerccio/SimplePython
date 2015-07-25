@@ -145,9 +145,13 @@ tokens { INDENT, DEDENT }
 file_input
  : ( NEWLINE | label_or_stmt )* EOF
  ;
+ 
+ string_input
+ : (stmt | NEWLINE)* (stmt | EOF)
+ ;
 
 decorator
-: '@' dotted_name ('(' arglist? ')')? NEWLINE
+: '@' test ('(' arglist? ')')? NEWLINE
 ;
 
 decorators
@@ -163,7 +167,11 @@ docstring
 ;
 
 funcdef
-: (docstring NEWLINE)? 'def' nname '(' nname? (',' nname)* (',' vararg)? ')' ':' suite
+: (docstring NEWLINE)? 'def' nname '(' farg? (',' farg)* (',' vararg)? ')' ':' suite
+;
+
+farg
+: nname ('=' test)?
 ;
 
 vararg
@@ -183,7 +191,7 @@ label
 ;
 
 simple_stmt
-: small_stmt (';' small_stmt)* ';'? NEWLINE
+: small_stmt (';' small_stmt)* ';'? (NEWLINE | EOF)
 ;
 
 small_stmt
@@ -201,7 +209,7 @@ expr_stmt
 ;                
  
 augassignexp
-: (augassign testlist)
+: augassign testlist
 ;
 
 augassign
@@ -247,7 +255,7 @@ return_stmt
 ;
 
 raise_stmt
-: 'raise' (test (',' test (',' test)?)?)?
+: 'raise' test?
 ;
 
 import_stmt
@@ -295,11 +303,27 @@ global_stmt
 ;
 
 compound_stmt
-: if_stmt | while_stmt | for_stmt | try_stmt | funcdef | classdef | decorated
+: if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated
 ;
 
 if_stmt
-: 'if' test ':' suite ('elif' test ':' suite)* ('else' ':' suite)?
+: 'if' test ':' suite ('elif' test ':' suite)* else_block?
+;
+
+else_block
+: 'else' ':' suite
+;
+
+switch_stmt
+: 'switch' test ':' NEWLINE INDENT case_block+ else_block? DEDENT
+;
+
+case_block
+: 'case' test ':' suite
+;
+
+default_block
+: 'default' ':' suite
 ;
 
 while_stmt
@@ -311,12 +335,19 @@ for_stmt
 ;
 
 try_stmt
-: ('try' ':' suite
-           ((except_clause ':' suite)+
-            ('else' ':' suite)?
-            ('finally' ':' suite)? |
-           'finally' ':' suite))
+: 'try' ':' suite (
+       (try_except+ else_block? try_finally?)
+       | try_finally
+   )
 ;
+
+try_except
+: except_clause ':' suite
+;
+
+try_finally
+: 'finally' ':' suite
+; 
 
 except_clause
 : 'except' (test (('as' | ',') test)?)?
@@ -539,9 +570,6 @@ OR : 'or';
 AND : 'and';
 NOT : 'not';
 IS : 'is';
-NONE : 'None';
-TRUE : 'True';
-FALSE : 'False';
 CLASS : 'class';
 DEL : 'del';
 PASS : 'pass';

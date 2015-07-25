@@ -41,11 +41,11 @@ public class IntTypeObject extends TypeObject {
 				PythonObject intArg = Utils.run(INT_CALL, arg2);
 				return new IntObject(Integer.parseInt(((StringObject)strArg).getString(), ((IntObject)intArg).intValue()));
 			} catch (ClassCastException e){
-				throw Utils.throwException("TypeError", "Incorrect type for function call: " + e.getMessage());
+				throw Utils.throwException("TypeError", "int(): incorrect type for function call: " + e.getMessage());
 			}
 		}
 		
-		throw Utils.throwException("TypeError", "Incorrect number of parameters");
+		throw Utils.throwException("TypeError", "int(): Incorrect number of parameters");
 	}
 
 }

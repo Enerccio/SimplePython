@@ -5,6 +5,7 @@ import java.util.List;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -33,7 +34,7 @@ public class ModuleObject extends PythonObject {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw Utils.throwException("ParserError", "Failed to parse source code of " + provider);
+			throw Utils.throwException("SyntaxError", "failed to parse source code of " + provider);
 		}
 		globals.backingMap.put(new StringObject(__THISMODULE__), this);
 		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
@@ -75,8 +76,13 @@ public class ModuleObject extends PythonObject {
 			if (res == ExecutionResult.INTERRUPTED)
 				return;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
-				if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
+					if (PythonInterpret.interpret.get().exception() != null){
+						PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
+						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+					}
 					return;
+				}
 		}
 	}
 }

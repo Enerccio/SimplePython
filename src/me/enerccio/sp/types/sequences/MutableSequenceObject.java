@@ -14,7 +14,7 @@ public abstract class MutableSequenceObject extends SequenceObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, __GETITEM__, new JavaMethodObject(this, this.getClass().getMethod("set", 
+			Utils.putPublic(this, __SETITEM__, new JavaMethodObject(this, this.getClass().getMethod("set", 
 					new Class<?>[]{PythonObject.class, PythonObject.class}), false));
 		} catch (NoSuchMethodException e){
 			// will not happen
@@ -26,6 +26,6 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	
 	@Override
 	public IntObject getId(){
-		throw Utils.throwException("TypeError", "Unhashable type '" + Utils.run("type", this) + "'");
+		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("type", this) + "'");
 	}
 }

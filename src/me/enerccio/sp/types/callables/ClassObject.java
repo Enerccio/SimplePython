@@ -3,6 +3,7 @@ package me.enerccio.sp.types.callables;
 import java.util.List;
 
 import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -74,8 +75,13 @@ public class ClassObject extends CallableObject {
 			if (res == ExecutionResult.INTERRUPTED)
 				return instance;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
-				if (PythonInterpret.interpret.get().currentFrame.size() == cfc)
+				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
+					if (PythonInterpret.interpret.get().exception() != null){
+						PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
+						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+					}
 					return instance;
+				}
 		}
 	}
 
@@ -119,7 +125,7 @@ public class ClassObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
-		return "class " + get(__NAME__, this).toString();
+		return "<class " + get(__NAME__, this).toString() + ">";
 	}
 
 }
