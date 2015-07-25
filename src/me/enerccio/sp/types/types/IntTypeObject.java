@@ -24,11 +24,11 @@ public class IntTypeObject extends TypeObject {
 	public PythonObject call(TupleObject args) {
 		PythonObject arg1 = null, arg2 = null;
 		
-		if (args.size().intValue() == 0){
-			arg1 = new IntObject(0);
-		} else if (args.size().intValue() == 1){
+		if (args.len() == 0){
+			arg1 = IntObject.valueOf(0);
+		} else if (args.len() == 1){
 			arg1 = args.getObjects()[0];
-		} else if (args.size().intValue() == 2){
+		} else if (args.len() == 2){
 			arg1 = args.getObjects()[0];
 			arg2 = args.getObjects()[1];
 		}
@@ -39,7 +39,7 @@ public class IntTypeObject extends TypeObject {
 			try {
 				PythonObject strArg = Utils.run(StringTypeObject.STRING_CALL, arg2);
 				PythonObject intArg = Utils.run(INT_CALL, arg2);
-				return new IntObject(Integer.parseInt(((StringObject)strArg).getString(), ((IntObject)intArg).intValue()));
+				return IntObject.valueOf(Integer.parseInt(((StringObject)strArg).getString(), ((IntObject)intArg).intValue()));
 			} catch (ClassCastException e){
 				throw Utils.throwException("TypeError", "int(): incorrect type for function call: " + e.getMessage());
 			}

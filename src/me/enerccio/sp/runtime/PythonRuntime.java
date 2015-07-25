@@ -75,8 +75,6 @@ public class PythonRuntime {
 	}
 	
 	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
-	private Map<Long, PythonObject> instances1 = new HashMap<Long, PythonObject>();
-	private Map<PythonObject, Long> instances2 = new HashMap<PythonObject, Long>();
 	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
 	
 	private long key = Long.MIN_VALUE;
@@ -128,12 +126,7 @@ public class PythonRuntime {
 	}
 	
 	public synchronized void newInstanceInitialization(PythonObject o){
-		instances2.put(o, key);
-		instances1.put(key++, o);
-	}
-	
-	public synchronized long getInstanceId(PythonObject o){
-		return instances2.get(o);
+		o.linkName = key++;
 	}
 	
 	public synchronized ModuleObject getRoot(String key) {

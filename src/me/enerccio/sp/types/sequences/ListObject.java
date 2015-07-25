@@ -19,7 +19,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	@Override
 	public IntObject size() {
-		return new IntObject(objects.size());
+		return IntObject.valueOf(objects.size());
 	}
 	
 	@Override

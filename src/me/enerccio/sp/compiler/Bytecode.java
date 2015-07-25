@@ -19,7 +19,7 @@ public enum Bytecode {
 	// control
 	POP(17), PUSH(18), CALL(19), RCALL(20), DUP(21), SWAP_STACK(22),
 	JUMPIFTRUE(23), JUMPIFFALSE(24), JUMPIFNONE(25), JUMPIFNORETURN(26),
-	GOTO(27), RETURN(28), LABEL(31), 
+	GOTO(27), RETURN(28), SAVE_LOCAL(29), LABEL(31), 
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
@@ -186,6 +186,10 @@ public enum Bytecode {
 			break;
 		case PUSH_EXCEPTION:
 			bytecode = new PushException();
+			bytecode.newObject();
+			break;
+		case SAVE_LOCAL:
+			bytecode = new SaveLocal();
 			bytecode.newObject();
 			break;
 		}

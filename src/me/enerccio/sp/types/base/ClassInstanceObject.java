@@ -22,22 +22,30 @@ public class ClassInstanceObject extends PythonObject {
 	@Override
 	protected String doToString() {
 		return "<instance of " + fields.get(ClassObject.__CLASS__).object.toString() + " at 0x"
-				+ Long.toHexString(getId().longValue()) + ">";
+				+ Long.toHexString(getId()) + ">";
+	}
+	
+	private static JavaMethodObject pyHash;
+	static {
+		try {
+			pyHash = new JavaMethodObject(null, ClassInstanceObject.class.getMethod("pyHash", new Class<?>[]{TupleObject.class}), true);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	// Should be only called when object is created, not when any other class is!
 	public void initObject() {
 		try {
-			Utils.putPublic(this, __HASH__, new JavaMethodObject(this, this.getClass().getMethod("pyHash", 
-						new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, __HASH__, pyHash.cloneWithThis(this));
 		} catch (Exception e) {
 			// won't happen
 		}
 	}
 	
 	public IntObject pyHash(TupleObject args){
-		if (args.size().intValue() != 0)
+		if (args.len() != 0)
 			throw Utils.throwException("TypeError", "__hash__(): requires 0 parameters");
-		return getId();
+		return IntObject.valueOf(getId());
 	}
 }

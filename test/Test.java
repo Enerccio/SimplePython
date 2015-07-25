@@ -5,20 +5,41 @@ import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.interpret.PythonPathResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
+import me.enerccio.sp.types.sequences.TupleObject;
 
 
 public class Test {
 	
 	public static void main(String[] args) throws Exception {
-		final PythonRuntime r = PythonRuntime.runtime;
-		r.setAllowAutowraps(true);
-		r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
+		long c = System.currentTimeMillis();
+		long c2 = 0;
+		ExecutionResult rr;
 		
-		PythonInterpret i = PythonInterpret.interpret.get();
-		r.getRoot("x");
-		
-		while (i.executeOnce() == ExecutionResult.OK)
-			;
+		try {
+			final PythonRuntime r = PythonRuntime.runtime;
+			r.setAllowAutowraps(true);
+			r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
+			
+			PythonInterpret i = PythonInterpret.interpret.get();
+			ModuleObject mo = r.getRoot("x");
+			
+			c2 = System.currentTimeMillis();
+			
+			UserFunctionObject fo = (UserFunctionObject) mo.getField("test");
+			fo.call(new TupleObject());
+			while (true){
+				rr = i.executeOnce();
+				if (rr == ExecutionResult.EOF || rr == ExecutionResult.FINISHED)
+					if (i.currentFrame.size() == 0)
+						break;
+			}
+
+		} finally {
+			System.err.println("Took " + (System.currentTimeMillis() - c) + " ms");
+			System.err.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");
+		}
 	}
 
 }

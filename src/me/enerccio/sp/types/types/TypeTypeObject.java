@@ -25,9 +25,9 @@ public class TypeTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args) {
-		if (args.size().intValue() == 1)
+		if (args.len() == 1)
 			return getTypeInformation(args.getObjects()[0]);
-		else if (args.size().intValue() == 3)
+		else if (args.len() == 3)
 			return newClassType(args.getObjects()[0], args.getObjects()[1], args.getObjects()[2]);
 		
 		throw Utils.throwException("TypeError", " type(): incorrect number of parameters");

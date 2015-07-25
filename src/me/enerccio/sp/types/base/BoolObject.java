@@ -43,7 +43,7 @@ public class BoolObject extends NumberObject {
 
 	@Override
 	protected PythonObject getIntValue() {
-		return value ? new IntObject(1) : new IntObject(0);
+		return value ? IntObject.valueOf(1) : IntObject.valueOf(0);
 	}
 
 	@Override

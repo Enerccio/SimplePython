@@ -16,7 +16,7 @@ public class SliceTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args) {
-		if (args.size().intValue() != 3)
+		if (args.len() != 3)
 			throw Utils.throwException("TypeError", "slice(): incorrect number of parameters, must be 3");
 		
 		return new SliceObject(args.valueAt(0), args.valueAt(1), args.valueAt(2));

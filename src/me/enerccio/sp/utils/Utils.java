@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -36,6 +37,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
@@ -68,11 +70,11 @@ public class Utils {
 	
 	public static PythonObject cast(Object ret, Class<?> retType) {
 		if (retType == Byte.class || retType == byte.class)
-			return new IntObject(((Byte) ret).byteValue());
+			return IntObject.valueOf(((Byte) ret).byteValue());
 		if (retType == Integer.class || retType == int.class)
-			return new IntObject(((Integer) ret).longValue());
+			return IntObject.valueOf(((Integer) ret).longValue());
 		if (retType == Long.class || retType == long.class)
-			return new IntObject(((Long) ret).longValue());
+			return IntObject.valueOf(((Long) ret).longValue());
 		if (retType == Float.class || retType == float.class)
 			return new RealObject(((Float) ret).floatValue());
 		if (retType == Double.class || retType == double.class)
@@ -274,6 +276,8 @@ public class Utils {
 		} else {
 			// add globals
 			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
+			b.mapValue = new MapObject();
+			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
 			b.mapValue = PythonRuntime.runtime.generateGlobals();
 		}
 		
@@ -301,7 +305,8 @@ public class Utils {
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]
-		l.add(Bytecode.makeBytecode(Bytecode.RETURN));
+		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
+		b.intValue = 1;
 		// []
 		return l;
 	}
@@ -426,5 +431,10 @@ public class Utils {
 	      count += n;
 	    }
 	    return count;
+	}
+
+	public static void putPublic(Map<String, AugumentedPythonObject> sfields,
+			String key, JavaMethodObject value) {
+		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 }

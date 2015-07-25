@@ -80,7 +80,7 @@ public final class Arithmetics {
 			switch (m){
 			case __ADD__:
 				if (isInt){
-					return new IntObject(a.intValue() + ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() + ((IntObject) b).intValue());
 				}
 				if (isFloat){
 					return new RealObject((double)a.intValue() + ((RealObject) b).doubleValue());
@@ -90,7 +90,7 @@ public final class Arithmetics {
 				}
 			case __SUB__:
 				if (isInt){
-					return new IntObject(a.intValue() - ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() - ((IntObject) b).intValue());
 				}
 				if (isFloat){
 					return new RealObject((double)a.intValue() - ((RealObject) b).doubleValue());
@@ -100,7 +100,7 @@ public final class Arithmetics {
 				}
 			case __MUL__:
 				if (isInt){
-					return new IntObject(a.intValue() * ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() * ((IntObject) b).intValue());
 				}
 				if (isFloat){
 					return new RealObject((double)a.intValue() * ((RealObject) b).doubleValue());
@@ -110,7 +110,7 @@ public final class Arithmetics {
 				}
 			case __DIV__:
 				if (isInt){
-					return new IntObject(a.intValue() / ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() / ((IntObject) b).intValue());
 				}
 				if (isFloat){
 					return new RealObject((double)a.intValue() / ((RealObject) b).doubleValue());
@@ -120,7 +120,7 @@ public final class Arithmetics {
 				}
 			case __MOD__:
 				if (isInt){
-					return new IntObject(a.intValue() % ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() % ((IntObject) b).intValue());
 				}
 				if (isFloat){
 					return new RealObject((double)a.intValue() % ((RealObject) b).doubleValue());
@@ -130,27 +130,27 @@ public final class Arithmetics {
 				}
 			case __AND__:
 				if (isInt){
-					return new IntObject(a.intValue() & ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() & ((IntObject) b).intValue());
 				}
 				break; // Unknown operation
 			case __OR__:
 				if (isInt){
-					return new IntObject(a.intValue() | ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() | ((IntObject) b).intValue());
 				}
 				break; // Unknown operation
 			case __XOR__:
 				if (isInt){
-					return new IntObject(a.intValue() ^ ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() ^ ((IntObject) b).intValue());
 				}
 				break; // Unknown operation
 			case __NOT__:
 				if (isInt){
-					return new IntObject(~a.intValue());
+					return IntObject.valueOf(~a.intValue());
 				}
 				break; // Unknown operation
 			case __POW__:
 				if (isInt){
-					return new IntObject((int) Math.pow(a.intValue(),  ((IntObject) b).intValue()));
+					return IntObject.valueOf((int) Math.pow(a.intValue(),  ((IntObject) b).intValue()));
 				}
 				if (isFloat){
 					return new RealObject(Math.pow((double)a.intValue(), ((RealObject) b).doubleValue()));
@@ -160,12 +160,12 @@ public final class Arithmetics {
 				}
 			case __RSHIFT__:
 				if (isInt){
-					return new IntObject(a.intValue() >> ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() >> ((IntObject) b).intValue());
 				}
 				break; // Unknown operation
 			case __LSHIFT__:
 				if (isInt){
-					return new IntObject(a.intValue() << ((IntObject) b).intValue());
+					return IntObject.valueOf(a.intValue() << ((IntObject) b).intValue());
 				}
 				break; // Unknown operation
 			case __LT__ :

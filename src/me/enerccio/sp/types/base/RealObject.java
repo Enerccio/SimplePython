@@ -39,8 +39,8 @@ public class RealObject extends NumberObject {
 	}
 
 	@Override
-	public IntObject getId(){
-		return new IntObject(Double.valueOf(value).hashCode());
+	public int getId(){
+		return Double.valueOf(value).hashCode();
 	}
 
 	public float floatValue() {
@@ -53,7 +53,7 @@ public class RealObject extends NumberObject {
 
 	@Override
 	protected PythonObject getIntValue() {
-		return new IntObject(new Double(value).longValue());
+		return IntObject.valueOf(new Double(value).longValue());
 	}
 	
 	@Override

@@ -2,7 +2,6 @@ package me.enerccio.sp.types.pointer;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.utils.Utils;
 
 public class PointerObject extends PythonObject {
@@ -24,10 +23,10 @@ public class PointerObject extends PythonObject {
 	}
 	
 	@Override
-	public IntObject getId(){
+	public int getId(){
 		if (pointed == null)
-			return new IntObject(0);
-		return new IntObject(pointed.hashCode());
+			return 0;
+		return pointed.hashCode();
 	}
 
 	@Override

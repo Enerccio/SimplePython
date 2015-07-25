@@ -40,7 +40,7 @@ public class ClassObject extends CallableObject {
 			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
 					new Class<?>[]{StringObject.class}), false));
 		} catch (NoSuchMethodException e){
-			// will not happen
+			e.printStackTrace();
 		}
 	};
 	
@@ -77,8 +77,9 @@ public class ClassObject extends CallableObject {
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 				if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
 					if (PythonInterpret.interpret.get().exception() != null){
+						PythonObject e = PythonInterpret.interpret.get().exception();
 						PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
-						throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+						throw new PythonExecutionException(e);
 					}
 					return instance;
 				}

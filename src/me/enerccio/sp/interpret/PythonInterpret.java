@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -27,6 +28,7 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+@SuppressWarnings("unused")
 public class PythonInterpret extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
@@ -92,8 +94,9 @@ public class PythonInterpret extends PythonObject {
 					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 						if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
 							if (PythonInterpret.interpret.get().exception() != null){
+								PythonObject e = PythonInterpret.interpret.get().exception();
 								PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
-								throw new PythonExecutionException(PythonInterpret.interpret.get().exception());
+								throw new PythonExecutionException(e);
 							}
 							return returnee;
 						}
@@ -185,6 +188,8 @@ public class PythonInterpret extends PythonObject {
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
 		}
+		if (currentFrame.getLast().parentFrame == null)
+			currentEnvironment.pop();
 		removeLastFrame();
 	}
 
@@ -209,7 +214,7 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode)); 
+		//System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 		case LABEL:
@@ -314,6 +319,9 @@ public class PythonInterpret extends PythonObject {
 		case SAVE:
 			environment().set(new StringObject(((Save)pythonBytecode).stringValue), stack.pop(), false, false);
 			break;
+		case SAVE_LOCAL:
+			environment().getLocals().backingMap.put(new StringObject(((SaveLocal)pythonBytecode).stringValue), stack.pop());
+			break;
 		case SAVEGLOBAL:
 			environment().set(new StringObject(((Save)pythonBytecode).stringValue), stack.pop(), true, false);
 			break;
@@ -373,7 +381,7 @@ public class PythonInterpret extends PythonObject {
 		case RESOLVE_ARGS:
 			synchronized (this.args.backingMap){
 				for (PythonProxy key : this.args.backingMap.keySet()){
-					environment().set((StringObject) key.o, this.args.backingMap.get(key), false, false);
+					environment().getLocals().backingMap.put((StringObject) key.o, this.args.backingMap.get(key));
 				}
 			}
 			break;
