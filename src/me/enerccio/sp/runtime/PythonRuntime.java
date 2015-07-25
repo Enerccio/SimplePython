@@ -125,6 +125,15 @@ public class PythonRuntime {
 		o.linkName = key++;
 	}
 	
+	/** Returns module with given name */
+	public synchronized ModuleObject getModule(String key) {
+		String[] submodules = key.split(".");
+		ModuleObject m = getRoot(submodules[0]);
+		for (int i=1; i<submodules.length; i++)
+			m = (ModuleObject)m.getField(submodules[i]);
+		return m;
+	}
+	
 	public synchronized ModuleObject getRoot(String key) {
 		if (!root.containsKey(key)){
 			root.put(key, getModule(key, null));
