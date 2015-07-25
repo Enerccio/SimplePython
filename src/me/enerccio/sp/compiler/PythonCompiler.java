@@ -1136,7 +1136,7 @@ public class PythonCompiler {
 		} else if (ctx.getText().startsWith("(")){
 			compile(ctx.testlist_comp(), bytecode);
 		} else if (ctx.getText().startsWith("[")){
-			compile(ctx.listmaker(), bytecode);
+			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")){
 			// TODO
 		}
@@ -1158,7 +1158,15 @@ public class PythonCompiler {
 	}
 
 	private void compile(ListmakerContext listmaker,
-			List<PythonBytecode> bytecode) {
+			List<PythonBytecode> bytecode, Token token) {
+		if (listmaker == null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, token));
+			cb.stringValue = ListTypeObject.LIST_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, token));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, token));
+			return;
+		}
 		if (listmaker.list_for() != null){
 			// TODO
 		} else {
