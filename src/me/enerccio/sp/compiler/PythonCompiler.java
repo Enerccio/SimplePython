@@ -319,22 +319,29 @@ public class PythonCompiler {
 	}
 	
 	private void compileFor(For_stmtContext ctx, List<PythonBytecode> bytecode) {
+		PythonBytecode jumpOut;
 		// Compile getiter
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+		cb.stringValue = "iter";
 		compileRightHand(ctx.testlist(), bytecode);
-		putGetAttr(ListObject.__ITER__, bytecode, ctx.testlist().start);
-		// Compile grabbing item
-		int start = bytecode.size();
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
-		putGetAttr(OrderedSequenceIterator.NEXT, bytecode, ctx.start);
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
-		cb.intValue = 0;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, ctx.start));
+		cb.intValue = 1;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
-		// Compile storing item
+		// Compile iter.next() 
+		putGetAttr("next", bytecode, ctx.start);
+		// Compile loop
+		int start = bytecode.size();
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, ctx.start));
+		bytecode.add(jumpOut = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, ctx.start));
+		// Assign to iteration variable
 		compileAssignment(ctx.exprlist(), bytecode);
 		// Compile block
 		compileSuite(ctx.suite(0), bytecode);
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
 		cb.intValue = start;
+		jumpOut.intValue = bytecode.size();
+		// Pop iter.next
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
 	}
 
 	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode) {

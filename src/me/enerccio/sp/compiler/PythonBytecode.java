@@ -60,10 +60,10 @@ public class PythonBytecode extends PythonObject {
 		/**
 		 * 
 		 */
-		private static final long serialVersionUID = 438692838919066015L;
+		private static final long serialVersionUID = 3446042551581498953L;
 
 		{
-			bytecode = Bytecode.SAVE_LOCAL;
+			bytecode = Bytecode.RAISE;
 		}
 		
 		@Override
@@ -92,6 +92,22 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.ACCEPT_RETURN;
 		}
+	}
+	
+	public static class AcceptIter extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6332909908617239072L;
+
+		{
+			bytecode = Bytecode.ACCEPT_ITER;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), intValue);
+		}		
 	}
 	
 	public static class PushEnvironment extends PythonBytecode {
@@ -210,9 +226,6 @@ public class PythonBytecode extends PythonObject {
 	}
 
 	public static class RCall extends PythonBytecode {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 9058117934717120328L;
 
 		{
@@ -222,6 +235,14 @@ public class PythonBytecode extends PythonObject {
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
+		}
+	}
+	
+	public static class ECall extends PythonBytecode {
+		private static final long serialVersionUID = 9058117934717120328L;
+
+		{
+			bytecode = Bytecode.ECALL;
 		}
 	}
 	
