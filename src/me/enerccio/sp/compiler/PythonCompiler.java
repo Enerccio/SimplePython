@@ -1137,8 +1137,22 @@ public class PythonCompiler {
 				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
 			}
 		} else {
-			// TODO set
-			throw new NotImplementedException();
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = "set";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
+			if (ctx != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+				putGetAttr("add", bytecode, ctx.start);
+				if (ctx.comp_for() != null){
+					// TODO
+					throw new NotImplementedException();
+				} else 
+					for (TestContext dcx : ctx.test())
+						compile(dcx, bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
+			}
 		}
 	}
 

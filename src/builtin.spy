@@ -52,6 +52,20 @@ def __iter():
     factory.__name__ = "iter"
     return factory
 
+class set(object):
+    def __init__(self, iterable):
+        self.__inner_map = {}
+        pass #TODO
+    
+    def __str__(self):
+        return "set=[" + self.__tostr() + "]"
+    
+    def __tostr(self):
+        return "" #TODO
+    
+    def add(self, o):
+        self.__inner_map[o] = o;
+
 iter = __iter()
 __iter = None
 
