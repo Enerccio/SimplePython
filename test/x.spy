@@ -23,4 +23,5 @@ def test():
     print y2.work2()
 """
 
-x = []
+x = { "anca": 156, "mara":75, 64:True, }
+print x

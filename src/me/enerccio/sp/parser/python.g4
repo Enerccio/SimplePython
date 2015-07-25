@@ -455,8 +455,12 @@ testlist
 ;
 
 dictorsetmaker
-: ( (test ':' test (comp_for | (',' test ':' test)* ','?)) |
-                  (test (comp_for | (',' test)* ','?)) )
+: dictentry (comp_for | (',' dictentry)* ','?)
+| test (comp_for | (',' test)* ','?)
+;
+
+dictentry
+: test ':' test
 ;
 
 classdef
