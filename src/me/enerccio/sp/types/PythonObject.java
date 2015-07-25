@@ -7,7 +7,9 @@ import java.util.Map;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.BoolObject;
+import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -92,10 +94,9 @@ public abstract class PythonObject implements Serializable {
 		if (!fields.containsKey(key))
 			return null;
 		AugumentedPythonObject field = fields.get(key);
-		if (field.restrictions == AccessRestrictions.PRIVATE && 
-				(localContext == null || this != localContext))
+		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
-					Utils.run("str", Utils.run("type", this)));
+					Utils.run("str", Utils.run("type", this)) + "'");
 		return field.object;
 	}
 
@@ -105,11 +106,24 @@ public abstract class PythonObject implements Serializable {
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
 		AugumentedPythonObject field = fields.get(key);
-		if (field.restrictions == AccessRestrictions.PRIVATE && this != localContext)
+		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
-					Utils.run("str", Utils.run("type", this)));
+					Utils.run("str", Utils.run("type", this)) + "'");
 		field.object = value;
+		if (value == null)
+			fields.remove(key);
 		return NoneObject.NONE;
+	}
+
+	private boolean isPrivate(PythonObject localContext) {
+		if (localContext == null)
+			return false;
+		
+		if (localContext instanceof ClassObject && this instanceof ClassInstanceObject){
+			return !(localContext == fields.get("__class__").object);
+		}
+		
+		return true;
 	}
 
 	public synchronized void create(String key, AccessRestrictions restrictions){

@@ -1,11 +1,17 @@
 package me.enerccio.sp.types.sequences;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 public class ListObject extends MutableSequenceObject implements SimpleIDAccessor  {
@@ -13,6 +19,33 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 
 	public ListObject(){
 		
+	}
+	
+	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	
+	static {
+		try {
+			Utils.putPublic(sfields, "append", new JavaMethodObject(null, ListObject.class.getMethod("append", 
+					new Class<?>[]{PythonObject.class}), false));
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void newObject() {
+		super.newObject();
+		
+		String m;
+		
+		m = "append";
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+	}
+	
+	public synchronized PythonObject append(PythonObject value){
+		objects.add(value);
+		return this;
 	}
 	
 	public List<PythonObject> objects = new ArrayList<PythonObject>();

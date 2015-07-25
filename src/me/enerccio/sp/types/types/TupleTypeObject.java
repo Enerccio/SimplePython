@@ -14,6 +14,7 @@ public class TupleTypeObject extends TypeObject {
 	
 	@Override
 	public PythonObject call(TupleObject args) {
+		args.newObject();
 		return args;
 	}
 

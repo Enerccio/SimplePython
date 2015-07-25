@@ -10,6 +10,7 @@ import me.enerccio.sp.utils.Utils;
 
 public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAccessor {
 	private static final long serialVersionUID = 12L;
+	private volatile boolean initialized = false;
 	
 	public TupleObject(){
 		array = new PythonObject[0];
@@ -17,7 +18,6 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	public TupleObject(PythonObject... args){
 		array = args;
-		newObject();
 	}
 	
 	private PythonObject[] array;
@@ -27,6 +27,16 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		return IntObject.valueOf(array.length);
 	}
 	
+	@Override
+	public void newObject(){
+		if (!initialized)
+			synchronized (this){
+				if (!initialized){
+					super.newObject();
+					initialized = true;
+				}
+			}
+	}
 	
 	@Override
 	public int getId(){

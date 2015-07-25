@@ -20,7 +20,6 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
@@ -38,9 +37,6 @@ import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.callables.UserMethodObject;
-import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
@@ -255,60 +251,6 @@ public class Utils {
 		if (i<0)
 			return len-(Math.abs(i));
 		return i;
-	}
-
-	public static List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {
-		PythonBytecode b = null;
-		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
-
-		PythonObject callable = o.get(UserMethodObject.SELF, o);
-		PythonObject caller = o.get(UserMethodObject.FUNC, o);
-		
-		// []
-		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
-		// environments
-		if (caller instanceof UserFunctionObject && caller.fields.containsKey("closure")){
-			// add closure
-			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
-				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-				b.mapValue = (MapObject) d;	
-			}
-		} else {
-			// add globals
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.mapValue = new MapObject();
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.mapValue = PythonRuntime.runtime.generateGlobals();
-		}
-		
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = callable;
-		// [ python object self ]
-		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
-		// []
-		
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = caller;
-		// [ callable ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = o.get(UserMethodObject.SELF, o);
-		// [ callable, python object ]
-		
-		for (int i=0; i<args.len(); i++){
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-			b.value = args.valueAt(i);
-			// [ callable, python object, python object*++ ]
-		}
-		// [ callable, python object, python object* ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
-		b.intValue = args.len() + 1;
-		// []
-		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-		// [ python object ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
-		b.intValue = 1;
-		// []
-		return l;
 	}
 
 	public static boolean equals(PythonObject a, PythonObject b) {

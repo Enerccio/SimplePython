@@ -1,5 +1,59 @@
-def iter(obj):
-    return obj.__iter__()
+def abs(x):
+    if x > 0:
+        return True
+    return False
+
+def all(iterable):
+    pass
+
+def any(iterable):
+    pass
+
+def callable(object):
+    t = type(object)
+    if t == function(): return True
+    if t == method(): return True
+    if t == type(): return True
+    if t == javamethod(): return True
+    return hasattr(object, "__call__")
+
+def cmp(x, y):
+    if x < y:
+        return -1
+    elif x == y:
+        return 0
+    else:
+        return 1
+    
+
+
+def __iter():
+    class iter(object):
+        def __init__(self, o):
+            self.__data_source = o
+            self.__index = 0
+            
+        def __iter__(self):
+            return self
+        
+        def next(self):
+            try:
+                i = self.__index
+                self.__index += 1
+                return self.__data_source[i]
+            except IndexError:
+                raise StopIteration()
+            
+    def factory(obj):
+        if hasattr(obj, "__iter__"):
+            return obj.__iter__()
+        else:
+            return iter(obj)
+    factory.__name__ = "iter"
+    return factory
+
+iter = __iter()
+__iter = None
 
 class xrange(object):
     class iter(object):
@@ -29,8 +83,31 @@ class xrange(object):
     
     def __iter__(self):
         return iter(self)
-    
+   
+""" 
 def range(arg1, arg2=None, arg3=1):
     r = xrange(arg1, arg2, arg3)
-    # TODO
-    return r
+    l = []
+    for v in r:
+        l.append(v)
+    return l
+
+class super(object):
+    def __init__(self, cls, inst=None):
+        self.__cls = cls
+        self.__inst = inst
+        self.__mro = mro(cls)[1:]
+        
+    def __getattr__(self, key):
+        arg = __find_applicable(key);
+        if self.__inst is not None:
+            return method(arg, self.__inst)
+        else:
+            return arg
+        
+    def __inst(self, key):
+        for cls in self.__mro:
+            if (hasattr(cls, key)):
+                return getattr(cls, key)
+        raise AttributeError("unknown attribute " + key)
+"""

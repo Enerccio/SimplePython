@@ -60,10 +60,15 @@ public class PythonBytecode extends PythonObject {
 		/**
 		 * 
 		 */
-		private static final long serialVersionUID = 3446042551581498953L;
+		private static final long serialVersionUID = 438692838919066015L;
 
 		{
-			bytecode = Bytecode.RAISE;
+			bytecode = Bytecode.SAVE_LOCAL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 
