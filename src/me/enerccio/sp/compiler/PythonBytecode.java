@@ -78,17 +78,6 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
-	public static class Label extends PythonBytecode {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -2062223828757289737L;
-
-		{
-			bytecode = Bytecode.LABEL;
-		}
-	}
-	
 	public static class AcceptReturn extends PythonBytecode {
 		/**
 		 * 

@@ -188,11 +188,7 @@ simple_stmt
 
 small_stmt
 : (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
-             import_stmt | global_stmt | label_stmt)
-;
-
-label_stmt
-: '&' nname
+             import_stmt | global_stmt )
 ;
 
 expr_stmt

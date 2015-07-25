@@ -104,7 +104,10 @@ public class PythonInterpret extends PythonObject {
 			} else
 				return ((CallableObject)callable).call(new TupleObject(args));
 		} else {
-			return execute(false, callable.get(CallableObject.__CALL__, getLocalContext()), args);
+			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
+			if (callableArg == null)
+				Utils.throwException("TypeError", callable.toString() + " is not callable");
+			return execute(false, callableArg, args);
 		}
 	}
 
@@ -132,7 +135,6 @@ public class PythonInterpret extends PythonObject {
 		FrameObject o;
 		currentFrame.add(o = new FrameObject());
 		o.bytecode = new ArrayList<PythonBytecode>(frame);
-		o.recalculateLabels();
 	}
 
 	public ExecutionResult executeOnce(){
@@ -218,8 +220,6 @@ public class PythonInterpret extends PythonObject {
 		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
-			break;
-		case LABEL:
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
@@ -348,14 +348,23 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case UNPACK_SEQUENCE:
+			int cfc = currentFrame.size();
 			PythonObject seq = stack.pop();
-			PythonObject iterator = execute(true, Utils.get(seq, SequenceObject.__ITER__));
+			PythonObject iterator;
 			PythonObject[] ss = new PythonObject[pythonBytecode.intValue];
 			PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
 			
 			try {
+				Utils.run("iter", seq);
+				if (currentFrame.size() != cfc)
+					executeAll(cfc);
+				iterator = returnee;
+				
 				for (int i=ss.length-1; i>=0; i--){
-					ss[i] = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
+					returnee = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
+					if (currentFrame.size() != cfc)
+						executeAll(cfc);
+					ss[i] = returnee;
 				}
 			} catch (PythonExecutionException e){
 				if (Utils.run("isinstance", e.getException(), stype).truthValue()){
@@ -366,6 +375,8 @@ public class PythonInterpret extends PythonObject {
 			
 			try {
 				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
+				if (currentFrame.size() != cfc)
+					executeAll(cfc);
 				throw Utils.throwException("ValueError", "too many values to unpack");
 			} catch (PythonExecutionException e){
 				if (!Utils.run("isinstance", e.getException(), stype).truthValue()){
@@ -558,5 +569,22 @@ public class PythonInterpret extends PythonObject {
 
 	public FrameObject frame() {
 		return currentFrame.peekLast();
+	}
+
+	public void executeAll(int cfc) {
+		while (true){
+			ExecutionResult res = executeOnce();
+			if (res == ExecutionResult.INTERRUPTED)
+				return;
+			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
+				if (currentFrame.size() == cfc){
+					if (exception() != null){
+						PythonObject e = exception();
+						currentFrame.peekLast().exception = null;
+						throw new PythonExecutionException(e);
+					}
+					return;
+				}
+		}
 	}
 }

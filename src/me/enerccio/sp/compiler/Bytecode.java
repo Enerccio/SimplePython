@@ -29,7 +29,7 @@ public enum Bytecode {
 	// frames 
 	
 	// custom
-	CUSTOM(255), LABEL(254);
+	CUSTOM(255);
 	
 	Bytecode(int id){
 		this.id = id;
@@ -166,10 +166,6 @@ public enum Bytecode {
 			break;
 		case ISINSTANCE:
 			bytecode = new IsInstance();
-			bytecode.newObject();
-			break;
-		case LABEL:
-			bytecode = new Label();
 			bytecode.newObject();
 			break;
 		case RAISE:

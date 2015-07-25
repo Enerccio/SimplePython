@@ -578,11 +578,6 @@ public class PythonCompiler {
 			compile(smstmt.flow_stmt(), bytecode);
 		}
 		
-		if (smstmt.label_stmt() != null){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL, smstmt.start));
-			cb.stringValue = smstmt.label_stmt().nname().getText();
-		}
-		
 	}
 
 	private void compile(Flow_stmtContext ctx,

@@ -165,7 +165,6 @@ public class PythonRuntime {
 
 	private static volatile MapObject globals = null;
 	public static final String IS = "is";
-	public static final String GO = "go";
 	public static final String MRO = "mro";
 	public static final String GETATTR = "getattr";
 	public static final String SETATTR = "setattr";
@@ -205,7 +204,6 @@ public class PythonRuntime {
 					globals.put(CLASSMETHOD, Utils.staticMethodCall(PythonRuntime.class, CLASSMETHOD, UserFunctionObject.class));
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
-					globals.put(GO, Utils.staticMethodCall(PythonRuntime.class, GO, String.class));
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
@@ -295,15 +293,6 @@ public class PythonRuntime {
 		StaticMethodObject smo = new StaticMethodObject();
 		Utils.putPublic(smo, StaticMethodObject.__FUNC__, o);
 		return smo;
-	}
-	
-	public static PythonObject go(String where){
-		PythonInterpret current = PythonInterpret.interpret.get();
-		FrameObject frame = current.frame();
-		if (!frame.labelMap.containsKey(where))
-			throw Utils.throwException("Error", "label '" + where + "' undefined");
-		frame.pc = frame.labelMap.get(where);
-		return NoneObject.NONE;
 	}
 	
 	public static PythonObject mro(ClassObject clazz){

@@ -166,7 +166,8 @@ public class Utils {
 	public static <T> T peek(Stack<T> stack) {
 		if (stack.empty())
 			return null;
-		return stack.peek();
+		T value = stack.peek();
+		return value;
 	}
 
 	public static PythonObject staticMethodCall(boolean noTypeConversion, Class<?> clazz,

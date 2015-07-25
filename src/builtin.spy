@@ -24,8 +24,6 @@ def cmp(x, y):
         return 0
     else:
         return 1
-    
-
 
 def __iter():
     class iter(object):
@@ -98,7 +96,7 @@ class xrange(object):
     def __iter__(self):
         return iter(self)
    
-""" 
+"""
 def range(arg1, arg2=None, arg3=1):
     r = xrange(arg1, arg2, arg3)
     l = []
@@ -114,8 +112,11 @@ class super(object):
         
     def __getattr__(self, key):
         arg = __find_applicable(key);
-        if self.__inst is not None:
-            return method(arg, self.__inst)
+        if type(arg) == function:
+            if self.__inst is not None:
+                return method(arg, self.__inst, arg)
+            else:
+                return arg
         else:
             return arg
         
@@ -124,4 +125,5 @@ class super(object):
             if (hasattr(cls, key)):
                 return getattr(cls, key)
         raise AttributeError("unknown attribute " + key)
+        
 """
