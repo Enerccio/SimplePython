@@ -68,7 +68,7 @@ public class PythonBytecode extends PythonObject {
 		
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+			return String.format("%s", getOpcode().toString());
 		}
 	}
 

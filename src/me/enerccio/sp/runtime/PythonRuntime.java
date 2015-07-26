@@ -258,6 +258,7 @@ public class PythonRuntime {
 					
 					PythonCompiler c = new PythonCompiler();
 					List<PythonBytecode> builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
+					// List<PythonBytecode> builtin = new ArrayList<>();
 					
 					PythonInterpret.interpret.get().currentEnvironment.pop();
 					
@@ -444,6 +445,7 @@ public class PythonRuntime {
 		addException(globals, "IndexError", "Exception", true);
 		addException(globals, "InterpretError", "Exception", true);
 		addException(globals, "StopIteration", "Exception", false);
+		addException(globals, "LoopBreak", "Exception", false);
 	}
 
 
