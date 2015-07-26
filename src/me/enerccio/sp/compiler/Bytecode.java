@@ -19,7 +19,7 @@ public enum Bytecode {
 	// control
 	POP(17), PUSH(18), CALL(19), RCALL(20), DUP(21), SWAP_STACK(22),
 	JUMPIFTRUE(23), JUMPIFFALSE(24), JUMPIFNONE(25), JUMPIFNORETURN(26),
-	GOTO(27), RETURN(28), SAVE_LOCAL(29),
+	GOTO(27), RETURN(28), SAVE_LOCAL(29), LABEL(31), 
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
@@ -27,6 +27,9 @@ public enum Bytecode {
 	// macros
 	GETATTR(90), SETATTR(90), ISINSTANCE(91), 
 	// frames 
+	
+	// loops / iterators
+	ECALL(100), ACCEPT_ITER(101),
 	
 	// custom
 	CUSTOM(255);
@@ -60,6 +63,14 @@ public enum Bytecode {
 			bytecode = new RCall();
 			bytecode.newObject();
 			break;
+		case ECALL:
+			bytecode = new ECall();
+			bytecode.newObject();
+			break;
+		case ACCEPT_ITER:
+			bytecode = new AcceptIter();
+			bytecode.newObject();
+			break;
 		case CUSTOM:
 			bytecode = new CustomBytecode();
 			bytecode.newObject();
@@ -70,6 +81,10 @@ public enum Bytecode {
 			break;
 		case GOTO:
 			bytecode = new Goto();
+			bytecode.newObject();
+			break;
+		case LABEL:
+			bytecode = new Label();
 			bytecode.newObject();
 			break;
 		case JUMPIFFALSE:
@@ -207,7 +222,7 @@ public enum Bytecode {
 		String s = bc.toString();
 		int cut = s.length();
 		if (cut > 80) cut  = 80;
-		return String.format("%05d \t%S" , i, s.substring(0, cut));
+		return String.format("%05d \t%s" , i, s.substring(0, cut));
 	}
 
 	
