@@ -48,7 +48,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		return this;
 	}
 	
-	public List<PythonObject> objects = new ArrayList<PythonObject>();
+	public List<PythonObject> objects = Collections.synchronizedList(new ArrayList<PythonObject>());
 	
 	@Override
 	public IntObject size() {
@@ -68,8 +68,29 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	@Override
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){
-			// TODO
-			return null;
+			ListObject lo = new ListObject();
+			lo.newObject();
+			
+			int[] slicedata = getSliceData(objects.size(), key);
+			int sav = slicedata[0];
+			int sov = slicedata[1];
+			int stv = slicedata[2];
+			boolean reverse = slicedata[3] == 1;
+			
+			synchronized (objects){
+				if (sav <= sov)
+					for (int i=sav; i<sov; i+=stv)
+						lo.objects.add(objects.get(i));
+				else
+					for (int i=sov; i<sav; i+=stv)
+						lo.objects.add(objects.get(i));
+				if (reverse)
+					synchronized (lo.objects){
+						Collections.reverse(lo.objects);
+					}
+			}
+			
+			return lo;
 		} else 
 		return Utils.doGet(this, key);
 	}

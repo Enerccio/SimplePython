@@ -1,6 +1,8 @@
 package me.enerccio.sp.types.sequences;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import me.enerccio.sp.types.PythonObject;
@@ -65,8 +67,29 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	@Override
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){
-			// TODO
-			return null;
+			TupleObject to = new TupleObject();
+			to.newObject();
+			
+			int[] slicedata = getSliceData(array.length, key);
+			int sav = slicedata[0];
+			int sov = slicedata[1];
+			int stv = slicedata[2];
+			boolean reverse = slicedata[3] == 1;
+			
+			List<PythonObject> lo = new ArrayList<PythonObject>();
+			
+			if (sav <= sov)
+				for (int i=sav; i<sov; i+=stv)
+					lo.add(array[i]);
+			else
+				for (int i=sov; i<sav; i+=stv)
+					lo.add(array[i]);
+			if (reverse)
+				Collections.reverse(lo);
+			
+			to.array = lo.toArray(new PythonObject[lo.size()]);
+			
+			return to;
 		} else 
 			return Utils.doGet(this, key);
 	}

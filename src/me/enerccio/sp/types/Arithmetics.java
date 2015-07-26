@@ -56,7 +56,7 @@ public final class Arithmetics {
 		}
 		
 		if (a instanceof StringObject){
-			// TODO
+			return doOperatorString((StringObject)a, b, m);
 		}
 		
 		if (a instanceof ListObject){
@@ -68,7 +68,7 @@ public final class Arithmetics {
 		else
 			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
 	}
-	
+
 	private static PythonObject doOperatorInt(IntObject a, PythonObject b,
 			String m) {
 		boolean isInt = b instanceof IntObject;
@@ -385,4 +385,17 @@ public final class Arithmetics {
 			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
 	}
 	
+	private static PythonObject doOperatorString(StringObject a,
+			PythonObject b, String m) {
+		
+		switch (m){
+		case __ADD__:
+			return new StringObject(a.value + Utils.run("str", b).toString());
+		}
+		
+		if (b != null)
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+		else
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+	}
 }

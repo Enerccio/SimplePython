@@ -1,2 +1,40 @@
-x = { "anca": 156, "mara":75, 64:True, }
-print x
+"""
+class Y(object):
+    def __init__(self, x):
+        self.__x = x
+        
+    def work(self):
+        print self.__x
+        
+class Y2(Y):
+    def __init__(self, x):
+        super(Y2).__init__(self, x)
+        
+    def work2(self):
+        print self.__x
+
+def test(): 
+    y = Y(10);
+    print y
+    print y.work()
+    
+    y2 = Y2(20)
+    print y2.work()
+    print y2.work2()
+"""
+
+class A:
+    def __init__(self):
+        self.a = 0
+    
+    def __iter__(self):
+        return self
+    
+    def next(self):
+        self.a += 1
+        if self.a > 6:
+            raise StopIteration
+        return self.a
+
+def test():    
+    A()()

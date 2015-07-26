@@ -120,7 +120,7 @@ public abstract class PythonObject implements Serializable {
 			return false;
 		
 		if (localContext instanceof ClassObject && this instanceof ClassInstanceObject){
-			return !(localContext == fields.get("__class__").object);
+			return (localContext == fields.get("__class__").object);
 		}
 		
 		return true;

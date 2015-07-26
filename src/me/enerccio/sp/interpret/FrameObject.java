@@ -30,5 +30,4 @@ public class FrameObject extends PythonObject {
 	public String debugModule;
 	public int debugLine;
 	public int debugInLine;
-
 }

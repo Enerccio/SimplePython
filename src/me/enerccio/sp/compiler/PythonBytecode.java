@@ -84,9 +84,6 @@ public class PythonBytecode extends PythonObject {
 	}
 	
 	public static class AcceptReturn extends PythonBytecode {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 6332909908617239072L;
 
 		{
@@ -95,9 +92,6 @@ public class PythonBytecode extends PythonObject {
 	}
 	
 	public static class AcceptIter extends PythonBytecode {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 6332909908617239072L;
 
 		{

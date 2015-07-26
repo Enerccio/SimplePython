@@ -7,6 +7,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
@@ -780,13 +784,24 @@ public class PythonCompiler {
 			// TODO
 		} else {
 			boolean eol = (ctx.endp() == null);
-			for (TestContext tc : ctx.test()){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, tc.start));
-				cb.stringValue = PythonRuntime.PRINT_JAVA;
-				compile(tc, bytecode);
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.intValue = 1;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			cb.stringValue = PythonRuntime.PRINT_JAVA;
+			int tlc = ctx.test().size();
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+				cb.stringValue = TupleTypeObject.TUPLE_CALL;
 			}
+			
+			for (TestContext tc : ctx.test())
+				compile(tc, bytecode);
+			
+			if (tlc > 1){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+				cb.intValue = tlc;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.stop));
+			}
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+			cb.intValue = 1;
 			
 			if (eol){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));
@@ -1121,44 +1136,25 @@ public class PythonCompiler {
 		}
 	}
 
-	private void compileSubscript(ParserRuleContext arglist,
+	private void compileSubscript(SubscriptlistContext sc,
 			List<PythonBytecode> bytecode, Token pt) {
 		putGetAttr("__getitem__", bytecode, pt);
-		if (arglist == null){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, pt));
-			cb.intValue = 0;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, pt));
-		} else if (arglist instanceof ArglistContext) {
-			int argc = compileArguments((ArglistContext) arglist, bytecode);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ArglistContext) arglist).stop));
-			cb.intValue = argc;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ArglistContext) arglist).stop));
-		} else if (arglist instanceof ListmakerContext){
-			if (((ListmakerContext) arglist).list_for() != null)
-				throw Utils.throwException("SyntaxError", "list comprehension expression not allowed");
-			compile(((ListmakerContext) arglist).test(0), bytecode);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ListmakerContext) arglist).test(0).stop));
-			cb.intValue = 1;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ListmakerContext) arglist).test(0).stop));
-		} else if (arglist instanceof SubscriptlistContext){
-			SubscriptlistContext sc = (SubscriptlistContext) arglist;
-			int tlc = sc.subscript().size();
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, sc.start));
-				cb.stringValue = TupleTypeObject.TUPLE_CALL;
-			}
-			for (SubscriptContext s : sc.subscript()){
-				compile(s, bytecode);
-			}
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, sc.stop));
-				cb.intValue = tlc;
-				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, sc.stop));
-			}
+		int tlc = sc.subscript().size();
+		if (tlc > 1){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, sc.start));
+			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+		}
+		for (SubscriptContext s : sc.subscript()){
+			compile(s, bytecode);
+		}
+		if (tlc > 1){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, sc.stop));
-			cb.intValue = 1;
+			cb.intValue = tlc;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, sc.stop));
 		}
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, sc.stop));
+		cb.intValue = 1;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, sc.stop));
 	}
 
 	private void compile(SubscriptContext s, List<PythonBytecode> bytecode) {
@@ -1207,6 +1203,7 @@ public class PythonCompiler {
 			
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, s.stop));
 			cb.intValue = 3;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, s.stop));
 		}
 	}
 
@@ -1315,7 +1312,22 @@ public class PythonCompiler {
 				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
 			}
 		} else {
-			// TODO set
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = "set";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
+			if (ctx != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+				putGetAttr("add", bytecode, ctx.start);
+				if (ctx.comp_for() != null){
+					// TODO
+					throw new NotImplementedException();
+				} else 
+					for (TestContext dcx : ctx.test())
+						compile(dcx, bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
+			}
 		}
 	}
 

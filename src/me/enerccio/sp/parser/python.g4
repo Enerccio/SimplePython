@@ -473,7 +473,7 @@ dictentry
 ;
 
 classdef
-: 'class' nname '(' testlist? ')' ':' suite
+: 'class' nname ('(' testlist? ')')? ':' suite
 ;
 
 arglist
