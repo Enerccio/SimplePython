@@ -399,6 +399,7 @@ public class PythonCompiler {
 	}
 	
 	private void compileFor(For_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		PythonBytecode acceptIter;
 		// Compile getiter
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
 		cb.stringValue = "iter";
@@ -412,13 +413,16 @@ public class PythonCompiler {
 		LoopStackItem lsi = new LoopStackItem(bytecode.size());
 		cs = ControllStack.push(cs, lsi);
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, ctx.start));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, ctx.start));
-		lsi.addJump(cb);
+		bytecode.add(acceptIter = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, ctx.start));
 		// Assign to iteration variable
 		compileAssignment(ctx.exprlist(), bytecode);
 		// Compile block
 		compileSuite(ctx.suite(0), bytecode, cs);
 		lsi.addContinue(ctx, bytecode);
+		// Compile else block (if any)
+		acceptIter.intValue = bytecode.size();
+		if (ctx.suite(1) != null)
+			compileSuite(ctx.suite(1), bytecode, cs);
 		// TODO: Else somewhere here
 		lsi.finalize(bytecode.size());
 		// Pop iter.next
