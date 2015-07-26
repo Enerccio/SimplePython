@@ -446,6 +446,7 @@ public class PythonRuntime {
 		addException(globals, "InterpretError", "Exception", true);
 		addException(globals, "StopIteration", "Exception", false);
 		addException(globals, "LoopBreak", "Exception", false);
+		addException(globals, "LoopContinue", "Exception", false);
 	}
 
 
