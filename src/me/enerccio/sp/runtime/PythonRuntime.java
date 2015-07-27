@@ -344,8 +344,12 @@ public class PythonRuntime {
 				if (i != ((TupleObject)a).getObjects().length)
 					System.out.print(" ");
 			}
-		} else
-			System.out.print(a);
+		} else {
+			int cfc = PythonInterpret.interpret.get().currentFrame.size();
+			Utils.run("str", a);
+			PythonObject ret = PythonInterpret.interpret.get().executeAll(cfc);
+			System.out.print(Utils.run("str", ret));
+		}
 		return NoneObject.NONE;
 	}
 	

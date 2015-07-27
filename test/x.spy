@@ -1,5 +1,6 @@
-def anca(a, b):
-    print a, b
+class Test(object):
+    def __str__(self):
+        return "anca moja skvela"
     
 def test(): 
-    anca(x=5, y=7)
+    print Test, Test()

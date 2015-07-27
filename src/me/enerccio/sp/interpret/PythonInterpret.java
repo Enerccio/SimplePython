@@ -72,8 +72,8 @@ public class PythonInterpret extends PythonObject {
 
 	public PythonObject executeCall(String function, PythonObject... data) {
 		if (currentEnvironment.size() == 0)
-			return execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
-		return execute(false, environment().get(new StringObject(function), false, false), data);
+			return returnee = execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
+		return returnee = execute(false, environment().get(new StringObject(function), false, false), data);
 	}
 
 	public EnvironmentObject environment() {
@@ -220,10 +220,10 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
-		else
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
+//		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+//		else
+//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -618,11 +618,13 @@ public class PythonInterpret extends PythonObject {
 		return currentFrame.peekLast();
 	}
 
-	public void executeAll(int cfc) {
+	public PythonObject executeAll(int cfc) {
+		if (cfc == currentFrame.size())
+			return returnee;
 		while (true){
 			ExecutionResult res = executeOnce();
 			if (res == ExecutionResult.INTERRUPTED)
-				return;
+				return null;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
 				if (currentFrame.size() == cfc){
 					if (exception() != null){
@@ -630,7 +632,7 @@ public class PythonInterpret extends PythonObject {
 						currentFrame.peekLast().exception = null;
 						throw new PythonExecutionException(e);
 					}
-					return;
+					return returnee;
 				}
 		}
 	}
