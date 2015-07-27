@@ -78,7 +78,9 @@ public class UserFunctionObject extends PythonObject {
 		}
 		
 		if (isVararg){
-			a.put(vararg, Utils.list2tuple(vargs));
+			TupleObject t = (TupleObject) Utils.list2tuple(vargs);
+			t.newObject();
+			a.put(vararg, t);
 		}
 		
 		PythonInterpret.interpret.get().setArgs(a);
