@@ -49,6 +49,8 @@ import me.enerccio.sp.parser.pythonParser.IntegerContext;
 import me.enerccio.sp.parser.pythonParser.LabelContext;
 import me.enerccio.sp.parser.pythonParser.Label_or_stmtContext;
 import me.enerccio.sp.parser.pythonParser.LambdefContext;
+import me.enerccio.sp.parser.pythonParser.List_forContext;
+import me.enerccio.sp.parser.pythonParser.List_iterContext;
 import me.enerccio.sp.parser.pythonParser.ListmakerContext;
 import me.enerccio.sp.parser.pythonParser.NnameContext;
 import me.enerccio.sp.parser.pythonParser.Not_testContext;
@@ -1354,8 +1356,7 @@ public class PythonCompiler {
 		}
 	}
 
-	private void compile(ListmakerContext listmaker,
-			List<PythonBytecode> bytecode, Token token) {
+	private void compile(ListmakerContext listmaker, List<PythonBytecode> bytecode, Token token) {
 		if (listmaker == null){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, token));
 			cb.stringValue = ListTypeObject.LIST_CALL;
@@ -1365,7 +1366,22 @@ public class PythonCompiler {
 			return;
 		}
 		if (listmaker.list_for() != null){
-			// TODO
+			// [ x for x in somethingiterable ]
+			List_forContext fCtx = listmaker.list_for();
+			// Generate empty list
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, listmaker.start));
+			cb.stringValue = ListTypeObject.LIST_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, listmaker.stop));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, listmaker.stop));
+			/** Stack: TOP -> list */
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, listmaker.stop));
+			// Get append method
+			putGetAttr("append", bytecode, fCtx.start);
+			/** Stack: TOP -> list -> list.append */
+			compileListFor(listmaker.test(0), fCtx, bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, fCtx.start));
+			/** Stack: TOP -> list */			
 		} else {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, listmaker.start));
 			cb.stringValue = ListTypeObject.LIST_CALL;
@@ -1375,6 +1391,68 @@ public class PythonCompiler {
 			cb.intValue = listmaker.test().size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, listmaker.stop));
 		}
+	}
+	
+	/** 
+	 * Compiles list_for part of list comprehension.
+	 * Note: When this block is compiled, TOP -> list -> list.append is required to be
+	 * prepared on stack. Same thing is left after block is executed
+	 */
+	private void compileListFor(TestContext expression, List_forContext fCtx, List<PythonBytecode> bytecode) {
+		// Compile somethingiterable & get iterator
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, fCtx.start));
+		cb.stringValue = "iter";
+		compileRightHand(fCtx.testlist(), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, fCtx.testlist().start));
+		cb.intValue = 1;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, fCtx.testlist().start));
+		putGetAttr("next", bytecode, fCtx.start);
+		// Compile getting item from iterator
+		/** Stack: TOP -> list -> list.append -> iterator.next */
+		int loopStart = bytecode.size();
+		PythonBytecode acceptIter;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, fCtx.start));
+		bytecode.add(acceptIter = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, fCtx.start));
+		// Compile assigning to variable
+		compileAssignment(fCtx.exprlist(), bytecode);
+		/** Stack: TOP -> list -> list.append -> iterator.next */
+		// Compile optional list_iter
+		boolean compileStoring = true;
+		if (fCtx.list_iter() != null) {
+			List_iterContext lIter = fCtx.list_iter();
+			if (lIter.list_if() != null) {
+				compile(lIter.list_if().test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, fCtx.start));
+				cb.intValue = loopStart;
+			} else if (lIter.list_for() != null) {
+				compileStoring = false;
+				/** Stack: TOP -> list -> list.append -> iterator.next */
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.DUP, fCtx.start));
+				cb.intValue = 1;
+				/** Stack: TOP -> list -> list.append -> iterator.next -> list.append */
+				compileListFor(expression, lIter.list_for(), bytecode); 
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, fCtx.start));
+			}
+		}
+		if (compileStoring) {
+			// Compile expression
+			compile(expression, bytecode);
+			// Compile storing to list
+			/** Stack: TOP -> list -> list.append -> iterator.next -> expression */
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.DUP, fCtx.start));
+			cb.intValue = 2;
+			/** Stack: TOP -> list -> list.append -> iterator.next -> expression -> list.append */
+			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, fCtx.start));
+			/** Stack: TOP -> list -> list.append -> iterator.next -> list.append -> expression */
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, fCtx.start));
+			cb.intValue = 1;
+		}
+		/** Stack: TOP -> list -> list.append -> iterator.next  */
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, fCtx.start));
+		cb.intValue = loopStart;
+		acceptIter.intValue = bytecode.size();
+		/** Stack: TOP -> list -> list.append -> iterator.next */
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, fCtx.start));
 	}
 
 	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {

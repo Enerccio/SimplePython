@@ -100,7 +100,7 @@ public class PythonBytecode extends PythonObject {
 		
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), intValue);
+			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
 		}		
 	}
 	
@@ -418,6 +418,15 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DUP;
 		}
+		
+		@Override
+		protected String doToString() {
+			if (intValue == 0)
+				return String.format("%s", getOpcode().toString());
+			else
+				return String.format("%s (copies %s-th from top)", getOpcode().toString(), intValue);
+		}
+		
 	}
 	
 	public static class PushFrame extends PythonBytecode {
