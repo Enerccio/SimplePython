@@ -1,3 +1,20 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 package me.enerccio.sp.compiler;
 
 import java.math.BigInteger;
@@ -48,7 +65,6 @@ import me.enerccio.sp.parser.pythonParser.Import_fromContext;
 import me.enerccio.sp.parser.pythonParser.Import_nameContext;
 import me.enerccio.sp.parser.pythonParser.Import_stmtContext;
 import me.enerccio.sp.parser.pythonParser.IntegerContext;
-import me.enerccio.sp.parser.pythonParser.LabelContext;
 import me.enerccio.sp.parser.pythonParser.Label_or_stmtContext;
 import me.enerccio.sp.parser.pythonParser.LambdefContext;
 import me.enerccio.sp.parser.pythonParser.List_forContext;
@@ -58,7 +74,6 @@ import me.enerccio.sp.parser.pythonParser.NnameContext;
 import me.enerccio.sp.parser.pythonParser.Not_testContext;
 import me.enerccio.sp.parser.pythonParser.NumberContext;
 import me.enerccio.sp.parser.pythonParser.Or_testContext;
-import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
 import me.enerccio.sp.parser.pythonParser.PowerContext;
 import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
@@ -103,10 +118,6 @@ import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class PythonCompiler {
 	private static volatile int genFunc = 0;
@@ -184,7 +195,6 @@ public class PythonCompiler {
 		for (Label_or_stmtContext ls : fcx.label_or_stmt())
 			compile(ls, bytecode, null);
 		
-		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT, fcx.stop));
 		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();
@@ -373,19 +383,9 @@ public class PythonCompiler {
 	}
 
 	private void compile(Label_or_stmtContext ls, List<PythonBytecode> bytecode, ControllStack cs) {
-		if (ls.label() != null)
-			compile(ls.label(), bytecode, cs);
-		else
 			compileStatement(ls.stmt(), bytecode, cs);
 	}
-	
-	private void compile(LabelContext label, List<PythonBytecode> bytecode, ControllStack cs) {
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL));
-		cb.stringValue = label.nname().getText();
-		if (label.suite() != null)
-			for (StmtContext c : label.suite().stmt())
-				compileStatement(c, bytecode, cs);
-		}
+
 
 	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 		LoopStackItem lsi = new LoopStackItem(bytecode.size());
@@ -683,23 +683,6 @@ public class PythonCompiler {
 			compileSmallStatement(smstmt, bytecode, cs);
 	}
 
-	private void compileParentheseslessCall(Parenthesesless_callContext ctx, List<PythonBytecode> bytecode) {
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD));
-		cb.stringValue = ctx.nname().getText();
-		if (ctx.arglist() == null) {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-			cb.intValue = 0;
-		} else {
-			int argc = compileArguments(ctx.arglist(), bytecode);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
-			cb.intValue = argc;
-		}
-		if (ctx.testlist() != null) {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
-			compileAssignment(ctx.testlist(), bytecode);
-		}
-	}
-
 	private void compileSmallStatement(Small_stmtContext smstmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		// Import Statement
 		if (smstmt.import_stmt() != null){
@@ -728,8 +711,8 @@ public class PythonCompiler {
 						compileImport2(asname, bytecode, packageName);
 					}
 			}
-		} else if (smstmt.parenthesesless_call() != null) {
-			compileParentheseslessCall(smstmt.parenthesesless_call(), bytecode);
+//		} else if (smstmt.parenthesesless_call() != null) {
+//			compileParentheseslessCall(smstmt.parenthesesless_call(), bytecode);
 		} else if (smstmt.pass_stmt() != null){
 			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, smstmt.start));
 		} else if (smstmt.expr_stmt() != null){
@@ -937,6 +920,19 @@ public class PythonCompiler {
 	
 	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
+			if (ctx.getChild(1).getText().equals("in") || ctx.getChild(1).getText().equals("notin")){
+				String operation = ObjectTypeObject.__CONTAINS__;
+				compile(ctx.expr(1), bytecode);
+				putGetAttr(operation, bytecode, ((ExprContext) ctx.getChild(2)).start);
+				compile((ExprContext) ctx.getChild(0), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(2)).start));
+				cb.intValue = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(2)).start));
+				if (ctx.getChild(1).getText().equals("notin"))
+					putNot(bytecode, ((ExprContext) ctx.getChild(2)).start);
+				return;
+			}
+			
 			compile(ctx.expr(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
 				String operation = null;
@@ -954,8 +950,6 @@ public class PythonCompiler {
 					operation = Arithmetics.__NE__;
 				else if (ctx.getChild(i).getText().equals("!="))
 					operation = Arithmetics.__NE__;
-				else if (ctx.getChild(i).getText().equals("in") || ctx.getChild(i).getText().equals("notin"))
-					operation = ObjectTypeObject.__CONTAINS__;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ((ExprContext) ctx.getChild(i+1)).start));
 					cb.stringValue = ObjectTypeObject.IS;
@@ -974,8 +968,7 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start));
 				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(i+1)).start));
-				if (ctx.getChild(i).getText().equals("notin"))
-					putNot(bytecode, ((ExprContext) ctx.getChild(i+1)).start);
+				
 			}
 		} else 
 			compile(ctx.expr(0), bytecode);

@@ -17,10 +17,32 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.io.InputStream;
+
 import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.utils.Utils;
 
-public interface PythonDataSourceResolver {
+public class InternalJavaPathResolver implements PythonDataSourceResolver {
 
-	ModuleProvider resolve(String name, String resolvePath);
+	public InternalJavaPathResolver(){
+		
+	}
 	
+	@Override
+	public ModuleProvider resolve(String name, String resolvePath) {
+		if (name.contains("."))
+			return null;
+		InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".spy");
+		try {
+			return doResolve(is, name+".spy", name);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private ModuleProvider doResolve(InputStream is, String fname, String mname) throws Exception {
+		return new ModuleProvider(mname, fname, Utils.toByteArray(is), "");
+	}
+
 }

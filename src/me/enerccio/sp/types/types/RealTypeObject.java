@@ -20,31 +20,48 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.ComplexObject;
+import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class StringTypeObject extends TypeObject {
-	private static final long serialVersionUID = 189813854164565772L;
-	public static final String STRING_CALL = "str";
-
+public class RealTypeObject extends TypeObject {
+	private static final long serialVersionUID = -8799583211649909780L;
+	public static final String REAL_CALL = "float";
+	
 	@Override
 	public String getTypeIdentificator() {
-		return STRING_CALL;
+		return "float";
 	}
 
 	@Override
 	public PythonObject call(TupleObject args) {
 		if (args.len() != 1)
-			throw Utils.throwException("TypeError", "str(): incorrect number of parameters");
+			throw Utils.throwException("TypeError", "real(): Incorrect number of parameters");
 		
-		PythonObject o = args.getObjects()[0];
-		if (o instanceof ClassInstanceObject){
+		PythonObject a = args.valueAt(0);
+		
+		if (a instanceof IntObject)
+			return new RealObject(((IntObject) a).getJavaFloat());
+		if (a instanceof RealObject)
+			return a;
+		if (a instanceof ComplexObject)
+			return new RealObject(((ComplexObject)a).getJavaFloat());
+		if (a instanceof ClassInstanceObject){
+			ClassInstanceObject c = (ClassInstanceObject)a;
 			int cfc = PythonInterpret.interpret.get().currentFrame.size();
-			Utils.run("getattr", args.getObjects()[0], new StringObject("__str__"));
-			PythonObject ret = PythonInterpret.interpret.get().executeAll(cfc);
-			return PythonInterpret.interpret.get().execute(false, ret);
-		} else
-			return new StringObject(o.toString());
+			Utils.run("getattr", c, new StringObject("__int__"));
+			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
+			PythonInterpret.interpret.get().execute(false, attr);
+			try {
+				return new RealObject(((IntObject)PythonInterpret.interpret.get().executeAll(cfc)).intValue());
+			} catch (ClassCastException e){
+				throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
+			}
+		}
+		
+		throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
 	}
 }

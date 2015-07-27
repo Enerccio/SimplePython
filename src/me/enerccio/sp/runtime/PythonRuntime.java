@@ -1,3 +1,20 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 package me.enerccio.sp.runtime;
 
 import java.lang.reflect.Constructor;
@@ -17,7 +34,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
-import me.enerccio.sp.interpret.FrameObject;
+import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
@@ -44,6 +61,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BoolTypeObject;
+import me.enerccio.sp.types.types.BoundFunctionTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
@@ -54,6 +72,7 @@ import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
+import me.enerccio.sp.types.types.RealTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -68,6 +87,7 @@ public class PythonRuntime {
 	
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
+		addResolver(new InternalJavaPathResolver());
 	}
 	
 	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
@@ -165,6 +185,8 @@ public class PythonRuntime {
 			StringObject moduleResolvePath) {
 		ModuleProvider provider = null;
 		for (PythonDataSourceResolver resolver : resolvers){
+			if (provider != null)
+				break;
 			provider = resolver.resolve(name, moduleResolvePath.value);
 		}
 		if (provider != null)
@@ -222,6 +244,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(IntTypeObject.INT_CALL, o = new IntTypeObject());
 					o.newObject();
+					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
+					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
 					o.newObject();
 					globals.put(TupleTypeObject.TUPLE_CALL, o = new TupleTypeObject());
@@ -246,6 +270,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(ComplexTypeObject.COMPLEX_CALL, o = new ComplexTypeObject());
 					o.newObject();
+					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, o = new BoundFunctionTypeObject());
+					o.newObject();
 					
 					addExceptions(globals);
 					
@@ -258,7 +284,6 @@ public class PythonRuntime {
 					
 					PythonCompiler c = new PythonCompiler();
 					List<PythonBytecode> builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
-					// List<PythonBytecode> builtin = new ArrayList<>();
 					
 					PythonInterpret.interpret.get().currentEnvironment.pop();
 					
@@ -318,16 +343,24 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject print_java(PythonObject a){
-		if (a instanceof TupleObject && ((TupleObject)a).len() != 0){
+		return print_java(a, false);
+	}
+	
+	public static PythonObject print_java(PythonObject a, boolean dualcall){
+		if (a instanceof TupleObject && ((TupleObject)a).len() != 0 && !dualcall){
 			int i=0;
 			for (PythonObject o : ((TupleObject)a).getObjects()){
 				++i;
-				print_java(o);
+				print_java(o, true);
 				if (i != ((TupleObject)a).getObjects().length)
 					System.out.print(" ");
 			}
-		} else
-			System.out.print(a);
+		} else {
+			int cfc = PythonInterpret.interpret.get().currentFrame.size();
+			Utils.run("str", a);
+			PythonObject ret = PythonInterpret.interpret.get().executeAll(cfc);
+			System.out.print(Utils.run("str", ret));
+		}
 		return NoneObject.NONE;
 	}
 	
@@ -393,9 +426,22 @@ public class PythonRuntime {
 		
 	};
 	
-	public static PythonObject getattr(PythonObject o, String attribute) {
+	public static PythonObject getattr(PythonObject o, String attribute){
+		return getattr(o, attribute, false);
+	}
+	
+	public static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
+		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
+				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
+				if (getattr != null)
+					return PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+		}
+		
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
+			if (skip == true)
+				return null;
+			
 			if (accessorGetattr.get().size() != 0 && accessorGetattr.get().peek() == o){
 				throw new NoGetattrException();
 			}
@@ -428,7 +474,7 @@ public class PythonRuntime {
 					, new StringObject(attribute), v);
 		}
 		if (o.get(attribute, PythonInterpret.interpret.get().getLocalContext()) == null)
-			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC);
+			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpret.interpret.get().getLocalContext());
 		o.set(attribute, PythonInterpret.interpret.get().getLocalContext(), v);
 		return NoneObject.NONE;
 	}

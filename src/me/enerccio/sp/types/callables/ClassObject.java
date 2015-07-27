@@ -1,3 +1,20 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 package me.enerccio.sp.types.callables;
 
 import java.util.List;
@@ -47,6 +64,8 @@ public class ClassObject extends CallableObject {
 	};
 	
 	public PythonObject getAttr(StringObject o){
+		if (fields.containsKey(o.value))
+			return fields.get(o.value).object;
 		try {
 			return ((MapObject)fields.get(__DICT__).object).doGet(o);
 		} catch (NullPointerException e){
@@ -105,8 +124,12 @@ public class ClassObject extends CallableObject {
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				} else if (value instanceof StaticMethodObject){
 					value = value.fields.get(StaticMethodObject.__FUNC__).object;
-				} else if (value instanceof UserFunctionObject){
-					PythonObject data = value;
+				} else if (value instanceof UserFunctionObject || value instanceof BoundHandleObject){
+					PythonObject data;
+					if (value instanceof UserFunctionObject)
+						data = value;
+					else
+						data = value.fields.get(BoundHandleObject.FUNC).object;
 					value = new UserMethodObject();
 					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
@@ -124,7 +147,7 @@ public class ClassObject extends CallableObject {
 				if (kkey.startsWith("__") && !kkey.endsWith("__"))
 					ar = AccessRestrictions.PRIVATE;
 				
-				instance.fields.put(kkey, new AugumentedPythonObject(value, ar));
+				instance.fields.put(kkey, new AugumentedPythonObject(value, ar, clazz));
 			}
 		}
 	}

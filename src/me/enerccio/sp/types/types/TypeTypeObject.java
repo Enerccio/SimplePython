@@ -1,3 +1,20 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.compiler.PythonBytecode;
@@ -7,13 +24,16 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -53,6 +73,23 @@ public class TypeTypeObject extends TypeObject {
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);
 		Utils.putPublic(type, ClassObject.__DICT__, dict);
+		
+		synchronized (dict){
+			MapObject d = (MapObject)dict;
+			synchronized (d.backingMap){
+				for (PythonProxy key : d.backingMap.keySet()){
+					PythonObject o = d.backingMap.get(key);
+					if (o instanceof UserFunctionObject){
+						BoundHandleObject bh = new BoundHandleObject();
+						bh.newObject();
+						Utils.putPublic(bh, BoundHandleObject.ACCESSOR, type);
+						Utils.putPublic(bh, BoundHandleObject.FUNC, o);
+						d.backingMap.put(key, bh);
+					}
+				}
+			}
+		}
+		
 		return type;
 	}
 
@@ -61,6 +98,8 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
 		if (py instanceof IntObject)
 			return Utils.getGlobal(IntTypeObject.INT_CALL);
+		if (py instanceof RealObject)
+			return Utils.getGlobal(RealTypeObject.REAL_CALL);
 		if (py instanceof ListObject)
 			return Utils.getGlobal(ListTypeObject.LIST_CALL);
 		if (py instanceof ClassInstanceObject)
@@ -87,7 +126,9 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
 		if (py instanceof ComplexObject)
 			return Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
-
+		if (py instanceof BoundHandleObject)
+			return Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+		
 		return NoneObject.NONE;
 	}
 	

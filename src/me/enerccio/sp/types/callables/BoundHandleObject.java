@@ -30,9 +30,9 @@ import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class UserMethodObject extends PythonObject {
+public class BoundHandleObject extends PythonObject {
+
 	private static final long serialVersionUID = 6184279154550720464L;
-	public static final String SELF = "__self__";
 	public static final String FUNC = "__func__";
 	public static final String ACCESSOR = "__access__";
 	
@@ -48,12 +48,11 @@ public class UserMethodObject extends PythonObject {
 		}
 	};
 	
-	public List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {
+	public List<PythonBytecode> methodCall(BoundHandleObject boundHandleObject, TupleObject args) {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
 
-		PythonObject callable = o.get(UserMethodObject.SELF, o);
-		PythonObject caller = o.get(UserMethodObject.FUNC, o);
+		PythonObject caller = boundHandleObject.get(BoundHandleObject.FUNC, boundHandleObject);
 		
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
@@ -83,10 +82,6 @@ public class UserMethodObject extends PythonObject {
 		
 		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
 		b.value = caller;
-		// [ callable ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = callable;
-		// [ callable, python object ]
 		
 		for (int i=0; i<args.len(); i++){
 			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
@@ -95,7 +90,7 @@ public class UserMethodObject extends PythonObject {
 		}
 		// [ callable, python object, python object* ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
-		b.intValue = args.len() + 1;
+		b.intValue = args.len();
 		// []
 		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]
@@ -113,7 +108,7 @@ public class UserMethodObject extends PythonObject {
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		if (key.equals(SELF) || key.equals(FUNC) || key.equals(ACCESSOR))
+		if (key.equals(FUNC) || key.equals(ACCESSOR))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
@@ -121,11 +116,12 @@ public class UserMethodObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<method " + fields.get(FUNC).object + " of object " + fields.get(SELF).object + ">"; // TODO
+		return "<bound-function " + fields.get(FUNC).object + " of type " + fields.get(ACCESSOR).object + ">"; // TODO
 	}
 
 	@Override
 	public boolean truthValue() {
 		return true;
 	}
+	
 }
