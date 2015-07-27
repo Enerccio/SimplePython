@@ -1,27 +1,5 @@
-class Y(object):
-    def __init__(self, x):
-        self.__x = x
-        
-    def work(self):
-        print self.__x
-        
-class Y2(Y):
-    def __init__(self, x):
-        try:
-            super(Y2).__init__(self, x)
-        except AttributeError:
-            print "test passed"
-        finally:
-            super(Y2, self).__init__(x)
-        
-    def work2(self):
-        print self.__x
-
-def test(): 
-    y = Y(10);
-    print y
-    print y.work()
+def anca(a, b):
+    print a, b
     
-    y2 = Y2(20)
-    print y2.work()
-    print y2.work2()
+def test(): 
+    anca(x=5, y=7)

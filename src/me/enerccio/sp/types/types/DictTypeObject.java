@@ -41,6 +41,9 @@ public class DictTypeObject extends TypeObject {
 			return new MapObject();
 		
 		if (args.len() == 1){
+			if (args.getObjects()[0] instanceof MapObject)
+				return ((MapObject) args.getObjects()[0]).cloneMap();
+			
 			try {
 				if (args.getObjects()[0] instanceof ListObject){
 					ListObject o = (ListObject)args.getObjects()[0];
