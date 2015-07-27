@@ -30,7 +30,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 public enum Bytecode {
 	// System
 	NOP(0), 
-	PUSH_ENVIRONMENT(8), POP_ENVIRONMENT(9), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
+	PUSH_ENVIRONMENT(8), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
 	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), PUSH_FRAME(15), PUSH_EXCEPTION(16),
 	
 	// control
@@ -130,10 +130,6 @@ public enum Bytecode {
 			break;
 		case POP:
 			bytecode = new Pop();
-			bytecode.newObject();
-			break;
-		case POP_ENVIRONMENT:
-			bytecode = new PopEnvironment();
 			bytecode.newObject();
 			break;
 		case PUSH:

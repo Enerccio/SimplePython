@@ -62,16 +62,19 @@ public class ObjectTypeObject extends TypeObject {
 		cb.intValue = 1;
 		
 		md.put(ClassInstanceObject.__INIT__, usf);
-		JavaFunctionObject func = null;
 		try {
+			JavaFunctionObject func = null;
 			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("getattribute", new Class<?>[]{PythonObject.class, String.class}), false);
+			func.setWrappedMethod(true);
+			md.put("__getattribute__", func);
+			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("str", new Class<?>[]{PythonObject.class}), false);
+			func.setWrappedMethod(true);
+			md.put("__str__", func);
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
-		func.setWrappedMethod(true);
-		md.put("__getattribute__", func);
 	}
 
 	@Override
@@ -85,5 +88,9 @@ public class ObjectTypeObject extends TypeObject {
 		if (value == null)
 			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", self, attribute));
 		return value;
+	}
+	
+	public static PythonObject str(PythonObject o){
+		return new StringObject(o.toString());
 	}
 }

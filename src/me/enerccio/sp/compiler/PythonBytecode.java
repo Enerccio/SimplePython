@@ -143,17 +143,6 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
-	public static class PopEnvironment extends PythonBytecode {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5706402557880603973L;
-
-		{
-			bytecode = Bytecode.POP_ENVIRONMENT;
-		}
-	}
-	
 	public static class PushDict extends PythonBytecode {
 		/**
 		 * 

@@ -24,6 +24,7 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -97,6 +98,8 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
 		if (py instanceof IntObject)
 			return Utils.getGlobal(IntTypeObject.INT_CALL);
+		if (py instanceof RealObject)
+			return Utils.getGlobal(RealTypeObject.REAL_CALL);
 		if (py instanceof ListObject)
 			return Utils.getGlobal(ListTypeObject.LIST_CALL);
 		if (py instanceof ClassInstanceObject)

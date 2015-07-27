@@ -16,16 +16,24 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+# all python doable builtin functions are here
+
+import math
+
 def abs(x):
     if x > 0:
         return True
     return False
 
 def all(iterable):
-    pass
+    for i in iterable:
+        if not i: return False
+    return True
 
 def any(iterable):
-    pass
+    for i in iterable:
+        if i: return True 
+    return False
 
 def callable(object):
     t = type(object)
@@ -42,6 +50,9 @@ def cmp(x, y):
         return 0
     else:
         return 1
+    
+def divmod(a, b):
+    return int(math.floor(a/b)), int(a%b)
 
 def __iter():
     class iter(object):
@@ -68,6 +79,37 @@ def __iter():
     factory.__name__ = "iter"
     return factory
 
+iter = __iter()
+__iter = None
+
+class enumerate(object):
+    def __init__(self, seq, start=0):
+        self.__it = iter(seq)
+        self.__start = 0
+        
+    def __iter__(self):
+        return self
+    
+    def next(self):
+        i = self.__start
+        self.__start += 1
+        return i, self.__it.next()
+
+def filter(f, it):
+    l = []
+    for i in it:
+        if f(i):
+            l.append(i)
+    return l
+
+def issubclass(cls, classinfo):
+    if type(classinfo) == tuple:
+        for c in classinfo:
+            if issubclass(cls, c):
+                return True
+        return False
+    return cls in mro(classinfo)
+
 class set(object):
     def __init__(self, iterable=None):
         self.__inner_map = {}
@@ -85,9 +127,6 @@ class set(object):
         
     def __contains__(self, key):
         return key in self.__inner_map
-
-iter = __iter()
-__iter = None
 
 class xrange(object):
     class iter(object):

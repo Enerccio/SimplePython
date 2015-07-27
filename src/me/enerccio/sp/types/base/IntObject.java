@@ -65,7 +65,7 @@ public class IntObject extends NumberObject {
 
 	@Override
 	public boolean truthValue() {
-		return !value.equals(0);
+		return !value.equals(BigInteger.ZERO);
 	}
 	
 	@Override 

@@ -105,12 +105,12 @@ public class PythonInterpret extends PythonObject {
 						}
 				}
 			} else
-				return ((CallableObject)callable).call(new TupleObject(args));
+				return returnee = ((CallableObject)callable).call(new TupleObject(args));
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
 				throw Utils.throwException("TypeError", callable.toString() + " is not callable");
-			return execute(false, callableArg, args);
+			return returnee = execute(false, callableArg, args);
 		}
 	}
 
@@ -194,8 +194,6 @@ public class PythonInterpret extends PythonObject {
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
 		}
-		if (currentFrame.getLast().parentFrame == null)
-			currentEnvironment.pop();
 		removeLastFrame();
 	}
 
@@ -220,15 +218,12 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-//		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
-//		else
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
+		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+		else
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
-			break;
-		case POP_ENVIRONMENT:
-			currentEnvironment.pop();
 			break;
 		case PUSH_DICT:{
 				EnvironmentObject env = Utils.peek(currentEnvironment);
@@ -236,6 +231,7 @@ public class PythonInterpret extends PythonObject {
 			} break;
 		case PUSH_ENVIRONMENT:
 			currentEnvironment.push(new EnvironmentObject());
+			currentFrame.getLast().pushed_environ = true;
 			break;
 		case CALL: {
 			int argl = pythonBytecode.intValue >= 0 ? pythonBytecode.intValue : -pythonBytecode.intValue;
@@ -358,8 +354,6 @@ public class PythonInterpret extends PythonObject {
 				PythonObject retVal = stack.pop();
 				returnee = retVal;
 			}
-			if (o.parentFrame == null)
-				currentEnvironment.pop();
 			removeLastFrame();
 			return ExecutionResult.EOF;
 		case SAVE:
@@ -380,7 +374,7 @@ public class PythonInterpret extends PythonObject {
 		case IMPORT:
 			ModuleObject mm = (ModuleObject) 
 				environment().get(new StringObject(ModuleObject.__THISMODULE__), true, false);
-			String resolvePath = mm.provider.getPackageResolve() != null ? mm.provider.getPackageResolve() : "";
+			String resolvePath = mm != null ? (mm.provider.getPackageResolve() != null ? mm.provider.getPackageResolve() : "") : "";
 			resolvePath += resolvePath.equals("") ? pythonBytecode.stringValue2 : "." + pythonBytecode.stringValue2;
 			pythonImport(environment(), pythonBytecode.stringValue, resolvePath, null);
 			break;
@@ -525,6 +519,8 @@ public class PythonInterpret extends PythonObject {
 		FrameObject o = this.currentFrame.removeLast();
 		if (o.pushed_context)
 			currentContext.pop();
+		if (o.pushed_environ)
+			currentEnvironment.pop();
 		if (o.parentFrame != null){
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.stack.add(o);

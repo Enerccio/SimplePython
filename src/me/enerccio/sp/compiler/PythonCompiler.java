@@ -191,7 +191,6 @@ public class PythonCompiler {
 		for (Label_or_stmtContext ls : fcx.label_or_stmt())
 			compile(ls, bytecode, null);
 		
-		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT, fcx.stop));
 		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();

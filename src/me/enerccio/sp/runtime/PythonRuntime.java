@@ -34,6 +34,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
@@ -71,6 +72,7 @@ import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
+import me.enerccio.sp.types.types.RealTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -85,6 +87,7 @@ public class PythonRuntime {
 	
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
+		addResolver(new InternalJavaPathResolver());
 	}
 	
 	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
@@ -182,6 +185,8 @@ public class PythonRuntime {
 			StringObject moduleResolvePath) {
 		ModuleProvider provider = null;
 		for (PythonDataSourceResolver resolver : resolvers){
+			if (provider != null)
+				break;
 			provider = resolver.resolve(name, moduleResolvePath.value);
 		}
 		if (provider != null)
@@ -238,6 +243,8 @@ public class PythonRuntime {
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
 					o.newObject();
 					globals.put(IntTypeObject.INT_CALL, o = new IntTypeObject());
+					o.newObject();
+					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
 					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
 					o.newObject();

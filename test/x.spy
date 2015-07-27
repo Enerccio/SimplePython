@@ -1,6 +1,21 @@
-class Test(object):
-    def __str__(self):
-        return "anca moja skvela"
-    
+class X(object):
+    pass
+
+class Y(object):
+    pass
+
+class A(X, Y):
+    pass
+
+class B(object):
+    pass
+
+class C(A, B):
+    pass
+
 def test(): 
-    print Test, Test()
+   print issubclass(C, B)
+   print issubclass(C, object)
+   print issubclass(Y, X)
+   print issubclass(X, (A, B))
+
