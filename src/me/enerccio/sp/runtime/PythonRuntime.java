@@ -208,6 +208,7 @@ public class PythonRuntime {
 	public static final String CLASSMETHOD = "classmethod";
 	public static final String CHR = "chr";
 	public static final String ORD = "ord";
+	public static final String APPLY = "apply";
 	public MapObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
@@ -225,6 +226,7 @@ public class PythonRuntime {
 					globals.put("True", BoolObject.TRUE);
 					globals.put("False", BoolObject.FALSE);
 					globals.put("globals", globals);
+					globals.put(APPLY, Utils.staticMethodCall(PythonRuntime.class, APPLY, PythonObject.class, ListObject.class));
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(HASATTR, Utils.staticMethodCall(PythonRuntime.class, HASATTR, PythonObject.class, String.class));
 					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
@@ -302,6 +304,13 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject apply(PythonObject callable, ListObject args){
+		int cfc = PythonInterpret.interpret.get().currentFrame.size();
+		TupleObject a = (TupleObject) Utils.list2tuple(args.objects);
+		PythonInterpret.interpret.get().execute(false, callable, a.getObjects());
+		return PythonInterpret.interpret.get().executeAll(cfc);
 	}
 	
 	public static PythonObject chr(IntObject i){

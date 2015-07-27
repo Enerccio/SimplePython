@@ -36,6 +36,7 @@ def any(iterable):
     return False
 
 def callable(object):
+    if object is None: return False
     t = type(object)
     if t == function(): return True
     if t == method(): return True
@@ -71,7 +72,21 @@ def __iter():
             except IndexError:
                 raise StopIteration()
             
-    def factory(obj):
+    class sentinel_iter(object):
+        def __init__(self, fnc, __sentinel):
+            self.__sentinel = __sentinel
+            self.__fnc = fnc
+        def __iter__(self):
+            return self
+        def next(self):
+            value = self.__fnc()
+            if (value == self.__sentinel):
+                raise StopIteration()
+            return value
+        
+    def factory(obj, sentinel=None):
+        if callable(sentinel):
+            return sentinel_iter(obj, sentinel)
         if hasattr(obj, "__iter__"):
             return obj.__iter__()
         else:
@@ -109,6 +124,33 @@ def issubclass(cls, classinfo):
                 return True
         return False
     return classinfo in mro(cls)
+
+def len(s):
+    if hasattr(s, "__len__"):
+        return s.__len__()
+    raise TypeError("len(): argument does not support len protocol")
+
+def identity(*args):
+    return args
+
+def map(function, *iterables):
+    if function is None:
+        function = identity
+    data = [iter(x) for x in iterables]
+    result = []
+    while True:
+        d = []
+        r = []
+        for iterable in data:
+            try:
+                d.append(iterable.next())
+                r.append(True)
+            except StopIteration:
+                d.append(None)
+                r.append(False)
+        if not any(r):
+            return result
+        result.append(apply(data, d))
 
 class set(object):
     def __init__(self, iterable=None):

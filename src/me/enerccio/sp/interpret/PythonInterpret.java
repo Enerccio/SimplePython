@@ -88,6 +88,10 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	public PythonObject execute(boolean internalCall, PythonObject callable, PythonObject... args) {
+		for (PythonObject o : args)
+			if (o instanceof TupleObject)
+				o.newObject();
+		
 		if (callable instanceof CallableObject){
 			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
 				int cfc = currentFrame.size();
@@ -218,10 +222,10 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-//		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
-//		else
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
+		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+		else
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;

@@ -167,7 +167,7 @@ docstring
 ;
 
 funcdef
-: (docstring NEWLINE)? 'def' nname '(' farg? (',' farg)* (',' vararg)? ')' ':' suite
+: (docstring NEWLINE)? 'def' nname '(' ((farg? (',' farg)* (',' vararg)? ','?) | (vararg ','?)) ')' ':' suite
 ;
 
 farg

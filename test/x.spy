@@ -1,22 +1,8 @@
-class X(object):
-    pass
+def fnc(a, b, c):
+    return c * (a + b)
 
-class Y(object):
-    pass
-
-class A(X, Y):
-    pass
-
-class B(object):
-    pass
-
-class C(A, B):
-    pass
-
-def test(): 
-   print issubclass(C, B)
-   print issubclass(C, object)
-   print issubclass(Y, X)
-   print issubclass(X, (A, B))
-   print issubclass(X, (A, B, object))
-
+def test():
+    x = [1, 2, 3, 4]
+    y = [2, 2, 4, 2]
+    z = [-1, 1, -1, 1]
+    print map(fnc, x, y, z)
