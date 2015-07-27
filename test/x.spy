@@ -18,4 +18,5 @@ def test():
    print issubclass(C, object)
    print issubclass(Y, X)
    print issubclass(X, (A, B))
+   print issubclass(X, (A, B, object))
 

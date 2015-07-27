@@ -108,7 +108,7 @@ def issubclass(cls, classinfo):
             if issubclass(cls, c):
                 return True
         return False
-    return cls in mro(classinfo)
+    return classinfo in mro(cls)
 
 class set(object):
     def __init__(self, iterable=None):

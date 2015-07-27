@@ -218,10 +218,10 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
-		else
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
+//		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+//		else
+//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;

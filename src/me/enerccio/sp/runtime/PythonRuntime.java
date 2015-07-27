@@ -343,11 +343,15 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject print_java(PythonObject a){
-		if (a instanceof TupleObject && ((TupleObject)a).len() != 0){
+		return print_java(a, false);
+	}
+	
+	public static PythonObject print_java(PythonObject a, boolean dualcall){
+		if (a instanceof TupleObject && ((TupleObject)a).len() != 0 && !dualcall){
 			int i=0;
 			for (PythonObject o : ((TupleObject)a).getObjects()){
 				++i;
-				print_java(o);
+				print_java(o, true);
 				if (i != ((TupleObject)a).getObjects().length)
 					System.out.print(" ");
 			}

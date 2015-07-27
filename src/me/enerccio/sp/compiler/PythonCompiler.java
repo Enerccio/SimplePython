@@ -916,6 +916,19 @@ public class PythonCompiler {
 	
 	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
+			if (ctx.getChild(1).getText().equals("in") || ctx.getChild(1).getText().equals("notin")){
+				String operation = ObjectTypeObject.__CONTAINS__;
+				compile(ctx.expr(1), bytecode);
+				putGetAttr(operation, bytecode, ((ExprContext) ctx.getChild(2)).start);
+				compile((ExprContext) ctx.getChild(0), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(2)).start));
+				cb.intValue = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(2)).start));
+				if (ctx.getChild(1).getText().equals("notin"))
+					putNot(bytecode, ((ExprContext) ctx.getChild(2)).start);
+				return;
+			}
+			
 			compile(ctx.expr(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
 				String operation = null;
@@ -933,8 +946,6 @@ public class PythonCompiler {
 					operation = Arithmetics.__NE__;
 				else if (ctx.getChild(i).getText().equals("!="))
 					operation = Arithmetics.__NE__;
-				else if (ctx.getChild(i).getText().equals("in") || ctx.getChild(i).getText().equals("notin"))
-					operation = ObjectTypeObject.__CONTAINS__;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ((ExprContext) ctx.getChild(i+1)).start));
 					cb.stringValue = ObjectTypeObject.IS;
@@ -953,8 +964,7 @@ public class PythonCompiler {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start));
 				cb.intValue = 1;
 				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ((ExprContext) ctx.getChild(i+1)).start));
-				if (ctx.getChild(i).getText().equals("notin"))
-					putNot(bytecode, ((ExprContext) ctx.getChild(i+1)).start);
+				
 			}
 		} else 
 			compile(ctx.expr(0), bytecode);
