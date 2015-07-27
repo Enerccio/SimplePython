@@ -150,7 +150,7 @@ def map(function, *iterables):
                 r.append(False)
         if not any(r):
             return result
-        result.append(apply(data, d))
+        result.append(apply(function, d))
 
 class set(object):
     def __init__(self, iterable=None):
