@@ -114,7 +114,7 @@ public class JavaMethodObject extends CallableObject {
 	protected String doToString() {
 		if (caller == null)
 			return "<java function " + boundHandle.getName() + ">";
-		return "<java method " + boundHandle.toString() + " of object " + caller.getClass().getName()  + ">";
+		return "<java method " + boundHandle.getName() + " of object " + caller.getClass().getSimpleName()  + ">";
 	}
 
 	public JavaMethodObject cloneWithThis(Object self) {

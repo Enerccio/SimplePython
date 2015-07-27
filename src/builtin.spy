@@ -151,6 +151,9 @@ def map(function, *iterables):
         if not any(r):
             return result
         result.append(apply(function, d))
+        
+def negate(x):
+    return x.__not__()  
 
 class set(object):
     def __init__(self, iterable=None):

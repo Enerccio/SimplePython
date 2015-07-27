@@ -219,9 +219,9 @@ public class PythonInterpret extends PythonObject {
 		
 		Stack<PythonObject> stack = o.stack;
 		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " [" + o.stack);
 		else
-			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee  + " [" + o.stack);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;

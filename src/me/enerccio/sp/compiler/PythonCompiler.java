@@ -913,7 +913,12 @@ public class PythonCompiler {
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() != null){
-			// TODO
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			cb.stringValue = "negate";
+			compile(ctx.not_test(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
+			cb.intValue = 1;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
 		} else
 			compile(ctx.comparison(), bytecode);
 	}
@@ -1302,13 +1307,18 @@ public class PythonCompiler {
 		if (ctx.comp_for() != null){
 			// TODO
 		} else {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			int tc = ctx.test().size();
+			if (tc > 1 || tc == 0){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+				cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			}
 			for (TestContext t : ctx.test())
 				compile(t, bytecode);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-			cb.intValue = ctx.test().size();
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.stop));
+			if (tc > 1 || tc == 0){
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+				cb.intValue = ctx.test().size();
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.stop));
+			}
 		}
 	}
 
