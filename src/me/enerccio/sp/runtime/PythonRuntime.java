@@ -1,3 +1,20 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 package me.enerccio.sp.runtime;
 
 import java.lang.reflect.Constructor;
@@ -17,7 +34,6 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
-import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
@@ -258,7 +274,6 @@ public class PythonRuntime {
 					
 					PythonCompiler c = new PythonCompiler();
 					List<PythonBytecode> builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
-					// List<PythonBytecode> builtin = new ArrayList<>();
 					
 					PythonInterpret.interpret.get().currentEnvironment.pop();
 					

@@ -220,7 +220,6 @@ public class PythonInterpret extends PythonObject {
 		// System.out.println("" + o + " " + Bytecode.dis(o.pc - 1, pythonBytecode)); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
-		case LABEL:
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
