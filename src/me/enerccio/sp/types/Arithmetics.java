@@ -76,6 +76,10 @@ public final class Arithmetics {
 			return doOperatorString((StringObject)a, b, m);
 		}
 		
+		if (a instanceof BoolObject){
+			return doOperatorBool((BoolObject)a, b, m);
+		}
+		
 		if (a instanceof ListObject){
 			// TODO
 		}
@@ -408,6 +412,20 @@ public final class Arithmetics {
 		switch (m){
 		case __ADD__:
 			return new StringObject(a.value + Utils.run("str", b).toString());
+		}
+		
+		if (b != null)
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+		else
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+	}
+	
+	private static PythonObject doOperatorBool(BoolObject a,
+			PythonObject b, String m) {
+		
+		switch (m){
+		case __NOT__:
+			return BoolObject.fromBoolean(!a.truthValue());
 		}
 		
 		if (b != null)

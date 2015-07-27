@@ -20,17 +20,27 @@ package me.enerccio.sp.types;
 public class AugumentedPythonObject {
 	
 	public AugumentedPythonObject(PythonObject object,
+			AccessRestrictions restrictions, PythonObject owner) {
+		this.object = object;
+		this.restrictions = restrictions;
+		this.owner = owner;
+	}
+	
+	public AugumentedPythonObject(PythonObject object,
 			AccessRestrictions restrictions) {
 		this.object = object;
 		this.restrictions = restrictions;
+		this.owner = null;
 	}
 	
 	public volatile PythonObject object;
 	public final AccessRestrictions restrictions;
+	public final PythonObject owner;
 	
 	@Override
 	public String toString() {
 		return "AugumentedPythonObject [object=" + object + ", restrictions="
-				+ restrictions + "]";
-	}
+				+ restrictions + ", owner=" + owner + "]";
+	} 
+	
 }

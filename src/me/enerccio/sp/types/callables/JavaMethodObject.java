@@ -106,7 +106,7 @@ public class JavaMethodObject extends CallableObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
 	}
 

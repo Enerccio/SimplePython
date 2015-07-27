@@ -111,7 +111,7 @@ public abstract class PythonObject implements Serializable {
 		if (!fields.containsKey(key))
 			return null;
 		AugumentedPythonObject field = fields.get(key);
-		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext))
+		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext, field))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)) + "'");
 		return field.object;
@@ -123,7 +123,7 @@ public abstract class PythonObject implements Serializable {
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
 		AugumentedPythonObject field = fields.get(key);
-		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext))
+		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext, field))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("type", this)) + "'");
 		field.object = value;
@@ -132,22 +132,22 @@ public abstract class PythonObject implements Serializable {
 		return NoneObject.NONE;
 	}
 
-	private boolean isPrivate(PythonObject localContext) {
+	private boolean isPrivate(PythonObject localContext, AugumentedPythonObject p) {
 		if (localContext == null)
 			return false;
 		
 		if (localContext instanceof ClassObject && this instanceof ClassInstanceObject){
-			return (localContext == fields.get("__class__").object);
+			return p.owner == null ? true : (localContext == p.owner);
 		}
 		
 		return true;
 	}
 
-	public synchronized void create(String key, AccessRestrictions restrictions){
+	public synchronized void create(String key, AccessRestrictions restrictions, PythonObject currentContext){
 		if (fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("type", this)) + "' object already has a attribute '" + key + "'");
-		AugumentedPythonObject field = new AugumentedPythonObject(NoneObject.NONE, restrictions);
+		AugumentedPythonObject field = new AugumentedPythonObject(NoneObject.NONE, restrictions, currentContext);
 		fields.put(key, field);
 	}
 	

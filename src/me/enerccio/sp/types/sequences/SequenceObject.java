@@ -108,7 +108,7 @@ public abstract class SequenceObject extends ContainerObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
 	}
 	
@@ -146,6 +146,6 @@ public abstract class SequenceObject extends ContainerObject {
 		sav = Math.max(sav, 0);
 		sov = Math.min(size, sov);
 		
-		return new int[]{sav, sov, stv, reverse ? 0 : 1};
+		return new int[]{sav, sov, stv, reverse ? 1 : 0};
 	}
 }

@@ -71,7 +71,8 @@ def __iter():
 class set(object):
     def __init__(self, iterable=None):
         self.__inner_map = {}
-        pass #TODO
+        for item in iterable:
+            self.__inner_map[item] = item
     
     def __str__(self):
         return "set=[" + self.__tostr() + "]"
@@ -81,6 +82,9 @@ class set(object):
     
     def add(self, o):
         self.__inner_map[o] = o;
+        
+    def __contains__(self, key):
+        return key in self.__inner_map
 
 iter = __iter()
 __iter = None
@@ -114,7 +118,6 @@ class xrange(object):
     def __iter__(self):
         return iter(self)
    
-"""
 def range(arg1, arg2=None, arg3=1):
     r = xrange(arg1, arg2, arg3)
     l = []
@@ -128,20 +131,18 @@ class super(object):
         self.__inst = inst
         self.__mro = mro(cls)[1:]
         
-    def __getattr__(self, key):
-        arg = __find_applicable(key);
-        if type(arg) == function:
-            if self.__inst is not None:
-                return method(arg, self.__inst, arg)
+    def __getattribute__(self, key):
+        cls, arg = object.__getattribute__(self, "__find_applicable")(key);
+        if type(arg) == boundfunction:
+            if object.__getattribute__(self, "__inst") is not None:
+                return method(arg.__func__, object.__getattribute__(self, "__inst"), cls)
             else:
                 return arg
         else:
             return arg
         
-    def __inst(self, key):
-        for cls in self.__mro:
+    def __find_applicable(self, key):
+        for cls in object.__getattribute__(self, "__mro"):
             if (hasattr(cls, key)):
-                return getattr(cls, key)
+                return cls, getattr(cls, key)
         raise AttributeError("unknown attribute " + key)
-        
-"""

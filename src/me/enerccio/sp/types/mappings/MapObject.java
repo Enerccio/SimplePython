@@ -100,7 +100,7 @@ public class MapObject extends ContainerObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
 	}
 

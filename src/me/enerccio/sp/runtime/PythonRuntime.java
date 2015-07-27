@@ -60,6 +60,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BoolTypeObject;
+import me.enerccio.sp.types.types.BoundFunctionTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
@@ -262,6 +263,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(ComplexTypeObject.COMPLEX_CALL, o = new ComplexTypeObject());
 					o.newObject();
+					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, o = new BoundFunctionTypeObject());
+					o.newObject();
 					
 					addExceptions(globals);
 					
@@ -408,9 +411,22 @@ public class PythonRuntime {
 		
 	};
 	
-	public static PythonObject getattr(PythonObject o, String attribute) {
+	public static PythonObject getattr(PythonObject o, String attribute){
+		return getattr(o, attribute, false);
+	}
+	
+	public static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
+		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
+				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
+				if (getattr != null)
+					return PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+		}
+		
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		if (value == null){
+			if (skip == true)
+				return null;
+			
 			if (accessorGetattr.get().size() != 0 && accessorGetattr.get().peek() == o){
 				throw new NoGetattrException();
 			}
@@ -443,7 +459,7 @@ public class PythonRuntime {
 					, new StringObject(attribute), v);
 		}
 		if (o.get(attribute, PythonInterpret.interpret.get().getLocalContext()) == null)
-			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC);
+			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpret.interpret.get().getLocalContext());
 		o.set(attribute, PythonInterpret.interpret.get().getLocalContext(), v);
 		return NoneObject.NONE;
 	}

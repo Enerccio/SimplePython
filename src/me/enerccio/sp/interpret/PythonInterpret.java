@@ -81,7 +81,10 @@ public class PythonInterpret extends PythonObject {
 	}
 	
 	public PythonObject getLocalContext() {
-		return Utils.peek(currentContext);
+		PythonObject p = Utils.peek(currentContext);
+		if (p == null)
+			return NoneObject.NONE;
+		return p;
 	}
 
 	public PythonObject execute(boolean internalCall, PythonObject callable, PythonObject... args) {
@@ -217,7 +220,10 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		// System.out.println("" + o + " " + Bytecode.dis(o.pc - 1, pythonBytecode)); 
+		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode));
+		else
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t\t" + o + " \t\t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee);
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -427,6 +433,7 @@ public class PythonInterpret extends PythonObject {
 			
 			break;
 		case PUSH_LOCAL_CONTEXT:
+			currentFrame.getLast().pushed_context = true;
 			currentContext.add(stack.pop());
 			break;
 		case RESOLVE_ARGS:
@@ -516,6 +523,8 @@ public class PythonInterpret extends PythonObject {
 
 	private void removeLastFrame() {
 		FrameObject o = this.currentFrame.removeLast();
+		if (o.pushed_context)
+			currentContext.pop();
 		if (o.parentFrame != null){
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.stack.add(o);

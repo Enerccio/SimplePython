@@ -41,7 +41,7 @@ public class StaticMethodObject extends PythonObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
 	}
 	

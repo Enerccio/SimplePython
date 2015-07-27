@@ -25,12 +25,14 @@ import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -70,6 +72,23 @@ public class TypeTypeObject extends TypeObject {
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);
 		Utils.putPublic(type, ClassObject.__DICT__, dict);
+		
+		synchronized (dict){
+			MapObject d = (MapObject)dict;
+			synchronized (d.backingMap){
+				for (PythonProxy key : d.backingMap.keySet()){
+					PythonObject o = d.backingMap.get(key);
+					if (o instanceof UserFunctionObject){
+						BoundHandleObject bh = new BoundHandleObject();
+						bh.newObject();
+						Utils.putPublic(bh, BoundHandleObject.ACCESSOR, type);
+						Utils.putPublic(bh, BoundHandleObject.FUNC, o);
+						d.backingMap.put(key, bh);
+					}
+				}
+			}
+		}
+		
 		return type;
 	}
 
@@ -104,7 +123,9 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
 		if (py instanceof ComplexObject)
 			return Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
-
+		if (py instanceof BoundHandleObject)
+			return Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+		
 		return NoneObject.NONE;
 	}
 	

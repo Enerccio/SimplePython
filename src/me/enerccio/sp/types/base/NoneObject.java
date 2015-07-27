@@ -34,11 +34,6 @@ public class NoneObject extends PythonObject {
 	public boolean truthValue() {
 		return false;
 	}
-	
-	@Override
-	protected void registerObject(){
-		
-	}
 
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
@@ -51,7 +46,7 @@ public class NoneObject extends PythonObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
 	}
 

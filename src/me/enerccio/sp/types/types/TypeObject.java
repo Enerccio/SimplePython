@@ -19,6 +19,7 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -40,8 +41,13 @@ public abstract class TypeObject extends ClassObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions) {
+	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
 		
+	}
+	
+	@Override
+	public PythonObject eq(PythonObject other){
+		return BoolObject.fromBoolean(equals(other));
 	}
 	
 	@Override

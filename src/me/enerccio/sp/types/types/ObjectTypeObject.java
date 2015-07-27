@@ -21,8 +21,11 @@ import java.util.ArrayList;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -59,6 +62,16 @@ public class ObjectTypeObject extends TypeObject {
 		cb.intValue = 1;
 		
 		md.put(ClassInstanceObject.__INIT__, usf);
+		JavaFunctionObject func = null;
+		try {
+			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("getattribute", new Class<?>[]{PythonObject.class, String.class}), false);
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		}
+		func.setWrappedMethod(true);
+		md.put("__getattribute__", func);
 	}
 
 	@Override
@@ -66,4 +79,11 @@ public class ObjectTypeObject extends TypeObject {
 		return "object";
 	}
 
+	
+	public static PythonObject getattribute(PythonObject self, String attribute){
+		PythonObject value = self.get(attribute, PythonInterpret.interpret.get().getLocalContext());
+		if (value == null)
+			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", self, attribute));
+		return value;
+	}
 }

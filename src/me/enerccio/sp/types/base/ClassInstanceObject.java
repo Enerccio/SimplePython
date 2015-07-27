@@ -30,6 +30,7 @@ public class ClassInstanceObject extends PythonObject {
 	public static final String __GETATTR__ = "__getattr__";
 	public static final String __SETATTR__ = "__setattr__";
 	public static final String __HASH__ = "__hash__";
+	public static final String __GETATTRIBUTE__ = "__getattribute__";
 
 	@Override
 	public boolean truthValue() {

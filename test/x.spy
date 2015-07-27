@@ -1,4 +1,3 @@
-"""
 class Y(object):
     def __init__(self, x):
         self.__x = x
@@ -8,7 +7,12 @@ class Y(object):
         
 class Y2(Y):
     def __init__(self, x):
-        super(Y2).__init__(self, x)
+        try:
+            super(Y2).__init__(self, x)
+        except AttributeError:
+            print "test passed"
+        finally:
+            super(Y2, self).__init__(x)
         
     def work2(self):
         print self.__x
@@ -21,20 +25,3 @@ def test():
     y2 = Y2(20)
     print y2.work()
     print y2.work2()
-"""
-
-class A:
-    def __init__(self):
-        self.a = 0
-    
-    def __iter__(self):
-        return self
-    
-    def next(self):
-        self.a += 1
-        if self.a > 6:
-            raise StopIteration
-        return self.a
-
-def test():    
-    A()()
