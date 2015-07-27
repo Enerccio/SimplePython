@@ -20,6 +20,8 @@ import me.enerccio.sp.parser.pythonParser.Arith_exprContext;
 import me.enerccio.sp.parser.pythonParser.AtomContext;
 import me.enerccio.sp.parser.pythonParser.Break_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
+import me.enerccio.sp.parser.pythonParser.Comp_forContext;
+import me.enerccio.sp.parser.pythonParser.Comp_iterContext;
 import me.enerccio.sp.parser.pythonParser.ComparisonContext;
 import me.enerccio.sp.parser.pythonParser.Compound_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Continue_stmtContext;
@@ -1293,46 +1295,7 @@ public class PythonCompiler {
 			compile(ctx.dictorsetmaker(), bytecode, ctx.getStart());
 		}
 	}
-
-	private void compile(DictorsetmakerContext ctx,
-			List<PythonBytecode> bytecode, Token t) {
-		if (ctx == null || ctx.dictentry().size() != 0){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
-			cb.stringValue = DictTypeObject.DICT_CALL;
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-			cb.intValue = 0;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
-			if (ctx != null){
-				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
-				putGetAttr(MapObject.__SETITEM__, bytecode, ctx.start);
-				if (ctx.comp_for() != null){
-					// TODO
-					throw new NotImplementedException();
-				} else 
-					for (DictentryContext dcx : ctx.dictentry())
-						compile(dcx, bytecode);
-				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
-			}
-		} else {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
-			cb.stringValue = "set";
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-			cb.intValue = 0;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
-			if (ctx != null){
-				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
-				putGetAttr("add", bytecode, ctx.start);
-				if (ctx.comp_for() != null){
-					// TODO
-					throw new NotImplementedException();
-				} else 
-					for (TestContext dcx : ctx.test())
-						compile(dcx, bytecode);
-				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
-			}
-		}
-	}
-
+	
 	private void compile(DictentryContext dcx, List<PythonBytecode> bytecode) {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dcx.start));
 		compile(dcx.test(0), bytecode);
@@ -1357,7 +1320,8 @@ public class PythonCompiler {
 	}
 
 	private void compile(ListmakerContext listmaker, List<PythonBytecode> bytecode, Token token) {
-		if (listmaker == null){
+		if (listmaker == null) {
+			// [ ]
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, token));
 			cb.stringValue = ListTypeObject.LIST_CALL;
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, token));
@@ -1365,7 +1329,7 @@ public class PythonCompiler {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, token));
 			return;
 		}
-		if (listmaker.list_for() != null){
+		if (listmaker.list_for() != null) {
 			// [ x for x in somethingiterable ]
 			List_forContext fCtx = listmaker.list_for();
 			// Generate empty list
@@ -1453,6 +1417,158 @@ public class PythonCompiler {
 		acceptIter.intValue = bytecode.size();
 		/** Stack: TOP -> list -> list.append -> iterator.next */
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, fCtx.start));
+	}
+
+	private void compile(DictorsetmakerContext dictorsetmaker, List<PythonBytecode> bytecode, Token t) {
+		if (dictorsetmaker == null ) {
+			// { }
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = DictTypeObject.DICT_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
+			/*if (dictorsetmaker != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dictorsetmaker.start));
+				putGetAttr(MapObject.__SETITEM__, bytecode, dictorsetmaker.start);
+				if (dictorsetmaker.comp_for() != null){
+					// TODO
+					throw new NotImplementedException();
+				} else 
+					for (DictentryContext dcx : dictorsetmaker.dictentry())
+						compile(dcx, bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
+			}*/
+		} else {
+			// { x : y for x in somethingiterable } or { x for x in somethingiterable }
+			Comp_forContext cCtx = dictorsetmaker.comp_for();
+			List_forContext fCtx = dictorsetmaker.list_for();
+			if (dictorsetmaker.dictentry(0) == null) {
+				// { x for x in somethingiterable }
+				// Generate empty list
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, dictorsetmaker.start));
+				cb.stringValue = ListTypeObject.LIST_CALL;
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, dictorsetmaker.stop));
+				cb.intValue = 0;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, dictorsetmaker.stop));
+			} else {
+				// { x : y for x in somethingiterable }
+				// Generate empty dict
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, dictorsetmaker.start));
+				cb.stringValue = DictTypeObject.DICT_CALL;
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, dictorsetmaker.stop));
+				cb.intValue = 0;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, dictorsetmaker.stop));
+			}
+			/** Stack: TOP -> dict */
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dictorsetmaker.stop));
+			/** Stack: TOP -> dict -> dict.put */
+			if (dictorsetmaker.dictentry(0) == null) {
+				// set - Get append method for list
+				putGetAttr("append", bytecode, fCtx.start);
+				compileListFor(dictorsetmaker.test(0), fCtx, bytecode);
+				/** Stack: TOP -> list -> list.append */
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dictorsetmaker.start));
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, dictorsetmaker.stop));
+				cb.stringValue = "set";
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, dictorsetmaker.stop));
+				/** Stack: TOP -> set -> list */
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, dictorsetmaker.stop));
+				cb.intValue = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, dictorsetmaker.stop));
+				/** Stack: TOP -> set(list) */
+			} else {
+				// dict - Get setitem method
+				putGetAttr("__setitem__", bytecode, cCtx.start);
+				compileCompFor(dictorsetmaker.dictentry(0), cCtx, bytecode);
+				/** Stack: TOP -> dict -> dict.put */
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dictorsetmaker.start));
+				/** Stack: TOP -> dict */			
+			}
+
+			
+			/*
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = "set";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
+			if (ctx != null){
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+				putGetAttr("add", bytecode, ctx.start);
+				if (ctx.comp_for() != null){
+					// TODO
+					throw new NotImplementedException();
+				} else 
+					for (TestContext dcx : ctx.test())
+						compile(dcx, bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
+			}
+			*/
+		}
+	}
+	
+	/** 
+	 * Compiles list_for part of list comprehension.
+	 * Note: When this block is compiled, TOP -> list -> list.append is required to be
+	 * prepared on stack. Same thing is left after block is executed
+	 */
+	private void compileCompFor(DictentryContext dictentryContext, Comp_forContext cCtx, List<PythonBytecode> bytecode) {
+		// Compile somethingiterable & get iterator
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, cCtx.start));
+		cb.stringValue = "iter";
+		compile(cCtx.or_test(), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, cCtx.or_test().start));
+		cb.intValue = 1;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, cCtx.or_test().start));
+		putGetAttr("next", bytecode, cCtx.start);
+		// Compile getting item from iterator
+		/** Stack: TOP -> dict -> dict.put -> iterator.next */
+		int loopStart = bytecode.size();
+		PythonBytecode acceptIter;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, cCtx.start));
+		bytecode.add(acceptIter = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, cCtx.start));
+		// Compile assigning to variable
+		compileAssignment(cCtx.exprlist(), bytecode);
+		/** Stack: TOP -> dict -> dict.put -> iterator.next */
+		// Compile optional list_iter
+		boolean compileStoring = true;
+		if (cCtx.comp_iter() != null) {
+			Comp_iterContext lIter = cCtx.comp_iter();
+			if (lIter.comp_if() != null) {
+				compile(lIter.comp_if().test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, cCtx.start));
+				cb.intValue = loopStart;
+			} else if (lIter.comp_for() != null) {
+				compileStoring = false;
+				/** Stack: TOP -> dict -> dict.put -> iterator.next */
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.DUP, cCtx.start));
+				cb.intValue = 1;
+				/** Stack: TOP -> dict -> dict.put -> iterator.next -> dict.put */
+				compileCompFor(dictentryContext, lIter.comp_for(), bytecode); 
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, cCtx.start));
+			}
+		}
+		if (compileStoring) {
+			/** Stack: TOP -> dict -> dict.put -> iterator.next */
+			// Grap dict.put
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.DUP, cCtx.start));
+			cb.intValue = 1;
+			/** Stack: TOP -> dict -> dict.put -> iterator.next -> dict.put */
+			// Compile expression
+			compile(dictentryContext.test(1), bytecode);
+			/** Stack: TOP -> dict -> dict.put -> iterator.next -> dict.put -> value */
+			compile(dictentryContext.test(0), bytecode);
+			// Compile storing to list
+			/** Stack: TOP -> dict -> dict.put -> iterator.next -> dict.put -> value -> key */
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, cCtx.start));
+			cb.intValue = 2;
+		}
+		/** Stack: TOP -> dict -> dict.put -> iterator.next  */
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, cCtx.start));
+		cb.intValue = loopStart;
+		acceptIter.intValue = bytecode.size();
+		/** Stack: TOP -> dict -> dict.put -> iterator.next */
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, cCtx.start));
 	}
 
 	private void compileTernary(TestContext ctx, List<PythonBytecode> bytecode) {

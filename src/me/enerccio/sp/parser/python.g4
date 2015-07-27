@@ -423,6 +423,11 @@ listmaker
 : test ( list_for | (',' test)* ','? )
 ;
 
+dictorsetmaker
+: test ( list_for | (',' test)* ','? )
+| dictentry (comp_for | (',' dictentry)* ','?)
+;
+
 testlist_comp
 : test ( comp_for | (',' test)* ','? )
 ;
@@ -461,11 +466,6 @@ exprlist
 
 testlist
 : test (',' test)* ','?
-;
-
-dictorsetmaker
-: dictentry (comp_for | (',' dictentry)* ','?)
-| test (comp_for | (',' test)* ','?)
 ;
 
 dictentry
