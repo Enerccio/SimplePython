@@ -112,15 +112,13 @@ def issubclass(cls, classinfo):
 
 class set(object):
     def __init__(self, iterable=None):
-        self.__inner_map = {}
-        for item in iterable:
-            self.__inner_map[item] = item
+        if iterable is None:
+        	self.__inner_map = dict()
+        else:
+        	self.__inner_map = { o : o for o in iterable }
     
     def __str__(self):
-        return "set=[" + self.__tostr() + "]"
-    
-    def __tostr(self):
-        return "" #TODO
+        return "set(" + str(self.__inner_map.keys()) + ")"
     
     def add(self, o):
         self.__inner_map[o] = o;

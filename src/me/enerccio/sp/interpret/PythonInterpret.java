@@ -369,7 +369,10 @@ public class PythonInterpret extends PythonObject {
 			execute(true, pythonBytecode, environment(), this, PythonRuntime.runtime.runtimeWrapper());
 			break;
 		case DUP:
-			stack.push(stack.peek());
+			if (pythonBytecode.intValue == 0)
+				stack.push(stack.peek());
+			else
+				stack.push(stack.get(stack.size() - 1 - pythonBytecode.intValue));
 			break;
 		case IMPORT:
 			ModuleObject mm = (ModuleObject) 

@@ -29,6 +29,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -53,6 +54,10 @@ public class MapObject extends ContainerObject {
 					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(sfields, __LEN__, new JavaMethodObject(null, MapObject.class.getMethod("len", 
 					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, MapObject.class.getMethod("keys", 
+					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(sfields, "values", new JavaMethodObject(null, MapObject.class.getMethod("values", 
+					new Class<?>[]{TupleObject.class}), true));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
 		}
@@ -71,6 +76,12 @@ public class MapObject extends ContainerObject {
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
 		m = __LEN__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+		m = "keys";
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+		m = "values";
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
 		
@@ -151,7 +162,26 @@ public class MapObject extends ContainerObject {
 	public PythonObject doGet(PythonObject key) {
 		return backingMap.get(key);
 	}
-
+	
+	public PythonObject keys(TupleObject t) {
+		ListObject o = new ListObject();
+		o.newObject();
+		synchronized (backingMap) {
+			for (PythonProxy k : backingMap.keySet())
+				o.append(k.o);
+		}
+		return o;
+	}
+	
+	public PythonObject values(TupleObject t) {
+		ListObject o = new ListObject();
+		o.newObject();
+		synchronized (backingMap) {
+			for (PythonObject k : backingMap.values())
+				o.append(k);
+		}
+		return o;
+	}
 	
 	private static ThreadLocal<Set<MapObject>> printMap = new ThreadLocal<Set<MapObject>>(){
 
