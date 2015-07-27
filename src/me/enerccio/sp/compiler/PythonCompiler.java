@@ -1420,14 +1420,15 @@ public class PythonCompiler {
 	}
 
 	private void compile(DictorsetmakerContext dictorsetmaker, List<PythonBytecode> bytecode, Token t) {
-		if (dictorsetmaker == null ) {
-			// { }
+		if ((dictorsetmaker == null) || ((dictorsetmaker.dictentry(0) != null) && (dictorsetmaker.comp_for() == null))) {
+			// { } or { x:y, a:b, h:i }
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
 			cb.stringValue = DictTypeObject.DICT_CALL;
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
 			cb.intValue = 0;
 			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
-			/*if (dictorsetmaker != null){
+			if ( dictorsetmaker != null) {
+				// { x:y, a:b, h:i }
 				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dictorsetmaker.start));
 				putGetAttr(MapObject.__SETITEM__, bytecode, dictorsetmaker.start);
 				if (dictorsetmaker.comp_for() != null){
@@ -1437,7 +1438,7 @@ public class PythonCompiler {
 					for (DictentryContext dcx : dictorsetmaker.dictentry())
 						compile(dcx, bytecode);
 				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
-			}*/
+			}
 		} else {
 			// { x : y for x in somethingiterable } or { x for x in somethingiterable }
 			Comp_forContext cCtx = dictorsetmaker.comp_for();
@@ -1484,26 +1485,6 @@ public class PythonCompiler {
 				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dictorsetmaker.start));
 				/** Stack: TOP -> dict */			
 			}
-
-			
-			/*
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
-			cb.stringValue = "set";
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-			cb.intValue = 0;
-			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, t));
-			if (ctx != null){
-				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
-				putGetAttr("add", bytecode, ctx.start);
-				if (ctx.comp_for() != null){
-					// TODO
-					throw new NotImplementedException();
-				} else 
-					for (TestContext dcx : ctx.test())
-						compile(dcx, bytecode);
-				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, t));
-			}
-			*/
 		}
 	}
 	
