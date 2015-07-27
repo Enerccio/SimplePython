@@ -25,3 +25,13 @@ def floor(x):
         return complex(floor(x.real), floor(x.imag))
     else:
         return int(x)
+    
+def max(a, b):
+    if a > b:
+        return a
+    return b
+
+def min(a, b):
+    if a < b:
+        return a
+    return b
