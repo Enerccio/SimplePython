@@ -12,9 +12,72 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.parser.pythonParser.And_exprContext;
+import me.enerccio.sp.parser.pythonParser.And_testContext;
+import me.enerccio.sp.parser.pythonParser.ArglistContext;
+import me.enerccio.sp.parser.pythonParser.ArgumentContext;
+import me.enerccio.sp.parser.pythonParser.Arith_exprContext;
+import me.enerccio.sp.parser.pythonParser.AtomContext;
+import me.enerccio.sp.parser.pythonParser.Break_stmtContext;
+import me.enerccio.sp.parser.pythonParser.ClassdefContext;
+import me.enerccio.sp.parser.pythonParser.ComparisonContext;
+import me.enerccio.sp.parser.pythonParser.Compound_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Continue_stmtContext;
+import me.enerccio.sp.parser.pythonParser.DecoratedContext;
+import me.enerccio.sp.parser.pythonParser.DecoratorContext;
+import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
 import me.enerccio.sp.parser.pythonParser.DictentryContext;
 import me.enerccio.sp.parser.pythonParser.DictorsetmakerContext;
-import me.enerccio.sp.parser.pythonParser.*;
+import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
+import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
+import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
+import me.enerccio.sp.parser.pythonParser.ExprContext;
+import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
+import me.enerccio.sp.parser.pythonParser.ExprlistContext;
+import me.enerccio.sp.parser.pythonParser.FactorContext;
+import me.enerccio.sp.parser.pythonParser.FargContext;
+import me.enerccio.sp.parser.pythonParser.File_inputContext;
+import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
+import me.enerccio.sp.parser.pythonParser.For_stmtContext;
+import me.enerccio.sp.parser.pythonParser.FuncdefContext;
+import me.enerccio.sp.parser.pythonParser.If_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
+import me.enerccio.sp.parser.pythonParser.Import_fromContext;
+import me.enerccio.sp.parser.pythonParser.Import_nameContext;
+import me.enerccio.sp.parser.pythonParser.Import_stmtContext;
+import me.enerccio.sp.parser.pythonParser.IntegerContext;
+import me.enerccio.sp.parser.pythonParser.LabelContext;
+import me.enerccio.sp.parser.pythonParser.Label_or_stmtContext;
+import me.enerccio.sp.parser.pythonParser.LambdefContext;
+import me.enerccio.sp.parser.pythonParser.ListmakerContext;
+import me.enerccio.sp.parser.pythonParser.NnameContext;
+import me.enerccio.sp.parser.pythonParser.Not_testContext;
+import me.enerccio.sp.parser.pythonParser.NumberContext;
+import me.enerccio.sp.parser.pythonParser.Or_testContext;
+import me.enerccio.sp.parser.pythonParser.Parenthesesless_callContext;
+import me.enerccio.sp.parser.pythonParser.PowerContext;
+import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Shift_exprContext;
+import me.enerccio.sp.parser.pythonParser.Simple_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Small_stmtContext;
+import me.enerccio.sp.parser.pythonParser.StmtContext;
+import me.enerccio.sp.parser.pythonParser.StringContext;
+import me.enerccio.sp.parser.pythonParser.String_inputContext;
+import me.enerccio.sp.parser.pythonParser.SubscriptContext;
+import me.enerccio.sp.parser.pythonParser.SubscriptlistContext;
+import me.enerccio.sp.parser.pythonParser.SuiteContext;
+import me.enerccio.sp.parser.pythonParser.Switch_stmtContext;
+import me.enerccio.sp.parser.pythonParser.TermContext;
+import me.enerccio.sp.parser.pythonParser.TestContext;
+import me.enerccio.sp.parser.pythonParser.TestlistContext;
+import me.enerccio.sp.parser.pythonParser.Testlist_compContext;
+import me.enerccio.sp.parser.pythonParser.TrailerContext;
+import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
+import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
+import me.enerccio.sp.parser.pythonParser.While_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.ModuleObject;
@@ -34,6 +97,12 @@ import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class PythonCompiler {
 	private static volatile int genFunc = 0;
@@ -108,8 +177,8 @@ public class PythonCompiler {
 		cb.mapValue = dict;
 		environments.add(dict);
 		
-		for (StmtContext sctx : fcx.stmt())
-			compileStatement(sctx, bytecode);
+		for (Label_or_stmtContext ls : fcx.label_or_stmt())
+			compile(ls, bytecode, null);
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP_ENVIRONMENT, fcx.stop));
 		compilingClass.pop();
@@ -118,27 +187,28 @@ public class PythonCompiler {
 		return bytecode;
 	}
 
-	private void compileStatement(StmtContext sctx,
-			List<PythonBytecode> bytecode) {
+	private void compileStatement(StmtContext sctx, List<PythonBytecode> bytecode, ControllStack cs) {
 		if (sctx.simple_stmt() != null)
-			compileSimpleStatement(sctx.simple_stmt(), bytecode);
+			compileSimpleStatement(sctx.simple_stmt(), bytecode, cs);
 		else
-			compileCompoundStatement(sctx.compound_stmt(), bytecode);
+			compileCompoundStatement(sctx.compound_stmt(), bytecode, cs);
 	}
 
-	private void compileCompoundStatement(Compound_stmtContext cstmt, List<PythonBytecode> bytecode) {
+	private void compileCompoundStatement(Compound_stmtContext cstmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		if (cstmt.funcdef() != null) {
 			compileFunction(cstmt.funcdef(), bytecode, null);
 		} else if (cstmt.classdef() != null) {
 			compileClass(cstmt.classdef(), bytecode, null);
 		} else if (cstmt.try_stmt() != null) {
-			compileTry(cstmt.try_stmt(), bytecode);
+			compileTry(cstmt.try_stmt(), bytecode, cs);
 		} else if (cstmt.while_stmt() != null) {
-			compileWhile(cstmt.while_stmt(), bytecode);
+			compileWhile(cstmt.while_stmt(), bytecode, cs);
+		} else if (cstmt.for_stmt() != null) {
+			compileFor(cstmt.for_stmt(), bytecode, cs);
 		} else if (cstmt.if_stmt() != null) {
-			compileIf(cstmt.if_stmt(), bytecode);
+			compileIf(cstmt.if_stmt(), bytecode, cs);
 		} else if (cstmt.switch_stmt() != null) {
-			compileSwitch(cstmt.switch_stmt(), bytecode);
+			compileSwitch(cstmt.switch_stmt(), bytecode, cs);
 		} else if (cstmt.decorated() != null) {
 			DecoratedContext dc = cstmt.decorated();
 			if (dc.classdef() != null)
@@ -148,14 +218,19 @@ public class PythonCompiler {
 		} else
 			throw Utils.throwException("SyntaxError", "statament type not implemented");
 	}
-
-	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode) {
+	
+	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		if (ctx.simple_stmt() != null)
+			compileSimpleStatement(ctx.simple_stmt(), bytecode, cs);
 		for (StmtContext sctx : ctx.stmt())
-			compileStatement(sctx, bytecode);
+			compileStatement(sctx, bytecode, cs);
 	}
 
-	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode) {
+	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
+		TryFinallyItem tfi = new TryFinallyItem(try_stmt);
+		cs = ControllStack.push(cs, tfi);
 		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, try_stmt.start);
+		PythonBytecode excTestJump = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start);
 		PythonBytecode elseJump = null;
 		List<PythonBytecode> exceptJumps = new ArrayList<>();
 		List<PythonBytecode> finallyJumps = new ArrayList<>();
@@ -164,7 +239,36 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, try_stmt.start));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, try_stmt.start));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_EXCEPTION, try_stmt.start));
-		// TOP -> return value -> frame -> exception
+		bytecode.add(excTestJump);
+		// Compile try block
+		makeFrame.intValue = bytecode.size();
+		compileSuite(try_stmt.suite(), bytecode, cs);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
+		excTestJump.intValue = bytecode.size();
+		// Compile exception tests.
+		// Stack contains TOP -> return value -> frame -> exception
+		if (tfi.needsBreakBlock) {
+			// Special break block is needed
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, try_stmt.start));
+			cb.stringValue = "LoopBreak"; 
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ISINSTANCE, try_stmt.start));
+			PythonBytecode skipOver = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, try_stmt.start);
+			bytecode.add(skipOver);
+			
+			tfi.outputFinallyBreakBlock(try_stmt, bytecode, cs);
+			skipOver.intValue = bytecode.size();
+		}
+		if (tfi.needsContinueBlock) {
+			// Special continue block is needed
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, try_stmt.start));
+			cb.stringValue = "LoopContinue"; 
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ISINSTANCE, try_stmt.start));
+			PythonBytecode skipOver = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, try_stmt.start);
+			bytecode.add(skipOver);
+			
+			tfi.outputFinallyContinueBlock(try_stmt, bytecode, cs);
+			skipOver.intValue = bytecode.size();
+		}
 		if (try_stmt.try_except().size() > 0) {
 			// There is at least one except block defined
 			if (try_stmt.else_block() != null)
@@ -203,7 +307,7 @@ public class PythonCompiler {
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
 				finallyJumps.add(cb);
-				compileSuite(try_stmt.else_block().suite(), bytecode);
+				compileSuite(try_stmt.else_block().suite(), bytecode, cs);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 				cb.value = NoneObject.NONE;
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -221,7 +325,7 @@ public class PythonCompiler {
 					// -> remove exception from top of stack
 					exceptJumps.get(i++).intValue = bytecode.size();
 					bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
-					compileSuite(ex.suite(), bytecode);
+					compileSuite(ex.suite(), bytecode, cs);
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 					cb.value = NoneObject.NONE;
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -231,7 +335,7 @@ public class PythonCompiler {
 					exceptJumps.get(i++).intValue = bytecode.size();
 					// Store exception from top of stack
 					compileAssignment(ex.except_clause().test(1), bytecode);
-					compileSuite(ex.suite(), bytecode);
+					compileSuite(ex.suite(), bytecode, cs);
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, try_stmt.start));
 					cb.value = NoneObject.NONE;
 					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, try_stmt.start));
@@ -243,7 +347,7 @@ public class PythonCompiler {
 		// Compile finally block (if any)
 		for (PythonBytecode c : finallyJumps) c.intValue = bytecode.size();
 		if (try_stmt.try_finally() != null)
-			compileSuite(try_stmt.try_finally().suite(), bytecode);
+			compileSuite(try_stmt.try_finally().suite(), bytecode, cs);
 		// Stack contains TOP -> return value -> frame -> exception here, exception may be None
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RERAISE, try_stmt.start));
 		// If execution reaches here, there was no exception and there is still frame on top of stack.
@@ -254,11 +358,9 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
 		cb.intValue = 1;
+
 		
-		// Compile try block
-		makeFrame.intValue = bytecode.size();
-		compileSuite(try_stmt.suite(), bytecode);
-		bytecode.add(Bytecode.makeBytecode(Bytecode.RETURN, try_stmt.start));
+		cs.pop();
 		
 		// Very end of try...catch block. Return value and frame is still on stack
 		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
@@ -266,45 +368,92 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, try_stmt.start));
 	}
 
+	private void compile(Label_or_stmtContext ls, List<PythonBytecode> bytecode, ControllStack cs) {
+		if (ls.label() != null)
+			compile(ls.label(), bytecode, cs);
+		else
+			compileStatement(ls.stmt(), bytecode, cs);
+	}
 	
-	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode) {
-		int start = bytecode.size();
+	private void compile(LabelContext label, List<PythonBytecode> bytecode, ControllStack cs) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LABEL));
+		cb.stringValue = label.nname().getText();
+		if (label.suite() != null)
+			for (StmtContext c : label.suite().stmt())
+				compileStatement(c, bytecode, cs);
+		}
+
+	private void compileWhile(While_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		LoopStackItem lsi = new LoopStackItem(bytecode.size());
+		cs = ControllStack.push(cs, lsi);
 		// Compile condition
 		compile(ctx.test(), bytecode);
 		PythonBytecode jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start);
 		bytecode.add(jump);
 		// Compile body
-		compileSuite(ctx.suite(0), bytecode);
+		compileSuite(ctx.suite(0), bytecode, cs); 
 		// Jump back
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
-		cb.intValue = start;
+		lsi.addContinue(ctx, bytecode);
 		// Compile else block, if needed
 		jump.intValue = bytecode.size();;
+		cs.pop();
 		if (ctx.suite(1) != null)
-			compileSuite(ctx.suite(1), bytecode);
+			compileSuite(ctx.suite(1), bytecode, cs);
+		lsi.finalize(bytecode.size());
 	}
 	
-	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode) {
+	private void compileFor(For_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		PythonBytecode acceptIter;
+		// Compile getiter
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+		cb.stringValue = "iter";
+		compileRightHand(ctx.testlist(), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, ctx.start));
+		cb.intValue = 1;
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+		// Compile iter.next() 
+		putGetAttr("next", bytecode, ctx.start);
+		// Compile loop
+		LoopStackItem lsi = new LoopStackItem(bytecode.size());
+		cs = ControllStack.push(cs, lsi);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, ctx.start));
+		bytecode.add(acceptIter = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, ctx.start));
+		// Assign to iteration variable
+		compileAssignment(ctx.exprlist(), bytecode);
+		// Compile block
+		compileSuite(ctx.suite(0), bytecode, cs);
+		lsi.addContinue(ctx, bytecode);
+		// Compile else block (if any)
+		acceptIter.intValue = bytecode.size();
+		if (ctx.suite(1) != null)
+			compileSuite(ctx.suite(1), bytecode, cs);
+		// TODO: Else somewhere here
+		lsi.finalize(bytecode.size());
+		// Pop iter.next
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+	}
+
+	private void compileIf(If_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 		List<PythonBytecode> endJumps = new ArrayList<>();
 		PythonBytecode jump = null;
 		// If and elif blocks
 		for (int i=0; i<ctx.test().size(); i++) {
 			compile(ctx.test(i), bytecode);
 			bytecode.add(jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
-			compileSuite(ctx.suite(i), bytecode);
+			compileSuite(ctx.suite(i), bytecode, cs);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
 			endJumps.add(cb);
 			jump.intValue = bytecode.size();
 		}
 		// Else block
 		if (ctx.else_block() != null)
-			compileSuite(ctx.else_block().suite(), bytecode);
+			compileSuite(ctx.else_block().suite(), bytecode, cs);
 		// End if..else block
 		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
 	}
 	
 
-	private void compileSwitch(Switch_stmtContext ctx, List<PythonBytecode> bytecode) {
+	private void compileSwitch(Switch_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 		List<PythonBytecode> jumps = new ArrayList<>();
 		List<PythonBytecode> endJumps = new ArrayList<>();
 		// Compile value to compare with
@@ -323,7 +472,7 @@ public class PythonCompiler {
 		// If there is else block, compile it here
 		if (ctx.else_block() != null) {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
-			compileSuite(ctx.else_block().suite(), bytecode);
+			compileSuite(ctx.else_block().suite(), bytecode, cs);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
 			endJumps.add(cb);
 		}
@@ -331,7 +480,7 @@ public class PythonCompiler {
 		for (int i=0; i<ctx.case_block().size(); i++) {
 			jumps.get(i).intValue = bytecode.size();
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
-			compileSuite(ctx.case_block(i).suite(), bytecode);
+			compileSuite(ctx.case_block(i).suite(), bytecode, cs);
 			// Unlike traditional case, this one jumps to end of switch block automatically 
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
 			endJumps.add(cb);
@@ -339,8 +488,7 @@ public class PythonCompiler {
 		for (PythonBytecode c : endJumps) c.intValue = bytecode.size();
 	}
 	
-	private void compileClass(ClassdefContext classdef,
-			List<PythonBytecode> bytecode, DecoratorsContext dc) {
+	private void compileClass(ClassdefContext classdef, List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		
 		String className = classdef.nname().getText();
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, classdef.start));
@@ -514,10 +662,10 @@ public class PythonCompiler {
 		
 		if (suite instanceof SuiteContext)
 			for (StmtContext c : ((SuiteContext)suite).stmt())
-				compileStatement(c, bytecode);
+				compileStatement(c, bytecode, null);
 		else
 			for (StmtContext c : ((String_inputContext) suite).stmt())
-				compileStatement(c, bytecode);
+				compileStatement(c, bytecode, null);
 		
 
 		environments.removeLast();
@@ -526,13 +674,29 @@ public class PythonCompiler {
 		return dict;
 	}
 
-	private void compileSimpleStatement(Simple_stmtContext sstmt,
-			List<PythonBytecode> bytecode) {
+	private void compileSimpleStatement(Simple_stmtContext sstmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		for (Small_stmtContext smstmt : sstmt.small_stmt())
-			compileSmallStatement(smstmt, bytecode);
+			compileSmallStatement(smstmt, bytecode, cs);
 	}
 
-	private void compileSmallStatement(Small_stmtContext smstmt, List<PythonBytecode> bytecode) {
+	private void compileParentheseslessCall(Parenthesesless_callContext ctx, List<PythonBytecode> bytecode) {
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD));
+		cb.stringValue = ctx.nname().getText();
+		if (ctx.arglist() == null) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.intValue = 0;
+		} else {
+			int argc = compileArguments(ctx.arglist(), bytecode);
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL));
+			cb.intValue = argc;
+		}
+		if (ctx.testlist() != null) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
+			compileAssignment(ctx.testlist(), bytecode);
+		}
+	}
+
+	private void compileSmallStatement(Small_stmtContext smstmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		// Import Statement
 		if (smstmt.import_stmt() != null){
 			Import_stmtContext imps = smstmt.import_stmt();
@@ -560,34 +724,40 @@ public class PythonCompiler {
 						compileImport2(asname, bytecode, packageName);
 					}
 			}
-		}
-		
-		if (smstmt.pass_stmt() != null){
+		} else if (smstmt.parenthesesless_call() != null) {
+			compileParentheseslessCall(smstmt.parenthesesless_call(), bytecode);
+		} else if (smstmt.pass_stmt() != null){
 			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, smstmt.start));
-		}
-		
-		if (smstmt.expr_stmt() != null){
+		} else if (smstmt.expr_stmt() != null){
 			compile(smstmt.expr_stmt(), bytecode);
-		}
-			
-		if (smstmt.print_stmt() != null){
+		} else if (smstmt.print_stmt() != null){
 			compile(smstmt.print_stmt(), bytecode);
+		} else if (smstmt.flow_stmt() != null){
+			compile(smstmt.flow_stmt(), bytecode, cs);
 		}
-		
-		if (smstmt.flow_stmt() != null){
-			compile(smstmt.flow_stmt(), bytecode);
-		}
-		
 	}
 
-	private void compile(Flow_stmtContext ctx,
-			List<PythonBytecode> bytecode) {
-		if (ctx.return_stmt() != null){
+	private void compile(Flow_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		if (ctx.return_stmt() != null)
 			compile(ctx.return_stmt(), bytecode);
-		}
-		
-		if (ctx.raise_stmt() != null)
+		else if (ctx.break_stmt() != null)
+			compile(ctx.break_stmt(), bytecode, cs);
+		else if (ctx.continue_stmt() != null)
+			compile(ctx.continue_stmt(), bytecode, cs);
+		else if (ctx.raise_stmt() != null)
 			compile(ctx.raise_stmt(), bytecode);
+	}
+
+	private void compile(Break_stmtContext break_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
+		if ((cs == null) || (cs.size() == 0))
+			throw Utils.throwException("SyntaxError", "'break' outside loop");
+		cs.peek().outputBreak(break_stmt, bytecode, cs);
+	}
+
+	private void compile(Continue_stmtContext continue_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
+		if ((cs == null) || (cs.size() == 0))
+			throw Utils.throwException("SyntaxError", "'continue' outside loop");
+		cs.peek().outputContinue(continue_stmt, bytecode, cs);
 	}
 
 	private void compile(Raise_stmtContext ctx,
@@ -599,8 +769,7 @@ public class PythonCompiler {
 			cb.booleanValue = true;
 	}
 
-	private void compile(Return_stmtContext ctx,
-			List<PythonBytecode> bytecode) {
+	private void compile(Return_stmtContext ctx, List<PythonBytecode> bytecode) {
 		if (compilingClass.peek() != null)
 			throw Utils.throwException("SyntaxError", "return cannot be inside class definition");
 		if (ctx.testlist() != null)
@@ -694,7 +863,7 @@ public class PythonCompiler {
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, expr.stop));
 		}
 	}
-
+	
 	/** 
 	 * Compiles right side of assignment, leaving value of right hand on top of stack
 	 * Offset can be used to skip left-side test.
@@ -1294,7 +1463,20 @@ public class PythonCompiler {
 		cb.stringValue = "closure";
 	}
 
-	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
+	/** Generates bytecode that stores top of stack into whatever is passed as parameter */
+	private void compileAssignment(TestlistContext tc, List<PythonBytecode> bytecode) {
+		if (tc.test().size() > 1) {
+			// x,y,z = ...
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE));
+			cb.intValue = tc.test().size();
+			for (int i=0; tc.test(i) != null; i++)
+				compileAssignment(tc.test(i), bytecode);
+		} else {
+			// x = y
+			compileAssignment(tc.test(0), bytecode);
+		}
+	}
+
 	private void compileAssignment(TestContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.lambdef() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to lambda");
@@ -1303,6 +1485,14 @@ public class PythonCompiler {
 		compileAssignment(ctx.or_test(0), bytecode);
 	}
 
+	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
+	private void compileAssignment(ExprlistContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.expr().size() > 1) {
+			throw Utils.throwException("SyntaxError", "can't assign to tuple");
+		}
+		compileAssignment(ctx.expr(0), bytecode);
+	}
+	
 	private void compileAssignment(Or_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.and_test(1) != null)
 			throw Utils.throwException("SyntaxError", "can't assign to operator");
@@ -1425,7 +1615,6 @@ public class PythonCompiler {
 		}
 	}
 	
-	
 	private void compileAssignment(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.listmaker() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
@@ -1486,5 +1675,168 @@ public class PythonCompiler {
 		cb.stringValue2 = packageName;
 		cb.stringValue = as;
 	}
+	
+	private interface ControllStackItem {
+		public void outputBreak(Break_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs);
+		public void outputContinue(Continue_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs);
+		public void outputFinallyBreakBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs);
+		public void outputFinallyContinueBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs);
+	}
+	
+	private static class ControllStack {
+		LinkedList<ControllStackItem> items = new LinkedList<>();
+		public ControllStack(ControllStackItem... lsi) {
+			for (ControllStackItem i : lsi)
+				items.push(i);
+		}
+		
+		public ControllStackItem peek() {
+			return items.peekFirst();
+		}
+		
+		public int size() {
+			return items.size();
+		}
+		
+		public ControllStackItem pop() {
+			return items.pop();
+		}
+		
+		static ControllStack push(ControllStack cs, ControllStackItem i) {
+			if (cs == null)
+				return new ControllStack(i);
+			cs.items.push(i);
+			return cs;
+		}
+	};
+	
+	private class TryFinallyItem implements ControllStackItem {
+		private List<PythonBytecode> bcs = new LinkedList<>();
+		private Try_stmtContext finallyCtx;
+		boolean needsBreakBlock = false;
+		boolean needsContinueBlock = false;
 
+		TryFinallyItem(Try_stmtContext ctx) {
+			this.finallyCtx = ctx;
+		}
+		
+		@Override
+		public void outputContinue(Continue_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			needsContinueBlock = true;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			cb.stringValue = "LoopContinue";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.RAISE, ctx.start));
+		}
+
+		
+		@Override
+		public void outputBreak(Break_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			needsBreakBlock = true;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			cb.stringValue = "LoopBreak";
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
+			cb.intValue = 0;
+			bytecode.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.RAISE, ctx.start));
+		}
+
+		@Override
+		public void outputFinallyBreakBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			cs.pop(); // Pop this
+			compileSuite(finallyCtx.try_finally().suite(), bytecode, cs);
+			
+			ControllStackItem overMe = cs.peek();
+			if (overMe instanceof TryFinallyItem) {
+				((TryFinallyItem)overMe).needsBreakBlock = true;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.start));
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// frame
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.start));
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// return code (should be None)
+				bytecode.add(Bytecode.makeBytecode(Bytecode.RERAISE, ctx.start));
+			} else {
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// exception
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// frame
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// return code (should be None)
+				cs.peek().outputFinallyBreakBlock(ctx, bytecode, cs);
+			}
+			ControllStack.push(cs, this); // Return this back to stack
+		}
+		
+		@Override
+		public void outputFinallyContinueBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			cs.pop(); // Pop this
+			compileSuite(finallyCtx.try_finally().suite(), bytecode, cs);
+			
+			ControllStackItem overMe = cs.peek();
+			if (overMe instanceof TryFinallyItem) {
+				((TryFinallyItem)overMe).needsContinueBlock = true;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.start));
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// frame
+				bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.start));
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// return code (should be None)
+				bytecode.add(Bytecode.makeBytecode(Bytecode.RERAISE, ctx.start));
+			} else {
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// exception
+				cb.intValue = 1;
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// frame
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));	// return code (should be None)
+				cs.peek().outputFinallyContinueBlock(ctx, bytecode, cs);
+			}
+			ControllStack.push(cs, this); // Return this back to stack
+		}		
+	}
+	
+	private class LoopStackItem implements ControllStackItem {
+		private List<PythonBytecode> bcs = new LinkedList<>();
+		private int start;
+
+		LoopStackItem(int startAddress) {
+			this.start = startAddress;
+		}
+
+		@Override
+		public void outputContinue(Continue_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			PythonBytecode c = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start);
+			c.intValue = start;
+			bytecode.add(c); 
+		}
+
+		@Override
+		public void outputBreak(Break_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			PythonBytecode c = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start); 
+			bytecode.add(c); 
+			addJump(c);
+		}
+		
+		@Override
+		public void outputFinallyBreakBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			PythonBytecode c = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start); 
+			bytecode.add(c); 
+			addJump(c);
+		}
+
+		@Override
+		public void outputFinallyContinueBlock(Try_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			PythonBytecode c = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start);
+			c.intValue = start;
+			bytecode.add(c); 
+		}
+
+		public void addJump(PythonBytecode c) {
+			bcs.add(c);
+		}
+
+		public void addContinue(ParserRuleContext ctx, List<PythonBytecode> bytecode) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
+			cb.intValue = start;
+		}
+
+		public void finalize(int endOfLoopAddress) {
+			for (PythonBytecode c : bcs)
+				c.intValue = endOfLoopAddress;
+		}
+	}
 }

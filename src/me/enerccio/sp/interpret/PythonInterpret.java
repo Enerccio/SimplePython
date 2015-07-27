@@ -132,9 +132,9 @@ public class PythonInterpret extends PythonObject {
 	}
 
 	public void executeBytecode(List<PythonBytecode> frame) {
-		FrameObject o;
-		currentFrame.add(o = new FrameObject());
-		o.bytecode = new ArrayList<PythonBytecode>(frame);
+		FrameObject n;
+		currentFrame.add(n = new FrameObject());
+		n.bytecode = new ArrayList<PythonBytecode>(frame);
 	}
 
 	public ExecutionResult executeOnce(){
@@ -217,9 +217,10 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		// System.out.println("" + o + " " + Bytecode.dis(o.pc, pythonBytecode) + " [CE: " + currentEnvironment.size() + ", lineno: " + o.debugLine + ", src:" + o.debugModule + "]"); 
+		// System.out.println("" + o + " " + Bytecode.dis(o.pc - 1, pythonBytecode)); 
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
+		case LABEL:
 			break;
 		case POP_ENVIRONMENT:
 			currentEnvironment.pop();
@@ -258,12 +259,50 @@ public class PythonInterpret extends PythonObject {
 			returnee = execute(true, runnable, args);
 			break;
 		}
+		case ECALL:
+			// Leaves called method on top of stack
+			// Pushes frame in which call was called
+			FrameObject frame;
+			PythonObject runnable = stack.peek();
+			try {
+				returnee = execute(true, runnable);
+				frame = currentFrame.peekLast();
+				if (frame != o)
+					frame.parentFrame = o;
+				else
+					stack.push(o);
+			} catch (PythonExecutionException e) {
+				frame = new FrameObject();
+				frame.parentFrame = o;
+				frame.exception = e.getException();
+				stack.push(frame);
+			}
+			break;
+		case ACCEPT_ITER:
+			// Replaces frame left by ECALL with returnee value.
+			// If StopIteration was raised, jumps to specified bytecode
+			// Any other exception is rised again
+			frame = (FrameObject) stack.pop();
+			if (frame.exception != null) {
+				PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
+				if (Utils.run("isinstance", frame.exception, stype).truthValue()) {
+					o.pc = pythonBytecode.intValue;
+					o.exception = frame.exception = null;
+					break;
+				}
+				throw new PythonExecutionException(frame.exception);
+			}
+			if (returnee == null)
+				stack.push(NoneObject.NONE);
+			else
+				stack.push(returnee);
+			break;
 		case RCALL: {
 			PythonObject[] args = new PythonObject[pythonBytecode.intValue];
 			
 			for (int i=0; i<args.length; i++)
 				args[i] = stack.pop();
-			PythonObject runnable = stack.pop();
+			runnable = stack.pop();
 			
 			returnee = execute(true, runnable, args);
 			break;
@@ -285,7 +324,7 @@ public class PythonInterpret extends PythonObject {
 				o.pc = pythonBytecode.intValue;
 			break;
 		case JUMPIFNORETURN:
-			FrameObject frame = (FrameObject) stack.peek();
+			frame = (FrameObject) stack.peek();
 			if (!frame.returnHappened)
 				// Frame ended without return, jump to specified label and keep frame on stack
 				o.pc = pythonBytecode.intValue;
@@ -405,7 +444,7 @@ public class PythonInterpret extends PythonObject {
 				stack.push(returnee);
 			break;
 		case GETATTR: {
-			PythonObject runnable = environment().get(new StringObject("getattr"), true, false);
+			runnable = environment().get(new StringObject("getattr"), true, false);
 			PythonObject[] args = new PythonObject[2];
 			// If argument for GETATTR is not set, attribute name is pop()ed from stack   
 			if (pythonBytecode.stringValue == null) {
@@ -419,7 +458,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case SETATTR: {
-			PythonObject runnable = environment().get(new StringObject("setattr"), true, false);
+			runnable = environment().get(new StringObject("setattr"), true, false);
 			PythonObject[] args = new PythonObject[3];
 			// If argument for SETATTR is not set, attribute name is pop()ed from stack   
 			if (pythonBytecode.stringValue == null) {
