@@ -82,18 +82,29 @@ public class XRangeIterator extends PythonObject {
 		return this;
 	}
 	
-	public PythonObject next(TupleObject t) {
+	/** 
+	 * Internal version.
+	 * Works as next(TupleObject t) called from python, but return null instead of calling StopIteration.
+	 */
+	public PythonObject next() {
 		if (step > 0) {
 			// Goes up
 			if (i >= end)
-				throw Utils.throwException("StopIteration");
+				return null;
 		} else {
 			// Goes down
 			if (i <= end)
-				throw Utils.throwException("StopIteration");
+				return null;
 		}
 		IntObject rv = IntObject.valueOf(i);
 		i += step;
+		return rv;
+	}
+	
+	public PythonObject next(TupleObject t) {
+		PythonObject rv = next();
+		if (rv == null)
+			throw Utils.throwException("StopIteration");
 		return rv;
 	}
 

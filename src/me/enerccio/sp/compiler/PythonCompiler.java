@@ -429,19 +429,19 @@ public class PythonCompiler {
 	}
 	
 	private void compileFor(For_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+		PythonBytecode getIter;
 		PythonBytecode acceptIter;
-		// Compile getiter
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-		cb.stringValue = "iter";
+		PythonBytecode setupLoop;
+		// Compile SETUP_LOOP that grabs iterator on top of stack. This opcode jumps if grabbed iterator is
+		// optimized, java-based thing.
 		compileRightHand(ctx.testlist(), bytecode);
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RCALL, ctx.start));
-		cb.intValue = 1;
-		// Compile iter.next() 
+		bytecode.add(setupLoop = Bytecode.makeBytecode(Bytecode.SETUP_LOOP, ctx.start));
 		putGetAttr("next", bytecode, ctx.start);
+		setupLoop.intValue = bytecode.size();
 		// Compile loop
 		LoopStackItem lsi = new LoopStackItem(bytecode.size());
 		cs = ControllStack.push(cs, lsi);
-		bytecode.add(Bytecode.makeBytecode(Bytecode.ECALL, ctx.start));
+		bytecode.add(getIter = Bytecode.makeBytecode(Bytecode.GET_ITER, ctx.start));
 		bytecode.add(acceptIter = Bytecode.makeBytecode(Bytecode.ACCEPT_ITER, ctx.start));
 		// Assign to iteration variable
 		compileAssignment(ctx.exprlist(), bytecode);
@@ -449,7 +449,7 @@ public class PythonCompiler {
 		compileSuite(ctx.suite(0), bytecode, cs);
 		lsi.addContinue(ctx, bytecode);
 		// Compile else block (if any)
-		acceptIter.intValue = bytecode.size();
+		getIter.intValue = acceptIter.intValue = bytecode.size();
 		if (ctx.suite(1) != null)
 			compileSuite(ctx.suite(1), bytecode, cs);
 		// TODO: Else somewhere here
