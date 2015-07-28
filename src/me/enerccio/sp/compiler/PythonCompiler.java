@@ -1301,15 +1301,20 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dcx.stop));
 	}
 
-	private void compile(Testlist_compContext ctx,
-			List<PythonBytecode> bytecode) {
+	private void compile(Testlist_compContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.comp_for() != null){
 			// TODO
 		} else {
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-			cb.intValue = ctx.test().size();
+			if ((ctx.test().size() > 1) || ctx.children.get(ctx.children.size() - 1).getText().equals(",")) {
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+				cb.stringValue = TupleTypeObject.TUPLE_CALL;
+				for (TestContext i : ctx.test())
+					compile(i, bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+				cb.intValue = ctx.test().size();
+			} else {
+				compile(ctx.test(0), bytecode);
+			}
 		}
 	}
 
