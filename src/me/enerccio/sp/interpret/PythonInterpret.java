@@ -568,8 +568,12 @@ public class PythonInterpret extends PythonObject {
 			o.parentFrame.stack.add(o);
 		} else {
 			if (currentFrame.size() == 0) {
-				if (o.exception != null) 
+				if (o.exception != null) {
+					try {
+						System.err.println(o.exception.fields.get("stack").object.toString().replace(">,", ">,\n"));
+					} catch (Exception e) {};
 					throw new PythonExecutionException(o.exception);
+				}
 			} else
 				currentFrame.peekLast().exception = o.exception;
 		}
