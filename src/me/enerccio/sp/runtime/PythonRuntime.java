@@ -78,6 +78,7 @@ import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
+import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
@@ -332,6 +333,9 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, o = new BoundFunctionTypeObject());
 					o.newObject();
+					globals.put(XRangeTypeObject.XRANGE_CALL, o = new XRangeTypeObject());
+					o.newObject();
+
 					
 					addExceptions(globals);
 					
