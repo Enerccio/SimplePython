@@ -29,6 +29,11 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Sequence iterator for system classes list and tuple
+ * @author Enerccio
+ *
+ */
 public class OrderedSequenceIterator extends PythonObject {
 	private static final long serialVersionUID = 4746975236443204424L;
 	public static final String NEXT = "next";

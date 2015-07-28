@@ -34,6 +34,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Implementation of the python dict
+ * @author Enerccio
+ *
+ */
 public class MapObject extends ContainerObject {
 	private static final long serialVersionUID = 20L;
 	public static final String __GETITEM__ = "__getitem__";

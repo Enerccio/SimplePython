@@ -30,6 +30,11 @@ import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Python object representing module 
+ * @author Enerccio
+ *
+ */
 public class ModuleObject extends PythonObject {
 	private static final long serialVersionUID = -2347220852204272570L;
 	public static final String __NAME__ = "__name__";
@@ -58,8 +63,11 @@ public class ModuleObject extends PythonObject {
 		this.globals = globals;
 	}
 	
+	/** provider bound to this module */
 	public final ModuleProvider provider;
+	/** bytecode of the body of this module */
 	private List<PythonBytecode> frame;
+	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
 
 	@Override
@@ -101,17 +109,28 @@ public class ModuleObject extends PythonObject {
 		return "<Module " + get(__NAME__, this).toString() + " at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
+	/** 
+	 * Initializes the module.
+	 */
 	public void initModule() {
 		doInitModule();
 		isInited = true;
 	}
 
+	/** 
+	 * Initializes the module by executing it's bytecode
+	 */
 	private void doInitModule() {
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 		PythonInterpret.interpret.get().executeBytecode(frame);
 		PythonInterpret.interpret.get().executeAll(cfc);
 	}
 
+	/**
+	 * Returns field from this module's dict (globals)
+	 * @param string
+	 * @return
+	 */
 	public PythonObject getField(String string) {
 		return globals.doGet(string);
 	}

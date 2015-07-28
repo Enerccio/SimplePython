@@ -21,6 +21,11 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * StaticMethod python object
+ * @author Enerccio
+ *
+ */
 public class StaticMethodObject extends PythonObject {
 	private static final long serialVersionUID = -7257861263236747558L;
 	public static final String __FUNC__ = "__FUNC__";

@@ -27,6 +27,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * float()
+ * @author Enerccio
+ *
+ */
 public class RealTypeObject extends TypeObject {
 	private static final long serialVersionUID = -8799583211649909780L;
 	public static final String REAL_CALL = "float";

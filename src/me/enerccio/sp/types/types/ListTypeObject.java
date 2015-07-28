@@ -23,6 +23,11 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
+/**
+ * list()
+ * @author Enerccio
+ *
+ */
 public class ListTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4391029961115891279L;
 	public static final String LIST_CALL = "list";

@@ -26,18 +26,38 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
 
+/**
+ * Environment object represents environment. Environment is responsible for fetching variable values
+ * @author Enerccio
+ *
+ */
 public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
 	private List<MapObject> environments = new ArrayList<MapObject>();
 	
+	/**
+	 * Adds closure maps to the environment
+	 * @param closures
+	 */
 	public void add(MapObject... closures){
 		environments.addAll(Arrays.asList(closures));
 	}
 	
+	/**
+	 * Adds closure maps to the environment
+	 * @param closures
+	 */
 	public void add(Collection<MapObject> closures){
 		environments.addAll(closures);
 	}
 	
+	/**
+	 * Returns bound value to variable
+	 * @param key name of the variable
+	 * @param isGlobal is asking for global variable or not
+	 * @param skipFirst whether to skip first closure (skip locals)
+	 * @return value or null if none exists
+	 */
 	public PythonObject get(StringObject key, boolean isGlobal, boolean skipFirst){
 		if (isGlobal){
 			return environments.get(environments.size()-1).doGet(key);
@@ -56,6 +76,15 @@ public class EnvironmentObject extends PythonObject {
 		return null;
 	}
 	
+	/**
+	 * Sets the variable key to the value. 
+	 * @param key name of the variable
+	 * @param value value to set
+	 * @param isGlobal is asking for global variable or not
+	 * @param skipFirst whether to skip first closure (skip locals)
+	 * @return value or null if none exists
+	 * @return
+	 */
 	public PythonObject set(StringObject key, PythonObject value, boolean isGlobal, boolean skipFirst){
 		if (isGlobal){
 			return environments.get(environments.size()-1).backingMap.put(key, value);
@@ -86,6 +115,10 @@ public class EnvironmentObject extends PythonObject {
 		return "<environment 0x" + Integer.toHexString(hashCode()) + ">"; 
 	}
 
+	/**
+	 * Returns locals in this environment
+	 * @return
+	 */
 	public MapObject getLocals() {
 		return environments.get(0);
 	}

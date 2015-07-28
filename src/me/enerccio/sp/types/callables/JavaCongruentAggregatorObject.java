@@ -26,6 +26,12 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Aggreagtes methods with same name of the java class into single callable, that will call applicable methods based on the 
+ * arguments used.
+ * @author Enerccio
+ *
+ */
 public class JavaCongruentAggregatorObject extends CallableObject {
 	private static final long serialVersionUID = -8330175039684193277L;
 	

@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
+/**
+ * javamethod()
+ * @author Enerccio
+ *
+ */
 public class JavaCallableTypeObject extends TypeObject {
 	private static final long serialVersionUID = 7480637583186194657L;
 	public static final String JAVACALLABLE_CALL = "javamethod";

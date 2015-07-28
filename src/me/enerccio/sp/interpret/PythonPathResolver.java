@@ -23,6 +23,11 @@ import java.io.FileInputStream;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * PythonPath resolver. This is standard disk python path resolver. You provide path and SP will search there for .spy files and packages
+ * @author Enerccio
+ *
+ */
 public class PythonPathResolver implements PythonDataSourceResolver {
 
 	private PythonPathResolver(){

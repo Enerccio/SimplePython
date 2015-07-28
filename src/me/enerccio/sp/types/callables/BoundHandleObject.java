@@ -30,6 +30,12 @@ import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Python Function bound to certain type. This is here because of the private/public shenanigans and this bound handle
+ * will set up correct context for bound objects
+ * @author Enerccio
+ *
+ */
 public class BoundHandleObject extends PythonObject {
 
 	private static final long serialVersionUID = 6184279154550720464L;
@@ -48,6 +54,12 @@ public class BoundHandleObject extends PythonObject {
 		}
 	};
 	
+	/**
+	 * Returns runtime made bytecode for bound function handler.
+	 * @param boundHandleObject
+	 * @param args
+	 * @return
+	 */
 	public List<PythonBytecode> methodCall(BoundHandleObject boundHandleObject, TupleObject args) {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
@@ -98,6 +110,11 @@ public class BoundHandleObject extends PythonObject {
 		return l;
 	}
 	
+	/**
+	 * Calls this function. Will insert onto frame stack and returns None.
+	 * @param args
+	 * @return
+	 */
 	public PythonObject call(TupleObject args) {
 		PythonInterpret.interpret.get().executeBytecode(methodCall(this, args));
 		return NoneObject.NONE; // returns immediately

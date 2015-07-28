@@ -24,6 +24,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * int()
+ * @author Enerccio
+ *
+ */
 public class IntTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4178003762513900453L;
 	public static final String INT_CALL = "int";

@@ -21,6 +21,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
+/**
+ * Stack that contains variable's scope
+ * @author Enerccio
+ *
+ */
 public class VariableStack {
 	
 	private static class VariableStackElement {
@@ -29,18 +34,33 @@ public class VariableStack {
 
 	private Stack<VariableStackElement> stack = new Stack<VariableStackElement>();
 	
+	/**
+	 * Inserts new layer to the stack
+	 */
 	public void push(){
 		stack.add(new VariableStackElement());
 	}
 	
+	/**
+	 * Removes layer from the stack
+	 */
 	public void pop(){
 		stack.pop();
 	}
 	
+	/**
+	 * Sets variable as global in current scope
+	 * @param variable
+	 */
 	public void addGlobal(String variable){
 		stack.peek().globals.add(variable);
 	}
 	
+	/**
+	 * Checks whether the variable is global in current scope
+	 * @param variable
+	 * @return
+	 */
 	public boolean isGlobalVariable(String variable){
 		return stack.peek().globals.contains(variable);
 	}

@@ -26,6 +26,11 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Custom Bytecode. Will be invoked when interpreted
+ * @author Enerccio
+ *
+ */
 public class CustomBytecode extends PythonBytecode {
 	private static final long serialVersionUID = 388228361390637623L;
 	public static final String OPERATION = "__op__";

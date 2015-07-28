@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.types.sequences;
 
+/**
+ * Immutable sequences
+ * @author Enerccio
+ *
+ */
 public abstract class ImmutableSequenceObject extends SequenceObject {
 	private static final long serialVersionUID = 14L;
 	

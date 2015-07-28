@@ -35,6 +35,11 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
 
+/**
+ * function()
+ * @author Enerccio
+ *
+ */
 public class FunctionTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4621194768946693335L;
 	public static final String FUNCTION_CALL = "function";

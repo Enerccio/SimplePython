@@ -21,6 +21,11 @@ import java.math.BigInteger;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * fixnum represented by big integer
+ * @author Enerccio
+ *
+ */
 public class IntObject extends NumberObject {
 	private static final long serialVersionUID = 6L;
 	

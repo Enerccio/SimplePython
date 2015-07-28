@@ -30,6 +30,11 @@ import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents python methods
+ * @author Enerccio
+ *
+ */
 public class UserMethodObject extends PythonObject {
 	private static final long serialVersionUID = 6184279154550720464L;
 	public static final String SELF = "__self__";
@@ -48,6 +53,12 @@ public class UserMethodObject extends PythonObject {
 		}
 	};
 	
+	/**
+	 * Returns runtime made bytecode for method handler.
+	 * @param o
+	 * @param args
+	 * @return
+	 */
 	public List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
@@ -103,6 +114,11 @@ public class UserMethodObject extends PythonObject {
 		return l;
 	}
 	
+	/**
+	 * Calls this method. Will insert onto frame stack and returns None.
+	 * @param args
+	 * @return
+	 */
 	public PythonObject call(TupleObject args) {
 		PythonInterpret.interpret.get().executeBytecode(methodCall(this, args));
 		return NoneObject.NONE; // returns immediately

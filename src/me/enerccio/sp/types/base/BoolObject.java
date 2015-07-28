@@ -21,10 +21,17 @@ import java.math.BigInteger;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * Represents boolean. Cannot be instantiated. 
+ * @author Enerccio
+ *
+ */
 public class BoolObject extends NumberObject {
 	private static final long serialVersionUID = 7L;
 	
+	/** Python True */
 	public static final BoolObject TRUE = new BoolObject(true);
+	/** Python False */
 	public static final BoolObject FALSE = new BoolObject(false);
 	
 	private final boolean value;

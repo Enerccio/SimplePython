@@ -23,18 +23,34 @@ import java.util.Stack;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * FrameObject represents execution frame. Holds flags related to the execution and also pc + bytecode
+ * @author Enerccio
+ *
+ */
 public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
 	
+	/**
+	 * Parent frame is null if this is normal frame, or reference to parent frame if this is a subframe
+	 */
 	public FrameObject parentFrame;
+	/** whether previous frame ended with return */
 	public boolean returnHappened;
+	/** whether this frame pushed local context or not*/
 	public boolean pushed_context;
+	/** whether this frame pushed new environment or not */
 	public boolean pushed_environ;
+	/** whether this frame wants to accept some value as return */
 	public boolean accepts_return;
 	
+	/** If python exception has happened, it will be stored here */
 	public PythonObject exception;
+	/** Bytecode of this frame */
 	public List<PythonBytecode> bytecode;
+	/** program counter */
 	public int pc;
+	/** python stack of this frame */
 	public Stack<PythonObject> stack = new Stack<PythonObject>();
 
 	@Override

@@ -21,6 +21,11 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * PythonObject representing java strings
+ * @author Enerccio
+ *
+ */
 public class StringObject extends ImmutableSequenceObject implements SimpleIDAccessor {
 	private static final long serialVersionUID = 11L;
 	

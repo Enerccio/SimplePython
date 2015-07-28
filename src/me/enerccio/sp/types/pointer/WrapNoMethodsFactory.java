@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.types.pointer;
 
+/**
+ * Will wrap no methods at all.
+ * @author Enerccio
+ *
+ */
 public class WrapNoMethodsFactory implements PointerFactory {
 	private static final long serialVersionUID = -4372859400649832530L;
 

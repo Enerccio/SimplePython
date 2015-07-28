@@ -27,6 +27,12 @@ import me.enerccio.sp.types.callables.JavaCongruentAggregatorObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Base wrapping factory. Handles wrapping methods into JavaCongruentAggregatorObjects. 
+ * Which methods to wrap are decided by the getMethods method.
+ * @author Enerccio
+ *
+ */
 public abstract class WrapBaseFactory implements PointerFactory {
 	private static final long serialVersionUID = -4111009373007823950L;
 	

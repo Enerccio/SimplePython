@@ -23,6 +23,11 @@ import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * PathResolver which searches root of the jar/java path for .spy.
+ * @author Enerccio
+ *
+ */
 public class InternalJavaPathResolver implements PythonDataSourceResolver {
 
 	public InternalJavaPathResolver(){

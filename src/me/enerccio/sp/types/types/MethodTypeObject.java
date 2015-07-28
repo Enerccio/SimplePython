@@ -25,6 +25,11 @@ import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * method()
+ * @author Enerccio
+ *
+ */
 public class MethodTypeObject extends TypeObject {
 	private static final long serialVersionUID = 6537509851545433991L;
 	public static final String METHOD_CALL = "method";

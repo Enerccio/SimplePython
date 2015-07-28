@@ -22,6 +22,11 @@ import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * slice()
+ * @author Enerccio
+ *
+ */
 public class SliceTypeObject extends TypeObject {
 	private static final long serialVersionUID = 1174044496063617044L;
 	public static final String SLICE_CALL = "slice";

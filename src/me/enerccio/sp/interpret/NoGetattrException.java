@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.interpret;
 
+/**
+ * Raised when getattr has not found any attribute and there is also no __getattr__
+ * @author Enerccio
+ *
+ */
 public class NoGetattrException extends RuntimeException {
 	private static final long serialVersionUID = 2604741873585749939L;
 }

@@ -23,6 +23,11 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Class Instance object. Created by ClassObjects.
+ * @author Enerccio
+ *
+ */
 public class ClassInstanceObject extends PythonObject {
 	private static final long serialVersionUID = -4687801735710617861L;
 	public static final String __INIT__ = "__init__";

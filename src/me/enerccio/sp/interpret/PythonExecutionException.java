@@ -19,6 +19,11 @@ package me.enerccio.sp.interpret;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * Represents exception raised in SimplePython or java code that wants to raise SimplePython's exception
+ * @author Enerccio
+ *
+ */
 public class PythonExecutionException extends RuntimeException {
 	private static final long serialVersionUID = -1679058226367596212L;
 	private PythonObject exception;

@@ -21,6 +21,11 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Singleton None object
+ * @author Enerccio
+ *
+ */
 public class NoneObject extends PythonObject {
 	private static final long serialVersionUID = 2L;
 

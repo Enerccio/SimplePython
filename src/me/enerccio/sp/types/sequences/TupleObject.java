@@ -27,6 +27,11 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Python tuple object
+ * @author Enerccio
+ *
+ */
 public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAccessor {
 	private static final long serialVersionUID = 12L;
 	private volatile boolean initialized = false;
@@ -68,6 +73,10 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
         return result;
 	}
 
+	/**
+	 * returns objects contained in this tuple object
+	 * @return
+	 */
 	public PythonObject[] getObjects() {
 		return array;
 	}

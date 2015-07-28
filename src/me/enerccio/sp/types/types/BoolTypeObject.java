@@ -22,6 +22,11 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * bool()
+ * @author Enerccio
+ *
+ */
 public class BoolTypeObject extends TypeObject {
 	private static final long serialVersionUID = 6840091655061000673L;
 	public static final String BOOL_CALL = "bool";

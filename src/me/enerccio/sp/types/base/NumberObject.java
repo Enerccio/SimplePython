@@ -30,6 +30,11 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Root number object. Represents all numbers
+ * @author Enerccio
+ *
+ */
 public abstract class NumberObject extends PythonObject {
 	private static final long serialVersionUID = 8168239961379175666L;
 	public static final String __INT__ = "__int__";
@@ -189,6 +194,11 @@ public abstract class NumberObject extends PythonObject {
 	/** Converts number to float */
 	public abstract double getJavaFloat();
 	
+	/**
+	 * Returns int value
+	 * @param args
+	 * @return
+	 */
 	public PythonObject intValue(TupleObject args){
 		if (args.len() != 0)
 			throw Utils.throwException("TypeError", "__int__ requires zero parameters");

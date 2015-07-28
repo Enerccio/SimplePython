@@ -31,6 +31,11 @@ import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Python list representation.
+ * @author Enerccio
+ *
+ */
 public class ListObject extends MutableSequenceObject implements SimpleIDAccessor  {
 	private static final long serialVersionUID = 16L;
 

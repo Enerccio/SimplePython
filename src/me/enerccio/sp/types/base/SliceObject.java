@@ -21,6 +21,11 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * Represents slice object. Can be created via slice() function
+ * @author Enerccio
+ *
+ */
 public class SliceObject extends PythonObject {
 	private static final long serialVersionUID = 5763751093225639862L;
 	public static final String START_ACCESSOR = "start";

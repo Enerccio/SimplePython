@@ -20,6 +20,11 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
+/**
+ * tuple()
+ * @author Enerccio
+ *
+ */
 public class TupleTypeObject extends TypeObject {
 	private static final long serialVersionUID = -5391029961115891279L;
 	public static final String TUPLE_CALL = "tuple";
