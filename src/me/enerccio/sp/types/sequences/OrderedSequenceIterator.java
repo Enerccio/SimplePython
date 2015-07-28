@@ -38,7 +38,7 @@ public class OrderedSequenceIterator extends PythonObject {
 
 	public OrderedSequenceIterator(SequenceObject sequenceObject) {
 		this.sequence = sequenceObject;
-		this.len = sequence.size().intValue();
+		this.len = sequence.len();
 	}
 	
 	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());

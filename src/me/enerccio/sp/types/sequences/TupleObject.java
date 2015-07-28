@@ -42,8 +42,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	private PythonObject[] array;
 	
 	@Override
-	public IntObject size() {
-		return IntObject.valueOf(array.length);
+	public int len() {
+		return array.length;
 	}
 	
 	@Override
@@ -119,17 +119,12 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	}
 
 	@Override
-	public int len() {
-		return array.length;
-	}
-
-	@Override
 	public PythonObject valueAt(int idx) {
 		return array[idx];
 	}
 
 	@Override
-	protected boolean containsItem(PythonObject o) {
+	public boolean containsItem(PythonObject o) {
 		for (int i=0; i<len(); i++)
 			if (o.equals(array[i]))
 				return true;

@@ -94,8 +94,6 @@ public abstract class SequenceObject extends ContainerObject {
 	protected String doToString() {
 		return null;
 	}
-
-	public abstract IntObject size();
 	
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
