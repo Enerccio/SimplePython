@@ -18,7 +18,6 @@
 package me.enerccio.sp.types.sequences;
 
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -41,8 +40,8 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	public String value;
 	
 	@Override
-	public IntObject size() {
-		return IntObject.valueOf(value.length());
+	public int len() {
+		return value.length();
 	}
 	
 	@Override
@@ -84,24 +83,14 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	}
 
 	@Override
-	public int len() {
-		return value.length();
-	}
-
-	@Override
 	public PythonObject valueAt(int idx) {
 		return new StringObject(Character.toString(value.charAt(idx)));
 	}
 
 	@Override
-	protected boolean containsItem(PythonObject o) {
+	public boolean containsItem(PythonObject o) {
 		if (o instanceof StringObject)
 			return value.contains(((StringObject)o).value);
 		return false;
-	}
-	
-	@Override
-	protected int elementCount() {
-		return value.length();
-	}
+	}	
 }

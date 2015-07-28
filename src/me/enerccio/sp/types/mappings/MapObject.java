@@ -27,7 +27,6 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -57,8 +56,6 @@ public class MapObject extends ContainerObject {
 					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(sfields, __SETITEM__, new JavaMethodObject(null, MapObject.class.getMethod("setItem", 
 					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, __LEN__, new JavaMethodObject(null, MapObject.class.getMethod("len", 
-					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, MapObject.class.getMethod("keys", 
 					new Class<?>[]{TupleObject.class}), true));
 			Utils.putPublic(sfields, "values", new JavaMethodObject(null, MapObject.class.getMethod("values", 
@@ -80,9 +77,6 @@ public class MapObject extends ContainerObject {
 		m = __SETITEM__;
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
-		m = __LEN__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
 		m = "keys";
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
@@ -94,12 +88,6 @@ public class MapObject extends ContainerObject {
 	
 	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();
 	
-	public IntObject size(){
-		synchronized (backingMap){
-			return IntObject.valueOf(backingMap.size());
-		}
-	}
-
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
@@ -149,10 +137,11 @@ public class MapObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject len(TupleObject a){
-		if (a.len() != 0)
-			throw Utils.throwException("TypeError", "__len__(): requires zero parameters");
-		return size();
+	@Override
+	public int len() {
+		synchronized (backingMap){
+			return backingMap.size();
+		}
 	}
 
 	public PythonObject doGet(String str) {
@@ -217,14 +206,9 @@ public class MapObject extends ContainerObject {
 	}
 
 	@Override
-	protected boolean containsItem(PythonObject o) {
+	public boolean containsItem(PythonObject o) {
 		synchronized (backingMap){
 			return backingMap.containsKey(o);
 		}
-	}
-
-	@Override
-	protected int elementCount() {
-		return backingMap.size();
 	}
 }

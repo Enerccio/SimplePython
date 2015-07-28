@@ -413,6 +413,7 @@ public class PythonCompiler {
 		cs = ControllStack.push(cs, lsi);
 		// Compile condition
 		compile(ctx.test(), bytecode);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
 		PythonBytecode jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start);
 		bytecode.add(jump);
 		// Compile body
@@ -463,6 +464,7 @@ public class PythonCompiler {
 		// If and elif blocks
 		for (int i=0; i<ctx.test().size(); i++) {
 			compile(ctx.test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
 			bytecode.add(jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
 			compileSuite(ctx.suite(i), bytecode, cs);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
@@ -892,9 +894,8 @@ public class PythonCompiler {
 	}
 	
 	private void putNot(List<PythonBytecode> bytecode, Token t) {
-		putGetAttr("__not__", bytecode, t);
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-		cb.intValue = 0;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, t));
+		cb.intValue = 1;
 	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
@@ -910,28 +911,52 @@ public class PythonCompiler {
 	}
 
 	private void compile(Or_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.getChildCount() > 1){
-			// TODO
-		} else 
-			compile(ctx.and_test(0), bytecode);
+		List<PythonBytecode> jumps = new LinkedList<>();
+		int last = ctx.and_test().size() - 1;
+		for (int i=0; i<last; i++) {
+			compile(ctx.and_test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFTRUE, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			jumps.add(cb);
+		}
+		compile(ctx.and_test(last), bytecode);
+		for (PythonBytecode c : jumps)
+			c.intValue = bytecode.size();
 	}
 	
 	private void compile(And_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.getChildCount() > 1){
-			// TODO
-		} else 
-			compile(ctx.not_test(0), bytecode);
+		List<PythonBytecode> jumps = new LinkedList<>();
+		int last = ctx.not_test().size() - 1;
+		for (int i=0; i<last; i++) {
+			compile(ctx.not_test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			jumps.add(cb);
+		}
+		compile(ctx.not_test(last), bytecode);
+		for (PythonBytecode c : jumps)
+			c.intValue = bytecode.size();
 	}
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.not_test() != null){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-			cb.stringValue = "negate";
-			compile(ctx.not_test(), bytecode);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.start));
-			cb.intValue = 1;
-		} else
+		if (ctx.not_test() == null) {
 			compile(ctx.comparison(), bytecode);
+			return;
+		}
+		int amount = countNots(ctx, bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+		cb.intValue = amount % 2;
+	}
+	
+	private int countNots(Not_testContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.not_test() != null)
+			return 1 + countNots(ctx.not_test(), bytecode);
+		compile(ctx.comparison(), bytecode);
+		return 0;
 	}
 	
 	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
@@ -1298,21 +1323,19 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dcx.stop));
 	}
 
-	private void compile(Testlist_compContext ctx,
-			List<PythonBytecode> bytecode) {
+	private void compile(Testlist_compContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.comp_for() != null){
 			// TODO
 		} else {
-			int tc = ctx.test().size();
-			if (tc > 1 || tc == 0){
+			if ((ctx.test().size() > 1) || ctx.children.get(ctx.children.size() - 1).getText().equals(",")) {
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
 				cb.stringValue = TupleTypeObject.TUPLE_CALL;
-			}
-			for (TestContext t : ctx.test())
-				compile(t, bytecode);
-			if (tc > 1 || tc == 0){
+				for (TestContext i : ctx.test())
+					compile(i, bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
 				cb.intValue = ctx.test().size();
+			} else {
+				compile(ctx.test(0), bytecode);
 			}
 		}
 	}
@@ -1380,6 +1403,7 @@ public class PythonCompiler {
 			List_iterContext lIter = fCtx.list_iter();
 			if (lIter.list_if() != null) {
 				compile(lIter.list_if().test(), bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, fCtx.start));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, fCtx.start));
 				cb.intValue = loopStart;
 			} else if (lIter.list_for() != null) {
@@ -1507,6 +1531,7 @@ public class PythonCompiler {
 			Comp_iterContext lIter = cCtx.comp_iter();
 			if (lIter.comp_if() != null) {
 				compile(lIter.comp_if().test(), bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, cCtx.start));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, cCtx.start));
 				cb.intValue = loopStart;
 			} else if (lIter.comp_for() != null) {

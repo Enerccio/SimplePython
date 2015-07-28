@@ -16,6 +16,7 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
@@ -300,12 +301,7 @@ public class PythonInterpret extends PythonObject {
 			PythonBytecode pythonBytecode) {
 		
 		Stack<PythonObject> stack = o.stack;
-//		if (!o.accepts_return)
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " [" + o.stack);
-//		else
-//			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee  + " [" + o.stack);
 		
-		// if frame is waiting for return, push returnee or None onto stack and clear the flag
 		if (o.accepts_return){
 			o.accepts_return = false;
 			if (returnee == null)
@@ -313,6 +309,13 @@ public class PythonInterpret extends PythonObject {
 			else
 				stack.push(returnee);
 		}
+
+		/*
+		if (!o.accepts_return)
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " [" + o.stack);
+		else
+			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee  + " [" + o.stack);
+			*/
 		
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
@@ -453,6 +456,34 @@ public class PythonInterpret extends PythonObject {
 		case POP:
 			// pops value off the stack
 			stack.pop();
+			break;
+		case TRUTH_VALUE:
+			value = stack.pop();
+			if (value instanceof NumberObject) {
+				if (pythonBytecode.intValue == 1)
+					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				else
+					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+				break;
+			} else if (value.fields.containsKey("__nonzero__")) {
+				runnable = value.fields.get("__nonzero__").object;
+				returnee = execute(true, runnable);
+				o.accepts_return = true;
+				if (pythonBytecode.intValue == 1)
+					o.pc --;
+				break;
+			} else if (value.fields.containsKey("__len__")) {
+				runnable = value.fields.get("__len__").object;
+				returnee = execute(true, runnable);
+				o.accepts_return = true;
+				o.pc --;
+				break;
+			} else {
+				if (pythonBytecode.intValue == 1)
+					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				else
+					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+			}
 			break;
 		case PUSH:
 			// pushes constant onto stack
@@ -619,7 +650,6 @@ public class PythonInterpret extends PythonObject {
 			nf.newObject();
 			nf.parentFrame = o;
 			nf.bytecode = o.bytecode;
-			nf.stack = o.stack;
 			nf.pc = pythonBytecode.intValue;
 			currentFrame.add(nf);
 			break;
@@ -656,8 +686,12 @@ public class PythonInterpret extends PythonObject {
 			o.parentFrame.stack.add(o);
 		} else {
 			if (currentFrame.size() == 0) {
-				if (o.exception != null) 
+				if (o.exception != null) {
+					try {
+						System.err.println(o.exception.fields.get("stack").object.toString().replace(">,", ">,\n"));
+					} catch (Exception e) {};
 					throw new PythonExecutionException(o.exception);
+				}
 			} else
 				currentFrame.peekLast().exception = o.exception;
 		}

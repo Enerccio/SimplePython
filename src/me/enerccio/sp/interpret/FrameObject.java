@@ -41,6 +41,7 @@ public class FrameObject extends PythonObject {
 	public boolean pushed_context;
 	/** whether this frame pushed new environment or not */
 	public boolean pushed_environ;
+
 	/** whether this frame wants to accept some value as return */
 	public boolean accepts_return;
 	

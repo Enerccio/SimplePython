@@ -73,8 +73,8 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	public List<PythonObject> objects = Collections.synchronizedList(new ArrayList<PythonObject>());
 	
 	@Override
-	public IntObject size() {
-		return IntObject.valueOf(objects.size());
+	public int len() {
+		return objects.size();
 	}
 	
 	@Override
@@ -123,12 +123,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		o.newObject();
 		return o;
 	}
-
-	@Override
-	public int len() {
-		return objects.size();
-	}
-
+	
 	@Override
 	public PythonObject valueAt(int idx) {
 		return objects.get(idx);
@@ -153,12 +148,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	}
 
 	@Override
-	protected boolean containsItem(PythonObject o) {
+	public boolean containsItem(PythonObject o) {
 		return objects.contains(o);
-	}
-	
-	@Override
-	protected int elementCount() {
-		return objects.size();
 	}
 }

@@ -111,6 +111,22 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class TruthValue extends PythonBytecode {
+		private static final long serialVersionUID = -8816781867691872127L;
+
+		{
+			bytecode = Bytecode.TRUTH_VALUE;
+		}
+		
+		@Override
+		protected String doToString() {
+			if (intValue == 1)
+				return String.format("%s (1 - negated)", getOpcode().toString());
+			else
+				return String.format("%s", getOpcode().toString(), intValue);
+		}
+	}
+	
 	public static class AcceptIter extends PythonBytecode {
 		private static final long serialVersionUID = 6332909908617239072L;
 
@@ -121,7 +137,7 @@ public class PythonBytecode extends PythonObject {
 		@Override
 		protected String doToString() {
 			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
-		}		
+		}	
 	}
 	
 	public static class PushEnvironment extends PythonBytecode {

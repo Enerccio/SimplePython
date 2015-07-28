@@ -36,13 +36,16 @@ public abstract class ContainerObject extends PythonObject {
 	private static final long serialVersionUID = 1631363547607776261L;
 
 	public static final String __CONTAINS__ = "__contains__";
+	public static final String __LEN__ = "__len__";
 	
 	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __CONTAINS__, new JavaMethodObject(null, ContainerObject.class.getMethod("contains", 
+			Utils.putPublic(sfields, __CONTAINS__, new JavaMethodObject(null, ContainerObject.class.getMethod("__contains__", 
 					new Class<?>[]{PythonObject.class}), false));
+			Utils.putPublic(sfields, __LEN__, new JavaMethodObject(null, ContainerObject.class.getMethod("__len__", 
+					new Class<?>[]{}), false));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -56,10 +59,17 @@ public abstract class ContainerObject extends PythonObject {
 		m = __CONTAINS__;
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
+		m = __LEN__;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
 	}
 	
-	public PythonObject contains(PythonObject o){
+	public PythonObject __contains__(PythonObject o){
 		return BoolObject.fromBoolean(containsItem(o));
+	}
+	
+	public PythonObject __len__(){
+		return IntObject.valueOf(len());
 	}
 
 	/**
@@ -67,16 +77,17 @@ public abstract class ContainerObject extends PythonObject {
 	 * @param o
 	 * @return
 	 */
-	protected abstract boolean containsItem(PythonObject o);
-	
-	@Override
-	public final boolean truthValue(){
-		return elementCount() != 0;
-	}
+	public abstract boolean containsItem(PythonObject o);
 
 	/**
 	 * returns number of elements in this container
 	 * @return
 	 */
-	protected abstract int elementCount();
+	public abstract int len();
+	
+	@Override
+	public final boolean truthValue(){
+		return len() != 0;
+	}
+
 }
