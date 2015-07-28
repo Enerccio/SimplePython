@@ -150,6 +150,10 @@ public class Utils {
 				return ((PointerObject) datum).getObject();
 		}
 		
+		if (datum == NoneObject.NONE && !aType.isPrimitive()){
+			return null;
+		}
+		
 		if (aType.isAssignableFrom(datum.getClass()))
 			return datum;
 

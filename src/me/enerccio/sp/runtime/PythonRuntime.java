@@ -704,6 +704,10 @@ public class PythonRuntime {
 		return o;
 	}
 	
+	public void loadModule(String string) {
+		getRoot(string);
+	}
+	
 	public PythonObject runtimeWrapper() {
 		// TODO Auto-generated method stub
 		return null;
