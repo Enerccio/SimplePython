@@ -887,17 +887,35 @@ public class PythonCompiler {
 	}
 
 	private void compile(Or_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.getChildCount() > 1){
-			// TODO
-		} else 
-			compile(ctx.and_test(0), bytecode);
+		List<PythonBytecode> jumps = new LinkedList<>();
+		int last = ctx.and_test().size() - 1;
+		for (int i=0; i<last; i++) {
+			compile(ctx.and_test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFTRUE, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			jumps.add(cb);
+		}
+		compile(ctx.and_test(last), bytecode);
+		for (PythonBytecode c : jumps)
+			c.intValue = bytecode.size();
 	}
 	
 	private void compile(And_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.getChildCount() > 1){
-			// TODO
-		} else 
-			compile(ctx.not_test(0), bytecode);
+		List<PythonBytecode> jumps = new LinkedList<>();
+		int last = ctx.not_test().size() - 1;
+		for (int i=0; i<last; i++) {
+			compile(ctx.not_test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
+			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.start));
+			jumps.add(cb);
+		}
+		compile(ctx.not_test(last), bytecode);
+		for (PythonBytecode c : jumps)
+			c.intValue = bytecode.size();
 	}
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
