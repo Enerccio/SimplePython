@@ -901,11 +901,20 @@ public class PythonCompiler {
 	}
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.not_test() != null){
-			compile(ctx.not_test(), bytecode);
-			putNot(bytecode, ctx.start);
-		} else
+		if (ctx.not_test() == null) {
 			compile(ctx.comparison(), bytecode);
+			return;
+		}
+		int amount = countNots(ctx, bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
+		cb.intValue = amount % 2;
+	}
+	
+	private int countNots(Not_testContext ctx, List<PythonBytecode> bytecode) {
+		if (ctx.not_test() != null)
+			return 1 + countNots(ctx.not_test(), bytecode);
+		compile(ctx.comparison(), bytecode);
+		return 0;
 	}
 	
 	private void compile(ComparisonContext ctx, List<PythonBytecode> bytecode) {
