@@ -119,6 +119,11 @@ import me.enerccio.sp.utils.Utils;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
+/**
+ * Compiles source into Python Bytecode
+ * @author Enerccio
+ *
+ */
 public class PythonCompiler {
 	private static volatile int genFunc = 0;
 
@@ -129,6 +134,16 @@ public class PythonCompiler {
 	
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
 	
+	/**
+	 * Compiles source into single UserFunctionObject. Used by function() function
+	 * @param sctx String context 
+	 * @param globals list of globals for the environment
+	 * @param args string arguments that function requires
+	 * @param vargarg null or name of the vararg argument
+	 * @param defaults function defaults
+	 * @param locals map of locals for the function
+	 * @return completed object
+	 */
 	public UserFunctionObject doCompile(String_inputContext sctx, List<MapObject> globals, 
 			List<String> args, String vargarg, MapObject defaults, MapObject locals) {
 		moduleName.set("generated-functions");
@@ -171,6 +186,13 @@ public class PythonCompiler {
 		return fnc;
 	}
 	
+	/**
+	 * Compiles file input into List of bytecode for the module
+	 * @param fcx file input
+	 * @param dict module's __dict__
+	 * @param m module
+	 * @return
+	 */
 	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m);
 	}

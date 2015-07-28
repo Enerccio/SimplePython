@@ -17,8 +17,20 @@
  */
 package me.enerccio.sp.interpret;
 
+/**
+ * Every interpret step will return this enum to show how interpretation ended
+ * @author Enerccio
+ *
+ */
 public enum ExecutionResult {
 	
-	OK, FINISHED, INTERRUPTED, EOF
+	/** No problems */
+	OK, 
+	/** No remaining bytecode in frame but also no frames on frame stack */
+	FINISHED, 
+	/** java interrupt happened */
+	INTERRUPTED, 
+	/** No remaining bytecode in frame */
+	EOF
 	
 }

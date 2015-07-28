@@ -30,6 +30,11 @@ import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents every single python object. Root of the hierarchy.
+ * @author Enerccio
+ *
+ */
 public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
@@ -41,6 +46,9 @@ public abstract class PythonObject implements Serializable {
 		
 	}
 	
+	/**
+	 * Should be called only once to initialize methods of the object
+	 */
 	public void newObject(){
 		registerObject();
 	}
@@ -63,6 +71,9 @@ public abstract class PythonObject implements Serializable {
 		} 
 	}
 	
+	/**
+	 * Initializes basic method of all objects, EQ, NE and NOT
+	 */
 	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
 		
@@ -95,18 +106,39 @@ public abstract class PythonObject implements Serializable {
 		return BoolObject.fromBoolean(!truthValue());
 	}
 
+	/**
+	 * Returns type of this object
+	 * @return
+	 */
 	public PythonObject getType(){
 		return Utils.run("type", this);
 	}
 	
+	/**
+	 * Returns id of this object
+	 * @return
+	 */
 	public int getId(){
 		return hashCode();
 	}
 	
+	/**
+	 * Returns truth value of this object
+	 * @return
+	 */
 	public abstract boolean truthValue();
 	
+	/**
+	 * Fields of this object are stored here.
+	 */
 	public Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	
+	/**
+	 * Returns the field value for the key and local context
+	 * @param key
+	 * @param localContext
+	 * @return
+	 */
 	public synchronized PythonObject get(String key, PythonObject localContext) {
 		if (!fields.containsKey(key))
 			return null;
@@ -117,6 +149,13 @@ public abstract class PythonObject implements Serializable {
 		return field.object;
 	}
 
+	/**
+	 * Sets the value of the field into value with local context
+	 * @param key
+	 * @param localContext
+	 * @param value
+	 * @return
+	 */
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value){
 		if (!fields.containsKey(key))
@@ -132,6 +171,12 @@ public abstract class PythonObject implements Serializable {
 		return NoneObject.NONE;
 	}
 
+	/**
+	 * Checks if field is private
+	 * @param localContext
+	 * @param p
+	 * @return
+	 */
 	private boolean isPrivate(PythonObject localContext, AugumentedPythonObject p) {
 		if (localContext == null)
 			return false;
@@ -143,6 +188,12 @@ public abstract class PythonObject implements Serializable {
 		return true;
 	}
 
+	/**
+	 * Creates new empty field with restrictions and context
+	 * @param key
+	 * @param restrictions
+	 * @param currentContext
+	 */
 	public synchronized void create(String key, AccessRestrictions restrictions, PythonObject currentContext){
 		if (fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
@@ -161,6 +212,10 @@ public abstract class PythonObject implements Serializable {
 		return doToString();
 	}
 
+	/**
+	 * Returns string representation of the object
+	 * @return
+	 */
 	protected abstract String doToString();
 	
 	public volatile boolean mark = false;

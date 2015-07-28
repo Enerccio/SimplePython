@@ -21,6 +21,11 @@ import java.io.Serializable;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * PythonProxy which delegated hashCode to the PythonObject
+ * @author Enerccio
+ *
+ */
 public class PythonProxy implements Serializable {
 	private static final long serialVersionUID = 5305512089616516954L;
 	public PythonObject o;

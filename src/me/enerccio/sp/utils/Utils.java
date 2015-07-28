@@ -81,6 +81,12 @@ public class Utils {
 		return pushed;
 	}
 	
+	/**
+	 * Casts the object and type into python object
+	 * @param ret java object
+	 * @param retType type of the return
+	 * @return python object
+	 */
 	public static PythonObject cast(Object ret, Class<?> retType) {
 		if (retType == Byte.class || retType == byte.class)
 			return IntObject.valueOf(((Byte) ret).byteValue());
@@ -105,6 +111,13 @@ public class Utils {
 		return PythonRuntime.runtime.getJavaClass(ret.getClass().getCanonicalName(), ret);
 	}
 	
+	/**
+	 * Casts python object into java object
+	 * @param aType type to cast to
+	 * @param datum python object to cast
+	 * @return casted java value
+	 * @throws PointerMethodIncompatibleException if it cannot be casted
+	 */
 	public static Object asJavaObject(Class<?> aType, PythonObject datum)
 			throws PointerMethodIncompatibleException {
 		if (aType == Integer.class || aType == int.class) {
@@ -150,6 +163,10 @@ public class Utils {
 				return ((PointerObject) datum).getObject();
 		}
 		
+		if (datum == NoneObject.NONE && !aType.isPrimitive()){
+			return null;
+		}
+		
 		if (aType.isAssignableFrom(datum.getClass()))
 			return datum;
 
@@ -168,18 +185,40 @@ public class Utils {
 		return PythonInterpret.interpret.get().executeCall(function, args);
 	}
 
+	/**
+	 * throws exception of that type and that text
+	 * @param type
+	 * @param text
+	 * @return
+	 */
 	public static RuntimeException throwException(String type, String text) {
 		return new PythonExecutionException(run(type, new StringObject(text)));
 	}
 	
+	/**
+	 * throws exception of that type
+	 * @param type
+	 * @return
+	 */
 	public static RuntimeException throwException(String type) {
 		return new PythonExecutionException(run(type));
 	}
 
+	/**
+	 * puts value into field of this object publicly
+	 * @param target object
+	 * @param key name of the field
+	 * @param value public or private
+	 */
 	public static void putPublic(PythonObject target, String key, PythonObject value) {
 		target.fields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 
+	/**
+	 * returns top of the stack or null if empty
+	 * @param stack
+	 * @return
+	 */
 	public static <T> T peek(Stack<T> stack) {
 		if (stack.empty())
 			return null;
@@ -187,16 +226,31 @@ public class Utils {
 		return value;
 	}
 
+	/**
+	 * Wraps the method into python object
+	 * @param noTypeConversion whether or not to do type conversion
+	 * @param clazz class of which method to wrap
+	 * @param method method name
+	 * @param signature method signature
+	 * @return wrapped method
+	 */
 	public static PythonObject staticMethodCall(boolean noTypeConversion, Class<?> clazz,
 			String method, Class<?>... signature) {
 		try {
-			return new JavaFunctionObject(clazz.getMethod(method, signature), noTypeConversion);
+			return new JavaFunctionObject(clazz.getDeclaredMethod(method, signature), noTypeConversion);
 		} catch (NoSuchMethodException e){
 			// will not happen
 			return null;
 		}
 	}
 	
+	/**
+	 * Wraps the method into python object
+	 * @param clazz class of which method to wrap
+	 * @param method method name
+	 * @param signature method signature
+	 * @return wrapped method
+	 */
 	public static PythonObject staticMethodCall(Class<?> clazz,
 			String method, Class<?>... signature) {
 		return staticMethodCall(false, clazz, method, signature);
@@ -219,6 +273,12 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Parses module provider into pythonParser
+	 * @param provider
+	 * @return
+	 * @throws Exception
+	 */
 	public static pythonParser parse(ModuleProvider provider) throws Exception {
 		ANTLRInputStream is = new ANTLRInputStream(provider.getSource());
 		pythonLexer lexer = new pythonLexer(is);
@@ -232,6 +292,13 @@ public class Utils {
 		return parser;
 	}
 	
+	/**
+	 * parses input stream into pythonParser
+	 * @param provider
+	 * @param srcFile
+	 * @return
+	 * @throws Exception
+	 */
 	public static pythonParser parse(InputStream provider, String srcFile) throws Exception {
 		ANTLRInputStream is = new ANTLRInputStream(provider);
 		pythonLexer lexer = new pythonLexer(is);
@@ -296,6 +363,11 @@ public class Utils {
 		return copy;
 	}
 
+	/**
+	 * Resolves type hierarchy diamonds via L3. Returns linearized list of types. 
+	 * @param clo
+	 * @return
+	 */
 	public static List<ClassObject> resolveDiamonds(ClassObject clo) {
 		List<ClassObject> ll = asListOfClasses(clo);
 		List<ClassObject> linear = linearize(ll);
@@ -367,12 +439,23 @@ public class Utils {
 		return cl;
 	}
 
-	public static PythonObject getGlobal(String globalValue) {
+	/**
+	 * Returns global variable
+	 * @param variable
+	 * @return
+	 */
+	public static PythonObject getGlobal(String variable) {
 		if (PythonInterpret.interpret.get().currentEnvironment.size() == 0)
-			return PythonRuntime.runtime.generateGlobals().doGet(globalValue);
-		return PythonInterpret.interpret.get().environment().get(new StringObject(globalValue), true, false);
+			return PythonRuntime.runtime.generateGlobals().doGet(variable);
+		return PythonInterpret.interpret.get().environment().get(new StringObject(variable), true, false);
 	}
 
+	/**
+	 * Converts InputStream into byte array
+	 * @param input
+	 * @return
+	 * @throws IOException
+	 */
 	public static byte[] toByteArray(InputStream input) throws IOException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 	    copy(input, output);
@@ -393,6 +476,12 @@ public class Utils {
 	    return count;
 	}
 
+	/**
+	 * Inserts value as public field of the fields
+	 * @param sfields
+	 * @param key
+	 * @param value
+	 */
 	public static void putPublic(Map<String, AugumentedPythonObject> sfields,
 			String key, JavaMethodObject value) {
 		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));

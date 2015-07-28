@@ -23,13 +23,18 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * javainstance()
+ * @author Enerccio
+ *
+ */
 public class JavaInstanceTypeObject extends TypeObject {
 	private static final long serialVersionUID = -1082259923569412321L;
 	public static final String JAVA_CALL = "javainstance";
 
 	@Override
 	public String getTypeIdentificator() {
-		return "java-instance";
+		return "javainstance";
 	}
 
 	@Override

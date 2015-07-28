@@ -19,8 +19,19 @@ package me.enerccio.sp.interpret;
 
 import me.enerccio.sp.runtime.ModuleProvider;
 
+/**
+ * This interface is for customizing where will python look for resolving imports
+ * @author Enerccio
+ *
+ */
 public interface PythonDataSourceResolver {
 
+	/**
+	 * Constructs module provider for the requested name and requested path, or null if name does not corresponds to any real module
+	 * @param name
+	 * @param resolvePath
+	 * @return null or ModuleProvider
+	 */
 	ModuleProvider resolve(String name, String resolvePath);
 	
 }

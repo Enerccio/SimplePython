@@ -33,6 +33,11 @@ import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Class Object. Represents custom class types.
+ * @author Enerccio
+ *
+ */
 public class ClassObject extends CallableObject {
 	private static final long serialVersionUID = -4002910687424344724L;
 	public static final String __NAME__ = "__name__";
@@ -92,6 +97,11 @@ public class ClassObject extends CallableObject {
 		return newObject(args);
 	}
 
+	/**
+	 * Creates new instance from this type.
+	 * @param args
+	 * @return
+	 */
 	private PythonObject newObject(TupleObject args) {
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
@@ -109,6 +119,12 @@ public class ClassObject extends CallableObject {
 		return instance;
 	}
 
+	/**
+	 * Adds the dict of the type to the instance
+	 * @param s
+	 * @param instance
+	 * @param clazz
+	 */
 	private void addToInstance(PythonObject s, ClassInstanceObject instance, ClassObject clazz) {
 		MapObject dict = (MapObject)s;
 		synchronized (dict.backingMap){

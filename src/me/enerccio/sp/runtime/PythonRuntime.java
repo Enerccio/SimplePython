@@ -81,8 +81,14 @@ import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
+ * @author Enerccio
+ *
+ */
 public class PythonRuntime {
 	
+	/** PythonRuntime is a singleton */
 	public static final PythonRuntime runtime = new PythonRuntime();
 	
 	private PythonRuntime(){
@@ -90,21 +96,32 @@ public class PythonRuntime {
 		addResolver(new InternalJavaPathResolver());
 	}
 	
+	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
 	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
 	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
-	
+	/** object identifier key generator */
 	private long key = Long.MIN_VALUE;
 	
+	/* related to serialization */
 	private CyclicBarrier awaitBarrierEntry;
 	private CyclicBarrier awaitBarrierExit;
 	private volatile boolean isSaving = false;
 	private volatile boolean allowedNewInterpret = true;
 	
+	/**
+	 * Waits until creation of new interprets is possible
+	 * @throws InterruptedException
+	 */
 	public void waitForNewInterpretAvailability() throws InterruptedException{
 		if (!allowedNewInterpret)
 			Thread.sleep(10);
 	}
 	
+	/**
+	 * Interpret waits here if saving is happening
+	 * @param i
+	 * @throws InterruptedException
+	 */
 	public void waitIfSaving(PythonInterpret i) throws InterruptedException {
 		if (!isSaving)
 			return;
@@ -118,6 +135,11 @@ public class PythonRuntime {
 		}
 	}
 	
+	/**
+	 * Serializes runtime 
+	 * @return
+	 * @throws Exception
+	 */
 	public synchronized String serializeRuntime() throws Exception{
 		allowedNewInterpret = false;
 		int numInterprets = PythonInterpret.interprets.size();
@@ -137,10 +159,18 @@ public class PythonRuntime {
 		return null;
 	}
 
+	/**
+	 * Adds data source resolver
+	 * @param resolver
+	 */
 	public synchronized void addResolver(PythonDataSourceResolver resolver){
 		resolvers.add(resolver);
 	}
 	
+	/**
+	 * Called by every object to grab it's link key
+	 * @param o
+	 */
 	public synchronized void newInstanceInitialization(PythonObject o){
 		o.linkName = key++;
 	}
@@ -154,6 +184,12 @@ public class PythonRuntime {
 		return m;
 	}
 	
+	/**
+	 * Returns root module with that name. If such module does not exists, it will attempt to load it.
+	 * If it cannot be found, exception is thrown.
+	 * @param key name of the root module
+	 * @return
+	 */
 	public synchronized ModuleObject getRoot(String key) {
 		if (!root.containsKey(key)){
 			root.put(key, getModule(key, null));
@@ -161,12 +197,23 @@ public class PythonRuntime {
 		return root.get(key);
 	}
 	
+	/**
+	 * Loads the module from module provider and returns it
+	 * @param provider
+	 * @return
+	 */
 	private ModuleObject loadModule(ModuleProvider provider){
 		MapObject globals = generateGlobals();
 		ModuleObject mo = new ModuleObject(globals, provider);
 		return mo;
 	}
 	
+	/**
+	 * returns module with name and resolve path
+	 * @param name
+	 * @param moduleResolvePath
+	 * @return
+	 */
 	public synchronized ModuleObject getModule(String name, StringObject moduleResolvePath){
 		if (moduleResolvePath == null)
 			moduleResolvePath = new StringObject("");
@@ -181,6 +228,12 @@ public class PythonRuntime {
 		return mo;
 	}
 
+	/**
+	 * resolve the actual module
+	 * @param name
+	 * @param moduleResolvePath
+	 * @return
+	 */
 	private ModuleObject resolveModule(String name,
 			StringObject moduleResolvePath) {
 		ModuleProvider provider = null;
@@ -194,6 +247,7 @@ public class PythonRuntime {
 		return null;
 	}
 
+	/** stored globals are here */
 	private static volatile MapObject globals = null;
 	public static final String IS = "is";
 	public static final String MRO = "mro";
@@ -209,6 +263,10 @@ public class PythonRuntime {
 	public static final String CHR = "chr";
 	public static final String ORD = "ord";
 	public static final String APPLY = "apply";
+	/**
+	 * Generates globals. This is only done once but then cloned
+	 * @return
+	 */
 	public MapObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
@@ -306,40 +364,41 @@ public class PythonRuntime {
 		return globals.cloneMap();
 	}
 	
-	public static PythonObject apply(PythonObject callable, ListObject args){
+	
+	protected static PythonObject apply(PythonObject callable, ListObject args){
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects);
 		PythonInterpret.interpret.get().execute(false, callable, a.getObjects());
 		return PythonInterpret.interpret.get().executeAll(cfc);
 	}
 	
-	public static PythonObject chr(IntObject i){
+	protected static PythonObject chr(IntObject i){
 		int v = i.intValue();
 		if (v < 0 || v > 255)
 			throw Utils.throwException("ValueError", "chr(): value outside range");
 		return new StringObject(Character.toString((char)v));
 	}
 	
-	public static PythonObject ord(StringObject i){
+	protected static PythonObject ord(StringObject i){
 		String s = i.value;
 		if (s.length() != 1)
 			throw Utils.throwException("ValueError", "ord(): string must be single character length");
 		return IntObject.valueOf(s.charAt(0));
 	}
 	
-	public static PythonObject classmethod(UserFunctionObject o){
+	protected static PythonObject classmethod(UserFunctionObject o){
 		ClassMethodObject cmo = new ClassMethodObject();
 		Utils.putPublic(cmo, ClassMethodObject.__FUNC__, o);
 		return cmo;
 	}
 	
-	public static PythonObject staticmethod(UserFunctionObject o){
+	protected static PythonObject staticmethod(UserFunctionObject o){
 		StaticMethodObject smo = new StaticMethodObject();
 		Utils.putPublic(smo, StaticMethodObject.__FUNC__, o);
 		return smo;
 	}
 	
-	public static PythonObject mro(ClassObject clazz){
+	protected static PythonObject mro(ClassObject clazz){
 		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
 		Collections.reverse(ll);
 		TupleObject to = (TupleObject) Utils.list2tuple(ll);
@@ -347,15 +406,15 @@ public class PythonRuntime {
 		return to;
 	}
 	
-	public static PythonObject is(PythonObject a, PythonObject b){
+	protected static PythonObject is(PythonObject a, PythonObject b){
 		return BoolObject.fromBoolean(a == b);
 	}
 	
-	public static PythonObject print_java(PythonObject a){
+	protected static PythonObject print_java(PythonObject a){
 		return print_java(a, false);
 	}
 	
-	public static PythonObject print_java(PythonObject a, boolean dualcall){
+	protected static PythonObject print_java(PythonObject a, boolean dualcall){
 		if (a instanceof TupleObject && ((TupleObject)a).len() != 0 && !dualcall){
 			int i=0;
 			for (PythonObject o : ((TupleObject)a).getObjects()){
@@ -373,12 +432,12 @@ public class PythonRuntime {
 		return NoneObject.NONE;
 	}
 	
-	public static PythonObject print_java_eol(){
+	protected static PythonObject print_java_eol(){
 		System.out.println();
 		return NoneObject.NONE;
 	}
 	
-	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
+	protected static PythonObject isinstance(PythonObject testee, PythonObject clazz){
 		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE : BoolObject.FALSE;
 	}
 
@@ -435,11 +494,11 @@ public class PythonRuntime {
 		
 	};
 	
-	public static PythonObject getattr(PythonObject o, String attribute){
+	protected static PythonObject getattr(PythonObject o, String attribute){
 		return getattr(o, attribute, false);
 	}
 	
-	public static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
+	protected static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
 		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
 				if (getattr != null)
@@ -468,16 +527,16 @@ public class PythonRuntime {
 		return value;
 	}
 	
-	public static PythonObject hasattr(PythonObject o, String attribute) {
+	protected static PythonObject hasattr(PythonObject o, String attribute) {
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
 		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
 	}
 	
-	public static PythonObject delattr(PythonObject o, String attribute) {
+	protected static PythonObject delattr(PythonObject o, String attribute) {
 		return setattr(o, attribute, null);
 	}
 	
-	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
+	protected static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
 		if (o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext()) != null){
 			return PythonInterpret.interpret.get().execute(false, o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext())
 					, new StringObject(attribute), v);
@@ -531,11 +590,11 @@ public class PythonRuntime {
 		return dict;
 	}
 	
-	public static PythonObject baseExcToStr(PythonObject e){
+	protected static PythonObject baseExcToStr(PythonObject e){
 		return new StringObject(Utils.run("str", e.get("__CLASS__", e)) + ": " + Utils.run("str", e.get("__msg__", e)));
 	}
 	
-	public static PythonObject initException(TupleObject o){
+	protected static PythonObject initException(TupleObject o){
 		if (o.len() == 1)
 			return initException(o.getObjects()[0], NoneObject.NONE);
 		if (o.len() == 2)
@@ -543,7 +602,7 @@ public class PythonRuntime {
 		throw Utils.throwException("TypeError", "system exception requires 0 or 1 arguments");
 	}
 	
-	public static PythonObject initException(PythonObject e, PythonObject text){
+	protected static PythonObject initException(PythonObject e, PythonObject text){
 		Utils.putPublic(e, "__msg__", text);
 		return NoneObject.NONE;
 	}
@@ -582,18 +641,36 @@ public class PythonRuntime {
 	private List<String> excludedPackages = new ArrayList<String>();
 	private Map<String, String> aliases = Collections.synchronizedMap(new HashMap<String, String>());
 	
+	/**
+	 * Adds this package into excluded
+	 * @param packageOrClass
+	 */
 	public synchronized void addExcludePackageOrClass(String packageOrClass){
 		excludedPackages.add(packageOrClass);
 	}
 	
+	/**
+	 * Adds alias to the fullname
+	 * @param fullName
+	 * @param alias
+	 */
 	public synchronized void addAlias(String fullName, String alias){
 		aliases.put(alias, fullName);
 	}
 	
+	/**
+	 * whether classes should be autowrapped automatically or only pre wrapped classes allowed
+	 * @param allowAutowraps
+	 */
 	public synchronized void setAllowAutowraps(boolean allowAutowraps){
 		this.allowAutowraps = allowAutowraps;
 	}	
 	
+	/**
+	 * Adds factory for current package path
+	 * @param packagePath
+	 * @param clazz
+	 */
 	public void addFactory(String packagePath, Class<? extends PointerFactory> clazz) {
 		try {
 			factories.put(packagePath, clazz.newInstance());
@@ -602,6 +679,13 @@ public class PythonRuntime {
 		}
 	}
 
+	/**
+	 * Returns pointer object for the class
+	 * @param cls class name
+	 * @param pointedObject null or object (if provided, it gets autowrapped)
+	 * @param args
+	 * @return
+	 */
 	public PointerObject getJavaClass(String cls, Object pointedObject, PythonObject... args) {
 		if (!aliases.containsKey(cls) && !allowAutowraps)
 			throw Utils.throwException("TypeError", "javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
@@ -672,6 +756,11 @@ public class PythonRuntime {
 		return factory.doInitialize(o);
 	}
 
+	/**
+	 * Returns factory for the class
+	 * @param cls fully qualified class name
+	 * @return
+	 */
 	private PointerFactory getFactory(String cls) {
 		String[] components = cls.split("\\.");
 		List<String> c = new ArrayList<String>();
@@ -680,6 +769,11 @@ public class PythonRuntime {
 		return doGetFactory(c);
 	}
 
+	/**
+	 * Returns factory for the path components
+	 * @param c
+	 * @return
+	 */
 	private PointerFactory doGetFactory(List<String> c) {
 		String pkgName = "";
 		PointerFactory fac = null;
@@ -693,9 +787,21 @@ public class PythonRuntime {
 		return fac;
 	}
 
+	/**
+	 * Returns python's "object" type
+	 * @return
+	 */
 	public synchronized ClassObject getObject() {
 		ObjectTypeObject o = (ObjectTypeObject) globals.doGet(ObjectTypeObject.OBJECT_CALL);
 		return o;
+	}
+	
+	/**
+	 * Loads the module but does not return it.
+	 * @param string
+	 */
+	public void loadModule(String string) {
+		getRoot(string);
 	}
 	
 	public PythonObject runtimeWrapper() {

@@ -20,6 +20,8 @@ package me.enerccio.sp.types.sequences;
 import me.enerccio.sp.types.PythonObject;
 
 public interface SimpleIDAccessor {
+	/** size of this accessor */
 	int len();
+	/** value at index idx */
 	PythonObject valueAt(int idx);
 }

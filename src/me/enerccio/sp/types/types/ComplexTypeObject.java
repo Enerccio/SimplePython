@@ -23,6 +23,11 @@ import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * complex()
+ * @author Enerccio
+ *
+ */
 public class ComplexTypeObject extends TypeObject {
 	private static final long serialVersionUID = -6989323431265671329L;
 	public static final String COMPLEX_CALL = "complex";

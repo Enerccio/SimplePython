@@ -27,6 +27,11 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Mutable Sequences, provides __setitem__ method
+ * @author Enerccio
+ *
+ */
 public abstract class MutableSequenceObject extends SequenceObject {
 	private static final long serialVersionUID = 15L;
 	public static final String __SETITEM__ = "__setitem__";

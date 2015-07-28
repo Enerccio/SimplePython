@@ -21,6 +21,11 @@ import java.math.BigInteger;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * Represents doubles as real objects
+ * @author Enerccio
+ *
+ */
 public class RealObject extends NumberObject {
 	private static final long serialVersionUID = 8L;
 	

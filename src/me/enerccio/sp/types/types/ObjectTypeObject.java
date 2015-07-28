@@ -32,6 +32,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * object()
+ * @author Enerccio
+ *
+ */
 public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
 	public static final String OBJECT_CALL = "object";

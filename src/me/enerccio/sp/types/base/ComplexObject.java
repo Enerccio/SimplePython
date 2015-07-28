@@ -24,6 +24,11 @@ import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Complex Number type
+ * @author Enerccio
+ *
+ */
 public class ComplexObject extends NumberObject {
 	private static final long serialVersionUID = 9L;
 	private static final String REAL_ACCESSOR = "real";

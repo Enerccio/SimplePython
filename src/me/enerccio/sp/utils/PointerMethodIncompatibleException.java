@@ -17,7 +17,12 @@
  */
 package me.enerccio.sp.utils;
 
+/**
+ * Thrown when method is incompatible for the arguments or number of arguments
+ * @author Enerccio
+ *
+ */
 @SuppressWarnings("serial")
-public class PointerMethodIncompatibleException extends Throwable {
+public class PointerMethodIncompatibleException extends RuntimeException {
 
 }

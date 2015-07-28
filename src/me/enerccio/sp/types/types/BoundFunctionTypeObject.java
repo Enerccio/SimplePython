@@ -24,6 +24,11 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * boundfunction()
+ * @author Enerccio
+ *
+ */
 public class BoundFunctionTypeObject extends TypeObject {
 	private static final long serialVersionUID = 1755292062829138174L;
 	public static final String BOUND_FUNCTION_CALL = "boundfunction";

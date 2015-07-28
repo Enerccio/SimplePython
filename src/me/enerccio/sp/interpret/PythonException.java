@@ -17,7 +17,13 @@
  */
 package me.enerccio.sp.interpret;
 
+/**
+ * Represents root exception that can be raised by SimplePython
+ * @author Enerccio
+ *
+ */
 public class PythonException extends RuntimeException {
+	private static final long serialVersionUID = 1446541378354L;
 	
 	public PythonException(String string) {
 		super(string);
@@ -26,7 +32,4 @@ public class PythonException extends RuntimeException {
 	public PythonException(){
 		super();
 	}
-
-	private static final long serialVersionUID = 1446541378354L;
-
 }

@@ -28,6 +28,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * bytecode()
+ * @author Enerccio
+ *
+ */
 public class BytecodeTypeObject extends TypeObject {
 	private static final long serialVersionUID = 1434651099156262641L;
 	public static final String BYTECODE_CALL = "bytecode";

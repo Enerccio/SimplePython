@@ -27,6 +27,11 @@ import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.types.base.CustomBytecode;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 
+/**
+ * Bytecode enum, containing types of bytecodes and their numerical value. 
+ * @author Enerccio
+ *
+ */
 public enum Bytecode {
 	// System
 	NOP(0), 
@@ -57,6 +62,11 @@ public enum Bytecode {
 	
 	public final int id;
 
+	/**
+	 * Transforms int into bytecode or null if no such bytecode exists
+	 * @param intValue
+	 * @return
+	 */
 	public static Bytecode fromNumber(int intValue) {
 		for (Bytecode b : values())
 			if (b.id == intValue)
@@ -64,10 +74,21 @@ public enum Bytecode {
 		return null;
 	}
 	
+	/**
+	 * Creates new PythonBytecode object based on the bytecode
+	 * @param b
+	 * @return
+	 */
 	public static PythonBytecode makeBytecode(Bytecode b) {
 		return makeBytecode(b, null);
 	}
 
+	/**
+	 * Creates new PythonBytecode object based on the bytecode, sets the source information based on the token.
+	 * @param b
+	 * @param t may be null
+	 * @return
+	 */
 	public static PythonBytecode makeBytecode(Bytecode b, Token t) {
 		PythonBytecode bytecode = null;
 		
@@ -223,10 +244,21 @@ public enum Bytecode {
 		return bytecode;
 	}
 	
+	/**
+	 * Disassembles the list of bytecodes
+	 * @param bcl
+	 * @return
+	 */
 	public static String dis(List<PythonBytecode> bcl) {
 		return dis(bcl, 0);
 	}
 	
+	/**
+	 * Disassembles single bytecode
+	 * @param i
+	 * @param bc
+	 * @return
+	 */
 	public static String dis(int i, PythonBytecode bc) {
 		String s = bc.toString();
 		int cut = s.length();
@@ -235,6 +267,12 @@ public enum Bytecode {
 	}
 
 	
+	/**
+	 * Disassembles the list of bytecodes from offset bytecode 
+	 * @param i
+	 * @param bc
+	 * @return
+	 */
 	public static String dis(List<PythonBytecode> bcl, int offset) {
 		Map<String, List<PythonBytecode>> built = new LinkedHashMap<String, List<PythonBytecode>>();
 		StringBuilder b = new StringBuilder();

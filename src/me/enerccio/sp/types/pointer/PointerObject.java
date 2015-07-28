@@ -21,6 +21,11 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * PointerObject is wrapped java object with methods accessibe all according to factory which created it
+ * @author Enerccio
+ *
+ */
 public class PointerObject extends PythonObject {
 	private static final long serialVersionUID = 25L;
 	

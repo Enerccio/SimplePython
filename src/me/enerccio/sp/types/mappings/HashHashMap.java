@@ -21,6 +21,12 @@ import java.util.HashMap;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * HashMap for the PythonProxy->PythoObject that looks like PythonPython->PythonPython
+ * @author Enerccio
+ *
+ * @param <T>
+ */
 public class HashHashMap<T> extends HashMap<PythonProxy, T> {
 	private static final long serialVersionUID = -6880977211393857008L;
 

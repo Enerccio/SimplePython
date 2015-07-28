@@ -20,16 +20,23 @@ package me.enerccio.sp.compiler;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.MapObject;
 
+/**
+ * PythonBytecode is PythonObject representing single instruction of the interpret.
+ * @author Enerccio
+ *
+ */
 public class PythonBytecode extends PythonObject {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -34522216612624880L;
+	/* Debug information */
 	public int debugLine = -1;
 	public int debugInLine;
 	public String debugModule = "";
 
+	/* fields used by various bytecodes */
 	public int intValue;
 	public PythonObject value;
 	public String stringValue;
@@ -42,6 +49,10 @@ public class PythonBytecode extends PythonObject {
 	}
 	
 	protected Bytecode bytecode;
+	/**
+	 * Returns type of the bytecode
+	 * @return
+	 */
 	public Bytecode getOpcode(){
 		return bytecode;
 	}

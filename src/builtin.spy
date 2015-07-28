@@ -151,6 +151,11 @@ def map(function, *iterables):
         if not any(r):
             return result
         result.append(apply(function, d))
+        
+def negate(x):
+    if hasattr(x, "__len__"):
+        return len(x) == 0
+    return not_value(x)
 
 class set(object):
     def __init__(self, iterable=None):

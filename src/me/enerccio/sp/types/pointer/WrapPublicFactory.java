@@ -21,6 +21,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Wraps all public methods of the object
+ * @author Enerccio
+ *
+ */
 public class WrapPublicFactory extends WrapBaseFactory implements PointerFactory {
 	private static final long serialVersionUID = 693487950048251692L;
 

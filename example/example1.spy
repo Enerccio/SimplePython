@@ -1,0 +1,11 @@
+class example(object):
+    def __init__(self):
+        self.frame = javainstance("example");
+        
+        self.frame.setSize(250, 200)
+        self.frame.setTitle("Application")
+        self.frame.setDefaultCloseOperation(3)
+        self.frame.setLocationRelativeTo(None)
+        self.frame.setVisible(True)
+        
+e = example()

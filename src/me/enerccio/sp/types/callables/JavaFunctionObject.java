@@ -19,6 +19,11 @@ package me.enerccio.sp.types.callables;
 
 import java.lang.reflect.Method;
 
+/**
+ * Java function wrapped into callable object.
+ * @author Enerccio
+ *
+ */
 public class JavaFunctionObject extends JavaMethodObject {
 	private static final long serialVersionUID = 5136344028944670607L;
 	private boolean isWrappedMethod = false;

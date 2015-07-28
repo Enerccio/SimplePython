@@ -26,6 +26,11 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * dict()
+ * @author Enerccio
+ *
+ */
 public class DictTypeObject extends TypeObject {
 	private static final long serialVersionUID = -3923399715218968304L;
 	public static final String DICT_CALL = "dict";

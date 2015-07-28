@@ -23,15 +23,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.enerccio.sp.types.callables.JavaCongruentAggregatorObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Base wrapping factory. Handles wrapping methods into JavaCongruentAggregatorObjects. 
+ * Which methods to wrap are decided by the getMethods method.
+ * @author Enerccio
+ *
+ */
 public abstract class WrapBaseFactory implements PointerFactory {
 	private static final long serialVersionUID = -4111009373007823950L;
-
-	protected void wrapMethod(Method m, PointerObject o){
-		Utils.putPublic(o, m.getName(), new JavaMethodObject(o.getObject(), m, false));
-	}
 	
 	private static Map<String, List<Method>> cache = Collections.synchronizedMap(new HashMap<String, List<Method>>());
 
@@ -48,8 +51,19 @@ public abstract class WrapBaseFactory implements PointerFactory {
 			}
 		
 		synchronized (cache){
+			Map<String, JavaCongruentAggregatorObject> mm = new HashMap<String, JavaCongruentAggregatorObject>();
+			
 			for (Method m : cache.get(instance.getClass().getCanonicalName())){
-				wrapMethod(m, o);
+				String name = m.getName();
+				if (!mm.containsKey(name)){
+					JavaCongruentAggregatorObject co = new JavaCongruentAggregatorObject(name);
+					mm.put(name, co);
+				}
+				mm.get(name).methods.add(new JavaMethodObject(instance, m, false));
+			}
+			
+			for (String name : mm.keySet()){
+				Utils.putPublic(o, name, mm.get(name));
 			}
 		}
 		

@@ -21,6 +21,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Wraps all public methods wrapped by @WrapMethod
+ * @author Enerccio
+ *
+ */
 public class WrapAnnotationFactory extends WrapBaseFactory {
 	private static final long serialVersionUID = -5142774589035715501L;
 

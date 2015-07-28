@@ -30,12 +30,21 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents user function (compiled).
+ * @author Enerccio
+ *
+ */
 public class UserFunctionObject extends PythonObject {
 	private static final long serialVersionUID = 22L;
 	
+	/** Bytecode of this function */
 	public List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+	/** Arguments this function has */
 	public List<String> args;
+	/** Whether this function is vararg */
 	public boolean isVararg;
+	/** Vararg name */
 	public String vararg;
 	
 	public UserFunctionObject(){
@@ -54,6 +63,11 @@ public class UserFunctionObject extends PythonObject {
 		}
 	};
 
+	/**
+	 * Calls this function. Will insert onto frame stack and returns None.
+	 * @param args
+	 * @return
+	 */
 	public PythonObject call(TupleObject args) {
 		args = refillArgs(args);
 		int argc = args.len();
@@ -89,6 +103,11 @@ public class UserFunctionObject extends PythonObject {
 		return NoneObject.NONE; // returns immediately
 	}
 
+	/**
+	 * Adds variables from defaults
+	 * @param args
+	 * @return
+	 */
 	private TupleObject refillArgs(TupleObject args) {
 		MapObject m = (MapObject) fields.get("function_defaults").object;
 		List<PythonObject> pl = new ArrayList<PythonObject>(Arrays.asList(args.getObjects()));

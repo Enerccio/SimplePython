@@ -27,13 +27,17 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Implementation of the python dict
+ * @author Enerccio
+ *
+ */
 public class MapObject extends ContainerObject {
 	private static final long serialVersionUID = 20L;
 	public static final String __GETITEM__ = "__getitem__";
@@ -84,11 +88,6 @@ public class MapObject extends ContainerObject {
 	
 	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();
 	
-	@Override
-	public boolean truthValue() {
-		return true;
-	}
-
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {

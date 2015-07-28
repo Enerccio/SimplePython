@@ -27,9 +27,20 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Java method or function callable. If called is null, it acts as static method callable.
+ * @author Enerccio
+ *
+ */
 public class JavaMethodObject extends CallableObject {
 	private static final long serialVersionUID = 23L;
 
+	/**
+	 * Creates new Java Method Object.
+	 * @param caller object this method is bound to or null if static
+	 * @param m method
+	 * @param noTypeConversion whether or not do automatic type conversion or just send TupleObject args directly
+	 */
 	public JavaMethodObject(Object caller, Method m, boolean noTypeConversion){
 		this.caller = caller;
 		this.boundHandle = m;
@@ -41,12 +52,25 @@ public class JavaMethodObject extends CallableObject {
 		
 	}
 	
+	/** Method handle */
 	protected Method boundHandle;
+	/** Object bound to the method or null if static */
 	private Object caller;
+	/** Whether to do type conversion or not */
 	private boolean noTypeConversion;
 	
 	@Override
 	public PythonObject call(TupleObject args) {
+		return doCall(args, false);
+	}
+	
+	/**
+	 * Executes java method. 
+	 * @param args arguments to use
+	 * @param skipPythonException if true, it will propagate some errors lower. Only useable by aggregator
+	 * @return
+	 */
+	public PythonObject doCall(TupleObject args, boolean skipPythonException) {
 		try {
 			if (noTypeConversion){
 				return Utils.cast(invoke(args), boundHandle.getReturnType());
@@ -65,6 +89,8 @@ public class JavaMethodObject extends CallableObject {
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
+			if (skipPythonException)
+				throw new PointerMethodIncompatibleException();
 			throw Utils.throwException("TypeError", toString() + ": wrong number of parameters, expected " + types.length + ", got " + jargs.length);
 		}
 		
@@ -74,6 +100,8 @@ public class JavaMethodObject extends CallableObject {
 				jargs[i] = Utils.asJavaObject(types[i], o);
 				++i;
 			} catch (PointerMethodIncompatibleException e){
+				if (skipPythonException)
+					throw e;
 				throw Utils.throwException("TypeError", toString() + ": cannot convert python objects to java objects for arguments of this method");
 			}
 		}
@@ -114,9 +142,14 @@ public class JavaMethodObject extends CallableObject {
 	protected String doToString() {
 		if (caller == null)
 			return "<java function " + boundHandle.getName() + ">";
-		return "<java method " + boundHandle.toString() + " of object " + caller.getClass().getName()  + ">";
+		return "<java method " + boundHandle.getName() + " of object " + caller.getClass().getSimpleName()  + ">";
 	}
 
+	/**
+	 * Returns clone of itself with bound object rebinded
+	 * @param self
+	 * @return
+	 */
 	public JavaMethodObject cloneWithThis(Object self) {
 		JavaMethodObject m = new JavaMethodObject();
 		m.boundHandle = boundHandle;

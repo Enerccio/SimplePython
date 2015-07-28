@@ -28,6 +28,11 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Artihmetic java functions stored here
+ * @author Enerccio
+ *
+ */
 public final class Arithmetics {
 
 	// Arithmetics

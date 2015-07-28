@@ -32,17 +32,17 @@ import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents objects with __iter__, __getitem__ and __add__
+ * @author Enerccio
+ *
+ */
 public abstract class SequenceObject extends ContainerObject {
 	private static final long serialVersionUID = 10L;
 	
 	public static final String __ITER__ = "__iter__";
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __ADD__ = "__add__";
-
-	@Override
-	public boolean truthValue() {
-		return true;
-	}
 	
 	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	
@@ -110,6 +110,12 @@ public abstract class SequenceObject extends ContainerObject {
 		
 	}
 	
+	/**
+	 * Converts slice object into int[4] object
+	 * @param size
+	 * @param key
+	 * @return
+	 */
 	protected int[] getSliceData(int size, PythonObject key){
 		PythonObject sa = key.fields.get(SliceObject.START_ACCESSOR).object;
 		PythonObject so = key.fields.get(SliceObject.STOP_ACCESSOR).object;

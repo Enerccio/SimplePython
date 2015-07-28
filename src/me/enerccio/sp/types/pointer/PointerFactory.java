@@ -19,8 +19,18 @@ package me.enerccio.sp.types.pointer;
 
 import java.io.Serializable;
 
+/**
+ * Pointer Factory is responsible creating PointerObject from object.
+ * @author Enerccio
+ *
+ */
 public interface PointerFactory extends Serializable {
 	
+	/**
+	 * Creates PointerObject out of instance
+	 * @param instance
+	 * @return
+	 */
 	PointerObject doInitialize(Object instance);
 	
 }

@@ -19,6 +19,11 @@ package me.enerccio.sp.types.base;
 
 import me.enerccio.sp.types.PythonObject;
 
+/**
+ * Ellipsis object
+ * @author Enerccio
+ *
+ */
 public class EllipsisObject extends PythonObject {
 	private static final long serialVersionUID = 70L;
 	

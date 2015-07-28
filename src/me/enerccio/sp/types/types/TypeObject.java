@@ -25,6 +25,11 @@ import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Base type object. All types are ClassObject types as well.
+ * @author Enerccio
+ *
+ */
 public abstract class TypeObject extends ClassObject {
 	private static final long serialVersionUID = 5891250487396458462L;
 	

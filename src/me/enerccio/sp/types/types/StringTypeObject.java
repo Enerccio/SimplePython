@@ -24,6 +24,11 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * str()
+ * @author Enerccio
+ *
+ */
 public class StringTypeObject extends TypeObject {
 	private static final long serialVersionUID = 189813854164565772L;
 	public static final String STRING_CALL = "str";

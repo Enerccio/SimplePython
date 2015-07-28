@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.types;
 
+/**
+ * Holds the python object along with access restrictions and the defining class
+ * @author Enerccio
+ *
+ */
 public class AugumentedPythonObject {
 	
 	public AugumentedPythonObject(PythonObject object,

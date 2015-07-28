@@ -20,6 +20,11 @@ package me.enerccio.sp.runtime;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+/**
+ * ModuleProvider represents module file into memory
+ * @author Enerccio
+ *
+ */
 public class ModuleProvider {
 	
 	public ModuleProvider(String moduleName, String srcFile, byte[] source, String packageResolve){
@@ -29,18 +34,30 @@ public class ModuleProvider {
 		this.srcFile = srcFile;
 	}
 	
+	/**
+	 * @return name of the module
+	 */
 	public String getModuleName() {
 		return moduleName;
 	}
 
+	/**
+	 * @return input stream of the source
+	 */
 	public InputStream getSource() {
 		return new ByteArrayInputStream(source);
 	}
 
+	/** returns name of the source file */
 	public String getSrcFile() {
 		return srcFile;
 	}
 
+	/**
+	 * returns package resolve
+	 * package resolve is local name of the previous package chain. 
+	 * @return
+	 */
 	public String getPackageResolve() {
 		return packageResolve;
 	}

@@ -20,6 +20,11 @@ package me.enerccio.sp.types.sequences;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * PythonObject representing java strings
+ * @author Enerccio
+ *
+ */
 public class StringObject extends ImmutableSequenceObject implements SimpleIDAccessor {
 	private static final long serialVersionUID = 11L;
 	
@@ -87,5 +92,5 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		if (o instanceof StringObject)
 			return value.contains(((StringObject)o).value);
 		return false;
-	}
+	}	
 }

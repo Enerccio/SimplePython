@@ -27,6 +27,11 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
+/**
+ * Represents objects with __contains__
+ * @author Enerccio
+ *
+ */
 public abstract class ContainerObject extends PythonObject {
 	private static final long serialVersionUID = 1631363547607776261L;
 
@@ -67,6 +72,22 @@ public abstract class ContainerObject extends PythonObject {
 		return IntObject.valueOf(len());
 	}
 
+	/**
+	 * returns true if object o is in this container
+	 * @param o
+	 * @return
+	 */
 	public abstract boolean containsItem(PythonObject o);
+
+	/**
+	 * returns number of elements in this container
+	 * @return
+	 */
 	public abstract int len();
+	
+	@Override
+	public final boolean truthValue(){
+		return len() != 0;
+	}
+
 }
