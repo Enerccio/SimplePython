@@ -29,6 +29,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
 import me.enerccio.sp.parser.pythonParser.ArglistContext;
@@ -220,6 +221,10 @@ public class PythonCompiler {
 		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();
+		
+		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
+		cob.newObject();
+		
 		return bytecode;
 	}
 

@@ -27,6 +27,7 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
+import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -48,6 +49,12 @@ public class MapObject extends ContainerObject {
 		newObject();
 	}
 	
+	public MapObject(Map<Integer, PythonObject> mmap) {
+		newObject();
+		for (Integer k : mmap.keySet())
+			backingMap.put(IntObject.valueOf(k), mmap.get(k));
+	}
+
 	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	
 	static {

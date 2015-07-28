@@ -18,14 +18,17 @@
 package me.enerccio.sp.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -485,5 +488,165 @@ public class Utils {
 	public static void putPublic(Map<String, AugumentedPythonObject> sfields,
 			String key, JavaMethodObject value) {
 		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+	}
+
+	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>(){
+
+		@Override
+		protected Integer initialValue() {
+			return Integer.MIN_VALUE;
+		}
+		
+	};
+	public static byte[] compile(List<PythonBytecode> bytecode,
+			Map<Integer, PythonObject> mmap) throws Exception {
+		Map<PythonObject, Integer> rmap = new HashMap<PythonObject, Integer>();
+		Map<Integer, Integer> rmapMap = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> jumpMap = new HashMap<Integer, Integer>();
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream w = new DataOutputStream(baos);
+		int itc = 0;
+		for (PythonBytecode b : bytecode){
+			rmapMap.put(itc, baos.size());
+			
+			w.writeByte(b.getOpcode().id);
+			++itc;
+			
+			switch(b.getOpcode()){
+			case ACCEPT_ITER:
+				w.writeInt(b.intValue);
+				break;
+			case CALL:
+				w.writeInt(b.intValue);
+				break;
+			case CUSTOM:
+				break;
+			case DUP:
+				w.writeInt(insertValue(b.value, mmap, rmap));
+				break;
+			case ECALL:
+				w.writeInt(b.intValue);
+				break;
+			case GETATTR:
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case GOTO:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case IMPORT:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue2), mmap, rmap));
+				break;
+			case ISINSTANCE:
+				break;
+			case JUMPIFFALSE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFNONE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFNORETURN:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFTRUE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case LOAD:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case LOADGLOBAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case NOP:
+				break;
+			case POP:
+				break;
+			case PUSH:
+				w.writeInt(insertValue(b.value, mmap, rmap));
+				break;
+			case PUSH_DICT:
+				w.writeInt(insertValue(b.mapValue, mmap, rmap));
+				break;
+			case PUSH_ENVIRONMENT:
+				break;
+			case PUSH_EXCEPTION:
+				break;
+			case PUSH_FRAME:
+				w.writeInt(b.intValue);
+				break;
+			case PUSH_LOCAL_CONTEXT:
+				break;
+			case RAISE:
+				break;
+			case RCALL:
+				w.writeInt(b.intValue);
+				break;
+			case RERAISE:
+				break;
+			case RESOLVE_ARGS:
+				break;
+			case RETURN:
+				w.writeInt(b.intValue);
+				break;
+			case SAVE:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVEGLOBAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVE_LOCAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SETATTR:
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SWAP_STACK:
+				break;
+			case TRUTH_VALUE:
+				w.writeInt(b.intValue);
+				break;
+			case UNPACK_SEQUENCE:
+				w.writeInt(b.intValue);
+				break;
+			default:
+				break;
+			
+			}
+		}
+		
+		byte[] data = baos.toByteArray();
+		ByteBuffer b = ByteBuffer.wrap(data);
+		
+		for (Integer ppos : jumpMap.keySet()){
+			Integer jumpval = jumpMap.get(ppos);
+			Integer location = rmap.get(jumpval);
+			b.position(ppos);
+			b.putInt(location);
+		}
+		
+		return data;
+	}
+
+	private static int insertValue(PythonObject v, Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {
+		if (rmap.containsKey(v))
+			return rmap.get(v);
+		int key = kkey.get();
+		kkey.set(key+1);
+		rmap.put(v, key);
+		mmap.put(key, v);
+		return key;
+	}
+
+	public static String asString(byte[] compiled) {
+		StringBuilder bd = new StringBuilder();
+		for (byte b : compiled)
+			bd.append("\\x" + Integer.toHexString(b & 0xFF));
+		return bd.toString();
 	}
 }
