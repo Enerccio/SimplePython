@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.types.iterators;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,13 +24,9 @@ import java.util.Map;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.BoolObject;
-import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
-import me.enerccio.sp.types.sequences.SimpleIDAccessor;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -43,9 +38,9 @@ public class XRangeIterator extends PythonObject {
 	public static final String __ITER__ = SequenceObject.__ITER__;
 	public static final String NEXT =  "next";
 			
-	private BigInteger i, end, step;
+	private int i, end, step;
 
-	public XRangeIterator(BigInteger start, BigInteger end, BigInteger step) {
+	public XRangeIterator(int start, int end, int step) {
 		this.i = start;
 		this.end = end;
 		this.step = step;
@@ -88,17 +83,17 @@ public class XRangeIterator extends PythonObject {
 	}
 	
 	public PythonObject next(TupleObject t) {
-		if (step.compareTo(BigInteger.ZERO) > 0) {
+		if (step > 0) {
 			// Goes up
-			if (i.compareTo(end) >= 0)
+			if (i >= end)
 				throw Utils.throwException("StopIteration");
 		} else {
 			// Goes down
-			if (i.compareTo(end) <= 0)
+			if (i <= end)
 				throw Utils.throwException("StopIteration");
 		}
-		IntObject rv = new IntObject(i);
-		i = i.add(step);
+		IntObject rv = IntObject.valueOf(i);
+		i += step;
 		return rv;
 	}
 

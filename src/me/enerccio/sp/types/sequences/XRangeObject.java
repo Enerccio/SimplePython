@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.types.sequences;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +27,6 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.utils.Utils;
@@ -44,9 +42,9 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 	public static final String __ITER__ = SequenceObject.__ITER__;
 	public static final String __GETITEM__ = SequenceObject.__GETITEM__;
 			
-	private BigInteger start, end, step;
+	private int start, end, step;
 
-	public XRangeObject(BigInteger start, BigInteger end, BigInteger step) {
+	public XRangeObject(int start, int end, int step) {
 		this.start = start;
 		this.end = end;
 		this.step = step;
@@ -98,12 +96,12 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 	protected String doToString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("xrange(");
-		if (start.compareTo(BigInteger.ZERO) != 0) {
+		if (start != 0) {
 			sb.append(start);
 			sb.append(", ");
 		}
 		sb.append(end);
-		if (step.compareTo(BigInteger.ONE) != 0) {
+		if (step != 1) {
 			sb.append(", ");
 			sb.append(step);
 		}
@@ -113,7 +111,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 
 	public PythonObject get(PythonObject key) {
 		if (key instanceof IntObject)
-			return new IntObject(start.add(step.multiply(((IntObject)key).getJavaInt())));
+			return IntObject.valueOf(start + step * ((IntObject)key).intValue());
 		throw Utils.throwException("TypeError", "sequence index must be integer, not '" + key.getType() + "'");
 	}
 
@@ -124,7 +122,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 	}
 	
 	public PythonObject __reversed__(TupleObject t) {
-		XRangeIterator rv = new XRangeIterator(end.subtract(BigInteger.ONE), start.subtract(BigInteger.ONE), step.negate());
+		XRangeIterator rv = new XRangeIterator(end - 1, start - 1, - step);
 		rv.newObject();
 		return rv;
 	}
@@ -139,7 +137,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 
 	@Override
 	public int len() {
-		return end.subtract(start).divide(step).intValue();
+		return end - start / step;
 	}
 
 	@Override

@@ -17,8 +17,6 @@
  */
 package me.enerccio.sp.types.types;
 
-import java.math.BigInteger;
-
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -42,18 +40,18 @@ public class XRangeTypeObject extends TypeObject {
 		if ((args.len() < 1) || (args.len() > 3))
 			throw Utils.throwException("TypeError", "xrange() requires 1-3 int arguments");
 		
-		BigInteger start = ((IntObject)args.valueAt(0)).getJavaInt();
-		BigInteger end = args.len() < 2 ? null : ((IntObject)args.valueAt(1)).getJavaInt();
-		BigInteger step = args.len() < 3 ? BigInteger.ONE : ((IntObject)args.valueAt(2)).getJavaInt();
-		if (end == null) {
+		int start = ((IntObject)args.valueAt(0)).intValue();
+		int end = args.len() < 2 ? 0 : ((IntObject)args.valueAt(1)).intValue();
+		int step = args.len() < 3 ? 1 : ((IntObject)args.valueAt(2)).intValue();
+		if (args.len() < 2) {
 			end = start;
-			start = BigInteger.ZERO;
+			start = 0;
 		}
-		if (start.compareTo(end) >= 0) {
+		if (start > end)
 			end = start;
-		} else if (step.compareTo(start.add(end)) > 0)
-			end = step.add(start);
-		if (step.compareTo(BigInteger.ZERO) == 0)
+		else if (step > start + end)
+			end = step + start;
+		if (step == 0)
 			throw Utils.throwException("TypeError", "xrange() arg 3 must not be zero");
 		
 		XRangeObject rv = new XRangeObject(start, end, step);
