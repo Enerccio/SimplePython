@@ -28,6 +28,7 @@ import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaCongruentAggregatorObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -122,7 +123,7 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(MethodTypeObject.METHOD_CALL);
 		if (py instanceof BoolObject)
 			return Utils.getGlobal(BoolTypeObject.BOOL_CALL);
-		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject)
+		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
 			return Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
 		if (py instanceof ComplexObject)
 			return Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);

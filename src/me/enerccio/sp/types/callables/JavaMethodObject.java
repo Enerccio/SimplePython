@@ -47,6 +47,10 @@ public class JavaMethodObject extends CallableObject {
 	
 	@Override
 	public PythonObject call(TupleObject args) {
+		return doCall(args, false);
+	}
+	
+	public PythonObject doCall(TupleObject args, boolean skipPythonException) {
 		try {
 			if (noTypeConversion){
 				return Utils.cast(invoke(args), boundHandle.getReturnType());
@@ -65,6 +69,8 @@ public class JavaMethodObject extends CallableObject {
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
+			if (skipPythonException)
+				throw new PointerMethodIncompatibleException();
 			throw Utils.throwException("TypeError", toString() + ": wrong number of parameters, expected " + types.length + ", got " + jargs.length);
 		}
 		
@@ -74,6 +80,8 @@ public class JavaMethodObject extends CallableObject {
 				jargs[i] = Utils.asJavaObject(types[i], o);
 				++i;
 			} catch (PointerMethodIncompatibleException e){
+				if (skipPythonException)
+					throw e;
 				throw Utils.throwException("TypeError", toString() + ": cannot convert python objects to java objects for arguments of this method");
 			}
 		}
