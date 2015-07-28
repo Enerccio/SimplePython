@@ -91,8 +91,6 @@ public class BoundHandleObject extends PythonObject {
 		// [ callable, python object, python object* ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
 		b.intValue = args.len();
-		// []
-		l.add(Bytecode.makeBytecode(Bytecode.ACCEPT_RETURN));
 		// [ python object ]
 		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
 		b.intValue = 1;

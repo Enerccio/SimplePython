@@ -218,10 +218,19 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		if (pythonBytecode.getOpcode() != Bytecode.ACCEPT_RETURN)
+		if (!o.accepts_return)
 			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " [" + o.stack);
 		else
 			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee  + " [" + o.stack);
+		
+		if (o.accepts_return){
+			o.accepts_return = false;
+			if (returnee == null)
+				stack.push(NoneObject.NONE);
+			else
+				stack.push(returnee);
+		}
+		
 		switch (pythonBytecode.getOpcode()){
 		case NOP:
 			break;
@@ -258,6 +267,7 @@ public class PythonInterpret extends PythonObject {
 			}
 			
 			returnee = execute(true, runnable, args);
+			o.accepts_return = true;
 			break;
 		}
 		case ECALL:
@@ -306,6 +316,7 @@ public class PythonInterpret extends PythonObject {
 			runnable = stack.pop();
 			
 			returnee = execute(true, runnable, args);
+			o.accepts_return = true;
 			break;
 		}
 		case GOTO:
@@ -440,12 +451,6 @@ public class PythonInterpret extends PythonObject {
 				}
 			}
 			break;
-		case ACCEPT_RETURN:
-			if (returnee == null)
-				stack.push(NoneObject.NONE);
-			else
-				stack.push(returnee);
-			break;
 		case GETATTR: {
 			runnable = environment().get(new StringObject("getattr"), true, false);
 			PythonObject[] args = new PythonObject[2];
@@ -458,6 +463,7 @@ public class PythonInterpret extends PythonObject {
 				args[1] = new StringObject(pythonBytecode.stringValue);	// attribute
 			} 
 			returnee = execute(true, runnable, args);
+			o.accepts_return = true;
 			break;
 		}
 		case SETATTR: {
@@ -495,6 +501,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		}
 		case PUSH_FRAME:
+			o.accepts_return = true;
 			FrameObject nf = new FrameObject();
 			nf.newObject();
 			nf.parentFrame = o;

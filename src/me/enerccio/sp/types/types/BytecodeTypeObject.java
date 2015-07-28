@@ -156,10 +156,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new ResolveArgs();
 				bytecode.newObject();
 				break;
-			case ACCEPT_RETURN:
-				bytecode = new AcceptReturn();
-				bytecode.newObject();
-				break;
 			}
 			
 			return bytecode;

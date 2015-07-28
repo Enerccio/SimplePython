@@ -30,6 +30,7 @@ public class FrameObject extends PythonObject {
 	public boolean returnHappened;
 	public boolean pushed_context;
 	public boolean pushed_environ;
+	public boolean accepts_return;
 	
 	public PythonObject exception;
 	public List<PythonBytecode> bytecode;
