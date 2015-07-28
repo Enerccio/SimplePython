@@ -22,6 +22,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
+import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
@@ -690,6 +691,8 @@ public class PythonInterpret extends PythonObject {
 					try {
 						System.err.println(o.exception.fields.get("stack").object.toString().replace(">,", ">,\n"));
 					} catch (Exception e) {};
+					if (o.exception.get("__exception__", null) != null)
+						throw new PythonExecutionException(o.exception, (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject());
 					throw new PythonExecutionException(o.exception);
 				}
 			} else

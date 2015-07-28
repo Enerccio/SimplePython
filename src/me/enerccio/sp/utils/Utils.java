@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -184,7 +185,17 @@ public class Utils {
 	public static PythonObject run(String function, PythonObject... args) {
 		return PythonInterpret.interpret.get().executeCall(function, args);
 	}
-
+	
+	/**
+	 * throws exception of that type, that text and that cause
+	 * @param type
+	 * @param text
+	 * @return
+	 */
+	public static RuntimeException throwException(String type, String text, Throwable cause) {
+		return new PythonExecutionException(run(type, new StringObject(text)), cause);
+	}
+	
 	/**
 	 * throws exception of that type and that text
 	 * @param type
