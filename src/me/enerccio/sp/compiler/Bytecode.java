@@ -31,7 +31,7 @@ public enum Bytecode {
 	// System
 	NOP(0), 
 	PUSH_ENVIRONMENT(8), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
-	IMPORT(12), RESOLVE_ARGS(13), ACCEPT_RETURN(14), PUSH_FRAME(15), PUSH_EXCEPTION(16),
+	IMPORT(12), RESOLVE_ARGS(13), PUSH_FRAME(15), PUSH_EXCEPTION(16),
 	
 	// control
 	POP(17), PUSH(18), CALL(19), RCALL(20), DUP(21), SWAP_STACK(22),
@@ -174,10 +174,6 @@ public enum Bytecode {
 			break;
 		case RESOLVE_ARGS:
 			bytecode = new ResolveArgs();
-			bytecode.newObject();
-			break;
-		case ACCEPT_RETURN:
-			bytecode = new AcceptReturn();
 			bytecode.newObject();
 			break;
 		case GETATTR:
