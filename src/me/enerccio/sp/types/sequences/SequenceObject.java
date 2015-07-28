@@ -38,11 +38,6 @@ public abstract class SequenceObject extends ContainerObject {
 	public static final String __ITER__ = "__iter__";
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __ADD__ = "__add__";
-
-	@Override
-	public boolean truthValue() {
-		return true;
-	}
 	
 	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	

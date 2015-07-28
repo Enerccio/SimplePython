@@ -209,6 +209,7 @@ public class PythonRuntime {
 	public static final String CHR = "chr";
 	public static final String ORD = "ord";
 	public static final String APPLY = "apply";
+	public static final String NOT_VALUE = "not_value";
 	public MapObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
@@ -227,6 +228,7 @@ public class PythonRuntime {
 					globals.put("False", BoolObject.FALSE);
 					globals.put("globals", globals);
 					globals.put(APPLY, Utils.staticMethodCall(PythonRuntime.class, APPLY, PythonObject.class, ListObject.class));
+					globals.put(NOT_VALUE, Utils.staticMethodCall(PythonRuntime.class, NOT_VALUE, PythonObject.class));
 					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
 					globals.put(HASATTR, Utils.staticMethodCall(PythonRuntime.class, HASATTR, PythonObject.class, String.class));
 					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
@@ -304,6 +306,10 @@ public class PythonRuntime {
 			}
 		
 		return globals.cloneMap();
+	}
+	
+	public static PythonObject not_value(PythonObject v){
+		return BoolObject.fromBoolean(!v.truthValue());
 	}
 	
 	public static PythonObject apply(PythonObject callable, ListObject args){

@@ -58,4 +58,11 @@ public abstract class ContainerObject extends PythonObject {
 	}
 
 	protected abstract boolean containsItem(PythonObject o);
+	
+	@Override
+	public final boolean truthValue(){
+		return elementCount() != 0;
+	}
+
+	protected abstract int elementCount();
 }

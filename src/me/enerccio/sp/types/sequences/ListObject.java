@@ -151,4 +151,9 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	protected boolean containsItem(PythonObject o) {
 		return objects.contains(o);
 	}
+	
+	@Override
+	protected int elementCount() {
+		return objects.size();
+	}
 }

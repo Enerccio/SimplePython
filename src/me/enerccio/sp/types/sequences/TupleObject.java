@@ -136,4 +136,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		return false;
 	}
 
+	@Override
+	protected int elementCount() {
+		return len();
+	}
 }

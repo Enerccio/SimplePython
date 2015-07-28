@@ -94,11 +94,6 @@ public class MapObject extends ContainerObject {
 			return IntObject.valueOf(backingMap.size());
 		}
 	}
-	
-	@Override
-	public boolean truthValue() {
-		return true;
-	}
 
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
@@ -221,5 +216,10 @@ public class MapObject extends ContainerObject {
 		synchronized (backingMap){
 			return backingMap.containsKey(o);
 		}
+	}
+
+	@Override
+	protected int elementCount() {
+		return backingMap.size();
 	}
 }

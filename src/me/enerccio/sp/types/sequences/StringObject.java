@@ -94,4 +94,9 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			return value.contains(((StringObject)o).value);
 		return false;
 	}
+	
+	@Override
+	protected int elementCount() {
+		return value.length();
+	}
 }
