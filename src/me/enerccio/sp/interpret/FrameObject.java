@@ -17,10 +17,10 @@
  */
 package me.enerccio.sp.interpret;
 
-import java.util.List;
+import java.nio.ByteBuffer;
 import java.util.Stack;
 
-import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.types.PythonObject;
 
 /**
@@ -48,7 +48,9 @@ public class FrameObject extends PythonObject {
 	/** If python exception has happened, it will be stored here */
 	public PythonObject exception;
 	/** Bytecode of this frame */
-	public List<PythonBytecode> bytecode;
+	public CompiledBlockObject compiled;
+	/** Bytebuffer of the data */
+	public ByteBuffer dataStream;
 	/** program counter */
 	public int pc;
 	/** python stack of this frame */
@@ -67,4 +69,14 @@ public class FrameObject extends PythonObject {
 	public String debugModule;
 	public int debugLine;
 	public int debugInLine;
+
+	public Bytecode nextOpcode() {
+		++pc;
+		return Bytecode.fromNumber(dataStream.get());
+	}
+	
+	public int nextInt(){
+		pc += 4;
+		return dataStream.getInt();
+	}
 }

@@ -31,7 +31,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -41,6 +43,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonLexer;
@@ -166,13 +169,13 @@ public class Utils {
 				return ((PointerObject) datum).getObject();
 		}
 		
+		if (aType.isAssignableFrom(datum.getClass()))
+			return datum;
+
 		if (datum == NoneObject.NONE && !aType.isPrimitive()){
 			return null;
 		}
 		
-		if (aType.isAssignableFrom(datum.getClass()))
-			return datum;
-
 		throw new PointerMethodIncompatibleException();
 	}
 
@@ -490,40 +493,44 @@ public class Utils {
 		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 
-	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>(){
-
-		@Override
-		protected Integer initialValue() {
-			return Integer.MIN_VALUE;
-		}
-		
-	};
+	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>();
 	public static byte[] compile(List<PythonBytecode> bytecode,
-			Map<Integer, PythonObject> mmap) throws Exception {
+			Map<Integer, PythonObject> mmap, NavigableMap<Integer, DebugInformation> dmap) throws Exception {
 		Map<PythonObject, Integer> rmap = new HashMap<PythonObject, Integer>();
-		Map<Integer, Integer> rmapMap = new HashMap<Integer, Integer>();
-		Map<Integer, Integer> jumpMap = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> rmapMap = new TreeMap<Integer, Integer>();
+		Map<Integer, Integer> jumpMap = new TreeMap<Integer, Integer>();
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream w = new DataOutputStream(baos);
+		
+		DebugInformation d = null;
+		kkey.set(0);
+		
 		int itc = 0;
 		for (PythonBytecode b : bytecode){
-			rmapMap.put(itc, baos.size());
+			int ii = baos.size();
+			rmapMap.put(itc, ii);
+			
+			if (d == null || notEqual(d, b)){
+				d = new DebugInformation();
+				d.charno = b.debugInLine;
+				d.lineno = b.debugLine;
+				d.modulename = b.debugModule == null ? "<nomodule>" : b.debugModule;
+				dmap.put(ii, d);
+			}
 			
 			w.writeByte(b.getOpcode().id);
-			++itc;
 			
 			switch(b.getOpcode()){
 			case ACCEPT_ITER:
+				jumpMap.put(itc, b.intValue);
 				w.writeInt(b.intValue);
 				break;
 			case CALL:
 				w.writeInt(b.intValue);
 				break;
-			case CUSTOM:
-				break;
 			case DUP:
-				w.writeInt(insertValue(b.value, mmap, rmap));
+				w.writeInt(b.intValue);
 				break;
 			case ECALL:
 				w.writeInt(b.intValue);
@@ -578,6 +585,7 @@ public class Utils {
 			case PUSH_EXCEPTION:
 				break;
 			case PUSH_FRAME:
+				jumpMap.put(itc, b.intValue);
 				w.writeInt(b.intValue);
 				break;
 			case PUSH_LOCAL_CONTEXT:
@@ -616,8 +624,9 @@ public class Utils {
 				break;
 			default:
 				break;
-			
 			}
+			
+			++itc;
 		}
 		
 		byte[] data = baos.toByteArray();
@@ -625,12 +634,18 @@ public class Utils {
 		
 		for (Integer ppos : jumpMap.keySet()){
 			Integer jumpval = jumpMap.get(ppos);
-			Integer location = rmap.get(jumpval);
-			b.position(ppos);
+			Integer location = rmapMap.get(jumpval);
+			Integer wloc = rmapMap.get(ppos) + 1;
+			b.position(wloc);
 			b.putInt(location);
 		}
 		
 		return data;
+	}
+
+	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
+		return d.charno != b.debugInLine || d.lineno != b.debugLine || 
+				(b.debugModule == null ? "<nomodule>".equals(d.modulename) : !d.modulename.equals(b.debugModule));
 	}
 
 	private static int insertValue(PythonObject v, Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {

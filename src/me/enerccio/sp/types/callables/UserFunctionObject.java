@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -39,7 +39,7 @@ public class UserFunctionObject extends PythonObject {
 	private static final long serialVersionUID = 22L;
 	
 	/** Bytecode of this function */
-	public List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+	public CompiledBlockObject block;
 	/** Arguments this function has */
 	public List<String> args;
 	/** Whether this function is vararg */
@@ -98,7 +98,7 @@ public class UserFunctionObject extends PythonObject {
 		}
 		
 		PythonInterpret.interpret.get().setArgs(a);
-		PythonInterpret.interpret.get().executeBytecode(bytecode);
+		PythonInterpret.interpret.get().executeBytecode(block);
 		
 		return NoneObject.NONE; // returns immediately
 	}
@@ -125,7 +125,7 @@ public class UserFunctionObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<function " + fields.get("__name__").object + ">"; // TODO
+		return "<function " + fields.get("__name__").object + ">";
 	}
 
 	@Override

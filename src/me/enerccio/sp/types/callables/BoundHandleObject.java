@@ -22,6 +22,7 @@ import java.util.List;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
@@ -60,7 +61,7 @@ public class BoundHandleObject extends PythonObject {
 	 * @param args
 	 * @return
 	 */
-	public List<PythonBytecode> methodCall(BoundHandleObject boundHandleObject, TupleObject args) {
+	public CompiledBlockObject methodCall(BoundHandleObject boundHandleObject, TupleObject args) {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
 
@@ -107,7 +108,9 @@ public class BoundHandleObject extends PythonObject {
 		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
 		b.intValue = 1;
 		// []
-		return l;
+		CompiledBlockObject cbc = new CompiledBlockObject(l);
+		cbc.newObject();
+		return cbc;
 	}
 	
 	/**

@@ -18,9 +18,11 @@
 package me.enerccio.sp.types.types;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -60,11 +62,15 @@ public class ObjectTypeObject extends TypeObject {
 		usf.args.add("self");
 		Utils.putPublic(usf, "function_defaults", new MapObject());
 		PythonBytecode cb;
-		usf.bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
-		usf.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		List<PythonBytecode> usfb = new ArrayList<PythonBytecode>();
+		usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
+		usfb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
 		cb.value = NoneObject.NONE;
-		usf.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN));
+		usfb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN));
 		cb.intValue = 1;
+		
+		usf.block = new CompiledBlockObject(usfb);
+		usf.block.newObject();
 		
 		md.put(ClassInstanceObject.__INIT__, usf);
 		try {

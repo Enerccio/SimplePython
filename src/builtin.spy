@@ -38,10 +38,10 @@ def any(iterable):
 def callable(object):
     if object is None: return False
     t = type(object)
-    if t == function(): return True
-    if t == method(): return True
-    if t == type(): return True
-    if t == javamethod(): return True
+    if t == function: return True
+    if t == method: return True
+    if t == type: return True
+    if t == javamethod: return True
     return hasattr(object, "__call__")
 
 def cmp(x, y):
