@@ -538,7 +538,6 @@ public class PythonInterpret extends PythonObject {
 			nf.newObject();
 			nf.parentFrame = o;
 			nf.bytecode = o.bytecode;
-			nf.stack = o.stack;
 			nf.pc = pythonBytecode.intValue;
 			currentFrame.add(nf);
 			break;
