@@ -391,6 +391,7 @@ public class PythonCompiler {
 		cs = ControllStack.push(cs, lsi);
 		// Compile condition
 		compile(ctx.test(), bytecode);
+		bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
 		PythonBytecode jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start);
 		bytecode.add(jump);
 		// Compile body
@@ -441,6 +442,7 @@ public class PythonCompiler {
 		// If and elif blocks
 		for (int i=0; i<ctx.test().size(); i++) {
 			compile(ctx.test(i), bytecode);
+			bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, ctx.start));
 			bytecode.add(jump = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, ctx.start));
 			compileSuite(ctx.suite(i), bytecode, cs);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.GOTO, ctx.start));
@@ -1374,6 +1376,7 @@ public class PythonCompiler {
 			List_iterContext lIter = fCtx.list_iter();
 			if (lIter.list_if() != null) {
 				compile(lIter.list_if().test(), bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, fCtx.start));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, fCtx.start));
 				cb.intValue = loopStart;
 			} else if (lIter.list_for() != null) {
@@ -1501,6 +1504,7 @@ public class PythonCompiler {
 			Comp_iterContext lIter = cCtx.comp_iter();
 			if (lIter.comp_if() != null) {
 				compile(lIter.comp_if().test(), bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, cCtx.start));
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, cCtx.start));
 				cb.intValue = loopStart;
 			} else if (lIter.comp_for() != null) {
