@@ -12,6 +12,7 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -594,19 +595,31 @@ public class PythonInterpret extends PythonObject {
 			}
 			break;
 		case GETATTR: {
-			runnable = environment().get(new StringObject("getattr"), true, false);
-			PythonObject[] args = new PythonObject[2];
-			// If argument for GETATTR is not set, attribute name is pop()ed from stack   
-			if (pythonBytecode.stringValue == null) {
-				args[1] = stack.pop();	// attribute
-				args[0] = stack.pop();	// object
+			AugumentedPythonObject apo;
+			value = stack.pop();	// object to get attribute from
+			apo = value.fields.get("__getattribute__"); 
+			if (apo != null) {
+				// There is __getattribute__ defined, call it directly
+				returnee = execute(true, apo.object, new StringObject(pythonBytecode.stringValue));
+				o.accepts_return = true;
+				break;
 			} else {
-				args[0] = stack.pop();									// object
-				args[1] = new StringObject(pythonBytecode.stringValue);	// attribute
-			} 
-			returnee = execute(true, runnable, args);
-			o.accepts_return = true;
-			break;
+				// Try to grab argument normally...
+				apo = value.fields.get(pythonBytecode.stringValue);
+				if (apo != null) {
+					stack.push(apo.object);
+					break;
+				}
+				// ... and if that fails, use __getattr__ if available
+				apo = value.fields.get("__getattr__"); 
+				if (apo != null) {
+					// There is __getattribute__ defined, call it directly
+					returnee = execute(true, apo.object, new StringObject(pythonBytecode.stringValue));
+					o.accepts_return = true;
+					break;
+				}
+				throw Utils.throwException("AttributeError", "" + value.getType() + " object has no attribute '" + pythonBytecode.stringValue + "'");
+			}
 		}
 		case SETATTR: {
 			runnable = environment().get(new StringObject("setattr"), true, false);
@@ -635,7 +648,7 @@ public class PythonInterpret extends PythonObject {
 			PythonObject s;
 			s = stack.pop();
 			if (s == null)
-				Utils.throwException("InterpretError", "no exception is being handled but raise called");
+				throw Utils.throwException("InterpretError", "no exception is being handled but raise called");
 			throw new PythonExecutionException(s);
 		}
 		case RERAISE: {
