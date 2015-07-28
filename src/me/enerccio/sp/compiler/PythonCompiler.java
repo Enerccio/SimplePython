@@ -870,9 +870,8 @@ public class PythonCompiler {
 	}
 	
 	private void putNot(List<PythonBytecode> bytecode, Token t) {
-		putGetAttr("__not__", bytecode, t);
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-		cb.intValue = 0;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.TRUTH_VALUE, t));
+		cb.intValue = 1;
 	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
@@ -903,7 +902,8 @@ public class PythonCompiler {
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() != null){
-			// TODO
+			compile(ctx.not_test(), bytecode);
+			putNot(bytecode, ctx.start);
 		} else
 			compile(ctx.comparison(), bytecode);
 	}

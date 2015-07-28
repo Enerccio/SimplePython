@@ -45,8 +45,8 @@ public enum Bytecode {
 	GETATTR(90), SETATTR(90), ISINSTANCE(91), 
 	// frames 
 	
-	// loops / iterators
-	ECALL(100), ACCEPT_ITER(101),
+	// loops, iterators, boolean stuff
+	ECALL(100), ACCEPT_ITER(101), TRUTH_VALUE(102),
 	
 	// custom
 	CUSTOM(255);
@@ -86,6 +86,10 @@ public enum Bytecode {
 			break;
 		case ACCEPT_ITER:
 			bytecode = new AcceptIter();
+			bytecode.newObject();
+			break;
+		case TRUTH_VALUE:
+			bytecode = new TruthValue();
 			bytecode.newObject();
 			break;
 		case CUSTOM:

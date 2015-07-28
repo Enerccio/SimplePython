@@ -16,6 +16,7 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
@@ -218,10 +219,11 @@ public class PythonInterpret extends PythonObject {
 		o.debugInLine = pythonBytecode.debugInLine;
 		
 		Stack<PythonObject> stack = o.stack;
-		if (!o.accepts_return)
+		/*if (!o.accepts_return)
 			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " [" + o.stack);
 		else
 			System.out.println("<" + o.debugModule + ", " + o.debugLine + "> \t" + o.hashCode() + " \t" + Bytecode.dis(o.pc - 1, pythonBytecode) + " value: " + returnee  + " [" + o.stack);
+			*/
 		
 		if (o.accepts_return){
 			o.accepts_return = false;
@@ -355,6 +357,34 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case POP:
 			stack.pop();
+			break;
+		case TRUTH_VALUE:
+			value = stack.pop();
+			if (value instanceof NumberObject) {
+				if (pythonBytecode.intValue == 1)
+					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				else
+					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+				break;
+			} else if (value.fields.containsKey("__nonzero__")) {
+				runnable = value.fields.get("__nonzero__").object;
+				returnee = execute(true, runnable);
+				o.accepts_return = true;
+				if (pythonBytecode.intValue == 1)
+					o.pc --;
+				break;
+			} else if (value.fields.containsKey("__len__")) {
+				runnable = value.fields.get("__len__").object;
+				returnee = execute(true, runnable);
+				o.accepts_return = true;
+				o.pc --;
+				break;
+			} else {
+				if (pythonBytecode.intValue == 1)
+					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				else
+					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+			}
 			break;
 		case PUSH:
 			stack.push(pythonBytecode.value);
