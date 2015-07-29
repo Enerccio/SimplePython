@@ -40,9 +40,9 @@ public class XRangeTypeObject extends TypeObject {
 		if ((args.len() < 1) || (args.len() > 3))
 			throw Utils.throwException("TypeError", "xrange() requires 1-3 int arguments");
 		
-		int start = ((IntObject)args.valueAt(0)).intValue();
-		int end = args.len() < 2 ? 0 : ((IntObject)args.valueAt(1)).intValue();
-		int step = args.len() < 3 ? 1 : ((IntObject)args.valueAt(2)).intValue();
+		int start = (int) ((IntObject)args.valueAt(0)).intValue();
+		int end = (int) (args.len() < 2 ? 0 : ((IntObject)args.valueAt(1)).intValue());
+		int step = (int) (args.len() < 3 ? 1 : ((IntObject)args.valueAt(2)).intValue());
 		if (args.len() < 2) {
 			end = start;
 			start = 0;

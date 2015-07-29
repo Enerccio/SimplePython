@@ -3,7 +3,6 @@ def fnc(a, b, c):
     return c * (a + b)
 
 def test():
-    x = [1, 2, 3, 4]
-    y = [2, 2, 4, 2]
-    z = [-1, 1, -1, 1]
-    print map(fnc, x, y, z)
+    y = 0
+    for x in xrange(1024):
+        y += x

@@ -68,8 +68,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		final int prime = 31;
         int result = 1;
         for (int i=0; i<array.length; i++)
-	        result = prime * result
-	                + ((IntObject)Utils.run("hash", array[i])).intValue();
+	        result = (int) (prime * result
+	                + ((IntObject)Utils.run("hash", array[i])).intValue());
 
         return result;
 	}

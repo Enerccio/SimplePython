@@ -80,7 +80,7 @@ public class IntTypeObject extends TypeObject {
 			IntObject i = (IntObject)o2;	
 			StringObject s = (StringObject)o1;
 			
-			return IntObject.valueOf(Integer.parseInt(s.getString(), i.intValue()));
+			return IntObject.valueOf(Long.parseLong(s.getString(), (int) i.intValue()));
 			
 		} catch (ClassCastException e){
 			throw Utils.throwException("TypeError", "int(): incorrect type for function call: " + e.getMessage());

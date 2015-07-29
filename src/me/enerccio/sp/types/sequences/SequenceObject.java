@@ -128,11 +128,11 @@ public abstract class SequenceObject extends ContainerObject {
 		int sov = size;
 		int stv = 1;
 		if (saex)
-			sav = ((IntObject)sa).intValue();
+			sav = (int) ((IntObject)sa).intValue();
 		if (soex)
-			sov = ((IntObject)so).intValue();
+			sov = (int) ((IntObject)so).intValue();
 		if (stex)
-			stv = ((IntObject)st).intValue();
+			stv = (int) ((IntObject)st).intValue();
 		
 		boolean reverse = false;
 		

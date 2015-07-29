@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -190,7 +189,7 @@ public abstract class NumberObject extends PythonObject {
 	protected abstract PythonObject getIntValue();
 	
 	/** Converts number to BigInteger */ 
-	public abstract BigInteger getJavaInt();
+	public abstract Long getJavaInt();
 	/** Converts number to float */
 	public abstract double getJavaFloat();
 	

@@ -17,8 +17,6 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.math.BigInteger;
-
 import me.enerccio.sp.types.PythonObject;
 
 /**
@@ -52,48 +50,34 @@ public class IntObject extends NumberObject {
 	}
 	
 	private IntObject(int v){
-		value = BigInteger.valueOf(v);
-		newObject();
-	}
-	
-	private IntObject(long v){
-		value = BigInteger.valueOf(v);
-		newObject();
-	}
-	
-	public IntObject(BigInteger v){
 		value = v;
 		newObject();
 	}
 	
-	private BigInteger value;
+	private IntObject(long v){
+		value = v;
+		newObject();
+	}
+	
+	private long value;
 
 	@Override
 	public boolean truthValue() {
-		return !value.equals(BigInteger.ZERO);
+		return !(value == 0);
 	}
 	
-	@Override 
-	public BigInteger getJavaInt() {
+	public long intValue(){
 		return value;
 	}
 	
 	@Override
 	public double getJavaFloat() {
-		return value.doubleValue();
+		return (double)value;
 	}
 	
 	@Override
 	public int getId(){
-		return value.hashCode();
-	}
-
-	public int intValue() {
-		return (int)longValue();
-	}
-
-	public long longValue() {
-		return value.longValue();
+		return hashCode();
 	}
 
 	@Override
@@ -102,19 +86,20 @@ public class IntObject extends NumberObject {
 	}
 	
 	@Override
-	public int hashCode(){
-		return value.hashCode();
-	}
-	
-	@Override
-	public boolean equals(Object o){
-		if (o instanceof IntObject)
-			return value.equals(((IntObject)o).value);
-		return false;
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (value ^ (value >>> 32));
+		return result;
 	}
 
 	@Override
 	protected String doToString() {
-		return value.toString();
+		return ""+value;
+	}
+
+	@Override
+	public Long getJavaInt() {
+		return new Long(value);
 	}
 }

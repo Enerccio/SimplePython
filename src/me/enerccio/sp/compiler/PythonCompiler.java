@@ -1293,7 +1293,7 @@ public class PythonCompiler {
 				if (ic.HEX_INTEGER() != null)
 					bi = new BigInteger(numberValue, 16);
 				
-				IntObject o = new IntObject(bi);
+				IntObject o = IntObject.valueOf(bi.longValue());
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.start));
 				cb.value = o;
 			} else if (nb.FLOAT_NUMBER() != null){

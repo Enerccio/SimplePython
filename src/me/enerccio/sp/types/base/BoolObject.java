@@ -17,8 +17,6 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.math.BigInteger;
-
 import me.enerccio.sp.types.PythonObject;
 
 /**
@@ -47,8 +45,8 @@ public class BoolObject extends NumberObject {
 	}
 	
 	@Override 
-	public BigInteger getJavaInt() {
-		return BigInteger.valueOf(value ? 1L : 0L);
+	public Long getJavaInt() {
+		return value ? 1L : 0L;
 	}
 	
 	@Override

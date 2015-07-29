@@ -129,14 +129,14 @@ public class Utils {
 			throws PointerMethodIncompatibleException {
 		if (aType == Integer.class || aType == int.class) {
 			if (datum instanceof IntObject)
-				return ((IntObject)datum).intValue();
+				return (int) ((IntObject)datum).intValue();
 			else
 				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", datum));
 		}
 
 		if (aType == Long.class || aType == long.class) {
 			if (datum instanceof IntObject)
-				return ((IntObject)datum).longValue();
+				return ((IntObject)datum).intValue();
 			else
 				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", datum));
 		}
@@ -343,7 +343,7 @@ public class Utils {
 	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
 		if (!(idx instanceof IntObject))
 			throw throwException("TypeError", "Index must be int");
-		int i = ((IntObject)idx).intValue();
+		int i = (int) ((IntObject)idx).intValue();
 		if (i >= o.len() || i<-(o.len()))
 			throw  throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
 		return o.valueAt(morphAround(i, o.len()));

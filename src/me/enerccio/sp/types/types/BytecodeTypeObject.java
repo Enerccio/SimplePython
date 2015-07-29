@@ -50,7 +50,7 @@ public class BytecodeTypeObject extends TypeObject {
 		try {
 			IntObject byteNum = (IntObject) args.getObjects()[0];
 			
-			Bytecode b = Bytecode.fromNumber(byteNum.intValue());
+			Bytecode b = Bytecode.fromNumber((int) byteNum.intValue());
 			if (b == null)
 				throw Utils.throwException("TypeError", "unknown bytecode number");
 			PythonBytecode bytecode = null;
@@ -68,17 +68,17 @@ public class BytecodeTypeObject extends TypeObject {
 			case GOTO:
 				bytecode = new Goto();
 				bytecode.newObject();
-				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFFALSE:
 				bytecode = new JumpIfFalse();
 				bytecode.newObject();
-				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case JUMPIFTRUE:
 				bytecode = new JumpIfTrue();
 				bytecode.newObject();
-				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case LOAD:
 				bytecode = new Load();
@@ -144,7 +144,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case UNPACK_SEQUENCE:
 				bytecode = new UnpackSequence();
 				bytecode.newObject();
-				bytecode.intValue = ((IntObject) args.getObjects()[1]).intValue();
+				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
 				break;
 			case PUSH_LOCAL_CONTEXT:
 				bytecode = new PushLocalContext();

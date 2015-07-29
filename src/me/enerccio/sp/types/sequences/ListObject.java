@@ -133,7 +133,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	public PythonObject set(PythonObject key, PythonObject value) {
 		
 		if (key instanceof IntObject){
-			int i = ((IntObject)key).intValue();
+			int i = (int) ((IntObject)key).intValue();
 			if (i >= len() || i<-(len()))
 				throw Utils.throwException("IndexError", "incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 			int idx = Utils.morphAround(i, len());

@@ -17,8 +17,6 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.math.BigInteger;
-
 import me.enerccio.sp.types.PythonObject;
 
 /**
@@ -46,8 +44,8 @@ public class RealObject extends NumberObject {
 	private double value;
 	
 	@Override 
-	public BigInteger getJavaInt() {
-		return BigInteger.valueOf((long)value);
+	public Long getJavaInt() {
+		return (long)value;
 	}
 	
 	@Override

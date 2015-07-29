@@ -377,7 +377,7 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject chr(IntObject i){
-		int v = i.intValue();
+		int v = (int) i.intValue();
 		if (v < 0 || v > 255)
 			throw Utils.throwException("ValueError", "chr(): value outside range");
 		return new StringObject(Character.toString((char)v));
