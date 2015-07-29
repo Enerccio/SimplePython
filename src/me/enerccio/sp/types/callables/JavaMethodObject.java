@@ -80,9 +80,9 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", toString() + ": failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		} catch (Throwable e){
-			throw Utils.throwException("TypeError", toString() + ": failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		}
 		
 		Object[] jargs = new Object[args.len()];
@@ -113,9 +113,9 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", toString() + ": failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		} catch (Throwable e) {
-			throw Utils.throwException("TypeError", toString() + ": failed java call");
+			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		}
 	}
 

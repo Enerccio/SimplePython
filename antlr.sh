@@ -10,7 +10,7 @@ ANTLR="antlr4"
 GRUN="grun"
 
 if [[ $(uname) == MINGW* ]] ; then
-	export CLASSPATH="$(pwd -W)/antlr-4.5-complete.jar;$CLASSPATH"
+	export CLASSPATH="$(pwd -W)/lib/antlr-4.5-complete.jar;$CLASSPATH"
 	ANTLR="java -Xmx500M org.antlr.v4.Tool"
 	GRUN="java org.antlr.v4.runtime.misc.TestRig"
 else
