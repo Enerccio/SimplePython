@@ -51,7 +51,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
@@ -204,7 +204,7 @@ public class PythonRuntime {
 	 * @return
 	 */
 	private ModuleObject loadModule(ModuleProvider provider){
-		MapObject globals = generateGlobals();
+		DictObject globals = generateGlobals();
 		ModuleObject mo = new ModuleObject(globals, provider);
 		return mo;
 	}
@@ -249,7 +249,7 @@ public class PythonRuntime {
 	}
 
 	/** stored globals are here */
-	private static volatile MapObject globals = null;
+	private static volatile DictObject globals = null;
 	public static final String IS = "is";
 	public static final String MRO = "mro";
 	public static final String GETATTR = "getattr";
@@ -268,11 +268,11 @@ public class PythonRuntime {
 	 * Generates globals. This is only done once but then cloned
 	 * @return
 	 */
-	public MapObject generateGlobals() {
+	public DictObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
 				if (globals == null){
-					globals = new MapObject();
+					globals = new DictObject();
 					
 					EnvironmentObject e = new EnvironmentObject();
 					e.newObject();
@@ -551,8 +551,8 @@ public class PythonRuntime {
 		return NoneObject.NONE;
 	}
 	
-	private void addExceptions(MapObject globals) {
-		MapObject base = addException(globals, "Error", null, false);
+	private void addExceptions(DictObject globals) {
+		DictObject base = addException(globals, "Error", null, false);
 		ListObject lo = new ListObject();
 		lo.newObject();
 		base.backingMap.put(new StringObject("stack"), lo);
@@ -577,9 +577,9 @@ public class PythonRuntime {
 	}
 
 
-	private MapObject addException(MapObject globals, String exceptionName, String exceptionBase, boolean stringArg) {
+	private DictObject addException(DictObject globals, String exceptionName, String exceptionBase, boolean stringArg) {
 		TypeTypeObject classCreator = (TypeTypeObject) globals.doGet(TypeTypeObject.TYPE_CALL);
-		MapObject dict = new MapObject();
+		DictObject dict = new DictObject();
 		
 		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class);
 		init.setWrappedMethod(true);

@@ -22,7 +22,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -106,7 +106,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case PUSH_DICT:
 				bytecode = new PushDict();
 				bytecode.newObject();
-				bytecode.mapValue = (MapObject) args.getObjects()[1];
+				bytecode.mapValue = (DictObject) args.getObjects()[1];
 				break;
 			case PUSH_ENVIRONMENT:
 				bytecode = new PushEnvironment();

@@ -28,7 +28,7 @@ import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -56,21 +56,21 @@ public class FunctionTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 6, got " + args.len());
 		
 		String src = null;
-		MapObject dict = null;
-		List<MapObject> maps = new ArrayList<MapObject>();
+		DictObject dict = null;
+		List<DictObject> maps = new ArrayList<DictObject>();
 		List<String> aas = new ArrayList<String>();
 		String vararg = null;
-		MapObject defaults = null;
+		DictObject defaults = null;
 		
 		try {
 			PythonObject arg = args.getObjects()[0];
 			src = ((StringObject)arg).value;
 			
-			dict = (MapObject)args.getObjects()[1];
+			dict = (DictObject)args.getObjects()[1];
 			
 			TupleObject to = (TupleObject)args.getObjects()[2];
 			for (PythonObject o : to.getObjects())
-				maps.add(((MapObject)o));
+				maps.add(((DictObject)o));
 			
 			ListObject o = (ListObject)args.getObjects()[3];
 			for (PythonObject oo : o.objects)
@@ -82,9 +82,9 @@ public class FunctionTypeObject extends TypeObject {
 			
 			arg = args.getObjects()[5];
 			if (arg != NoneObject.NONE)
-				defaults = (MapObject)arg;
+				defaults = (DictObject)arg;
 			else
-				defaults = new MapObject();
+				defaults = new DictObject();
 			
 		} catch (ClassCastException e){
 			throw Utils.throwException("TypeError", " function(): wrong types of arguments");

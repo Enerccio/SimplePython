@@ -24,7 +24,7 @@ import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.XRangeIterator;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -86,7 +86,7 @@ public class PythonInterpret extends PythonObject {
 	/** Number of times this interpret is accessed by itself. If >0, interpret can't be serialized */
 	private volatile int accessCount = 0;
 	/** Represents currrently passed arguments to the function */
-	private MapObject args = null;
+	private DictObject args = null;
 	/** Represents value returned by a call */
 	private PythonObject returnee;
 	
@@ -196,7 +196,7 @@ public class PythonInterpret extends PythonObject {
 	 * Pushes environment dicts as a new environment object
 	 * @param environs
 	 */
-	public void pushEnvironment(MapObject... environs) {
+	public void pushEnvironment(DictObject... environs) {
 		EnvironmentObject c;
 		currentEnvironment.push(c = new EnvironmentObject());
 		c.add(environs);
@@ -330,7 +330,7 @@ public class PythonInterpret extends PythonObject {
 		case PUSH_DICT:{
 			// pushes b.mapValue into current environment
 				EnvironmentObject env = Utils.peek(currentEnvironment);
-				env.add((MapObject)o.compiled.getConstant(o.nextInt()));
+				env.add((DictObject)o.compiled.getConstant(o.nextInt()));
 			} break;
 		case PUSH_ENVIRONMENT:
 			// pushes new environment onto environment stack. 
@@ -781,7 +781,7 @@ public class PythonInterpret extends PythonObject {
 						target,
 						false, false);
 			} else {
-				MapObject dict = (MapObject) target.fields.get(ModuleObject.__DICT__).object;
+				DictObject dict = (DictObject) target.fields.get(ModuleObject.__DICT__).object;
 				synchronized (dict){
 					synchronized (dict.backingMap){
 						for (PythonProxy key : dict.backingMap.keySet()){
@@ -813,7 +813,7 @@ public class PythonInterpret extends PythonObject {
 			} else {
 				if (target instanceof ModuleObject){
 					ModuleObject mod = (ModuleObject)target;
-					PythonObject target2 = ((MapObject)mod.fields.get(ModuleObject.__DICT__).object).doGet(mm);
+					PythonObject target2 = ((DictObject)mod.fields.get(ModuleObject.__DICT__).object).doGet(mm);
 					if (target2 != null){
 						pythonImport(environment, variable, modulePath, target2);
 						return;
@@ -844,7 +844,7 @@ public class PythonInterpret extends PythonObject {
 	 * Sets the arguments for the next RESOLVE_ARGS call
 	 * @param a
 	 */
-	public void setArgs(MapObject a) {
+	public void setArgs(DictObject a) {
 		args = a;
 	}
 

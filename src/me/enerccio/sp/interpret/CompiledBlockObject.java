@@ -27,7 +27,7 @@ import java.util.TreeMap;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -104,7 +104,7 @@ public class CompiledBlockObject extends PythonObject {
 			throw Utils.throwException("TypeError", "invalid bytecode", e);
 		}
 		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
-		Utils.putPublic(this, CO_CONSTS, new MapObject(mmap));
+		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
 	}
 
 	@Override

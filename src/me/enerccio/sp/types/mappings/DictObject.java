@@ -39,17 +39,17 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class MapObject extends ContainerObject {
+public class DictObject extends ContainerObject {
 	private static final long serialVersionUID = 20L;
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __SETITEM__ = "__setitem__";
 	public static final String __LEN__ = "__len__";
 	
-	public MapObject(){
+	public DictObject(){
 		newObject();
 	}
 	
-	public MapObject(Map<Integer, PythonObject> mmap) {
+	public DictObject(Map<Integer, PythonObject> mmap) {
 		newObject();
 		for (Integer k : mmap.keySet())
 			backingMap.put(IntObject.valueOf(k), mmap.get(k));
@@ -59,13 +59,13 @@ public class MapObject extends ContainerObject {
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, MapObject.class.getMethod("getItem", 
+			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("getItem", 
 					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, __SETITEM__, new JavaMethodObject(null, MapObject.class.getMethod("setItem", 
+			Utils.putPublic(sfields, __SETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("setItem", 
 					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, MapObject.class.getMethod("keys", 
+			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, DictObject.class.getMethod("keys", 
 					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, "values", new JavaMethodObject(null, MapObject.class.getMethod("values", 
+			Utils.putPublic(sfields, "values", new JavaMethodObject(null, DictObject.class.getMethod("values", 
 					new Class<?>[]{TupleObject.class}), true));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
@@ -123,6 +123,14 @@ public class MapObject extends ContainerObject {
 		}
 	}
 	
+	public PythonObject get(String key) {
+		synchronized (backingMap){
+			if (!backingMap.containsKey(new StringObject(key)))
+				return null;
+			return backingMap.get(key);
+		}
+	}
+	
 	public PythonObject getItem(TupleObject a){
 		if (a.len() != 1)
 			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
@@ -169,6 +177,16 @@ public class MapObject extends ContainerObject {
 		return o;
 	}
 	
+	public Set<String> keys() {
+		Set<String> rv = new HashSet<>();
+		synchronized (backingMap) {
+			for (PythonProxy k : backingMap.keySet())
+				rv.add(k.toString());
+		}
+		return rv;
+	}
+
+	
 	public PythonObject values(TupleObject t) {
 		ListObject o = new ListObject();
 		o.newObject();
@@ -179,11 +197,11 @@ public class MapObject extends ContainerObject {
 		return o;
 	}
 	
-	private static ThreadLocal<Set<MapObject>> printMap = new ThreadLocal<Set<MapObject>>(){
+	private static ThreadLocal<Set<DictObject>> printMap = new ThreadLocal<Set<DictObject>>(){
 
 		@Override
-		protected Set<MapObject> initialValue() {
-			return new HashSet<MapObject>();
+		protected Set<DictObject> initialValue() {
+			return new HashSet<DictObject>();
 		}
 		
 	};
@@ -199,8 +217,8 @@ public class MapObject extends ContainerObject {
 		}
 	}
 
-	public MapObject cloneMap() {
-		MapObject c = new MapObject();
+	public DictObject cloneMap() {
+		DictObject c = new DictObject();
 		synchronized (backingMap){
 			c.backingMap.putAll(backingMap);
 		}

@@ -25,7 +25,7 @@ import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -81,7 +81,7 @@ public class UserFunctionObject extends PythonObject {
 		if (!isVararg && argc > rargs)
 			throw Utils.throwException("TypeError", fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
-		MapObject a = new MapObject();
+		DictObject a = new DictObject();
 		
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
 		for (int i=0; i<argc; i++){
@@ -109,7 +109,7 @@ public class UserFunctionObject extends PythonObject {
 	 * @return
 	 */
 	private TupleObject refillArgs(TupleObject args) {
-		MapObject m = (MapObject) fields.get("function_defaults").object;
+		DictObject m = (DictObject) fields.get("function_defaults").object;
 		List<PythonObject> pl = new ArrayList<PythonObject>(Arrays.asList(args.getObjects()));
 		
 		if (args.len() < this.args.size()){

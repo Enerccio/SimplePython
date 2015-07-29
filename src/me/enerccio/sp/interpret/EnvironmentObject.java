@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 
 /**
@@ -33,13 +33,13 @@ import me.enerccio.sp.types.sequences.StringObject;
  */
 public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
-	private List<MapObject> environments = new ArrayList<MapObject>();
+	private List<DictObject> environments = new ArrayList<DictObject>();
 	
 	/**
 	 * Adds closure maps to the environment
 	 * @param closures
 	 */
-	public void add(MapObject... closures){
+	public void add(DictObject... closures){
 		environments.addAll(Arrays.asList(closures));
 	}
 	
@@ -47,7 +47,7 @@ public class EnvironmentObject extends PythonObject {
 	 * Adds closure maps to the environment
 	 * @param closures
 	 */
-	public void add(Collection<MapObject> closures){
+	public void add(Collection<DictObject> closures){
 		environments.addAll(closures);
 	}
 	
@@ -64,7 +64,7 @@ public class EnvironmentObject extends PythonObject {
 		}
 		
 		PythonObject o;
-		for (MapObject e : environments){
+		for (DictObject e : environments){
 			if (skipFirst){
 				skipFirst = false;
 				continue;
@@ -91,7 +91,7 @@ public class EnvironmentObject extends PythonObject {
 		}
 		
 		PythonObject o;
-		for (MapObject e : environments){
+		for (DictObject e : environments){
 			if (skipFirst){
 				skipFirst = false;
 				continue;
@@ -119,7 +119,7 @@ public class EnvironmentObject extends PythonObject {
 	 * Returns locals in this environment
 	 * @return
 	 */
-	public MapObject getLocals() {
+	public DictObject getLocals() {
 		return environments.get(0);
 	}
 	

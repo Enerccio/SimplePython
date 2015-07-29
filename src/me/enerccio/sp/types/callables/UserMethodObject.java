@@ -27,7 +27,7 @@ import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -74,12 +74,12 @@ public class UserMethodObject extends PythonObject {
 			// add closure
 			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
 				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-				b.mapValue = (MapObject) d;	
+				b.mapValue = (DictObject) d;	
 			}
 		} else {
 			// add globals
 			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.mapValue = new MapObject();
+			b.mapValue = new DictObject();
 			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
 			b.mapValue = PythonRuntime.runtime.generateGlobals();
 		}
