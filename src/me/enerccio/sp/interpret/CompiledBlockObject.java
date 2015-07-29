@@ -136,7 +136,7 @@ public class CompiledBlockObject extends PythonObject {
 		return dis(block, false, 0);
 	}
 	
-	public static String dis(CompiledBlockObject block, boolean single, int offset){
+	public static String dis(CompiledBlockObject block, boolean single, int offset) {
 		StringBuilder bdd = new StringBuilder();
 		
 		ByteBuffer b = ByteBuffer.wrap(block.getBytedata());
@@ -153,111 +153,71 @@ public class CompiledBlockObject extends PythonObject {
 			if (d == null || !d.equals(block.getDebugInformation(pos))){
 				d = block.getDebugInformation(pos);
 				
-				bd.append("<at " + d.modulename + ", line: " + d.lineno + ", cpos: " + d.charno + ">\n");
+				bd.append(
+					String.format("<at %s %-7.7s> ",
+						d.modulename, " " + d.lineno + ":" + d.charno));
+				
 			}
 			
-			bd.append(ord++ + ".\t");
-			bd.append(pos + "\t");
-			bd.append(opcode + "\t");
+			if (!single)
+				bd.append(String.format("%-5.5s", (ord++)));
+			bd.append(String.format("%-5.5s", (pos)));
+			bd.append(String.format("%-9.9s", (opcode)));
 			
+			final String FORMAT = "%-25.25s";
 			switch (opcode){
 			case ACCEPT_ITER:
-				bd.append(b.getInt());
-				break;
 			case CALL:
-				bd.append("\t" + b.getInt());
-				break;
 			case DUP:
-				bd.append("\t\t" + b.getInt());
-				break;
 			case ECALL:
-				bd.append("\t" + b.getInt());
+			case GET_ITER:
+			case GOTO:
+			case JUMPIFFALSE:
+			case JUMPIFNONE:
+			case JUMPIFNORETURN:
+			case JUMPIFTRUE:
+			case PUSH:
+			case PUSH_DICT:
+			case PUSH_FRAME:
+			case SETUP_LOOP:
+			case RCALL:
+			case RETURN:
+			case TRUTH_VALUE:
+			case UNPACK_SEQUENCE:
+				bd.append(String.format(FORMAT, b.getInt()));
 				break;
 			case GETATTR:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case GOTO:
-				bd.append("\t" + b.getInt());
+			case LOAD:
+			case LOADGLOBAL:
+			case SAVE:
+			case SAVEGLOBAL:
+			case SAVE_LOCAL:
+			case SETATTR:
+				c = b.getInt();
+				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
 				break;
 			case IMPORT:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c) + "   ");
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
+				bd.append(String.format(FORMAT, (c = b.getInt()) + " - " + block.getConstant(c) + "   " + (c = b.getInt()) + " - " + block.getConstant(c)));
 				break;
 			case ISINSTANCE:
-				break;
-			case JUMPIFFALSE:
-				bd.append(b.getInt());
-				break;
-			case JUMPIFNONE:
-				bd.append(b.getInt());
-				break;
-			case JUMPIFNORETURN:
-				bd.append(b.getInt());
-				break;
-			case JUMPIFTRUE:
-				bd.append(b.getInt());
-				break;
-			case LOAD:
-				bd.append("\t" + (c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case LOADGLOBAL:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
-				break;
 			case NOP:
-				break;
 			case POP:
-				break;
-			case PUSH:
-				bd.append("\t" + (c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case PUSH_DICT:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
-				break;
 			case PUSH_ENVIRONMENT:
-				break;
 			case PUSH_EXCEPTION:
-				break;
-			case PUSH_FRAME:
-				bd.append(b.getInt());
-				break;
 			case PUSH_LOCAL_CONTEXT:
-				break;
 			case RAISE:
-				break;
-			case RCALL:
-				bd.append("\t" + b.getInt());
-				break;
 			case RERAISE:
-				break;
 			case RESOLVE_ARGS:
-				break;
-			case RETURN:
-				bd.append(b.getInt());
-				break;
-			case SAVE:
-				bd.append("\t" + (c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case SAVEGLOBAL:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case SAVE_LOCAL:
-				bd.append((c = b.getInt()) + " - " + block.getConstant(c));
-				break;
-			case SETATTR:
-				bd.append("\t" + (c = b.getInt()) + " - " + block.getConstant(c));
-				break;
 			case SWAP_STACK:
-				break;
-			case TRUTH_VALUE:
-				bd.append(b.getInt());
-				break;
-			case UNPACK_SEQUENCE:
-				bd.append(b.getInt());
+				bd.append(String.format(FORMAT, ""));
 				break;
 			default:
 				break;
 			
 			}
+			
+			if (single)
+				return bd.toString();
 			
 			bd.append("\n");
 			String ss = bd.toString();
@@ -266,9 +226,6 @@ public class CompiledBlockObject extends PythonObject {
 			if (!ss.endsWith("\n"))
 				ss += "\n";
 			bdd.append(ss);
-			
-			if (single)
-				break;
 		}
 		
 		return bdd.toString();

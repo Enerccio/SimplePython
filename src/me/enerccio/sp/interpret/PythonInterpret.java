@@ -43,6 +43,7 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonInterpret extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
+	public static final boolean TRACE_ENABLED = System.getenv("SPY_ENABLED") != null;
 	/** Thread local accessor to the interpret */
 	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
 
@@ -319,7 +320,8 @@ public class PythonInterpret extends PythonObject {
 				stack.push(returnee);
 		}
 		
-		// System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
+		if (TRACE_ENABLED)
+			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
 		
 		switch (opcode){
 		case NOP:
