@@ -197,6 +197,20 @@ public class PythonRuntime {
 		}
 		return root.get(key);
 	}
+
+	/**
+	 * Loads the module with given filename and returns it
+	 * @param provider
+	 * @return
+	 */
+	public ModuleObject loadModule(String filename, byte[] source) {
+		String[] tmp = filename.split("/");
+		String name = tmp[tmp.length - 1];
+		int index = name.lastIndexOf(".");
+		if (index > -1)
+			name = name.substring(0, index);
+		return loadModule(new ModuleProvider(name, filename, source, "whattheunhollyfuck"));
+	}
 	
 	/**
 	 * Loads the module from module provider and returns it

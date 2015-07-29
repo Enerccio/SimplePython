@@ -73,6 +73,10 @@ public class ModuleObject extends PythonObject {
 		return true;
 	}
 	
+	public void injectGlobal(String key, PythonObject value) {
+		globals.put(key, value);
+	}
+	
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
