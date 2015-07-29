@@ -35,9 +35,10 @@ public enum Bytecode {
 	IMPORT(12), RESOLVE_ARGS(13), PUSH_FRAME(15), PUSH_EXCEPTION(16),
 	
 	// control
-	POP(17), PUSH(18), CALL(19), RCALL(20), DUP(21), SWAP_STACK(22),
-	JUMPIFTRUE(23), JUMPIFFALSE(24), JUMPIFNONE(25), JUMPIFNORETURN(26),
-	GOTO(27), RETURN(28), SAVE_LOCAL(29), 
+	POP(17), PUSH(18), CALL(19), RCALL(20), ECALL(21), DUP(22),
+	SWAP_STACK(23), JUMPIFTRUE(24), JUMPIFFALSE(25), JUMPIFNONE(26),
+	JUMPIFNORETURN(27), GOTO(28), RETURN(29), SAVE_LOCAL(30),
+	TRUTH_VALUE(31),
 	// variables
 	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
 	// exceptions
@@ -47,7 +48,7 @@ public enum Bytecode {
 	// frames 
 	
 	// loops, iterators, boolean stuff
-	ECALL(100), ACCEPT_ITER(101), TRUTH_VALUE(102),
+	SETUP_LOOP(100), GET_ITER(101), ACCEPT_ITER(102),
 	;
 	
 	Bytecode(int id){
@@ -221,6 +222,14 @@ public enum Bytecode {
 			break;
 		case SAVE_LOCAL:
 			bytecode = new SaveLocal();
+			bytecode.newObject();
+			break;
+		case SETUP_LOOP:
+			bytecode = new SetupLoop();
+			bytecode.newObject();
+			break;
+		case GET_ITER:
+			bytecode = new GetIter();
 			bytecode.newObject();
 			break;
 		}

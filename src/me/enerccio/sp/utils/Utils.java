@@ -42,6 +42,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -190,7 +191,17 @@ public class Utils {
 	public static PythonObject run(String function, PythonObject... args) {
 		return PythonInterpret.interpret.get().executeCall(function, args);
 	}
-
+	
+	/**
+	 * throws exception of that type, that text and that cause
+	 * @param type
+	 * @param text
+	 * @return
+	 */
+	public static RuntimeException throwException(String type, String text, Throwable cause) {
+		return new PythonExecutionException(run(type, new StringObject(text)), cause);
+	}
+	
 	/**
 	 * throws exception of that type and that text
 	 * @param type
@@ -505,6 +516,8 @@ public class Utils {
 		
 		DebugInformation d = null;
 		kkey.set(0);
+		if (bytecode.get(bytecode.size() - 1).getOpcode() != Bytecode.NOP)
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
 		
 		int itc = 0;
 		for (PythonBytecode b : bytecode){
@@ -534,6 +547,10 @@ public class Utils {
 				break;
 			case ECALL:
 				w.writeInt(b.intValue);
+				break;
+			case GET_ITER:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
 				break;
 			case GETATTR:
 				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
@@ -613,6 +630,10 @@ public class Utils {
 				break;
 			case SETATTR:
 				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SETUP_LOOP:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
 				break;
 			case SWAP_STACK:
 				break;

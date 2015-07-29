@@ -38,10 +38,10 @@ def any(iterable):
 def callable(object):
     if object is None: return False
     t = type(object)
-    if t == function: return True
-    if t == method: return True
-    if t == type: return True
-    if t == javamethod: return True
+    if t == function(): return True
+    if t == method(): return True
+    if t == type(): return True
+    if t == javamethod(): return True
     return hasattr(object, "__call__")
 
 def cmp(x, y):
@@ -172,45 +172,9 @@ class set(object):
         
     def __contains__(self, key):
         return key in self.__inner_map
-
-class xrange(object):
-    class iter(object):
-        def __init__(self, range):
-            self.__range = range
-            self.__start = range.start
-            
-        def __iter__(self):
-            return self
-        
-        def next(self):
-            if self.__start >= self.__range.stop:
-                raise StopIteration()
-            value = self.__start;
-            self.__start += self.__range.step
-            return value
-    
-    def __init__(self, arg1, arg2=None, arg3=1):
-        if arg2 is None:
-            self.stop = int(arg1)
-            self.start = 0
-            self.step = 1
-        else:
-            self.start = int(arg1)
-            self.stop = int(arg2)
-            self.step = int(arg3)
-    
-    def __iter__(self):
-        return iter(self)
-    
-    def __len__(self):
-        return (math.max(self.start, self.stop)-math.min(self.start, self.stop)) / abs(self.step)
    
 def range(arg1, arg2=None, arg3=1):
-    r = xrange(arg1, arg2, arg3)
-    l = []
-    for v in r:
-        l.append(v)
-    return l
+    return list(xrange(arg1, arg2, arg3))
 
 class super(object):
     def __init__(self, cls, inst=None):

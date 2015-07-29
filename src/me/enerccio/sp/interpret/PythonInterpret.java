@@ -14,6 +14,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -22,13 +23,16 @@ import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
+import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.sequences.XRangeObject;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -39,6 +43,7 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonInterpret extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
+	public static final boolean TRACE_ENABLED = System.getenv("SPY_ENABLED") != null;
 	/** Thread local accessor to the interpret */
 	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
 
@@ -315,7 +320,8 @@ public class PythonInterpret extends PythonObject {
 				stack.push(returnee);
 		}
 		
-//		System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
+		if (TRACE_ENABLED)
+			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
 		
 		switch (opcode){
 		case NOP:
@@ -365,31 +371,28 @@ public class PythonInterpret extends PythonObject {
 			o.accepts_return = true;
 			break;
 		}
-		case ECALL:
-			// Leaves called method on top of stack
-			// Pushes frame in which call was called
-			FrameObject frame;
-			PythonObject runnable = stack.peek();
-			try {
-				returnee = execute(true, runnable);
-				frame = currentFrame.peekLast();
-				if (frame != o)
-					frame.parentFrame = o;
-				else
-					stack.push(o);
-			} catch (PythonExecutionException e) {
-				frame = new FrameObject();
-				frame.parentFrame = o;
-				frame.exception = e.getException();
-				stack.push(frame);
+		case SETUP_LOOP:
+			// Grabs object from stack. It it is something that can be iterated internally, pushes
+			// iterator back there. Otherwise, calls iter method.
+			PythonObject runnable;
+			PythonObject value = stack.pop();
+			int jv = o.nextInt();
+			if (value instanceof XRangeObject) {
+				// TODO: Interface or something like that
+				stack.push(((XRangeObject)value).__iter__(TupleObject.EMPTY));
+				o.pc = jv;
+			} else {
+				runnable = environment().get(new StringObject("iter"), true, false);				
+				returnee = execute(true, runnable, value);
+				o.accepts_return = true;
 			}
 			break;
 		case ACCEPT_ITER:
 			// Replaces frame left by ECALL with returnee value.
 			// If StopIteration was raised, jumps to specified bytecode
 			// Any other exception is rised again
-			int jv = o.nextInt();
-			frame = (FrameObject) stack.pop();
+			FrameObject frame = (FrameObject) stack.pop();
+			jv = o.nextInt();
 			if (frame.exception != null) {
 				PythonObject stype = environment().get(new StringObject("StopIteration"), true, false);
 				if (Utils.run("isinstance", frame.exception, stype).truthValue()) {
@@ -403,6 +406,39 @@ public class PythonInterpret extends PythonObject {
 				stack.push(NoneObject.NONE);
 			else
 				stack.push(returnee);
+			break;
+		case GET_ITER:
+			jv = o.nextInt();
+			value = stack.peek();
+			if (value instanceof XRangeIterator) {
+				value = ((XRangeIterator)value).next();
+				if (value == null) {
+					// StopIteration is not actually thrown, only emulated
+					o.pc = jv;
+				} else {
+					o.stack.push(value);
+					o.pc += 5; // ACCEPT_ITER _always_ follows GET_ITER and this one will skip it.
+				}
+				break;
+			}
+			// Note: Falls down to ECALL. This is not by mistake.
+		case ECALL:
+			// Leaves called method on top of stack
+			// Pushes frame in which call was called
+			runnable = stack.peek();
+			try {
+				returnee = execute(true, runnable);
+				frame = currentFrame.peekLast();
+				if (frame != o)
+					frame.parentFrame = o;
+				else
+					stack.push(o);
+			} catch (PythonExecutionException e) {
+				frame = new FrameObject();
+				frame.parentFrame = o;
+				frame.exception = e.getException();
+				stack.push(frame);
+			}
 			break;
 		case RCALL: {
 			// I have no idea what this shit is
@@ -448,7 +484,7 @@ public class PythonInterpret extends PythonObject {
 		case LOAD: 
 			// pushes variable onto stack
 			String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			PythonObject value = environment().get(new StringObject(svl), false, false);
+			value = environment().get(new StringObject(svl), false, false);
 			if (value == null)
 				throw Utils.throwException("NameError", "name " + svl + " is not defined");
 			stack.push(value);
@@ -601,20 +637,32 @@ public class PythonInterpret extends PythonObject {
 			}
 			break;
 		case GETATTR: {
-			runnable = environment().get(new StringObject("getattr"), true, false);
-			PythonObject[] args = new PythonObject[2];
-			// If argument for GETATTR is not set, attribute name is pop()ed from stack   
-			PythonObject po = o.compiled.getConstant(o.nextInt());
-			if (po == NoneObject.NONE) {
-				args[1] = stack.pop();	// attribute
-				args[0] = stack.pop();	// object
+			AugumentedPythonObject apo;
+			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
+			value = stack.pop();	// object to get attribute from
+			apo = value.fields.get("__getattribute__"); 
+			if (apo != null) {
+				// There is __getattribute__ defined, call it directly
+				returnee = execute(true, apo.object, field);
+				o.accepts_return = true;
+				break;
 			} else {
-				args[0] = stack.pop();									// object
-				args[1] = new StringObject(((StringObject)po).value);	// attribute
-			} 
-			returnee = execute(true, runnable, args);
-			o.accepts_return = true;
-			break;
+				// Try to grab argument normally...
+				apo = value.fields.get(field.value);
+				if (apo != null) {
+					stack.push(apo.object);
+					break;
+				}
+				// ... and if that fails, use __getattr__ if available
+				apo = value.fields.get("__getattr__"); 
+				if (apo != null) {
+					// There is __getattribute__ defined, call it directly
+					returnee = execute(true, apo.object, field);
+					o.accepts_return = true;
+					break;
+				}
+				throw Utils.throwException("AttributeError", "" + value.getType() + " object has no attribute '" + field + "'");
+			}
 		}
 		case SETATTR: {
 			runnable = environment().get(new StringObject("setattr"), true, false);
@@ -644,7 +692,7 @@ public class PythonInterpret extends PythonObject {
 			PythonObject s;
 			s = stack.pop();
 			if (s == null)
-				Utils.throwException("InterpretError", "no exception is being handled but raise called");
+				throw Utils.throwException("InterpretError", "no exception is being handled but raise called");
 			throw new PythonExecutionException(s);
 		}
 		case RERAISE: {
@@ -703,6 +751,8 @@ public class PythonInterpret extends PythonObject {
 					try {
 						System.err.println(o.exception.fields.get("stack").object.toString().replace(">,", ">,\n"));
 					} catch (Exception e) {};
+					if (o.exception.get("__exception__", null) != null)
+						throw new PythonExecutionException(o.exception, (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject());
 					throw new PythonExecutionException(o.exception);
 				}
 			} else

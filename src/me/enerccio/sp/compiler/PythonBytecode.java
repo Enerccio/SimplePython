@@ -137,9 +137,35 @@ public class PythonBytecode extends PythonObject {
 		@Override
 		protected String doToString() {
 			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
-		}	
+		}
+	}
+
+	public static class GetIter extends PythonBytecode {
+		private static final long serialVersionUID = 1894153981745123347L;
+
+		{
+			bytecode = Bytecode.GET_ITER;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
+		}
 	}
 	
+	public static class SetupLoop extends PythonBytecode {
+		private static final long serialVersionUID = 7845189234841211899L;
+
+		{
+			bytecode = Bytecode.SETUP_LOOP;
+		}
+
+		@Override
+		protected String doToString() {
+			return String.format("%s (jump to %s with javaiterator)", getOpcode().toString(), intValue);
+		}
+	}
+
 	public static class PushEnvironment extends PythonBytecode {
 		/**
 		 * 

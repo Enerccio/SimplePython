@@ -34,13 +34,14 @@ import me.enerccio.sp.utils.Utils;
  */
 public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAccessor {
 	private static final long serialVersionUID = 12L;
+	public static final TupleObject EMPTY = new TupleObject();
 	private volatile boolean initialized = false;
 	
-	public TupleObject(){
+	private TupleObject(){
 		array = new PythonObject[0];
 	}
 
-	public TupleObject(PythonObject... args){
+	public TupleObject(PythonObject... args) {
 		array = args;
 	}
 	

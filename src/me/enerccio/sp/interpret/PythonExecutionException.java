@@ -17,7 +17,10 @@
  */
 package me.enerccio.sp.interpret;
 
+import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.pointer.PointerObject;
 
 /**
  * Represents exception raised in SimplePython or java code that wants to raise SimplePython's exception
@@ -31,6 +34,12 @@ public class PythonExecutionException extends RuntimeException {
 	public PythonExecutionException(PythonObject o){
 		super(getMessage(o));
 		this.setException(o);
+	}
+	
+	public PythonExecutionException(PythonObject o, Throwable cause){
+		super(getMessage(o), cause);
+		this.setException(o);
+		o.fields.put("__exception__", new AugumentedPythonObject(new PointerObject(cause), AccessRestrictions.PUBLIC));
 	}
 	
 	public static String getMessage(PythonObject o) {
