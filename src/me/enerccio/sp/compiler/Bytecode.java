@@ -17,15 +17,11 @@
  */
 package me.enerccio.sp.compiler;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.antlr.v4.runtime.Token;
 
 import me.enerccio.sp.compiler.PythonBytecode.*;
-import me.enerccio.sp.types.base.CustomBytecode;
-import me.enerccio.sp.types.callables.UserFunctionObject;
 
 /**
  * Bytecode enum, containing types of bytecodes and their numerical value. 
@@ -53,9 +49,7 @@ public enum Bytecode {
 	
 	// loops, iterators, boolean stuff
 	SETUP_LOOP(100), GET_ITER(101), ACCEPT_ITER(102),
-	
-	// custom
-	CUSTOM(255);
+	;
 	
 	Bytecode(int id){
 		this.id = id;
@@ -112,10 +106,6 @@ public enum Bytecode {
 			break;
 		case TRUTH_VALUE:
 			bytecode = new TruthValue();
-			bytecode.newObject();
-			break;
-		case CUSTOM:
-			bytecode = new CustomBytecode();
 			bytecode.newObject();
 			break;
 		case DUP:
@@ -283,23 +273,12 @@ public enum Bytecode {
 	 * @return
 	 */
 	public static String dis(List<PythonBytecode> bcl, int offset) {
-		Map<String, List<PythonBytecode>> built = new LinkedHashMap<String, List<PythonBytecode>>();
 		StringBuilder b = new StringBuilder();
 		for (int i=offset; i<bcl.size(); i++) {
 			PythonBytecode bc = bcl.get(i);
-			if (bc.value != null && bc.value instanceof UserFunctionObject)
-				built.put(bc.value.toString(), ((UserFunctionObject)bc.value).bytecode);
 			b.append(dis(i, bc));
 			b.append("\n");
 		}
-		
-		for (String key : built.keySet()){
-			b.append("\n");
-			b.append(key + "\n");
-			
-			b.append(dis(built.get(key), 0));
-		}
-		
 		return b.toString();
 	}
 }

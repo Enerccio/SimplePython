@@ -22,6 +22,7 @@ import java.util.List;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
@@ -59,7 +60,7 @@ public class UserMethodObject extends PythonObject {
 	 * @param args
 	 * @return
 	 */
-	public List<PythonBytecode> methodCall(UserMethodObject o, TupleObject args) {
+	public CompiledBlockObject methodCall(UserMethodObject o, TupleObject args) {
 		PythonBytecode b = null;
 		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
 
@@ -111,7 +112,10 @@ public class UserMethodObject extends PythonObject {
 		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
 		b.intValue = 1;
 		// []
-		return l;
+		
+		CompiledBlockObject cbc = new CompiledBlockObject(l);
+		cbc.newObject();
+		return cbc;
 	}
 	
 	/**

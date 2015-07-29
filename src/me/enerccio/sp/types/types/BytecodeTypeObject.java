@@ -21,7 +21,6 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.CustomBytecode;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.mappings.MapObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -61,11 +60,6 @@ public class BytecodeTypeObject extends TypeObject {
 				bytecode = new Call();
 				bytecode.newObject();
 				bytecode.value = args.getObjects()[1];
-				break;
-			case CUSTOM:
-				bytecode = new CustomBytecode();
-				bytecode.newObject();
-				Utils.putPublic(bytecode, CustomBytecode.OPERATION, args.getObjects()[1]);
 				break;
 			case DUP:
 				bytecode = new Dup();

@@ -29,6 +29,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
 import me.enerccio.sp.parser.pythonParser.ArglistContext;
@@ -165,14 +166,18 @@ public class PythonCompiler {
 			fnc.vararg = vargarg;
 		}
 		
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		doCompileFunction(sctx, fnc.bytecode, sctx.start, locals);
+		doCompileFunction(sctx, fncb, sctx.start, locals);
 		compilingClass.pop();
 		
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, sctx.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, sctx.stop));
 		cb.value = NoneObject.NONE;
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, sctx.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, sctx.stop));
 		cb.intValue = 1;
+		
+		fnc.block = new CompiledBlockObject(fncb);
+		fnc.block.newObject();
 		
 		globals.add(locals);
 		Collections.reverse(globals);
@@ -193,11 +198,11 @@ public class PythonCompiler {
 	 * @param m module
 	 * @return
 	 */
-	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
 		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m);
 	}
 	
-	public List<PythonBytecode> doCompile(File_inputContext fcx, MapObject dict, String mn, PythonObject locals) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, MapObject dict, String mn, PythonObject locals) {
 		moduleName.set(mn);
 		
 		stack.push();
@@ -220,7 +225,11 @@ public class PythonCompiler {
 		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();
-		return bytecode;
+		
+		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
+		cob.newObject();
+		
+		return cob;
 	}
 
 	private void compileStatement(StmtContext sctx, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -533,16 +542,20 @@ public class PythonCompiler {
 		Utils.putPublic(fnc, "__name__", new StringObject("$$__classBodyFncFor" + className + "$$"));
 		fnc.args = new ArrayList<String>();
 		
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(className);
-		MapObject cdc = doCompileFunction(classdef.suite(), fnc.bytecode, classdef.suite().start, null);
+		MapObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "function_defaults", new MapObject());
 		
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
 		cb.intValue = 1;
+		
+		fnc.block = new CompiledBlockObject(fncb);
+		fnc.block.newObject();
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = fnc;
@@ -581,13 +594,17 @@ public class PythonCompiler {
 		}
 		
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(funcdef.suite(), fnc.bytecode, funcdef.suite().start, null);
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
+		MapObject locals = doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
 		compilingClass.pop();
 		
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = NoneObject.NONE;
-		fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, funcdef.stop));
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, funcdef.stop));
 		cb.intValue = 1;
+		
+		fnc.block = new CompiledBlockObject(fncb);
+		fnc.block.newObject();
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = fnc;
@@ -1591,20 +1608,24 @@ public class PythonCompiler {
 			fnc.vararg = ctx.vararg().nname().getText();
 		}
 		
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(ctx.suite(), fnc.bytecode, ctx.suite().start, null);
+		MapObject locals = doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
 		compilingClass.pop();
 		
-		if (fnc.bytecode.get(fnc.bytecode.size()-1) instanceof Pop){
-			fnc.bytecode.remove(fnc.bytecode.size()-1);
-			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
+		if (fncb.get(fncb.size()-1) instanceof Pop){
+			fncb.remove(fncb.size()-1);
+			fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
 			cb.intValue = 1;	
 		} else {
-			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+			fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
 			cb.value = NoneObject.NONE;
-			fnc.bytecode.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
+			fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, ctx.stop));
 			cb.intValue = 1;	
 		}
+		
+		fnc.block = new CompiledBlockObject(fncb);
+		fnc.block.newObject();
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
 		cb.value = fnc;

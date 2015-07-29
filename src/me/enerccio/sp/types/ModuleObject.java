@@ -17,10 +17,8 @@
  */
 package me.enerccio.sp.types;
 
-import java.util.List;
-
-import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -66,7 +64,7 @@ public class ModuleObject extends PythonObject {
 	/** provider bound to this module */
 	public final ModuleProvider provider;
 	/** bytecode of the body of this module */
-	private List<PythonBytecode> frame;
+	private CompiledBlockObject frame;
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
 

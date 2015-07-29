@@ -30,8 +30,8 @@ import java.util.TreeMap;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
-import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.InternalJavaPathResolver;
@@ -347,7 +347,7 @@ public class PythonRuntime {
 					}
 					
 					PythonCompiler c = new PythonCompiler();
-					List<PythonBytecode> builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
+					CompiledBlockObject builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
 					
 					PythonInterpret.interpret.get().currentEnvironment.pop();
 					
