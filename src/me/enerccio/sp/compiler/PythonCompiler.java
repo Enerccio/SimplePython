@@ -669,9 +669,9 @@ public class PythonCompiler {
 			// compile decorator
 			compile(d.test(), bytecode);
 			if (d.arglist() != null){
-				int argc = compileArguments(d.arglist(), bytecode);
+				CallArgsData args = compileArguments(d.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, d.stop));
-				cb.intValue = argc;
+				cb.intValue = args.normalArgCount * (args.hasArgExpansion ? -1 : 1);
 			}
 			// call
 			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, dc.stop));
@@ -1161,15 +1161,16 @@ public class PythonCompiler {
 		}
 	}
 
+	/** Compiles calls - something() - and indexes - something[x] */
 	private void compile(TrailerContext tc, List<PythonBytecode> bytecode) {
 		if (tc.getText().startsWith("(")){
 			if (tc.arglist() == null){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
 				cb.intValue = 0;
 			} else {
-				int argc = compileArguments(tc.arglist(), bytecode);
+				CallArgsData args = compileArguments(tc.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.intValue = argc;
+				cb.intValue = args.normalArgCount * (args.hasArgExpansion ? -1 : 1);
 			}
 		} else if (tc.getText().startsWith("[")) {
 			compileSubscript(tc.subscriptlist(), bytecode, tc.start);
@@ -1246,27 +1247,35 @@ public class PythonCompiler {
 		}
 	}
 
-	private int compileArguments(ArglistContext arglist,
-			List<PythonBytecode> bytecode) {
-		for (ArgumentContext ac : arglist.argument())
-			compile(ac, bytecode);
-		if (arglist.test() != null){
-			compile(arglist.test(), bytecode);
-			return -(arglist.argument().size() + 1);
-		}
-		return arglist.argument().size();
-	}
-
-	private void compile(ArgumentContext ac, List<PythonBytecode> bytecode) {
-		if (ac.test().size() == 1){
-			if (ac.comp_for() == null){
-				compile(ac.test(0), bytecode);
+	/** Compiles function call arguments */
+	private CallArgsData compileArguments(ArglistContext arglist, List<PythonBytecode> bytecode) {
+		CallArgsData rv = new CallArgsData();
+		for (ArgumentContext ac : arglist.argument()) {
+			if (ac.kwarg() != null) {
+				rv.kwArgCount ++;
+				compile(ac.kwarg().test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.KWARG, ac.kwarg().test().start));
+				cb.stringValue = ac.kwarg().nname().getText();
 			} else {
-				// TODO
+				rv.normalArgCount ++;
+				if (rv.kwArgCount > 0)
+					throw Utils.throwException("SyntaxError", "non-keyword arg after keyword arg");
+				compile(ac.test(), bytecode);
 			}
-		} else {
-			// TODO
 		}
+		if (arglist.test() != null){
+			// TODO: Support this, maybe
+			throw Utils.throwException("SyntaxError", "argument expansion not supported");
+			// compile(arglist.test(), bytecode);
+		}
+		return rv;
+	}
+	
+	/** Dummy container as I can't return multiple stuff from compileArguments method */
+	private static class CallArgsData {
+		public int kwArgCount = 0;
+		public int normalArgCount = 0;
+		public boolean hasArgExpansion = false; 
 	}
 
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {

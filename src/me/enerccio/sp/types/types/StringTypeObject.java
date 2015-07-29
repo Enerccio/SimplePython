@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -39,7 +40,9 @@ public class StringTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 1)
 			throw Utils.throwException("TypeError", "str(): incorrect number of parameters");
 		
@@ -48,7 +51,7 @@ public class StringTypeObject extends TypeObject {
 			int cfc = PythonInterpret.interpret.get().currentFrame.size();
 			Utils.run("getattr", args.getObjects()[0], new StringObject("__str__"));
 			PythonObject ret = PythonInterpret.interpret.get().executeAll(cfc);
-			return PythonInterpret.interpret.get().execute(false, ret);
+			return PythonInterpret.interpret.get().execute(false, ret, null);
 		} else
 			return new StringObject(o.toString());
 	}

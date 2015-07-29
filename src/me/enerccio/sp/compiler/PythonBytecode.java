@@ -521,7 +521,40 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.SWAP_STACK;
 		}
 	}
+	
 
+	public static class KCall extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3080128534823197157L;
+
+		{
+			bytecode = Bytecode.KCALL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), intValue);
+		}
+	}
+
+	public static class KwArg extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7862981632281325840L;
+
+		{
+			bytecode = Bytecode.KWARG;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+	}	
+	
 	public static class UnpackSequence extends PythonBytecode {
 		/**
 		 * 

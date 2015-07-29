@@ -20,6 +20,7 @@ package me.enerccio.sp.types.callables;
 import java.util.List;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -57,8 +58,7 @@ public class ClassObject extends CallableObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, "call"));
 			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
 					new Class<?>[]{StringObject.class}), false));
 			Utils.putPublic(this, __SETATTR__, new JavaMethodObject(this, this.getClass().getMethod("setAttr", 
@@ -93,8 +93,8 @@ public class ClassObject extends CallableObject {
 
 
 	@Override
-	public PythonObject call(TupleObject args) {
-		return newObject(args);
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		return newObject(args, kwargs);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class ClassObject extends CallableObject {
 	 * @param args
 	 * @return
 	 */
-	private PythonObject newObject(TupleObject args) {
+	private PythonObject newObject(TupleObject args, KwArgs kwargs) {
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
 		
@@ -114,7 +114,7 @@ public class ClassObject extends CallableObject {
 		
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 
-		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), args);
+		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
 		PythonInterpret.interpret.get().executeAll(cfc);
 		return instance;
 	}

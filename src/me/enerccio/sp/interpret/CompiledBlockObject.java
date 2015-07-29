@@ -174,6 +174,7 @@ public class CompiledBlockObject extends PythonObject {
 			case JUMPIFNONE:
 			case JUMPIFNORETURN:
 			case JUMPIFTRUE:
+			case KCALL:
 			case PUSH_DICT:
 			case PUSH_FRAME:
 			case RCALL:
@@ -202,6 +203,7 @@ public class CompiledBlockObject extends PythonObject {
 					bd.append(String.format(FORMAT, "" + c + " - exits frame"));
 				break;
 			case GETATTR:
+			case KWARG:
 			case LOAD:
 			case LOADGLOBAL:
 			case SAVE:
@@ -227,9 +229,9 @@ public class CompiledBlockObject extends PythonObject {
 			case SWAP_STACK:
 				bd.append(String.format(FORMAT, ""));
 				break;
-			default:
-				bd.append(String.format(FORMAT, " --- FIXME: unknown opcode --- "));
-				break;
+			//default:
+			//	bd.append(String.format(FORMAT, " --- FIXME: unknown opcode --- "));
+			//	break;
 			
 			}
 			

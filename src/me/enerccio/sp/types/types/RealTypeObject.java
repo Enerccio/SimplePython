@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.ComplexObject;
@@ -42,7 +43,9 @@ public class RealTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 1)
 			throw Utils.throwException("TypeError", "real(): Incorrect number of parameters");
 		
@@ -59,7 +62,7 @@ public class RealTypeObject extends TypeObject {
 			int cfc = PythonInterpret.interpret.get().currentFrame.size();
 			Utils.run("getattr", c, new StringObject("__int__"));
 			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr);
+			PythonInterpret.interpret.get().execute(false, attr, null);
 			try {
 				return new RealObject(((IntObject)PythonInterpret.interpret.get().executeAll(cfc)).intValue());
 			} catch (ClassCastException e){

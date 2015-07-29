@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.types.PythonObject;
@@ -51,7 +52,9 @@ public class FunctionTypeObject extends TypeObject {
 
 	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name, dict)
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 6)
 			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 6, got " + args.len());
 		

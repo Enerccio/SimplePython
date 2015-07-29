@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -41,7 +42,9 @@ public class DictTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() == 0)
 			return new DictObject();
 		

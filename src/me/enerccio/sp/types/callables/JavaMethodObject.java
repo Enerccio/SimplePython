@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -47,7 +48,21 @@ public class JavaMethodObject extends CallableObject {
 		m.setAccessible(true);
 		this.noTypeConversion = noTypeConversion;
 	}
-	
+
+	/**
+	 * Creates new Java Method Object for method that uses default signature - method(TupleObject, KwArgs),
+	 * without type conversion.
+	 * 
+	 * @param caller object this method is bound to
+	 * @param name method name
+	 */
+	public JavaMethodObject(Object caller, String name) throws NoSuchMethodException, SecurityException {
+		this.caller = caller;
+		this.boundHandle = caller.getClass().getMethod(name, new Class<?>[]{TupleObject.class, KwArgs.class});
+		this.boundHandle.setAccessible(true);
+		this.noTypeConversion = true;
+	}
+
 	private JavaMethodObject(){
 		
 	}
@@ -60,8 +75,8 @@ public class JavaMethodObject extends CallableObject {
 	private boolean noTypeConversion;
 	
 	@Override
-	public PythonObject call(TupleObject args) {
-		return doCall(args, false);
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		return doCall(args, kwargs, false);
 	}
 	
 	/**
@@ -70,7 +85,10 @@ public class JavaMethodObject extends CallableObject {
 	 * @param skipPythonException if true, it will propagate some errors lower. Only useable by aggregator
 	 * @return
 	 */
-	public PythonObject doCall(TupleObject args, boolean skipPythonException) {
+	public PythonObject doCall(TupleObject args, KwArgs kwargs, boolean skipPythonException) {
+		if (kwargs != null)
+			// System.out.println(" kwargs " + kwargs);
+			throw Utils.throwException("TypeError", this.toString() + "(): called with kwargs");
 		try {
 			if (noTypeConversion){
 				return Utils.cast(invoke(args), boundHandle.getReturnType());

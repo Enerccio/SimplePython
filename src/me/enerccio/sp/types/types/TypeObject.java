@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -56,7 +57,7 @@ public abstract class TypeObject extends ClassObject {
 	}
 	
 	@Override
-	public PythonObject call(TupleObject o){
+	public PythonObject call(TupleObject o, KwArgs varArgs){
 		return NoneObject.NONE;
 	}
 	

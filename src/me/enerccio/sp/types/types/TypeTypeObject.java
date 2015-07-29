@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -56,7 +57,9 @@ public class TypeTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() == 1)
 			return getTypeInformation(args.getObjects()[0]);
 		else if (args.len() == 3)

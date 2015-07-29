@@ -3,9 +3,11 @@ package me.enerccio.sp.interpret;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -106,8 +108,8 @@ public class PythonInterpret extends PythonObject {
 	 */
 	public PythonObject executeCall(String function, PythonObject... data) {
 		if (currentEnvironment.size() == 0)
-			return returnee = execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), data);
-		return returnee = execute(false, environment().get(new StringObject(function), false, false), data);
+			return returnee = execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), null, data);
+		return returnee = execute(false, environment().get(new StringObject(function), false, false), null, data);
 	}
 
 	/**
@@ -136,11 +138,11 @@ public class PythonInterpret extends PythonObject {
 	 * @param args arguments
 	 * @return
 	 */
-	public PythonObject execute(boolean internalCall, PythonObject callable, PythonObject... args) {
+	public PythonObject execute(boolean internalCall, PythonObject callable, KwArgs kwargs, PythonObject... args) {
 		if (callable instanceof CallableObject){
 			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
 				int cfc = currentFrame.size();
-				((CallableObject)callable).call(new TupleObject(args));
+				((CallableObject)callable).call(new TupleObject(args), kwargs);
 				while (true){
 					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
 					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
@@ -154,12 +156,12 @@ public class PythonInterpret extends PythonObject {
 						}
 				}
 			} else
-				return returnee = ((CallableObject)callable).call(new TupleObject(args));
+				return returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
 				throw Utils.throwException("TypeError", callable.toString() + " is not callable");
-			return returnee = execute(false, callableArg, args);
+			return returnee = execute(false, callableArg, kwargs, args);
 		}
 	}
 
@@ -179,8 +181,8 @@ public class PythonInterpret extends PythonObject {
 	 * @param args
 	 * @return
 	 */
-	public PythonObject invoke(PythonObject callable, TupleObject args) {
-		return execute(false, callable, args.getObjects());
+	public PythonObject invoke(PythonObject callable, KwArgs kwargs, TupleObject args) {
+		return execute(false, callable, kwargs, args.getObjects());
 	}
 
 	/**
@@ -358,6 +360,7 @@ public class PythonInterpret extends PythonObject {
 				PythonObject[] va2 = args;
 				PythonObject tp = va2[va2.length-1];
 				if (!(tp instanceof TupleObject))
+					// TODO: Not really...
 					throw Utils.throwException("TypeError", returnee + ": last argument must be a 'tuple'");
 				PythonObject[] vra = ((TupleObject)tp).getObjects();
 				args = new PythonObject[va2.length - 1 + vra.length];
@@ -367,7 +370,8 @@ public class PythonInterpret extends PythonObject {
 					args[i + va2.length] = va2[i];
 			}
 			
-			returnee = execute(true, runnable, args);
+			returnee = execute(true, runnable, o.kwargs, args);
+			o.kwargs = null;
 			o.accepts_return = true;
 			break;
 		}
@@ -383,7 +387,7 @@ public class PythonInterpret extends PythonObject {
 				o.pc = jv;
 			} else {
 				runnable = environment().get(new StringObject("iter"), true, false);				
-				returnee = execute(true, runnable, value);
+				returnee = execute(true, runnable, null, value);
 				o.accepts_return = true;
 			}
 			break;
@@ -427,7 +431,7 @@ public class PythonInterpret extends PythonObject {
 			// Pushes frame in which call was called
 			runnable = stack.peek();
 			try {
-				returnee = execute(true, runnable);
+				returnee = execute(true, runnable, null);
 				frame = currentFrame.peekLast();
 				if (frame != o)
 					frame.parentFrame = o;
@@ -448,7 +452,7 @@ public class PythonInterpret extends PythonObject {
 				args[i] = stack.pop();
 			runnable = stack.pop();
 			
-			returnee = execute(true, runnable, args);
+			returnee = execute(true, runnable, null, args);
 			o.accepts_return = true;
 			break;
 		}
@@ -512,14 +516,14 @@ public class PythonInterpret extends PythonObject {
 				break;
 			} else if (value.fields.containsKey("__nonzero__")) {
 				runnable = value.fields.get("__nonzero__").object;
-				returnee = execute(true, runnable);
+				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				if (jv == 1)
 					o.pc-=5;
 				break;
 			} else if (value.fields.containsKey("__len__")) {
 				runnable = value.fields.get("__len__").object;
-				returnee = execute(true, runnable);
+				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				o.pc-=5;
 				break;
@@ -546,6 +550,12 @@ public class PythonInterpret extends PythonObject {
 		case SAVE:
 			// saves value into environment as variable
 			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())), stack.pop(), false, false);
+			break;
+		case KWARG:
+			// saves value into environment as variable
+			if (o.kwargs == null)
+				o.kwargs = new KwArgs();
+			o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
 			break;
 		case SAVE_LOCAL:
 			// saves the value exactly into locals (used by def and clas)
@@ -596,7 +606,7 @@ public class PythonInterpret extends PythonObject {
 				iterator = returnee;
 				
 				for (int i=ss.length-1; i>=0; i--){
-					returnee = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
+					returnee = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT), null);
 					if (currentFrame.size() != cfc)
 						executeAll(cfc);
 					ss[i] = returnee;
@@ -609,7 +619,7 @@ public class PythonInterpret extends PythonObject {
 			}
 			
 			try {
-				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT));
+				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT), null);
 				if (currentFrame.size() != cfc)
 					executeAll(cfc);
 				throw Utils.throwException("ValueError", "too many values to unpack");
@@ -643,7 +653,7 @@ public class PythonInterpret extends PythonObject {
 			apo = value.fields.get("__getattribute__"); 
 			if (apo != null) {
 				// There is __getattribute__ defined, call it directly
-				returnee = execute(true, apo.object, field);
+				returnee = execute(true, apo.object, null, field);
 				o.accepts_return = true;
 				break;
 			} else {
@@ -657,7 +667,7 @@ public class PythonInterpret extends PythonObject {
 				apo = value.fields.get("__getattr__"); 
 				if (apo != null) {
 					// There is __getattribute__ defined, call it directly
-					returnee = execute(true, apo.object, field);
+					returnee = execute(true, apo.object, null, field);
 					o.accepts_return = true;
 					break;
 				}
@@ -678,7 +688,7 @@ public class PythonInterpret extends PythonObject {
 				args[0] = stack.pop();									// object
 				args[2] = stack.pop();									// value
 			} 
-			returnee = execute(true, runnable, args);
+			returnee = execute(true, runnable, null, args);
 			break;
 		}
 		case ISINSTANCE:

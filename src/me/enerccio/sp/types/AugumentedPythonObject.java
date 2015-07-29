@@ -31,8 +31,7 @@ public class AugumentedPythonObject {
 		this.owner = owner;
 	}
 	
-	public AugumentedPythonObject(PythonObject object,
-			AccessRestrictions restrictions) {
+	public AugumentedPythonObject(PythonObject object, AccessRestrictions restrictions) {
 		this.object = object;
 		this.restrictions = restrictions;
 		this.owner = null;

@@ -123,11 +123,12 @@ public class DictObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject get(String key) {
+	public PythonObject getItem(String key) {
+		StringObject so = new StringObject(key);
 		synchronized (backingMap){
-			if (!backingMap.containsKey(new StringObject(key)))
+			if (!backingMap.containsKey(so))
 				return null;
-			return backingMap.get(key);
+			return backingMap.get(so);
 		}
 	}
 	
