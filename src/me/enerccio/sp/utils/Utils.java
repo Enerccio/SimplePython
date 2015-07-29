@@ -42,6 +42,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
+import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -515,6 +516,8 @@ public class Utils {
 		
 		DebugInformation d = null;
 		kkey.set(0);
+		if (bytecode.get(bytecode.size() - 1).getOpcode() != Bytecode.NOP)
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
 		
 		int itc = 0;
 		for (PythonBytecode b : bytecode){
