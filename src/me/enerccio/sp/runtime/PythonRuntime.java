@@ -30,6 +30,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -54,6 +55,7 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
+import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -94,7 +96,10 @@ public class PythonRuntime {
 	
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
+		addFactory("me.enerccio.sp.external", WrapAnnotationFactory.class);
 		addResolver(new InternalJavaPathResolver());
+		
+		addAlias(FileStream.class.getName(), "filestream");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
@@ -588,6 +593,7 @@ public class PythonRuntime {
 		addException(globals, "StopIteration", "Exception", false);
 		addException(globals, "LoopBreak", "Exception", false);
 		addException(globals, "LoopContinue", "Exception", false);
+		addException(globals, "IOError", "Exception", true);
 	}
 
 

@@ -95,6 +95,8 @@ public class Utils {
 	 * @return python object
 	 */
 	public static PythonObject cast(Object ret, Class<?> retType) {
+		if (retType == Void.class)
+			return NoneObject.NONE;
 		if (retType == Byte.class || retType == byte.class)
 			return IntObject.valueOf(((Byte) ret).byteValue());
 		if (retType == Integer.class || retType == int.class)

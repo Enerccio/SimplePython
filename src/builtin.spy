@@ -18,6 +18,7 @@ License along with this library.
 
 # all python doable builtin functions are here
 
+import os
 import math
 
 def abs(x):
@@ -109,6 +110,82 @@ class enumerate(object):
         i = self.__start
         self.__start += 1
         return i, self.__it.next()
+    
+class file(object):
+    def __init__(self, name, mode="r"):
+        self.name = name
+        self.mode = mode
+        self.closed = False
+        
+        self.__data_stream = javainstance("filestream", self.name, self.mode)
+        self.encoding = self.__data_stream.encoding()
+        
+        
+    def check_closed(self):
+        if self.closed:
+            raise ValueError("already closed")
+        
+    def close(self):
+        self.check_closed()
+        self.__data_stream.close()
+        self.__closed = True
+        
+    def flush(self):
+        self.check_closed()
+        
+    def fileno(self):
+        self.check_closed()
+        return self.__data_stream.fileno();
+    
+    def isatty(self):
+        self.check_closed()
+        return self.__data_stream.isatty();
+    
+    def __iter__(self):
+        return self
+    
+    def next(self):
+        self.check_closed()
+        data = self.readline()
+        if data == "":
+            raise StopIteration()
+        return data
+        
+    def read(self, size=1):
+        self.check_closed()
+        return self.__data_stream.read(size)
+    
+    def realine(self, size=0):
+        buffer = ""
+        while True:
+            c = self.read()
+            if c == "":
+                return buffer
+            if c == "\n":
+                return buffer + "\n"
+            buffer += c
+            if (size > 0) and len(buffer) == size:
+                return buffer
+            
+    def seek(self, offset, whence=os.SEEK_SET):
+        self.check_closed()
+        self.__data_stream.seek(offset, whence);
+        
+    def tell(self):
+        self.check_closed()
+        return self.__data_stream.tell()
+    
+    def truncate(self, size=0):
+        self.check_closed() # not available
+    
+    def write(self, str):
+        self.check_closed()
+        self.__data_stream.write(str)
+        
+    def writeline(self, seq):
+        for x in iter(seq):
+            self.write(x)
+        
 
 def filter(f, it):
     l = []

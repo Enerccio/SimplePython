@@ -636,27 +636,27 @@ public class PythonInterpret extends PythonObject {
 			}
 			break;
 		case GETATTR: {
-			AugumentedPythonObject apo;
+			PythonObject apo;
 			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
 			value = stack.pop();	// object to get attribute from
-			apo = value.fields.get("__getattribute__"); 
+			apo = value.get("__getattribute__", Utils.peek(currentContext)); 
 			if (apo != null) {
 				// There is __getattribute__ defined, call it directly
-				returnee = execute(false, apo.object, null, field);
+				returnee = execute(false, apo, null, field);
 				o.accepts_return = true;
 				break;
 			} else {
 				// Try to grab argument normally...
-				apo = value.fields.get(field.value);
+				apo = value.get(field.value, Utils.peek(currentContext));
 				if (apo != null) {
-					stack.push(apo.object);
+					stack.push(apo);
 					break;
-				}
+				}				
 				// ... and if that fails, use __getattr__ if available
-				apo = value.fields.get("__getattr__"); 
+				apo = value.get("__getattr__", Utils.peek(currentContext)); 
 				if (apo != null) {
 					// There is __getattribute__ defined, call it directly
-					returnee = execute(false, apo.object, null, field);
+					returnee = execute(false, apo, null, field);
 					o.accepts_return = true;
 					break;
 				}
