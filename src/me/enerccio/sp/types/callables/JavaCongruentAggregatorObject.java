@@ -46,9 +46,10 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		for (JavaMethodObject mo : methods)
 			try {
-				return mo.doCall(args, kwargs, true);
+				return mo.doCall(args, kwargs);
 			} catch (PointerMethodIncompatibleException e){
-				// pass
+				if (methods.size() == 1)
+					throw Utils.throwException("TypeError", e.getMessage(), e);
 			}
 		throw Utils.throwException("TypeError", name + "(): no applicable method found");
 	}

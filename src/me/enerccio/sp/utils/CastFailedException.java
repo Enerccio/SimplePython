@@ -15,33 +15,18 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.types.pointer;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+package me.enerccio.sp.utils;
 
 /**
- * Wraps all public methods wrapped by @WrapMethod
+ * Thrown when method is incompatible for the arguments or number of arguments
  * @author Enerccio
  *
  */
-public class WrapAnnotationFactory extends WrapBaseFactory {
-	private static final long serialVersionUID = -5142774589035715501L;
+@SuppressWarnings("serial")
+public class CastFailedException extends Exception {
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface WrapMethod { }
-	
-	@Override
-	protected List<Method> getMethods(Object instance) {
-		List<Method> ml = new ArrayList<Method>();
-		for (Method m : instance.getClass().getMethods()){
-			if (m.isAnnotationPresent(WrapMethod.class))
-				ml.add(m);
-		}
-		return ml;
+	public CastFailedException(String string) {
+		super(string);
 	}
 
 }

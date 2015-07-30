@@ -23,6 +23,10 @@ package me.enerccio.sp.utils;
  *
  */
 @SuppressWarnings("serial")
-public class PointerMethodIncompatibleException extends RuntimeException {
+public class PointerMethodIncompatibleException extends Exception {
+
+	public PointerMethodIncompatibleException(String string) {
+		super(string);
+	}
 
 }

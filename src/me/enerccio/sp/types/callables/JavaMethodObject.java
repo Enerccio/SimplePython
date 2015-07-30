@@ -17,14 +17,19 @@
  */
 package me.enerccio.sp.types.callables;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
@@ -34,8 +39,30 @@ import me.enerccio.sp.utils.Utils;
  *
  */
 public class JavaMethodObject extends CallableObject {
+	private static final String __DOC__ = "__doc__";
 	private static final long serialVersionUID = 23L;
 
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface ArgNames {
+		String[] value();
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface SpyDoc {
+		String value();
+	}
+
+	/** Used iternalyy */
+	private JavaMethodObject(Object caller, Method m, String[] argNames, String pydoc, boolean noTypeConversion){
+		this.caller = caller;
+		this.boundHandle = m;
+		this.boundHandle.setAccessible(true);
+		this.argNames = argNames;
+		this.noTypeConversion = noTypeConversion;
+		if (pydoc != null)
+			this.fields.put(__DOC__, new AugumentedPythonObject(new StringObject(pydoc), null));
+	}
+	
 	/**
 	 * Creates new Java Method Object.
 	 * @param caller object this method is bound to or null if static
@@ -43,49 +70,58 @@ public class JavaMethodObject extends CallableObject {
 	 * @param noTypeConversion whether or not do automatic type conversion or just send TupleObject args directly
 	 */
 	public JavaMethodObject(Object caller, Method m, boolean noTypeConversion){
-		this.caller = caller;
-		this.boundHandle = m;
-		m.setAccessible(true);
-		this.noTypeConversion = noTypeConversion;
+		this(caller, m,
+			m.isAnnotationPresent(ArgNames.class) ?  m.getAnnotation(ArgNames.class).value() : null,
+			getPydoc(m),
+			noTypeConversion);
 	}
 
 	/**
 	 * Creates new Java Method Object for method that uses default signature - method(TupleObject, KwArgs),
 	 * without type conversion.
+	 * This constructor ignores @ArgNames annotation. 
 	 * 
 	 * @param caller object this method is bound to
 	 * @param name method name
 	 */
 	public JavaMethodObject(Object caller, String name) throws NoSuchMethodException, SecurityException {
-		this.caller = caller;
-		this.boundHandle = caller.getClass().getMethod(name, new Class<?>[]{TupleObject.class, KwArgs.class});
-		this.boundHandle.setAccessible(true);
-		this.noTypeConversion = true;
-	}
-
-	private JavaMethodObject(){
-		
+		this(caller,
+				caller.getClass().getMethod(name, new Class<?>[]{TupleObject.class, KwArgs.class}),
+				null,
+				getPydoc(caller.getClass().getMethod(name, new Class<?>[]{TupleObject.class, KwArgs.class})),
+				true);
 	}
 	
+	private static String getPydoc(Method m) {
+		return m.isAnnotationPresent(SpyDoc.class) ?  m.getAnnotation(SpyDoc.class).value() : null;
+	}
+
 	/** Method handle */
-	protected Method boundHandle;
+	protected final Method boundHandle;
 	/** Object bound to the method or null if static */
-	private Object caller;
+	private final Object caller;
 	/** Whether to do type conversion or not */
-	private boolean noTypeConversion;
+	private final boolean noTypeConversion;
+	/** List of argument names, if set */
+	private final String[] argNames; 
 	
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
-		return doCall(args, kwargs, false);
+		try {
+			return doCall(args, kwargs);
+		} catch (PointerMethodIncompatibleException e) {
+			throw Utils.throwException("TypeError", e.getMessage(), e);
+		}
 	}
 	
 	/**
 	 * Executes java method. 
 	 * @param args arguments to use
-	 * @param skipPythonException if true, it will propagate some errors lower. Only useable by aggregator
 	 * @return
 	 */
-	public PythonObject doCall(TupleObject args, KwArgs kwargs, boolean skipPythonException) {
+	public PythonObject doCall(TupleObject args, KwArgs kwargs) throws PointerMethodIncompatibleException {
+		if (argNames != null)
+			System.out.println("break");
 		try {
 			if (noTypeConversion){
 				return Utils.cast(invoke(args, kwargs), boundHandle.getReturnType());
@@ -100,34 +136,48 @@ public class JavaMethodObject extends CallableObject {
 			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		}
 		
-		Object[] jargs = new Object[(kwargs != null ? 1 : 0) + args.len()];
-		Class<?>[] types = boundHandle.getParameterTypes();
+		// Prepare stuff
+		Class<?>[] argTypes = boundHandle.getParameterTypes();
+		Object[] jargs = new Object[argTypes.length];
+		int i = 0;
 		
-		if (types.length != jargs.length){
-			if (skipPythonException)
-				throw new PointerMethodIncompatibleException();
-			throw Utils.throwException("TypeError", toString() + ": wrong number of parameters, expected " + types.length + ", got " + jargs.length);
-		}
-		
-		int i=0;
-		for (PythonObject o : args.getObjects()){
-			try {
-				jargs[i] = Utils.asJavaObject(types[i], o);
+		try {
+			// Fill arguments from tuple
+			while (i < args.len()) {
+				if ((i >= jargs.length) || (argTypes[i] == KwArgs.class))
+					throw new PointerMethodIncompatibleException(toString() + " doesn't take " + args.len() + " arguments");
+				jargs[i] = Utils.asJavaObject(argTypes[i], args.get(i));
+				if ((kwargs != null) && (argNames != null) && kwargs.containsKey(argNames[i]))
+					throw new PointerMethodIncompatibleException(toString() + " got multiple values for keyword argument '" + argNames[i] + "'");
 				++i;
-			} catch (PointerMethodIncompatibleException e){
-				if (skipPythonException)
-					throw e;
-				throw Utils.throwException("TypeError", toString() + ": cannot convert python objects to java objects for arguments of this method");
 			}
+			// Fill arguments from kwargs, if any
+			if ((argNames != null) && (kwargs != null)) {
+				while (i < argTypes.length) {
+					if (argTypes[i] == KwArgs.class)
+						// Last one
+						break;
+					if (kwargs.containsKey(argNames[i])) {
+						jargs[i] = Utils.asJavaObject(argTypes[i], kwargs.consume(argNames[i]));
+					} else {
+						throw new PointerMethodIncompatibleException(toString() + " values for argument '" + argNames[i] + "' missing");
+					}
+					i++;
+				}
+			}
+		} catch (CastFailedException e){
+			if ((argNames == null) || (i >= argNames.length))
+				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument " + i);
+			else
+				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument '" + argNames[i] + "'");
 		}
-		
-		if (kwargs != null){
-			if (!types[i].isAssignableFrom(kwargs.getClass()))
-				if (!skipPythonException)
-					throw Utils.throwException("TypeError", toString() + ": java method does not expect kwargs, but kwargs received.");
-				else
-					throw new PointerMethodIncompatibleException();
-			jargs[i] = kwargs;
+	
+		if ((kwargs != null) && (argTypes[i] != KwArgs.class)) {
+			try {
+				kwargs.checkEmpty(toString());
+			} catch (PythonExecutionException e) {
+				throw new PointerMethodIncompatibleException(e.getMessage());
+			}
 		}
 		
 		try {
@@ -175,10 +225,8 @@ public class JavaMethodObject extends CallableObject {
 	 * @return
 	 */
 	public JavaMethodObject cloneWithThis(Object self) {
-		JavaMethodObject m = new JavaMethodObject();
-		m.boundHandle = boundHandle;
-		m.caller = self;
-		m.noTypeConversion = noTypeConversion;
-		return m;
+		return new JavaMethodObject(self, boundHandle, argNames,
+				this.fields.containsKey(__DOC__) ? this.fields.get(__DOC__).object.toString() : null, 
+				noTypeConversion);
 	}
 }
