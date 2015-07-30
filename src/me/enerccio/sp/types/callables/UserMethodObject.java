@@ -61,18 +61,19 @@ public class UserMethodObject extends CallableObject {
 		PythonInterpret.interpret.get().currentContext.add(accessor);
 		
 		TupleObject aargs = new TupleObject(Utils.pushLeft(caller, args.getObjects().clone()));
+		PythonObject v;
 		
 		if (callable instanceof UserFunctionObject){
 			UserFunctionObject c = (UserFunctionObject)callable;
-			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			v = PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
 			PythonInterpret.interpret.get().currentFrame.getLast().pushed_context = true;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject)callable;
-			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			v = PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
 			PythonInterpret.interpret.get().currentContext.pop();
 		}
 		
-		return NoneObject.NONE; // returns immediately
+		return v; // returns immediately
 	}
 
 	@Override
