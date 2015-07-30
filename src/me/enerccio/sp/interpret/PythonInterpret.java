@@ -45,7 +45,7 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonInterpret extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
-	public static final boolean TRACE_ENABLED = System.getenv("SPY_ENABLED") != null;
+	public static final boolean TRACE_ENABLED = System.getenv("SPY_TRACE_ENABLED") != null;
 	/** Thread local accessor to the interpret */
 	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
 
@@ -143,18 +143,7 @@ public class PythonInterpret extends PythonObject {
 			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
 				int cfc = currentFrame.size();
 				((CallableObject)callable).call(new TupleObject(args), kwargs);
-				while (true){
-					ExecutionResult res = PythonInterpret.interpret.get().executeOnce();
-					if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
-						if (PythonInterpret.interpret.get().currentFrame.size() == cfc){
-							if (PythonInterpret.interpret.get().exception() != null){
-								PythonObject e = PythonInterpret.interpret.get().exception();
-								PythonInterpret.interpret.get().currentFrame.peekLast().exception = null;
-								throw new PythonExecutionException(e);
-							}
-							return returnee;
-						}
-				}
+				return executeAll(cfc);
 			} else
 				return returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
 		} else {

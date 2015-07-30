@@ -27,7 +27,9 @@ public class WrapNoMethodsFactory implements PointerFactory {
 
 	@Override
 	public PointerObject doInitialize(Object instance) {
-		return new PointerObject(instance);
+		PointerObject o = new PointerObject(instance);
+		o.newObject();
+		return o;
 	}
 
 }

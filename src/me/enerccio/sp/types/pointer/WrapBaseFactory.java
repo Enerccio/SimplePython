@@ -41,6 +41,7 @@ public abstract class WrapBaseFactory implements PointerFactory {
 	@Override
 	public final PointerObject doInitialize(Object instance) {
 		PointerObject o = new PointerObject(instance);
+		o.newObject();
 		
 		if (!cache.containsKey(instance.getClass().getCanonicalName()))
 			synchronized (cache){
