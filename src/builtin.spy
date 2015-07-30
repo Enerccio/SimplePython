@@ -252,6 +252,8 @@ class set(object):
         return key in self.__inner_map
     
 def print_function(objects, sep=' ', end='\n', file=sys.stdout):
+    if file is None:
+        file = sys.stdout
     first = True
     for o in objects:
         if not first:

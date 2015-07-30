@@ -801,37 +801,68 @@ public class PythonCompiler {
 
 	private void compile(Print_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
-		if (ctx.push() != null){
-			// TODO
-		} else {
-			boolean eol = (ctx.endp() == null);
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-			cb.stringValue = PythonRuntime.PRINT_JAVA;
-			int tlc = ctx.test().size();
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-				cb.stringValue = TupleTypeObject.TUPLE_CALL;
-			}
-			
-			for (TestContext tc : ctx.test())
-				compile(tc, bytecode);
-			
-			if (tlc > 1){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-				cb.intValue = tlc;
-			}
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
-			cb.intValue = 1;
-			
-			if (eol){
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));
-				cb.stringValue = PythonRuntime.PRINT_JAVA_EOL;
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-				cb.intValue = 0;
-				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
-			}
+		
+		int st = ctx.push() == null ? 0 : 1;
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start)); 
+		cb.stringValue = "print_function";
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+		cb.stringValue = TupleTypeObject.TUPLE_CALL;
+		
+		for (int i=st; i<ctx.test().size(); i++){
+			compile(ctx.test(i), bytecode);
 		}
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+		cb.intValue = ctx.test().size()-st;
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		cb.value = new StringObject(" ");
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+		if (ctx.endp() == null)
+			cb.value = new StringObject("\n");
+		else
+			cb.value = new StringObject("");
+		
+		if (st == 1){
+			compile(ctx.test(0), bytecode);
+		}
+		
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+		cb.intValue = 3 + st;
+		
+//		if (ctx.push() != null){
+//			// TODO
+//		} else {
+//			boolean eol = (ctx.endp() == null);
+//			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+//			cb.stringValue = PythonRuntime.PRINT_JAVA;
+//			int tlc = ctx.test().size();
+//			if (tlc > 1){
+//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+//				cb.stringValue = TupleTypeObject.TUPLE_CALL;
+//			}
+//			
+//			for (TestContext tc : ctx.test())
+//				compile(tc, bytecode);
+//			
+//			if (tlc > 1){
+//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+//				cb.intValue = tlc;
+//			}
+//			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+//			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
+//			cb.intValue = 1;
+//			
+//			if (eol){
+//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));
+//				cb.stringValue = PythonRuntime.PRINT_JAVA_EOL;
+//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
+//				cb.intValue = 0;
+//				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
+//			}
+//		}
 	}
 
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {
@@ -1332,7 +1363,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.start));
 			cb.value = new StringObject(bd.toString());
 		} else if (ctx.getText().startsWith("(")){
-			compile(ctx.testlist_comp(), bytecode);
+			compile(ctx.testlist_comp(), bytecode, ctx.start);
 		} else if (ctx.getText().startsWith("[")){
 			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")){
@@ -1349,7 +1380,14 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, dcx.stop));
 	}
 
-	private void compile(Testlist_compContext ctx, List<PythonBytecode> bytecode) {
+	private void compile(Testlist_compContext ctx, List<PythonBytecode> bytecode, Token t) {
+		if (ctx == null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			return;
+		}
 		if (ctx.comp_for() != null){
 			// TODO
 		} else {

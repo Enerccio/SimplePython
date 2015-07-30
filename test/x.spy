@@ -1,4 +1,5 @@
-
+import sys
 
 def test():
-    print_function(("anca", "mara", 3.14))
+    print "anca", 2.14, ()
+    print >> sys.stderr, "anca", 2.14, ()
