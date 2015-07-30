@@ -656,7 +656,7 @@ public class PythonRuntime {
 	 * 		x = javainstance("com.example.Class") 
 	 */
 	
-	private Map<String, PointerFactory> factories = Collections.synchronizedMap(new TreeMap<String, PointerFactory>());
+	private FactoryResolver factories = new FactoryResolver();
 	private boolean allowAutowraps;
 	private List<String> excludedPackages = new ArrayList<String>();
 	private Map<String, String> aliases = Collections.synchronizedMap(new HashMap<String, String>());
@@ -693,10 +693,14 @@ public class PythonRuntime {
 	 */
 	public void addFactory(String packagePath, Class<? extends PointerFactory> clazz) {
 		try {
-			factories.put(packagePath, clazz.newInstance());
+			doAddFactory(packagePath, clazz.newInstance());
 		} catch (Exception e) {
 			throw Utils.throwException("TypeError", "failed to instantiate pointer factory");
 		}
+	}
+
+	private void doAddFactory(String packagePath, PointerFactory newInstance) {
+		factories.set(newInstance, packagePath);
 	}
 
 	/**
@@ -801,16 +805,7 @@ public class PythonRuntime {
 	 * @return
 	 */
 	private PointerFactory doGetFactory(List<String> c) {
-		String pkgName = "";
-		PointerFactory fac = null;
-		for (String component : c){
-			pkgName += component;
-			PointerFactory ff = factories.get(pkgName);
-			if (ff == null)
-				break;
-			fac = ff;
-		}
-		return fac;
+		return factories.get(c);
 	}
 
 	/**

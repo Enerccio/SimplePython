@@ -2,8 +2,10 @@ class anca:
     def __init__(self):
         self.x = 5
         
-    def wtf(self):
-        print 5
+    def wtf(self, x):
+        self.y = x
 
 def test():
-    anca.wtf(anca())
+    a = anca();
+    for i in xrange(2048):
+        anca.wtf(a, i)

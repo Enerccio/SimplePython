@@ -15,7 +15,7 @@ public class Example extends JFrame {
 	public static void main(String[] args){
 		PythonRuntime r = PythonRuntime.runtime;
 		r.setAllowAutowraps(true);
-		r.addFactory("", WrapPublicFactory.class);
+		r.addFactory("me.enerccio.sp.example", WrapPublicFactory.class);
 		
 		r.addAlias(Example.class.getName(), "example");
 		
