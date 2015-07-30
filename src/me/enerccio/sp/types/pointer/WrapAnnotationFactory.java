@@ -17,6 +17,8 @@
  */
 package me.enerccio.sp.types.pointer;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import java.util.List;
 public class WrapAnnotationFactory extends WrapBaseFactory {
 	private static final long serialVersionUID = -5142774589035715501L;
 
+	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface WrapMethod {
 		
 	}
