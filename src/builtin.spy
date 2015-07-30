@@ -19,6 +19,7 @@ License along with this library.
 # all python doable builtin functions are here
 
 import os
+import sys
 import math
 
 def abs(x):
@@ -123,12 +124,12 @@ class file(object):
         
     def check_closed(self):
         if self.closed:
-            raise ValueError("already closed")
+            raise ValueError("file already closed")
         
     def close(self):
         self.check_closed()
         self.__data_stream.close()
-        self.__closed = True
+        self.closed = True
         
     def flush(self):
         self.check_closed()
@@ -186,7 +187,6 @@ class file(object):
         for x in iter(seq):
             self.write(x)
         
-
 def filter(f, it):
     l = []
     for i in it:
@@ -229,10 +229,11 @@ def map(function, *iterables):
             return result
         result.append(apply(function, d))
         
-def negate(x):
-    if hasattr(x, "__len__"):
-        return len(x) == 0
-    return not_value(x)
+def open(name, mode="r"):
+    return file(name, mode)
+
+def pow(x, y, z=1):
+    return (x**y) % z;
 
 class set(object):
     def __init__(self, iterable=None):
@@ -249,6 +250,16 @@ class set(object):
         
     def __contains__(self, key):
         return key in self.__inner_map
+    
+def print_function(objects, sep=' ', end='\n', file=sys.stdout):
+    first = True
+    for o in objects:
+        if not first:
+            file.write(sep)
+        else:
+            first = False
+        file.write(str(o))
+    file.write(end)
    
 def range(arg1, arg2=None, arg3=1):
     return list(xrange(arg1, arg2, arg3))

@@ -1,7 +1,4 @@
 
 
 def test():
-    f = file("COPYING")
-    print f.read(128)
-    f.close()
-    print f.read(128)
+    print_function(("anca", "mara", 3.14))

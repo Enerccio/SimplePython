@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.runtime;
 
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
+import me.enerccio.sp.external.PrintOutputStream;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -100,6 +102,7 @@ public class PythonRuntime {
 		addResolver(new InternalJavaPathResolver());
 		
 		addAlias(FileStream.class.getName(), "filestream");
+		addAlias(PrintOutputStream.class.getName(), "sysoutstream");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
@@ -113,6 +116,8 @@ public class PythonRuntime {
 	private CyclicBarrier awaitBarrierExit;
 	private volatile boolean isSaving = false;
 	private volatile boolean allowedNewInterpret = true;
+	private OutputStream out = System.out;
+	private OutputStream err = System.err;
 	
 	/**
 	 * Waits until creation of new interprets is possible
@@ -121,6 +126,22 @@ public class PythonRuntime {
 	public void waitForNewInterpretAvailability() throws InterruptedException{
 		if (!allowedNewInterpret)
 			Thread.sleep(10);
+	}
+	
+	/**
+	 * Sets the sys.stdout to wrapper to this stream
+	 * @param os
+	 */
+	public void setSystemOut(OutputStream os){
+		out = os;
+	}
+	
+	/**
+	 * Sets the sys.stderr to wrapper to this stream
+	 * @param os
+	 */
+	public void setSystemErr(OutputStream os){
+		err = os;
 	}
 	
 	/**
@@ -829,10 +850,13 @@ public class PythonRuntime {
 	public void loadModule(String string) {
 		getRoot(string);
 	}
+
+	public OutputStream getOut() {
+		return out;
+	}
 	
-	public PythonObject runtimeWrapper() {
-		// TODO Auto-generated method stub
-		return null;
+	public OutputStream getErr() {
+		return err;
 	}
 }
 

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -49,7 +50,7 @@ public abstract class SequenceObject extends ContainerObject {
 	static {
 		try {
 			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, SequenceObject.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, SequenceObject.class.getMethod("get", 
 					new Class<?>[]{PythonObject.class}), false));
 			Utils.putPublic(sfields, __ADD__, new JavaMethodObject(null, SequenceObject.class.getMethod("add", 
@@ -82,7 +83,8 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public abstract PythonObject get(PythonObject key);
 	
-	public PythonObject __iter__(TupleObject args){
+	public PythonObject __iter__(TupleObject args, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty("__iter__");
 		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return createIterator();

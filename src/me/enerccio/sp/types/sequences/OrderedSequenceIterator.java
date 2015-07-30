@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -51,9 +52,9 @@ public class OrderedSequenceIterator extends PythonObject {
 	static {
 		try {
 			Utils.putPublic(sfields, SequenceObject.__ITER__, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("next", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -73,13 +74,15 @@ public class OrderedSequenceIterator extends PythonObject {
 				AccessRestrictions.PUBLIC));
 	}
 	
-	public PythonObject __iter__(TupleObject args){
+	public PythonObject __iter__(TupleObject args, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty("__iter__");
 		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
 		return this;
 	}
 	
-	public PythonObject next(TupleObject args){
+	public PythonObject next(TupleObject args, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty("__iter__");
 		if (args.len() > 0)
 			throw Utils.throwException("TypeError", "next(): method requires no arguments");
 		if (cp >= len)
