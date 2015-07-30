@@ -43,10 +43,10 @@ public class PythonExecutionException extends RuntimeException {
 	}
 	
 	public static String getMessage(PythonObject o) {
-		if (o.fields.containsKey("__msg__") && o.fields.containsKey("__class__"))
-			return o.fields.get("__class__").object.fields.get("__name__").object.toString() + ": " + o.fields.get("__msg__").object.toString();
-		if (o.fields.containsKey("__msg__"))
-			return o.fields.get("__msg__").object.toString();
+		if (o.fields.containsKey("__message__") && o.fields.containsKey("__class__"))
+			return o.fields.get("__class__").object.fields.get("__name__").object.toString() + ": " + o.fields.get("__message__").object.toString();
+		if (o.fields.containsKey("__message__"))
+			return o.fields.get("__message__").object.toString();
 		return o.toString();
 	}
 

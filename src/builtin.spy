@@ -18,6 +18,8 @@ License along with this library.
 
 # all python doable builtin functions are here
 
+from exceptions import *
+
 import os
 import sys
 import math

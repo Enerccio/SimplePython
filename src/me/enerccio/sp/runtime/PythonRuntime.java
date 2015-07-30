@@ -371,9 +371,6 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(XRangeTypeObject.XRANGE_CALL, o = new XRangeTypeObject());
 					o.newObject();
-
-					
-					addExceptions(globals);
 					
 					pythonParser p;
 					try {
@@ -557,68 +554,6 @@ public class PythonRuntime {
 		if (o.get(attribute, PythonInterpret.interpret.get().getLocalContext()) == null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpret.interpret.get().getLocalContext());
 		o.set(attribute, PythonInterpret.interpret.get().getLocalContext(), v);
-		return NoneObject.NONE;
-	}
-	
-	private void addExceptions(DictObject globals) {
-		DictObject base = addException(globals, "Error", null, false);
-		ListObject lo = new ListObject();
-		lo.newObject();
-		base.backingMap.put(new StringObject("stack"), lo);
-		JavaFunctionObject str = (JavaFunctionObject) Utils.staticMethodCall(PythonRuntime.class, "baseExcToStr", PythonObject.class);
-		str.setWrappedMethod(true);
-		base.backingMap.put(new StringObject("__str__"), str);
-		
-		addException(globals, "BaseException", "Error", false);
-		addException(globals, "Exception", "BaseException", false);
-		addException(globals, "TypeError", "Exception", true);
-		addException(globals, "SyntaxError", "Exception", true);
-		addException(globals, "ValueError", "Exception", true);
-		addException(globals, "AttributeError", "Exception", true);
-		addException(globals, "ImportError", "Exception", true);
-		addException(globals, "NameError", "Exception", true);
-		addException(globals, "ParseError", "Exception", true);
-		addException(globals, "IndexError", "Exception", true);
-		addException(globals, "InterpretError", "Exception", true);
-		addException(globals, "StopIteration", "Exception", false);
-		addException(globals, "LoopBreak", "Exception", false);
-		addException(globals, "LoopContinue", "Exception", false);
-		addException(globals, "IOError", "Exception", true);
-	}
-
-
-	private DictObject addException(DictObject globals, String exceptionName, String exceptionBase, boolean stringArg) {
-		TypeTypeObject classCreator = (TypeTypeObject) globals.doGet(TypeTypeObject.TYPE_CALL);
-		DictObject dict = new DictObject();
-		
-		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class, KwArgs.class);
-		init.setWrappedMethod(true);
-		
-		dict.backingMap.put(new StringObject("__init__"), init);
-		
-		TupleObject t1, t2;
-		globals.put(exceptionName, classCreator.call(t1 = new TupleObject(new StringObject(exceptionName), t2 = (exceptionBase == null ? new TupleObject() :
-				new TupleObject(globals.doGet(exceptionBase))), dict), null));
-		t1.newObject();
-		t2.newObject();
-		return dict;
-	}
-	
-	protected static PythonObject baseExcToStr(PythonObject e){
-		return new StringObject(Utils.run("str", e.get("__CLASS__", e)) + ": " + Utils.run("str", e.get("__msg__", e)));
-	}
-	
-	protected static PythonObject initException(TupleObject o, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty("__init__");
-		if (o.len() == 1)
-			return initException(o.getObjects()[0], NoneObject.NONE);
-		if (o.len() == 2)
-			return initException(o.getObjects()[0], o.getObjects()[1]);
-		throw Utils.throwException("TypeError", "__init__(): system exception requires 0 or 1 arguments");
-	}
-	
-	protected static PythonObject initException(PythonObject e, PythonObject text){
-		Utils.putPublic(e, "__msg__", text);
 		return NoneObject.NONE;
 	}
 	

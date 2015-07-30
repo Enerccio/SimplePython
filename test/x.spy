@@ -1,5 +1,2 @@
-import sys
-
 def test():
-    print "anca", 2.14, ()
-    print >> sys.stderr, "anca", 2.14, ()
+    print >> test, "anca"
