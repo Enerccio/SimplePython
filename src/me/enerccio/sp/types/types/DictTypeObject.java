@@ -20,8 +20,9 @@ package me.enerccio.sp.types.types;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -41,13 +42,15 @@ public class DictTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() == 0)
-			return new MapObject();
+			return new DictObject();
 		
 		if (args.len() == 1){
-			if (args.getObjects()[0] instanceof MapObject)
-				return ((MapObject) args.getObjects()[0]).cloneMap();
+			if (args.getObjects()[0] instanceof DictObject)
+				return ((DictObject) args.getObjects()[0]).cloneMap();
 			
 			try {
 				if (args.getObjects()[0] instanceof ListObject){
@@ -56,7 +59,7 @@ public class DictTypeObject extends TypeObject {
 					for (PythonObject oo : o.objects)
 						tuples.add((TupleObject) oo);
 					
-					MapObject m = new MapObject();
+					DictObject m = new DictObject();
 					for (TupleObject to : tuples)
 						if (to.len() != 2)
 							throw Utils.throwException("TypeError", "dict(): parameter 1 must be list of tuples with two elements");

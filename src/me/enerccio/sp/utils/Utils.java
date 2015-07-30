@@ -594,6 +594,9 @@ public class Utils {
 			case PUSH:
 				w.writeInt(insertValue(b.value, mmap, rmap));
 				break;
+			case KWARG:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
 			case PUSH_DICT:
 				w.writeInt(insertValue(b.mapValue, mmap, rmap));
 				break;

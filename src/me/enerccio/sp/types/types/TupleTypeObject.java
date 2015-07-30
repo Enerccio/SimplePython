@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -35,7 +36,9 @@ public class TupleTypeObject extends TypeObject {
 	}
 	
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		args.newObject();
 		return args;
 	}

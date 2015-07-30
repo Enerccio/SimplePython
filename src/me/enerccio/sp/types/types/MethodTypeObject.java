@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -40,7 +41,9 @@ public class MethodTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 3)
 			throw Utils.throwException("TypeError", "method(): wrong mumber of parameters, requires 3, got " + args.len());
 		

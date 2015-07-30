@@ -51,7 +51,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
@@ -197,6 +197,20 @@ public class PythonRuntime {
 		}
 		return root.get(key);
 	}
+
+	/**
+	 * Loads the module with given filename and returns it
+	 * @param provider
+	 * @return
+	 */
+	public ModuleObject loadModule(String filename, byte[] source) {
+		String[] tmp = filename.split("/");
+		String name = tmp[tmp.length - 1];
+		int index = name.lastIndexOf(".");
+		if (index > -1)
+			name = name.substring(0, index);
+		return loadModule(new ModuleProvider(name, filename, source, "whattheunhollyfuck"));
+	}
 	
 	/**
 	 * Loads the module from module provider and returns it
@@ -204,7 +218,7 @@ public class PythonRuntime {
 	 * @return
 	 */
 	private ModuleObject loadModule(ModuleProvider provider){
-		MapObject globals = generateGlobals();
+		DictObject globals = generateGlobals();
 		ModuleObject mo = new ModuleObject(globals, provider);
 		return mo;
 	}
@@ -249,7 +263,7 @@ public class PythonRuntime {
 	}
 
 	/** stored globals are here */
-	private static volatile MapObject globals = null;
+	private static volatile DictObject globals = null;
 	public static final String IS = "is";
 	public static final String MRO = "mro";
 	public static final String GETATTR = "getattr";
@@ -268,11 +282,11 @@ public class PythonRuntime {
 	 * Generates globals. This is only done once but then cloned
 	 * @return
 	 */
-	public MapObject generateGlobals() {
+	public DictObject generateGlobals() {
 		if (globals == null)
 			synchronized (this){
 				if (globals == null){
-					globals = new MapObject();
+					globals = new DictObject();
 					
 					EnvironmentObject e = new EnvironmentObject();
 					e.newObject();
@@ -372,7 +386,7 @@ public class PythonRuntime {
 	protected static PythonObject apply(PythonObject callable, ListObject args){
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects);
-		PythonInterpret.interpret.get().execute(false, callable, a.getObjects());
+		PythonInterpret.interpret.get().execute(false, callable, null, a.getObjects());
 		return PythonInterpret.interpret.get().executeAll(cfc);
 	}
 	
@@ -506,7 +520,7 @@ public class PythonRuntime {
 		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
 				if (getattr != null)
-					return PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+					return PythonInterpret.interpret.get().execute(false, getattr, null, new StringObject(attribute));
 		}
 		
 		PythonObject value = o.get(attribute, PythonInterpret.interpret.get().getLocalContext());
@@ -520,7 +534,7 @@ public class PythonRuntime {
 			accessorGetattr.get().push(o);
 			try {
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
-				value = PythonInterpret.interpret.get().execute(false, getattr, new StringObject(attribute));
+				value = PythonInterpret.interpret.get().execute(false, getattr, null, new StringObject(attribute));
 			} catch (NoGetattrException e) {
 				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", o, attribute));
 			} finally {
@@ -542,8 +556,8 @@ public class PythonRuntime {
 	
 	protected static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
 		if (o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext()) != null){
-			return PythonInterpret.interpret.get().execute(false, o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext())
-					, new StringObject(attribute), v);
+			return PythonInterpret.interpret.get().execute(false, o.get("__setattr__", PythonInterpret.interpret.get().getLocalContext()),
+					null, new StringObject(attribute), v);
 		}
 		if (o.get(attribute, PythonInterpret.interpret.get().getLocalContext()) == null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpret.interpret.get().getLocalContext());
@@ -551,8 +565,8 @@ public class PythonRuntime {
 		return NoneObject.NONE;
 	}
 	
-	private void addExceptions(MapObject globals) {
-		MapObject base = addException(globals, "Error", null, false);
+	private void addExceptions(DictObject globals) {
+		DictObject base = addException(globals, "Error", null, false);
 		ListObject lo = new ListObject();
 		lo.newObject();
 		base.backingMap.put(new StringObject("stack"), lo);
@@ -577,9 +591,9 @@ public class PythonRuntime {
 	}
 
 
-	private MapObject addException(MapObject globals, String exceptionName, String exceptionBase, boolean stringArg) {
+	private DictObject addException(DictObject globals, String exceptionName, String exceptionBase, boolean stringArg) {
 		TypeTypeObject classCreator = (TypeTypeObject) globals.doGet(TypeTypeObject.TYPE_CALL);
-		MapObject dict = new MapObject();
+		DictObject dict = new DictObject();
 		
 		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class);
 		init.setWrappedMethod(true);
@@ -588,7 +602,7 @@ public class PythonRuntime {
 		
 		TupleObject t1, t2;
 		globals.put(exceptionName, classCreator.call(t1 = new TupleObject(new StringObject(exceptionName), t2 = (exceptionBase == null ? new TupleObject() :
-				new TupleObject(globals.doGet(exceptionBase))), dict)));
+				new TupleObject(globals.doGet(exceptionBase))), dict), null));
 		t1.newObject();
 		t2.newObject();
 		return dict;

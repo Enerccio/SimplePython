@@ -29,7 +29,7 @@ public class Test {
 			
 			UserFunctionObject fo = (UserFunctionObject) mo.getField("test");
 			if (fo != null)
-				fo.call(new TupleObject());
+				fo.call(new TupleObject(), null);
 			while (true){
 				rr = i.executeOnce();
 				if (rr == ExecutionResult.EOF || rr == ExecutionResult.FINISHED)
@@ -38,8 +38,8 @@ public class Test {
 			}
 
 		} finally {
-			System.err.println("Took " + (System.currentTimeMillis() - c) + " ms");
-			System.err.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");
+			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");
+			System.out.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");
 		}
 	}
 

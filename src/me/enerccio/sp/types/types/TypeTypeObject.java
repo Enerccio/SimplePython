@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -33,7 +34,7 @@ import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -56,7 +57,9 @@ public class TypeTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() == 1)
 			return getTypeInformation(args.getObjects()[0]);
 		else if (args.len() == 3)
@@ -71,7 +74,7 @@ public class TypeTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "type(): name must be a string");
 		if (!(bases instanceof TupleObject))
 			throw Utils.throwException("TypeError", "type(): bases must be a tuple");
-		if (!(dict instanceof MapObject))
+		if (!(dict instanceof DictObject))
 			throw Utils.throwException("TypeError", "type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
@@ -81,7 +84,7 @@ public class TypeTypeObject extends TypeObject {
 		Utils.putPublic(type, ClassObject.__DICT__, dict);
 		
 		synchronized (dict){
-			MapObject d = (MapObject)dict;
+			DictObject d = (DictObject)dict;
 			synchronized (d.backingMap){
 				for (PythonProxy key : d.backingMap.keySet()){
 					PythonObject o = d.backingMap.get(key);
@@ -116,7 +119,7 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
 			return Utils.getGlobal(TupleTypeObject.TUPLE_CALL);
-		if (py instanceof MapObject)
+		if (py instanceof DictObject)
 			return Utils.getGlobal(DictTypeObject.DICT_CALL);
 		if (py instanceof StringObject)
 			return Utils.getGlobal(StringTypeObject.STRING_CALL);

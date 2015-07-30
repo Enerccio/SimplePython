@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -38,7 +39,9 @@ public class ComplexTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject o) {
+	public PythonObject call(TupleObject o, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (o.len() > 2)
 			throw Utils.throwException("TypeError", "complex(): requires up to 2 parameters");
 		

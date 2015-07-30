@@ -17,15 +17,6 @@
  */
 package me.enerccio.sp.types.types;
 
-import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.compiler.PythonBytecode.*;
-import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.mappings.MapObject;
-import me.enerccio.sp.types.sequences.StringObject;
-import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * bytecode()
@@ -41,6 +32,7 @@ public class BytecodeTypeObject extends TypeObject {
 		return "bytecode";
 	}
 
+	/*
 	@SuppressWarnings("unused")
 	@Override
 	public PythonObject call(TupleObject args) {
@@ -106,7 +98,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case PUSH_DICT:
 				bytecode = new PushDict();
 				bytecode.newObject();
-				bytecode.mapValue = (MapObject) args.getObjects()[1];
+				bytecode.mapValue = (DictObject) args.getObjects()[1];
 				break;
 			case PUSH_ENVIRONMENT:
 				bytecode = new PushEnvironment();
@@ -165,4 +157,5 @@ public class BytecodeTypeObject extends TypeObject {
 		}
 		
 	}
+	*/
 }

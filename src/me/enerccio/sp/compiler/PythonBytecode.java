@@ -18,7 +18,7 @@
 package me.enerccio.sp.compiler;
 
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 
 /**
  * PythonBytecode is PythonObject representing single instruction of the interpret.
@@ -41,7 +41,7 @@ public class PythonBytecode extends PythonObject {
 	public PythonObject value;
 	public String stringValue;
 	public String stringValue2;
-	public MapObject mapValue;
+	public DictObject mapValue;
 	public boolean booleanValue;
 	
 	public PythonBytecode(){
@@ -521,7 +521,40 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.SWAP_STACK;
 		}
 	}
+	
 
+	public static class KCall extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3080128534823197157L;
+
+		{
+			bytecode = Bytecode.KCALL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), intValue);
+		}
+	}
+
+	public static class KwArg extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7862981632281325840L;
+
+		{
+			bytecode = Bytecode.KWARG;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+	}	
+	
 	public static class UnpackSequence extends PythonBytecode {
 		/**
 		 * 

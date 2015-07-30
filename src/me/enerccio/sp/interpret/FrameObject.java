@@ -70,6 +70,8 @@ public class FrameObject extends PythonObject {
 	public int debugLine;
 	public int debugInLine;
 
+	public KwArgs kwargs = null;
+
 	public Bytecode nextOpcode() {
 		++pc;
 		return Bytecode.fromNumber(dataStream.get());

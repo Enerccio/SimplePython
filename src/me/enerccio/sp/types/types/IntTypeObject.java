@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -43,7 +44,9 @@ public class IntTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		PythonObject arg1 = null, arg2 = null;
 		
 		if (args.len() == 0){
@@ -62,12 +65,12 @@ public class IntTypeObject extends TypeObject {
 		if (arg2 == null){
 			Utils.run("getattr", arg1, new StringObject("__int__"));
 			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr);
+			PythonInterpret.interpret.get().execute(false, attr, null);
 			return PythonInterpret.interpret.get().executeAll(cfc);
 		} else {
 			Utils.run("getattr", arg2, new StringObject("__int__"));
 			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr);
+			PythonInterpret.interpret.get().execute(false, attr, null);
 			o2 = PythonInterpret.interpret.get().executeAll(cfc);
 		}
 		

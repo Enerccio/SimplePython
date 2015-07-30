@@ -20,12 +20,13 @@ package me.enerccio.sp.types.callables;
 import java.util.List;
 
 import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -57,8 +58,7 @@ public class ClassObject extends CallableObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, "call"));
 			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
 					new Class<?>[]{StringObject.class}), false));
 			Utils.putPublic(this, __SETATTR__, new JavaMethodObject(this, this.getClass().getMethod("setAttr", 
@@ -72,7 +72,7 @@ public class ClassObject extends CallableObject {
 		if (fields.containsKey(o.value))
 			return fields.get(o.value).object;
 		try {
-			return ((MapObject)fields.get(__DICT__).object).doGet(o);
+			return ((DictObject)fields.get(__DICT__).object).doGet(o);
 		} catch (NullPointerException e){
 			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", Utils.run("type", this), o.value));
 		}
@@ -81,9 +81,9 @@ public class ClassObject extends CallableObject {
 	public PythonObject setAttr(StringObject o, PythonObject v){
 		try {
 			if (v == null)
-				((MapObject)fields.get(__DICT__).object).backingMap.remove(o);
+				((DictObject)fields.get(__DICT__).object).backingMap.remove(o);
 			else {
-				((MapObject)fields.get(__DICT__).object).put(o.value, v);
+				((DictObject)fields.get(__DICT__).object).put(o.value, v);
 			}
 			return NoneObject.NONE;
 		} catch (NullPointerException e){
@@ -93,8 +93,8 @@ public class ClassObject extends CallableObject {
 
 
 	@Override
-	public PythonObject call(TupleObject args) {
-		return newObject(args);
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		return newObject(args, kwargs);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class ClassObject extends CallableObject {
 	 * @param args
 	 * @return
 	 */
-	private PythonObject newObject(TupleObject args) {
+	private PythonObject newObject(TupleObject args, KwArgs kwargs) {
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
 		
@@ -114,7 +114,7 @@ public class ClassObject extends CallableObject {
 		
 		int cfc = PythonInterpret.interpret.get().currentFrame.size();
 
-		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), args);
+		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
 		PythonInterpret.interpret.get().executeAll(cfc);
 		return instance;
 	}
@@ -126,7 +126,7 @@ public class ClassObject extends CallableObject {
 	 * @param clazz
 	 */
 	private void addToInstance(PythonObject s, ClassInstanceObject instance, ClassObject clazz) {
-		MapObject dict = (MapObject)s;
+		DictObject dict = (DictObject)s;
 		synchronized (dict.backingMap){
 			for (PythonProxy pkey : dict.backingMap.keySet()){
 				PythonObject key = pkey.o;

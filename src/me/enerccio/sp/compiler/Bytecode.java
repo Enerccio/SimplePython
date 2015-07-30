@@ -40,7 +40,9 @@ public enum Bytecode {
 	JUMPIFNORETURN(27), GOTO(28), RETURN(29), SAVE_LOCAL(30),
 	TRUTH_VALUE(31),
 	// variables
-	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(38),
+	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(37),
+	// special call-related
+	KCALL(40), KWARG(41),
 	// exceptions
 	RAISE(69), RERAISE(70),
 	// macros
@@ -178,6 +180,14 @@ public enum Bytecode {
 			break;
 		case SWAP_STACK:
 			bytecode = new SwapStack();
+			bytecode.newObject();
+			break;
+		case KCALL:
+			bytecode = new KCall();
+			bytecode.newObject();
+			break;
+		case KWARG:
+			bytecode = new KwArg();
 			bytecode.newObject();
 			break;
 		case UNPACK_SEQUENCE:

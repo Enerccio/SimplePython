@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
@@ -42,10 +43,10 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		for (JavaMethodObject mo : methods)
 			try {
-				return mo.doCall(args, true);
+				return mo.doCall(args, kwargs, true);
 			} catch (PointerMethodIncompatibleException e){
 				// pass
 			}

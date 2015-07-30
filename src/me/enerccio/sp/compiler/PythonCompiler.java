@@ -108,7 +108,7 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.DictTypeObject;
@@ -130,7 +130,7 @@ public class PythonCompiler {
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
-	private LinkedList<MapObject> environments = new LinkedList<MapObject>();
+	private LinkedList<DictObject> environments = new LinkedList<DictObject>();
 	private Stack<String> compilingClass = new Stack<String>();
 	
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
@@ -145,12 +145,12 @@ public class PythonCompiler {
 	 * @param locals map of locals for the function
 	 * @return completed object
 	 */
-	public UserFunctionObject doCompile(String_inputContext sctx, List<MapObject> globals, 
-			List<String> args, String vargarg, MapObject defaults, MapObject locals) {
+	public UserFunctionObject doCompile(String_inputContext sctx, List<DictObject> globals, 
+			List<String> args, String vargarg, DictObject defaults, DictObject locals) {
 		moduleName.set("generated-functions");
 		stack.push();
 		
-		for (MapObject global : globals)
+		for (DictObject global : globals)
 			environments.add(global);
 		
 		UserFunctionObject fnc = new UserFunctionObject();
@@ -198,11 +198,11 @@ public class PythonCompiler {
 	 * @param m module
 	 * @return
 	 */
-	public CompiledBlockObject doCompile(File_inputContext fcx, MapObject dict, ModuleObject m) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, ModuleObject m) {
 		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m);
 	}
 	
-	public CompiledBlockObject doCompile(File_inputContext fcx, MapObject dict, String mn, PythonObject locals) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, String mn, PythonObject locals) {
 		moduleName.set(mn);
 		
 		stack.push();
@@ -544,10 +544,10 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(className);
-		MapObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
+		DictObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
 		compilingClass.pop();
 		
-		Utils.putPublic(fnc, "function_defaults", new MapObject());
+		Utils.putPublic(fnc, "function_defaults", new DictObject());
 		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
@@ -595,7 +595,7 @@ public class PythonCompiler {
 		
 		compilingClass.push(null);
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
-		MapObject locals = doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
+		DictObject locals = doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
 		compilingClass.pop();
 		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
@@ -614,7 +614,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // closure
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
-		cb.value = new MapObject();
+		cb.value = new DictObject();
 
 		for (int i=0; i<funcdef.farg().size(); i++){
 			FargContext ctx = funcdef.farg(i);
@@ -640,9 +640,9 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
 		cb.stringValue = "locals";
 		
-		List<MapObject> ll = new ArrayList<MapObject>();
+		List<DictObject> ll = new ArrayList<DictObject>();
 		ll.add(locals);
-		for (MapObject d : Utils.reverse(environments)){
+		for (DictObject d : Utils.reverse(environments)){
 			ll.add(d);
 		}
 		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
@@ -669,9 +669,9 @@ public class PythonCompiler {
 			// compile decorator
 			compile(d.test(), bytecode);
 			if (d.arglist() != null){
-				int argc = compileArguments(d.arglist(), bytecode);
+				CallArgsData args = compileArguments(d.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, d.stop));
-				cb.intValue = argc;
+				cb.intValue = args.normalArgCount * (args.hasArgExpansion ? -1 : 1);
 			}
 			// call
 			bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, dc.stop));
@@ -684,15 +684,15 @@ public class PythonCompiler {
 		return text.substring(3, text.length()-4);
 	}
 
-	private MapObject doCompileFunction(ParseTree suite,
-			List<PythonBytecode> bytecode, Token t, MapObject dict) {
+	private DictObject doCompileFunction(ParseTree suite,
+			List<PythonBytecode> bytecode, Token t, DictObject dict) {
 
 		stack.push();
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, t));
 		if (dict == null)
-			dict = new MapObject();
+			dict = new DictObject();
 		environments.add(dict);
-		for (MapObject d : Utils.reverse(environments)){
+		for (DictObject d : Utils.reverse(environments)){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, t)); 
 			cb.mapValue = d;
 		}
@@ -1161,15 +1161,16 @@ public class PythonCompiler {
 		}
 	}
 
+	/** Compiles calls - something() - and indexes - something[x] */
 	private void compile(TrailerContext tc, List<PythonBytecode> bytecode) {
 		if (tc.getText().startsWith("(")){
 			if (tc.arglist() == null){
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
 				cb.intValue = 0;
 			} else {
-				int argc = compileArguments(tc.arglist(), bytecode);
+				CallArgsData args = compileArguments(tc.arglist(), bytecode);
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, tc.stop));
-				cb.intValue = argc;
+				cb.intValue = args.normalArgCount * (args.hasArgExpansion ? -1 : 1);
 			}
 		} else if (tc.getText().startsWith("[")) {
 			compileSubscript(tc.subscriptlist(), bytecode, tc.start);
@@ -1246,27 +1247,35 @@ public class PythonCompiler {
 		}
 	}
 
-	private int compileArguments(ArglistContext arglist,
-			List<PythonBytecode> bytecode) {
-		for (ArgumentContext ac : arglist.argument())
-			compile(ac, bytecode);
-		if (arglist.test() != null){
-			compile(arglist.test(), bytecode);
-			return -(arglist.argument().size() + 1);
-		}
-		return arglist.argument().size();
-	}
-
-	private void compile(ArgumentContext ac, List<PythonBytecode> bytecode) {
-		if (ac.test().size() == 1){
-			if (ac.comp_for() == null){
-				compile(ac.test(0), bytecode);
+	/** Compiles function call arguments */
+	private CallArgsData compileArguments(ArglistContext arglist, List<PythonBytecode> bytecode) {
+		CallArgsData rv = new CallArgsData();
+		for (ArgumentContext ac : arglist.argument()) {
+			if (ac.kwarg() != null) {
+				rv.kwArgCount ++;
+				compile(ac.kwarg().test(), bytecode);
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.KWARG, ac.kwarg().test().start));
+				cb.stringValue = ac.kwarg().nname().getText();
 			} else {
-				// TODO
+				rv.normalArgCount ++;
+				if (rv.kwArgCount > 0)
+					throw Utils.throwException("SyntaxError", "non-keyword arg after keyword arg");
+				compile(ac.test(), bytecode);
 			}
-		} else {
-			// TODO
 		}
+		if (arglist.test() != null){
+			// TODO: Support this, maybe
+			throw Utils.throwException("SyntaxError", "argument expansion not supported");
+			// compile(arglist.test(), bytecode);
+		}
+		return rv;
+	}
+	
+	/** Dummy container as I can't return multiple stuff from compileArguments method */
+	private static class CallArgsData {
+		public int kwArgCount = 0;
+		public int normalArgCount = 0;
+		public boolean hasArgExpansion = false; 
 	}
 
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
@@ -1465,7 +1474,7 @@ public class PythonCompiler {
 			if ( dictorsetmaker != null) {
 				// { x:y, a:b, h:i }
 				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dictorsetmaker.start));
-				putGetAttr(MapObject.__SETITEM__, bytecode, dictorsetmaker.start);
+				putGetAttr(DictObject.__SETITEM__, bytecode, dictorsetmaker.start);
 				if (dictorsetmaker.comp_for() != null){
 					// TODO
 					throw new NotImplementedException();
@@ -1610,7 +1619,7 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		MapObject locals = doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
+		DictObject locals = doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
 		compilingClass.pop();
 		
 		if (fncb.get(fncb.size()-1) instanceof Pop){
@@ -1635,7 +1644,7 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // closure
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
-		cb.value = new MapObject();
+		cb.value = new DictObject();
 
 		for (int i=0; i<ctx.farg().size(); i++){
 			FargContext fctx = ctx.farg(i);
@@ -1661,9 +1670,9 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
 		cb.stringValue = "locals";
 		
-		List<MapObject> ll = new ArrayList<MapObject>();
+		List<DictObject> ll = new ArrayList<DictObject>();
 		ll.add(locals);
-		for (MapObject d : Utils.reverse(environments)){
+		for (DictObject d : Utils.reverse(environments)){
 			ll.add(d);
 		}
 		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));

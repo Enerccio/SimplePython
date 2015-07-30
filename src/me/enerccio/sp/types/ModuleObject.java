@@ -24,7 +24,7 @@ import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -38,9 +38,9 @@ public class ModuleObject extends PythonObject {
 	public static final String __NAME__ = "__name__";
 	public static final String __DICT__ = "__dict__";
 	public static final String __THISMODULE__ = "__thismodule__";
-	private MapObject globals;
+	private DictObject globals;
 
-	public ModuleObject(MapObject globals, ModuleProvider provider) {
+	public ModuleObject(DictObject globals, ModuleProvider provider) {
 		this.provider = provider;
 
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
@@ -71,6 +71,10 @@ public class ModuleObject extends PythonObject {
 	@Override
 	public boolean truthValue() {
 		return true;
+	}
+	
+	public void injectGlobal(String key, PythonObject value) {
+		globals.put(key, value);
 	}
 	
 	@Override

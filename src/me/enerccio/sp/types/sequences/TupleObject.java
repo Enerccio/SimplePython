@@ -91,6 +91,11 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		return "(" + text.substring(1, text.length()-1) + ")";
 	}
 
+	/** Throws IndexExcepton if i is out of range */
+	public PythonObject get(int i) {
+		return array[i]; 
+	}
+	
 	@Override
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){

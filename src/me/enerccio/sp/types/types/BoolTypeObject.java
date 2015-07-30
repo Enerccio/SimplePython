@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -37,7 +38,9 @@ public class BoolTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args) {
+	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() > 1)
 			throw Utils.throwException("TypeError", "bool(): requires 0 or 1 arguments");
 		if (args.len() == 1)

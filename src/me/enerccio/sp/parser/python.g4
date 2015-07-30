@@ -482,7 +482,11 @@ arglist
 ;
 
 argument
-: test comp_for? | test '=' test
+: test comp_for? | kwarg
+;
+
+kwarg
+: nname '=' test
 ;
 
 list_iter

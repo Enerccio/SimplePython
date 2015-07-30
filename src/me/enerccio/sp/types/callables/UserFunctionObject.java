@@ -18,15 +18,14 @@
 package me.enerccio.sp.types.callables;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpret;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.MapObject;
-import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -35,7 +34,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class UserFunctionObject extends PythonObject {
+public class UserFunctionObject extends CallableObject {
 	private static final long serialVersionUID = 22L;
 	
 	/** Bytecode of this function */
@@ -56,20 +55,20 @@ public class UserFunctionObject extends PythonObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, "call"));
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
 	};
-
+	
 	/**
 	 * Calls this function. Will insert onto frame stack and returns None.
 	 * @param args
 	 * @return
 	 */
-	public PythonObject call(TupleObject args) {
-		args = refillArgs(args);
+	@Override
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		args = refillArgs(args, kwargs);
 		int argc = args.len();
 		int rargs = this.args.size();
 		if (isVararg)
@@ -81,7 +80,7 @@ public class UserFunctionObject extends PythonObject {
 		if (!isVararg && argc > rargs)
 			throw Utils.throwException("TypeError", fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
-		MapObject a = new MapObject();
+		DictObject a = new DictObject();
 		
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
 		for (int i=0; i<argc; i++){
@@ -108,19 +107,30 @@ public class UserFunctionObject extends PythonObject {
 	 * @param args
 	 * @return
 	 */
-	private TupleObject refillArgs(TupleObject args) {
-		MapObject m = (MapObject) fields.get("function_defaults").object;
-		List<PythonObject> pl = new ArrayList<PythonObject>(Arrays.asList(args.getObjects()));
-		
-		if (args.len() < this.args.size()){
-			for (int i=args.len(); i<this.args.size(); i++){
-				if (!m.contains(this.args.get(i)))
-					throw Utils.throwException("TypeError", fields.get("__name__").object + "(): argument '" + this.args.get(i) + "' not specified");
-				pl.add(m.backingMap.get(new StringObject(this.args.get(i))));
+	public TupleObject refillArgs(TupleObject args, KwArgs kwargs) {
+		DictObject m = (DictObject) fields.get("function_defaults").object;
+		PythonObject[] pl = new PythonObject[this.args.size()];
+		for (int i=0; i<pl.length; i++) {
+			String key = this.args.get(i);
+			if (i < args.len()) {
+				// Argument passed in tuple
+				pl[i] = args.get(i);
+				if (kwargs.containsKey(key))
+					throw Utils.throwException("TypeError", fields.get("__name__").object + "() got multiple values for keyword argument '" + key + "'");
+			} else if ((kwargs != null) && (kwargs.containsKey(key))) {
+				// Argument passed in kwargs
+				pl[i] = kwargs.consume(key);
+			} else if (m.contains(key)) {
+				// Argument filled from defaults
+				pl[i] = m.getItem(key);
+			} else {
+				// Missing argument
+				throw Utils.throwException("TypeError", fields.get("__name__").object + "() required argument '" + key + "' missing");
 			}
 		}
-		
-		return new TupleObject(pl.toArray(new PythonObject[pl.size()]));
+		if (kwargs != null)
+			kwargs.checkEmpty(fields.get("__name__").object + "()");
+		return new TupleObject(pl); // pl.toArray(new PythonObject[pl.size()]));
 	}
 
 	@Override
