@@ -30,7 +30,6 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 

@@ -1,8 +1,8 @@
-def fnc(a, b, c):
-    if a is None: return 0
-    return c * (a + b)
+def anca():
+    pass
 
 def test():
+    apply(anca, mara=5)
     y = 0
     for x in xrange(1024):
         y += x

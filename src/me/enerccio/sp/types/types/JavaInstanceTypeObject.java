@@ -51,7 +51,7 @@ public class JavaInstanceTypeObject extends TypeObject {
 		
 		String cls = ((StringObject)clsName).value;
 		
-		return PythonRuntime.runtime.getJavaClass(cls, null, Utils.removeFirst(args.getObjects()));
+		return PythonRuntime.runtime.getJavaClass(cls, null, kwargs, Utils.removeFirst(args.getObjects()));
 	}
 
 	

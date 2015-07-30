@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -60,13 +61,13 @@ public class DictObject extends ContainerObject {
 	static {
 		try {
 			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("getItem", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 			Utils.putPublic(sfields, __SETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("setItem", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, DictObject.class.getMethod("keys", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 			Utils.putPublic(sfields, "values", new JavaMethodObject(null, DictObject.class.getMethod("values", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
 		}
@@ -132,7 +133,8 @@ public class DictObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject getItem(TupleObject a){
+	public PythonObject getItem(TupleObject a, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty(__GETITEM__);
 		if (a.len() != 1)
 			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
@@ -143,7 +145,8 @@ public class DictObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject setItem(TupleObject a){
+	public PythonObject setItem(TupleObject a, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty(__SETITEM__);
 		if (a.len() != 2)
 			throw Utils.throwException("TypeError", "__setitem__(): requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
@@ -168,7 +171,8 @@ public class DictObject extends ContainerObject {
 		return backingMap.get(key);
 	}
 	
-	public PythonObject keys(TupleObject t) {
+	public PythonObject keys(TupleObject t, KwArgs kwargs) {
+		if (kwargs != null) kwargs.checkEmpty("keys");
 		ListObject o = new ListObject();
 		o.newObject();
 		synchronized (backingMap) {
@@ -188,7 +192,8 @@ public class DictObject extends ContainerObject {
 	}
 
 	
-	public PythonObject values(TupleObject t) {
+	public PythonObject values(TupleObject t, KwArgs kwargs) {
+		if (kwargs != null) kwargs.checkEmpty("values");
 		ListObject o = new ListObject();
 		o.newObject();
 		synchronized (backingMap) {

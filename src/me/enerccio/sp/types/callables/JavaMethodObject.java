@@ -86,12 +86,9 @@ public class JavaMethodObject extends CallableObject {
 	 * @return
 	 */
 	public PythonObject doCall(TupleObject args, KwArgs kwargs, boolean skipPythonException) {
-		if (kwargs != null)
-			// System.out.println(" kwargs " + kwargs);
-			throw Utils.throwException("TypeError", this.toString() + "(): called with kwargs");
 		try {
 			if (noTypeConversion){
-				return Utils.cast(invoke(args), boundHandle.getReturnType());
+				return Utils.cast(invoke(args, kwargs), boundHandle.getReturnType());
 			}
 		} catch (PythonExecutionException e){
 			throw e;
@@ -103,7 +100,7 @@ public class JavaMethodObject extends CallableObject {
 			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
 		}
 		
-		Object[] jargs = new Object[args.len()];
+		Object[] jargs = new Object[(kwargs != null ? 1 : 0) + args.len()];
 		Class<?>[] types = boundHandle.getParameterTypes();
 		
 		if (types.length != jargs.length){
@@ -122,6 +119,15 @@ public class JavaMethodObject extends CallableObject {
 					throw e;
 				throw Utils.throwException("TypeError", toString() + ": cannot convert python objects to java objects for arguments of this method");
 			}
+		}
+		
+		if (kwargs != null){
+			if (!types[i].isAssignableFrom(kwargs.getClass()))
+				if (!skipPythonException)
+					throw Utils.throwException("TypeError", toString() + ": java method does not expect kwargs, but kwargs received.");
+				else
+					throw new PointerMethodIncompatibleException();
+			jargs[i] = kwargs;
 		}
 		
 		try {

@@ -115,7 +115,7 @@ public class Utils {
 			return (PythonObject) ret;
 		if (ret == null)
 			return NoneObject.NONE;
-		return PythonRuntime.runtime.getJavaClass(ret.getClass().getCanonicalName(), ret);
+		return PythonRuntime.runtime.getJavaClass(ret.getClass().getCanonicalName(), ret, null);
 	}
 	
 	/**

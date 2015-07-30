@@ -35,6 +35,7 @@ import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.InternalJavaPathResolver;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
@@ -595,7 +596,7 @@ public class PythonRuntime {
 		TypeTypeObject classCreator = (TypeTypeObject) globals.doGet(TypeTypeObject.TYPE_CALL);
 		DictObject dict = new DictObject();
 		
-		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class);
+		JavaFunctionObject init = (JavaFunctionObject) Utils.staticMethodCall(true, PythonRuntime.class, "initException", TupleObject.class, KwArgs.class);
 		init.setWrappedMethod(true);
 		
 		dict.backingMap.put(new StringObject("__init__"), init);
@@ -612,12 +613,13 @@ public class PythonRuntime {
 		return new StringObject(Utils.run("str", e.get("__CLASS__", e)) + ": " + Utils.run("str", e.get("__msg__", e)));
 	}
 	
-	protected static PythonObject initException(TupleObject o){
+	protected static PythonObject initException(TupleObject o, KwArgs kwargs){
+		if (kwargs != null) kwargs.checkEmpty("__init__");
 		if (o.len() == 1)
 			return initException(o.getObjects()[0], NoneObject.NONE);
 		if (o.len() == 2)
 			return initException(o.getObjects()[0], o.getObjects()[1]);
-		throw Utils.throwException("TypeError", "system exception requires 0 or 1 arguments");
+		throw Utils.throwException("TypeError", "__init__(): system exception requires 0 or 1 arguments");
 	}
 	
 	protected static PythonObject initException(PythonObject e, PythonObject text){
@@ -704,7 +706,7 @@ public class PythonRuntime {
 	 * @param args
 	 * @return
 	 */
-	public PointerObject getJavaClass(String cls, Object pointedObject, PythonObject... args) {
+	public PointerObject getJavaClass(String cls, Object pointedObject, KwArgs kwargs, PythonObject... args) {
 		if (!aliases.containsKey(cls) && !allowAutowraps)
 			throw Utils.throwException("TypeError", "javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
 		if (!aliases.containsKey(cls))
@@ -728,7 +730,7 @@ public class PythonRuntime {
 				throw Utils.throwException("TypeError", "javainstance(): unknown java type " + cls);
 			}
 			
-			Object[] jargs = new Object[args.length];
+			Object[] jargs = new Object[args.length + (kwargs != null ? 1 : 0)];
 			
 			Constructor<?> selected = null;
 			outer:
@@ -745,6 +747,12 @@ public class PythonRuntime {
 					} catch (PointerMethodIncompatibleException e){
 						continue outer;
 					}
+				}
+				
+				if (kwargs != null){
+					if (!types[i].isAssignableFrom(kwargs.getClass()))
+						continue;
+					jargs[i] = kwargs;
 				}
 				
 				selected = c;
