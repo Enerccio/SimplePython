@@ -297,8 +297,6 @@ public class PythonRuntime {
 	public static final String HASATTR = "hasattr";
 	public static final String DELATTR = "delattr";
 	public static final String ISINSTANCE = "isinstance";
-	public static final String PRINT_JAVA = "print_java";
-	public static final String PRINT_JAVA_EOL = "print_java_eol";
 	public static final String STATICMETHOD = "staticmethod";
 	public static final String CLASSMETHOD = "classmethod";
 	public static final String CHR = "chr";
@@ -331,8 +329,6 @@ public class PythonRuntime {
 					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
 					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
-					globals.put(PRINT_JAVA, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA, PythonObject.class));
-					globals.put(PRINT_JAVA_EOL, Utils.staticMethodCall(PythonRuntime.class, PRINT_JAVA_EOL));
 					globals.put(CLASSMETHOD, Utils.staticMethodCall(PythonRuntime.class, CLASSMETHOD, UserFunctionObject.class));
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
@@ -452,33 +448,6 @@ public class PythonRuntime {
 	
 	protected static PythonObject is(PythonObject a, PythonObject b){
 		return BoolObject.fromBoolean(a == b);
-	}
-	
-	protected static PythonObject print_java(PythonObject a){
-		return print_java(a, false);
-	}
-	
-	protected static PythonObject print_java(PythonObject a, boolean dualcall){
-		if (a instanceof TupleObject && ((TupleObject)a).len() != 0 && !dualcall){
-			int i=0;
-			for (PythonObject o : ((TupleObject)a).getObjects()){
-				++i;
-				print_java(o, true);
-				if (i != ((TupleObject)a).getObjects().length)
-					System.out.print(" ");
-			}
-		} else {
-			int cfc = PythonInterpret.interpret.get().currentFrame.size();
-			Utils.run("str", a);
-			PythonObject ret = PythonInterpret.interpret.get().executeAll(cfc);
-			System.out.print(Utils.run("str", ret));
-		}
-		return NoneObject.NONE;
-	}
-	
-	protected static PythonObject print_java_eol(){
-		System.out.println();
-		return NoneObject.NONE;
 	}
 	
 	protected static PythonObject isinstance(PythonObject testee, PythonObject clazz){
