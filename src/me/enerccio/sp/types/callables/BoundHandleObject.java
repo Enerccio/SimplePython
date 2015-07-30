@@ -17,17 +17,10 @@
  */
 package me.enerccio.sp.types.callables;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpret;
-import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -48,78 +41,37 @@ public class BoundHandleObject extends PythonObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, this.getClass().getMethod("call", 
-					new Class<?>[]{TupleObject.class}), true));
+			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, "call")); 
 		} catch (NoSuchMethodException e){
 			// will not happen
 		}
 	};
 	
 	/**
-	 * Returns runtime made bytecode for bound function handler.
-	 * @param boundHandleObject
-	 * @param args
-	 * @return
-	 */
-	public CompiledBlockObject methodCall(BoundHandleObject boundHandleObject, TupleObject args) {
-		PythonBytecode b = null;
-		List<PythonBytecode> l = new ArrayList<PythonBytecode>();
-
-		PythonObject caller = boundHandleObject.get(BoundHandleObject.FUNC, boundHandleObject);
-		
-		// []
-		l.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
-		// environments
-		if (caller instanceof UserFunctionObject && caller.fields.containsKey("closure")){
-			// add closure
-			for (PythonObject d : ((TupleObject) caller.fields.get("closure").object).getObjects()){
-				l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-				b.mapValue = (DictObject) d;	
-			}
-		} else {
-			// add globals
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.mapValue = new DictObject();
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH_DICT));
-			b.mapValue = PythonRuntime.runtime.generateGlobals();
-		}
-		
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		if ( fields.get(ACCESSOR) == null)
-			b.value = NoneObject.NONE;
-		else
-			b.value = fields.get(ACCESSOR).object;
-		// [ python object __accessor__ ]
-		l.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT));
-		// []
-		
-		l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-		b.value = caller;
-		
-		for (int i=0; i<args.len(); i++){
-			l.add(b = Bytecode.makeBytecode(Bytecode.PUSH));
-			b.value = args.valueAt(i);
-			// [ callable, python object, python object*++ ]
-		}
-		// [ callable, python object, python object* ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.CALL));
-		b.intValue = args.len();
-		// [ python object ]
-		l.add(b = Bytecode.makeBytecode(Bytecode.RETURN));
-		b.intValue = 1;
-		// []
-		CompiledBlockObject cbc = new CompiledBlockObject(l);
-		cbc.newObject();
-		return cbc;
-	}
-	
-	/**
 	 * Calls this function. Will insert onto frame stack and returns None.
 	 * @param args
 	 * @return
 	 */
-	public PythonObject call(TupleObject args) {
-		PythonInterpret.interpret.get().executeBytecode(methodCall(this, args));
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		PythonObject callable = get(UserMethodObject.FUNC, null);
+		PythonObject accessor = fields.get(ACCESSOR) == null ? null : fields.get(ACCESSOR).object;
+		
+		if (accessor == null)
+			accessor = NoneObject.NONE;
+		PythonInterpret.interpret.get().currentContext.add(accessor);
+		
+		TupleObject aargs = args;
+		
+		if (callable instanceof UserFunctionObject){
+			UserFunctionObject c = (UserFunctionObject)callable;
+			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			PythonInterpret.interpret.get().currentFrame.getLast().pushed_context = true;
+		} else {
+			JavaFunctionObject c = (JavaFunctionObject)callable;
+			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			PythonInterpret.interpret.get().currentContext.pop();
+		}
+		
 		return NoneObject.NONE; // returns immediately
 	}
 

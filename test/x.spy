@@ -1,8 +1,9 @@
-def anca():
-    pass
+class anca:
+    def __init__(self):
+        self.x = 5
+        
+    def wtf(self):
+        print 5
 
 def test():
-    apply(anca, mara=5)
-    y = 0
-    for x in xrange(1024):
-        y += x
+    anca.wtf(anca())

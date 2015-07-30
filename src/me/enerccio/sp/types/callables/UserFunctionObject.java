@@ -115,7 +115,7 @@ public class UserFunctionObject extends CallableObject {
 			if (i < args.len()) {
 				// Argument passed in tuple
 				pl[i] = args.get(i);
-				if (kwargs.containsKey(key))
+				if (kwargs != null && kwargs.containsKey(key))
 					throw Utils.throwException("TypeError", fields.get("__name__").object + "() got multiple values for keyword argument '" + key + "'");
 			} else if ((kwargs != null) && (kwargs.containsKey(key))) {
 				// Argument passed in kwargs
