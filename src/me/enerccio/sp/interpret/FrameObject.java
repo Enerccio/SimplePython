@@ -70,7 +70,7 @@ public class FrameObject extends PythonObject {
 	public int debugLine;
 	public int debugInLine;
 
-	public KwArgs kwargs = null;
+	public KwArgs.HashMapKWArgs kwargs = null;
 
 	public Bytecode nextOpcode() {
 		++pc;
