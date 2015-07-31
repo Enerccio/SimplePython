@@ -711,9 +711,18 @@ public class PythonInterpret extends PythonObject {
 		case YIELD:
 			String name = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 			if (o.ownedGenerator == null){
-				o.ownedGenerator = new GeneratorObject(name, o);
-				o.ownedGenerator.newObject();
-				returnee = o.ownedGenerator;
+				List<FrameObject> ol = new ArrayList<FrameObject>();
+				FrameObject oo = o;
+				while (oo != null){
+					ol.add(oo);
+					oo = oo.parentFrame;
+				}
+				Collections.reverse(ol);
+				GeneratorObject generator = new GeneratorObject(name, ol);
+				generator.newObject();
+				for (FrameObject fr : ol)
+					fr.ownedGenerator = generator;
+				returnee = generator;
 				o.pc -= 5;
 				removeLastFrame();
 				return ExecutionResult.EOF;
@@ -723,6 +732,19 @@ public class PythonInterpret extends PythonObject {
 				PythonObject retVal = stack.pop();
 				returnee = retVal;	
 				o.stack.push(sentValue);
+				
+				GeneratorObject generator = o.ownedGenerator;
+				List<FrameObject> ol = new ArrayList<FrameObject>();
+				FrameObject oo = o;
+				while (oo != null){
+					ol.add(oo);
+					oo = oo.parentFrame;
+				}
+				Collections.reverse(ol);
+				generator.storedFrames = ol;
+				for (FrameObject fr : ol)
+					fr.ownedGenerator = generator;
+				
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			}

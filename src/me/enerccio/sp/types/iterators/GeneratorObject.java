@@ -2,6 +2,7 @@ package me.enerccio.sp.types.iterators;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.enerccio.sp.interpret.FrameObject;
@@ -44,13 +45,13 @@ public class GeneratorObject extends PythonObject {
 		}
 	}
 	
-	public GeneratorObject(String name, FrameObject o){
+	public GeneratorObject(String name, List<FrameObject> o){
 		this.name = name;
-		this.o = o;
+		this.storedFrames = o;
 	}
 	
 	private String name;
-	private FrameObject o;
+	public List<FrameObject> storedFrames;
 	
 	@Override
 	public void newObject() {
@@ -99,13 +100,14 @@ public class GeneratorObject extends PythonObject {
 	public synchronized  PythonObject send(PythonObject v) {
 		if (!nextCalled && v != NoneObject.NONE)
 			throw Utils.throwException("TypeError", "send(): send called before first next called"); 
-		PythonInterpret.interpret.get().currentFrame.add(o);
-		o.stack.add(v);
+		for (FrameObject o : this.storedFrames)
+			PythonInterpret.interpret.get().currentFrame.add(o);
+		this.storedFrames.get(this.storedFrames.size()-1).stack.add(v);
 		return NoneObject.NONE;
 	}
 	
 	public synchronized  PythonObject throwException(ClassObject cls, PythonObject v) {
-		o.exception = cls.call(new TupleObject(v), null); 
+		this.storedFrames.get(this.storedFrames.size()-1).exception = cls.call(new TupleObject(v), null); 
 		return send(NoneObject.NONE);
 	}
 	

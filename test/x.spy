@@ -1,2 +1,8 @@
+def gen():
+    yield "ok"
+
 def test():
-    pass
+    x = gen()
+    print x
+    print x.next()
+    print x.next()
