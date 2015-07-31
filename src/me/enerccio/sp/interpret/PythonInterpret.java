@@ -543,7 +543,7 @@ public class PythonInterpret extends PythonObject {
 		case KWARG:
 			// saves value into environment as variable
 			if (o.kwargs == null)
-				o.kwargs = new KwArgs();
+				o.kwargs = new KwArgs.HashMapKWArgs();
 			o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
 			break;
 		case SAVE_LOCAL:

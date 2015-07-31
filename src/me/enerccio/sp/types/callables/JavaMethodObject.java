@@ -41,6 +41,7 @@ import me.enerccio.sp.utils.Utils;
 public class JavaMethodObject extends CallableObject {
 	private static final String __DOC__ = "__doc__";
 	private static final long serialVersionUID = 23L;
+	private static final KwArgs EMPTY_KWARGS = new KwArgs.HashMapKWArgs(); 
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface ArgNames {
@@ -120,8 +121,6 @@ public class JavaMethodObject extends CallableObject {
 	 * @return
 	 */
 	public PythonObject doCall(TupleObject args, KwArgs kwargs) throws PointerMethodIncompatibleException {
-		if (argNames != null)
-			System.out.println("break");
 		try {
 			if (noTypeConversion){
 				return Utils.cast(invoke(args, kwargs), boundHandle.getReturnType());
@@ -147,7 +146,7 @@ public class JavaMethodObject extends CallableObject {
 				if ((i >= jargs.length) || (argTypes[i] == KwArgs.class))
 					throw new PointerMethodIncompatibleException(toString() + " doesn't take " + args.len() + " arguments");
 				jargs[i] = Utils.asJavaObject(argTypes[i], args.get(i));
-				if ((kwargs != null) && (argNames != null) && kwargs.containsKey(argNames[i]))
+				if ((kwargs != null) && (argNames != null) && kwargs.contains(argNames[i]))
 					throw new PointerMethodIncompatibleException(toString() + " got multiple values for keyword argument '" + argNames[i] + "'");
 				++i;
 			}
@@ -157,7 +156,7 @@ public class JavaMethodObject extends CallableObject {
 					if (argTypes[i] == KwArgs.class)
 						// Last one
 						break;
-					if (kwargs.containsKey(argNames[i])) {
+					if (kwargs.contains(argNames[i])) {
 						jargs[i] = Utils.asJavaObject(argTypes[i], kwargs.consume(argNames[i]));
 					} else {
 						throw new PointerMethodIncompatibleException(toString() + " values for argument '" + argNames[i] + "' missing");
@@ -172,11 +171,15 @@ public class JavaMethodObject extends CallableObject {
 				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument '" + argNames[i] + "'");
 		}
 	
-		if ((kwargs != null) && (argTypes[i] != KwArgs.class)) {
-			try {
-				kwargs.checkEmpty(toString());
-			} catch (PythonExecutionException e) {
-				throw new PointerMethodIncompatibleException(e.getMessage());
+		if (i < argTypes.length) {
+			if ((kwargs != null) && (argTypes[i] != KwArgs.class)) {
+				try {
+					kwargs.checkEmpty(toString());
+				} catch (PythonExecutionException e) {
+					throw new PointerMethodIncompatibleException(e.getMessage());
+				}
+			} else if (argTypes[i] == KwArgs.class) {
+				jargs[i] = kwargs == null ? EMPTY_KWARGS : kwargs;
 			}
 		}
 		
