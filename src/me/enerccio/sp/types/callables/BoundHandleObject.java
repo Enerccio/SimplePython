@@ -58,18 +58,16 @@ public class BoundHandleObject extends PythonObject {
 		
 		if (accessor == null)
 			accessor = NoneObject.NONE;
-		PythonInterpret.interpret.get().currentContext.add(accessor);
 		
 		TupleObject aargs = args;
 		
 		if (callable instanceof UserFunctionObject){
 			UserFunctionObject c = (UserFunctionObject)callable;
 			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
-			PythonInterpret.interpret.get().currentFrame.getLast().pushed_context = true;
+			PythonInterpret.interpret.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject)callable;
 			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
-			PythonInterpret.interpret.get().currentContext.pop();
 		}
 		
 		return NoneObject.NONE; // returns immediately

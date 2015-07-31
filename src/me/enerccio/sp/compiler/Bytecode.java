@@ -48,6 +48,7 @@ public enum Bytecode {
 	// macros
 	GETATTR(90), SETATTR(91), ISINSTANCE(92), 
 	// frames 
+	YIELD(95),
 	
 	// loops, iterators, boolean stuff
 	SETUP_LOOP(100), GET_ITER(101), ACCEPT_ITER(102),
@@ -240,6 +241,10 @@ public enum Bytecode {
 			break;
 		case GET_ITER:
 			bytecode = new GetIter();
+			bytecode.newObject();
+			break;
+		case YIELD:
+			bytecode = new Yield();
 			bytecode.newObject();
 			break;
 		}

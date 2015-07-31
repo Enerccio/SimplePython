@@ -22,6 +22,7 @@ import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.iterators.GeneratorObject;
 
 /**
  * FrameObject represents execution frame. Holds flags related to the execution and also pc + bytecode
@@ -38,9 +39,6 @@ public class FrameObject extends PythonObject {
 	/** whether previous frame ended with return */
 	public boolean returnHappened;
 	/** whether this frame pushed local context or not*/
-	public boolean pushed_context;
-	/** whether this frame pushed new environment or not */
-	public boolean pushed_environ;
 
 	/** whether this frame wants to accept some value as return */
 	public boolean accepts_return;
@@ -55,6 +53,9 @@ public class FrameObject extends PythonObject {
 	public int pc;
 	/** python stack of this frame */
 	public Stack<PythonObject> stack = new Stack<PythonObject>();
+	public GeneratorObject ownedGenerator;
+	public PythonObject localContext;
+	public EnvironmentObject environment;
 
 	@Override
 	public boolean truthValue() {

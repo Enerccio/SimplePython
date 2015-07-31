@@ -464,7 +464,7 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (PythonInterpret.interpret.get().currentEnvironment.size() == 0)
+		if (PythonInterpret.interpret.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.generateGlobals().doGet(variable);
 		return PythonInterpret.interpret.get().environment().get(new StringObject(variable), true, false);
 	}
@@ -545,6 +545,10 @@ public class Utils {
 				w.writeInt(b.intValue);
 				break;
 			case DUP:
+				w.writeInt(b.intValue);
+				break;
+			case YIELD:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				w.writeInt(b.intValue);
 				break;
 			case ECALL:

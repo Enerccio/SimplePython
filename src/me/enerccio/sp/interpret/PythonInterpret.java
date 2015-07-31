@@ -25,6 +25,7 @@ import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.iterators.GeneratorObject;
 import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
@@ -79,10 +80,6 @@ public class PythonInterpret extends PythonObject {
 		interpret.set(this);
 	}
 	
-	/** current environment stack. Topmost element is used for the current environment of the frame */
-	public Stack<EnvironmentObject> currentEnvironment = new Stack<EnvironmentObject>();
-	/** current context stack. Topmost element is used for resolving local context, ie whether we have access to private or not */
-	public Stack<PythonObject> currentContext = new Stack<PythonObject>();
 	/** current frame stack. Topmost element represents currently interpreted frame */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 	/** Number of times this interpret is accessed by itself. If >0, interpret can't be serialized */
@@ -107,7 +104,7 @@ public class PythonInterpret extends PythonObject {
 	 * @return
 	 */
 	public PythonObject executeCall(String function, PythonObject... data) {
-		if (currentEnvironment.size() == 0)
+		if (currentFrame.size() == 0)
 			return returnee = execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), null, data);
 		return returnee = execute(false, environment().get(new StringObject(function), false, false), null, data);
 	}
@@ -117,7 +114,7 @@ public class PythonInterpret extends PythonObject {
 	 * @return
 	 */
 	public EnvironmentObject environment() {
-		return Utils.peek(currentEnvironment);
+		return currentFrame.getLast().environment;
 	}
 	
 	/**
@@ -125,7 +122,7 @@ public class PythonInterpret extends PythonObject {
 	 * @return
 	 */
 	public PythonObject getLocalContext() {
-		PythonObject p = Utils.peek(currentContext);
+		PythonObject p = currentFrame.getLast().localContext;
 		if (p == null)
 			return NoneObject.NONE;
 		return p;
@@ -181,16 +178,6 @@ public class PythonInterpret extends PythonObject {
 	 */
 	public PythonObject getGlobal(String key) {
 		return environment().get(new StringObject(key), true, false);
-	}
-
-	/**
-	 * Pushes environment dicts as a new environment object
-	 * @param environs
-	 */
-	public void pushEnvironment(DictObject... environs) {
-		EnvironmentObject c;
-		currentEnvironment.push(c = new EnvironmentObject());
-		c.add(environs);
 	}
 
 	/**
@@ -320,14 +307,13 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case PUSH_DICT:{
 			// pushes b.mapValue into current environment
-				EnvironmentObject env = Utils.peek(currentEnvironment);
+				EnvironmentObject env = currentFrame.getLast().environment;
 				env.add((DictObject)o.compiled.getConstant(o.nextInt()));
 			} break;
 		case PUSH_ENVIRONMENT:
 			// pushes new environment onto environment stack. 
 			// also sets flag on the current frame to later pop the environment when frame itself is popped
-			currentEnvironment.push(new EnvironmentObject());
-			currentFrame.getLast().pushed_environ = true;
+			o.environment = new EnvironmentObject();
 			break;
 		case CALL: {
 			// calls the runnable with arguments
@@ -529,6 +515,8 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case RETURN:
 			// removes the frame and returns value
+			if (o.ownedGenerator != null)
+				throw Utils.throwException("StopIteration");
 			if (o.nextInt() == 1) {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
@@ -624,8 +612,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case PUSH_LOCAL_CONTEXT:
 			// pushes value from stack into currentContex and makrs the push into frame
-			currentFrame.getLast().pushed_context = true;
-			currentContext.add(stack.pop());
+			o.localContext = stack.pop();
 			break;
 		case RESOLVE_ARGS:
 			// resolves args into locals
@@ -639,7 +626,7 @@ public class PythonInterpret extends PythonObject {
 			PythonObject apo;
 			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
 			value = stack.pop();	// object to get attribute from
-			apo = value.get("__getattribute__", Utils.peek(currentContext)); 
+			apo = value.get("__getattribute__", getLocalContext()); 
 			if (apo != null) {
 				// There is __getattribute__ defined, call it directly
 				returnee = execute(false, apo, null, field);
@@ -647,13 +634,13 @@ public class PythonInterpret extends PythonObject {
 				break;
 			} else {
 				// Try to grab argument normally...
-				apo = value.get(field.value, Utils.peek(currentContext));
+				apo = value.get(field.value, getLocalContext());
 				if (apo != null) {
 					stack.push(apo);
 					break;
 				}				
 				// ... and if that fails, use __getattr__ if available
-				apo = value.get("__getattr__", Utils.peek(currentContext)); 
+				apo = value.get("__getattr__", getLocalContext()); 
 				if (apo != null) {
 					// There is __getattribute__ defined, call it directly
 					returnee = execute(false, apo, null, field);
@@ -707,6 +694,8 @@ public class PythonInterpret extends PythonObject {
 			nf.newObject();
 			nf.parentFrame = o;
 			nf.compiled = o.compiled;
+			nf.localContext = o.localContext;
+			nf.environment = o.environment;
 			nf.dataStream = ByteBuffer.wrap(nf.compiled.getBytedata());
 			nf.pc = o.nextInt();
 			currentFrame.add(nf);
@@ -719,6 +708,22 @@ public class PythonInterpret extends PythonObject {
 			else
 				stack.push(frame.exception);
 			break;
+		case YIELD:
+			String name = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
+			if (o.ownedGenerator == null){
+				o.ownedGenerator = new GeneratorObject(name, o);
+				o.ownedGenerator.newObject();
+				returnee = o.ownedGenerator;
+				o.pc -= 5;
+				removeLastFrame();
+				return ExecutionResult.EOF;
+			} else {
+				o.returnHappened = true;
+				PythonObject retVal = stack.pop();
+				returnee = retVal;	
+				removeLastFrame();
+				return ExecutionResult.EOF;
+			}
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
 		}
@@ -737,10 +742,6 @@ public class PythonInterpret extends PythonObject {
 	 */
 	private void removeLastFrame() {
 		FrameObject o = this.currentFrame.removeLast();
-		if (o.pushed_context)
-			currentContext.pop();
-		if (o.pushed_environ)
-			currentEnvironment.pop();
 		if (o.parentFrame != null){
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.stack.add(o);

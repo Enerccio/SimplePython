@@ -102,7 +102,6 @@ import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_or_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_stmtContext;
-import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
@@ -136,6 +135,7 @@ public class PythonCompiler {
 	private VariableStack stack = new VariableStack();
 	private LinkedList<DictObject> environments = new LinkedList<DictObject>();
 	private Stack<String> compilingClass = new Stack<String>();
+	private Stack<String> compilingFunction = new Stack<String>();
 	
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
 	
@@ -153,6 +153,7 @@ public class PythonCompiler {
 			List<String> args, String vargarg, DictObject defaults, DictObject locals) {
 		moduleName.set("generated-functions");
 		stack.push();
+		compilingFunction.push("generated-function");
 		
 		for (DictObject global : globals)
 			environments.add(global);
@@ -192,6 +193,7 @@ public class PythonCompiler {
 		Utils.putPublic(fnc, "locals", locals);
 		Utils.putPublic(fnc, "function_defaults", defaults);
 		
+		compilingFunction.pop();
 		return fnc;
 	}
 	
@@ -208,6 +210,7 @@ public class PythonCompiler {
 	
 	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, String mn, PythonObject locals) {
 		moduleName.set(mn);
+		compilingFunction.push(null);
 		
 		stack.push();
 		compilingClass.push(null);
@@ -233,6 +236,7 @@ public class PythonCompiler {
 		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
 		cob.newObject();
 		
+		compilingFunction.pop();
 		return cob;
 	}
 
@@ -527,7 +531,7 @@ public class PythonCompiler {
 	}
 	
 	private void compileClass(ClassdefContext classdef, List<PythonBytecode> bytecode, DecoratorsContext dc) {
-		
+		compilingFunction.push(null);
 		String className = classdef.nname().getText();
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, classdef.start));
 		cb.stringValue = "type";
@@ -574,6 +578,7 @@ public class PythonCompiler {
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, classdef.stop));
 		cb.stringValue = className;
+		compilingFunction.pop();
 	}
 
 	private void compileFunction(FuncdefContext funcdef,
@@ -585,6 +590,8 @@ public class PythonCompiler {
 			Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
 		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
+		
+		compilingFunction.push(functionName);
 		
 		List<String> arguments = new ArrayList<String>();
 		for (int i=0; i<funcdef.farg().size(); i++){
@@ -664,6 +671,8 @@ public class PythonCompiler {
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, funcdef.stop));
 		cb.stringValue = functionName;
+		
+		compilingFunction.pop();
 	}
 
 	private void compile(DecoratorsContext dc, List<PythonBytecode> bytecode) {
@@ -780,9 +789,15 @@ public class PythonCompiler {
 		compile(ctx.yield_expr(), bytecode);
 	}
 
-	private void compile(Yield_exprContext yield_expr,
+	private void compile(Yield_exprContext ctx,
 			List<PythonBytecode> bytecode) {
-		// TODO
+		String name = compilingFunction.peek();
+		if (name == null)
+			throw Utils.throwException("SyntaxError", "yield outside function body");
+		
+		compileRightHand(ctx.testlist(), bytecode);
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.YIELD, ctx.stop)); 
+		cb.stringValue = name;
 	}
 
 	private void compile(Break_stmtContext break_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -848,37 +863,7 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
 		cb.intValue = 3 + st;
 		
-//		if (ctx.push() != null){
-//			// TODO
-//		} else {
-//			boolean eol = (ctx.endp() == null);
-//			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-//			cb.stringValue = PythonRuntime.PRINT_JAVA;
-//			int tlc = ctx.test().size();
-//			if (tlc > 1){
-//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
-//				cb.stringValue = TupleTypeObject.TUPLE_CALL;
-//			}
-//			
-//			for (TestContext tc : ctx.test())
-//				compile(tc, bytecode);
-//			
-//			if (tlc > 1){
-//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-//				cb.intValue = tlc;
-//			}
-//			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-//			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
-//			cb.intValue = 1;
-//			
-//			if (eol){
-//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.stop));
-//				cb.stringValue = PythonRuntime.PRINT_JAVA_EOL;
-//				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-//				cb.intValue = 0;
-//				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
-//			}
-//		}
+		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
 	}
 
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {

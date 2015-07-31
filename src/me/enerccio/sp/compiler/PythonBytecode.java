@@ -68,6 +68,17 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class Yield extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 438692848919066014L;
+
+		{
+			bytecode = Bytecode.YIELD;
+		}
+	}
+	
 	public static class SaveLocal extends PythonBytecode {
 		/**
 		 * 

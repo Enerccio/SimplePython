@@ -1,3 +1,7 @@
+def anca(x):
+    for y in xrange(x):
+        yield y
 
 def test():
-    print 5 + 2
+    for x in anca(5):
+        print x

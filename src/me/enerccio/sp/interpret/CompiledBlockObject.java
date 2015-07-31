@@ -211,6 +211,7 @@ public class CompiledBlockObject extends PythonObject {
 			case SAVEGLOBAL:
 			case SAVE_LOCAL:
 			case SETATTR:
+			case YIELD:
 				c = b.getInt();
 				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
 				break;

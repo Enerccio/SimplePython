@@ -51,9 +51,9 @@ public class XRangeIterator extends PythonObject {
 	static {
 		try {
 			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, XRangeIterator.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{}), false));
 			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, XRangeIterator.class.getMethod("next", 
-					new Class<?>[]{TupleObject.class}), true));
+					new Class<?>[]{}), false));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -78,7 +78,7 @@ public class XRangeIterator extends PythonObject {
 		return "<rangeiterator object at " + this.getId() + ">";
 	}
 
-	public PythonObject __iter__(TupleObject t) {
+	public PythonObject __iter__() {
 		return this;
 	}
 	
