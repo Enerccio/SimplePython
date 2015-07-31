@@ -718,9 +718,11 @@ public class PythonInterpret extends PythonObject {
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			} else {
+				PythonObject sentValue = stack.pop();
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
 				returnee = retVal;	
+				o.stack.push(sentValue);
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			}
