@@ -36,6 +36,7 @@ import me.enerccio.sp.parser.pythonParser.ArglistContext;
 import me.enerccio.sp.parser.pythonParser.ArgumentContext;
 import me.enerccio.sp.parser.pythonParser.Arith_exprContext;
 import me.enerccio.sp.parser.pythonParser.AtomContext;
+import me.enerccio.sp.parser.pythonParser.Bracket_atomContext;
 import me.enerccio.sp.parser.pythonParser.Break_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
 import me.enerccio.sp.parser.pythonParser.Comp_forContext;
@@ -98,6 +99,9 @@ import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
 import me.enerccio.sp.parser.pythonParser.While_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
+import me.enerccio.sp.parser.pythonParser.Yield_exprContext;
+import me.enerccio.sp.parser.pythonParser.Yield_or_exprContext;
+import me.enerccio.sp.parser.pythonParser.Yield_stmtContext;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.ModuleObject;
@@ -767,6 +771,18 @@ public class PythonCompiler {
 			compile(ctx.continue_stmt(), bytecode, cs);
 		else if (ctx.raise_stmt() != null)
 			compile(ctx.raise_stmt(), bytecode);
+		else if (ctx.yield_stmt() != null)
+			compile(ctx.yield_stmt(), bytecode);
+	}
+
+	private void compile(Yield_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		compile(ctx.yield_expr(), bytecode);
+	}
+
+	private void compile(Yield_exprContext yield_expr,
+			List<PythonBytecode> bytecode) {
+		// TODO
 	}
 
 	private void compile(Break_stmtContext break_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -868,7 +884,7 @@ public class PythonCompiler {
 	private void compile(Expr_stmtContext expr, List<PythonBytecode> bytecode) {
 		if (expr.augassignexp() != null) {
 			// AugAssign
-			TestlistContext leftHand = expr.testlist(0);
+			TestlistContext leftHand = expr.testlist();
 			if (leftHand.test().size() > 1)
 				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
 			// TODO
@@ -886,36 +902,64 @@ public class PythonCompiler {
 				putGetAttr(Arithmetics.__MOD__, bytecode, expr.start);
 			else
 				throw Utils.throwException("SyntaxError", "illegal augmented assignment");
-			compileRightHand(expr.augassignexp().testlist(), bytecode);
+			compileRightHand(expr.augassignexp().yield_or_expr(), bytecode);
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, expr.stop));
 			cb.intValue = 1;
 			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
-			TestlistContext rightHand = expr.testlist(expr.testlist().size()-1);
-			List<TestlistContext> rest = new ArrayList<TestlistContext>();
-			for (int i=0; i<expr.testlist().size()-1; i++)
-				rest.add(expr.testlist(i));
+			if (expr.yield_or_expr().size() == 0){
+				compileRightHand(expr.testlist(), bytecode);
+				bytecode.add(Bytecode.makeBytecode(Bytecode.POP, expr.stop));
+				return;
+			}
+			
+			Yield_or_exprContext rightHand = expr.yield_or_expr(expr.yield_or_expr().size()-1);
+			List<ParseTree> rest = new ArrayList<ParseTree>();
+			rest.add(expr.testlist());
+			for (int i=0; i<expr.yield_or_expr().size()-1; i++)
+				rest.add(expr.yield_or_expr(i));
 			
 			Collections.reverse(rest);
 			compileRightHand(rightHand, bytecode);
 			
-			for (TestlistContext tc : rest){
-				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, tc.start));
-				if (tc.test().size() > 1) {
-					// x,y,z = ...
-					bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE, tc.start));
-					cb.intValue = tc.test().size();
-					for (int i=0; tc.test(i) != null; i++)
-						compileAssignment(tc.test(i), bytecode);
+			for (ParseTree pt : rest){
+				Yield_or_exprContext yt = null;
+				TestlistContext tc = null;
+				if (pt instanceof Yield_or_exprContext){
+					yt = (Yield_or_exprContext)pt;
 				} else {
-					// x = y
-					compileAssignment(tc.test(0), bytecode);
+					tc = (TestlistContext)pt;
+				}
+				bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, tc == null ? yt.start : tc.start));
+				if (yt != null && yt.yield_expr() != null){
+					
+				} else {
+					if (yt != null)
+						tc = yt.testlist();
+					if (tc.test().size() > 1) {
+						// x,y,z = ...
+						bytecode.add(cb = Bytecode.makeBytecode(Bytecode.UNPACK_SEQUENCE, tc.start));
+						cb.intValue = tc.test().size();
+						for (int i=0; tc.test(i) != null; i++)
+							compileAssignment(tc.test(i), bytecode);
+					} else {
+						// x = y
+						compileAssignment(tc.test(0), bytecode);
+					}
 				}
 			}
 			bytecode.add(Bytecode.makeBytecode(Bytecode.POP, expr.stop));
 		}
 	}
 	
+	private void compileRightHand(Yield_or_exprContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.testlist() != null)
+			compileRightHand(ctx.testlist(), bytecode);
+		else
+			compile(ctx.yield_expr(), bytecode);
+	}
+
 	/** 
 	 * Compiles right side of assignment, leaving value of right hand on top of stack
 	 * Offset can be used to skip left-side test.
@@ -1363,7 +1407,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.start));
 			cb.value = new StringObject(bd.toString());
 		} else if (ctx.getText().startsWith("(")){
-			compile(ctx.testlist_comp(), bytecode, ctx.start);
+			compile(ctx.bracket_atom(), bytecode, ctx.start);
 		} else if (ctx.getText().startsWith("[")){
 			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")){
@@ -1371,6 +1415,21 @@ public class PythonCompiler {
 		}
 	}
 	
+	private void compile(Bracket_atomContext ctx,
+			List<PythonBytecode> bytecode, Token t) {
+		if (ctx == null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
+			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
+			cb.intValue = 0;
+			return;
+		}
+		if (ctx.testlist_comp() != null)
+			compile(ctx.testlist_comp(), bytecode, t);
+		else
+			compile(ctx.yield_expr(), bytecode);
+	}
+
 	private void compile(DictentryContext dcx, List<PythonBytecode> bytecode) {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, dcx.start));
 		compile(dcx.test(0), bytecode);
@@ -1381,13 +1440,6 @@ public class PythonCompiler {
 	}
 
 	private void compile(Testlist_compContext ctx, List<PythonBytecode> bytecode, Token t) {
-		if (ctx == null){
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, t));
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
-			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, t));
-			cb.intValue = 0;
-			return;
-		}
 		if (ctx.comp_for() != null){
 			// TODO
 		} else {
@@ -1881,7 +1933,7 @@ public class PythonCompiler {
 			throw Utils.throwException("SyntaxError", "can't assign to generator literal");
 		if ( (ctx.number() != null) || (ctx.string().size() > 0) )
 			throw Utils.throwException("SyntaxError", "can't assign to literal");
-		if (ctx.testlist_comp() != null)
+		if (ctx.bracket_atom() != null)
 			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
 		compileAssignment(ctx.nname(), bytecode);
 	}

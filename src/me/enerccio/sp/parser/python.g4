@@ -205,11 +205,15 @@ parenthesesless_call
 ;
 
 expr_stmt
-: testlist (augassignexp | ('=' testlist)*)
+: testlist (augassignexp | ('=' yield_or_expr)*)
 ;                
  
+yield_or_expr
+: yield_expr | testlist
+;
+ 
 augassignexp
-: augassign testlist
+: augassign yield_or_expr
 ;
 
 augassign
@@ -239,7 +243,11 @@ pass_stmt
 ;
 
 flow_stmt
-: break_stmt | continue_stmt | return_stmt | raise_stmt
+: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt
+;
+
+yield_stmt
+: yield_expr
 ;
 
 break_stmt
@@ -413,10 +421,18 @@ power
 : atom trailer* ('**' factor)? 
 ; 
 
-atom: ('(' testlist_comp? ')' |
+atom: ('(' bracket_atom? ')' |
        '[' listmaker? ']' |
        '{' dictorsetmaker? '}' |
        nname | number | string+)
+;
+
+bracket_atom
+: yield_expr | testlist_comp
+;
+
+yield_expr
+: 'yield' testlist?
 ;
 
 listmaker

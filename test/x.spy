@@ -1,2 +1,3 @@
+
 def test():
-    print >> test, "anca"
+    print 5 + 2
