@@ -12,6 +12,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -25,6 +26,8 @@ public class GeneratorObject extends PythonObject {
 	public static final String NEXT =  "next";
 	public static final String SEND =  "send";
 	public static final String THROW =  "throw";
+	public static final String CLOSE =  "close";
+	public static final String __DEL__ =  "__del__";
 
 	static {
 		try {
@@ -63,6 +66,22 @@ public class GeneratorObject extends PythonObject {
 				AccessRestrictions.PUBLIC));
 		m = SEND;
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
+		
+		PythonObject fnc = Utils.getGlobal("close_generator");
+		
+		PythonObject value = new UserMethodObject();
+		value.newObject();
+		Utils.putPublic(value, UserMethodObject.SELF, this);
+		Utils.putPublic(value, UserMethodObject.FUNC, fnc);
+		Utils.putPublic(value, UserMethodObject.ACCESSOR, NoneObject.NONE);
+		
+		m = CLOSE;
+		fields.put(m, new AugumentedPythonObject(value, 
+				AccessRestrictions.PUBLIC));
+		
+		m = __DEL__;
+		fields.put(m, new AugumentedPythonObject(value, 
 				AccessRestrictions.PUBLIC));
 	}
 	

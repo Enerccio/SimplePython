@@ -289,3 +289,11 @@ class super(object):
             if (hasattr(cls, key)):
                 return cls, getattr(cls, key)
         raise AttributeError("unknown attribute " + key)
+    
+def close_generator(generator):
+    try:
+        generator.throw(GeneratorExit, None)
+    except (GeneratorExit, StopIteration):
+        pass
+    else:
+        raise RuntimeError("generator ignored GeneratorExit")
