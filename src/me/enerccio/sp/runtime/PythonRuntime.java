@@ -83,6 +83,7 @@ import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
+import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
@@ -678,7 +679,7 @@ public class PythonRuntime {
 					try {
 						jargs[i] = Utils.asJavaObject(types[i], oo);
 						++i;
-					} catch (PointerMethodIncompatibleException e){
+					} catch (CastFailedException e){
 						continue outer;
 					}
 				}

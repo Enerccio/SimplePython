@@ -123,63 +123,63 @@ public class Utils {
 	/**
 	 * Casts python object into java object
 	 * @param aType type to cast to
-	 * @param datum python object to cast
+	 * @param o python object to cast
 	 * @return casted java value
 	 * @throws PointerMethodIncompatibleException if it cannot be casted
 	 */
-	public static Object asJavaObject(Class<?> aType, PythonObject datum)
-			throws PointerMethodIncompatibleException {
+	public static Object asJavaObject(Class<?> aType, PythonObject o)
+			throws CastFailedException {
 		if (aType == Integer.class || aType == int.class) {
-			if (datum instanceof IntObject)
-				return (int) ((IntObject)datum).intValue();
+			if (o instanceof IntObject)
+				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", datum));
+				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", o));
 		}
 
 		if (aType == Long.class || aType == long.class) {
-			if (datum instanceof IntObject)
-				return ((IntObject)datum).intValue();
+			if (o instanceof IntObject)
+				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", datum));
+				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", o));
 		}
 
 		if (aType == Float.class || aType == float.class) {
-			if (datum instanceof RealObject)
-				return ((RealObject)datum).floatValue();
+			if (o instanceof RealObject)
+				return ((RealObject)o).floatValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", datum));
+				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", o));
 		}
 
 		if (aType == Double.class || aType == double.class) {
-			if (datum instanceof RealObject)
-				return ((RealObject)datum).doubleValue();
+			if (o instanceof RealObject)
+				return ((RealObject)o).doubleValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", datum));
+				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", o));
 		}
 
 		if (aType == Boolean.class || aType == boolean.class) {
-			return new Boolean(datum.truthValue());
+			return new Boolean(o.truthValue());
 		}
 
 		if (aType == String.class) {
-			if (datum instanceof StringObject)
-				return ((StringObject) datum).getString();
+			if (o instanceof StringObject)
+				return ((StringObject) o).getString();
 		}
 
-		if (datum instanceof PointerObject) {
-			Class<?> ptype = ((PointerObject) datum).getObject().getClass();
+		if (o instanceof PointerObject) {
+			Class<?> ptype = ((PointerObject) o).getObject().getClass();
 			if (aType.isAssignableFrom(ptype))
-				return ((PointerObject) datum).getObject();
+				return ((PointerObject) o).getObject();
 		}
 		
-		if (aType.isAssignableFrom(datum.getClass()))
-			return datum;
+		if (aType.isAssignableFrom(o.getClass()))
+			return o;
 
-		if (datum == NoneObject.NONE && !aType.isPrimitive()){
+		if (o == NoneObject.NONE && !aType.isPrimitive()){
 			return null;
 		}
 		
-		throw new PointerMethodIncompatibleException();
+		throw new CastFailedException("Can't convert " + o.toString() + " to " + aType.getName());
 	}
 
 	public static PythonObject get(PythonObject container, String field) {
