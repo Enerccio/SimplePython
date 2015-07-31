@@ -87,8 +87,7 @@ public class GeneratorObject extends PythonObject {
 	
 	public synchronized  PythonObject throwException(ClassObject cls, PythonObject v) {
 		o.exception = cls.call(new TupleObject(v), null); 
-		PythonInterpret.interpret.get().currentFrame.add(o);
-		return NoneObject.NONE;
+		return send(NoneObject.NONE);
 	}
 	
 	@Override
