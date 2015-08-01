@@ -915,4 +915,8 @@ public class PythonInterpret extends PythonObject {
 				}
 		}
 	}
+
+	public int getAccessCount() {
+		return accessCount;
+	}
 }
