@@ -162,12 +162,8 @@ decorated
 : decorators (classdef | funcdef)
 ;
 
-docstring
-: LONG_STRING
-;
-
 funcdef
-: (docstring NEWLINE)? 'def' nname '(' ((farg? (',' farg)* (',' vararg)? ','?) | (vararg ','?)) ')' ':' suite
+: 'def' nname '(' ((farg? (',' farg)* (',' vararg)? ','?) | (vararg ','?)) ')' ':' suite
 ;
 
 farg
@@ -489,7 +485,7 @@ dictentry
 ;
 
 classdef
-: (docstring NEWLINE)? 'class' nname ('(' testlist? ')')? ':' suite
+: 'class' nname ('(' testlist? ')')? ':' suite
 ;
 
 arglist

@@ -85,6 +85,7 @@ import me.enerccio.sp.parser.pythonParser.Simple_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Small_stmtContext;
 import me.enerccio.sp.parser.pythonParser.StmtContext;
 import me.enerccio.sp.parser.pythonParser.StringContext;
+import me.enerccio.sp.parser.pythonParser.StringLiterarContext;
 import me.enerccio.sp.parser.pythonParser.String_inputContext;
 import me.enerccio.sp.parser.pythonParser.SubscriptContext;
 import me.enerccio.sp.parser.pythonParser.SubscriptlistContext;
@@ -136,6 +137,7 @@ public class PythonCompiler {
 	private LinkedList<DictObject> environments = new LinkedList<DictObject>();
 	private Stack<String> compilingClass = new Stack<String>();
 	private Stack<String> compilingFunction = new Stack<String>();
+	private Stack<String> docstring = new Stack<String>();
 	
 	public static ThreadLocal<String> moduleName = new ThreadLocal<String>();
 	
@@ -192,6 +194,7 @@ public class PythonCompiler {
 		Utils.putPublic(fnc, "closure", to);
 		Utils.putPublic(fnc, "locals", locals);
 		Utils.putPublic(fnc, "function_defaults", defaults);
+		Utils.putPublic(fnc, "__doc__", getDocstring());
 		
 		compilingFunction.pop();
 		return fnc;
@@ -226,8 +229,17 @@ public class PythonCompiler {
 		cb.mapValue = dict;
 		environments.add(dict);
 		
-		for (Label_or_stmtContext ls : fcx.label_or_stmt())
+		boolean first = true;
+		for (Label_or_stmtContext ls : fcx.label_or_stmt()){
+			if (first){
+				first = false;
+				String docString = getDocstring(ls);
+				docstring.add(docString);
+				if (docString != null)
+					continue;
+			}
 			compile(ls, bytecode, null);
+		}
 		
 		compilingClass.pop();
 		stack.pop();
@@ -236,8 +248,16 @@ public class PythonCompiler {
 		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
 		cob.newObject();
 		
+		dict.backingMap.put(new StringObject("__doc__"), getDocstring());
+		
 		compilingFunction.pop();
 		return cob;
+	}
+
+	private String getDocstring(Label_or_stmtContext ls) {
+		if (ls.stmt() != null)
+			return getDocstring(ls.stmt());
+		return null;
 	}
 
 	private void compileStatement(StmtContext sctx, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -555,28 +575,10 @@ public class PythonCompiler {
 		DictObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
 		compilingClass.pop();
 		
-		PythonObject vv;
-		if (classdef.docstring() != null){
-			vv = new StringObject(doGetLongString(classdef.docstring().LONG_STRING().getText()));
-		} else {
-			vv = NoneObject.NONE;
-		}
-		
 		Utils.putPublic(fnc, "function_defaults", new DictObject());
 		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
-		
-		fncb.add(Bytecode.makeBytecode(Bytecode.DUP, classdef.stop));
-		putGetAttr("__setitem__", fncb, classdef.stop);
-		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
-		cb.value = new StringObject("__doc__");
-		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
-		cb.value = vv;
-		fncb.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
-		cb.intValue = 2;
-		fncb.add(Bytecode.makeBytecode(Bytecode.POP, classdef.stop));
-		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
 		cb.intValue = 1;
 		
@@ -590,6 +592,13 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
 		cb.intValue = 3;
 		
+		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, classdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
+		cb.value = getDocstring();
+		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, classdef.stop));
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, classdef.stop));
+		cb.stringValue = "__doc__";
+		
 		if (dc != null){
 			compile(dc, bytecode);
 		}
@@ -599,13 +608,18 @@ public class PythonCompiler {
 		compilingFunction.pop();
 	}
 
+	private PythonObject getDocstring() {
+		String doc = docstring.pop();
+		if (doc == null)
+			return NoneObject.NONE;
+		return new StringObject(doc.trim());
+	}
+
 	private void compileFunction(FuncdefContext funcdef,
 			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
 		
-		if (funcdef.docstring() != null)
-			Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
 		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
 		
@@ -626,6 +640,8 @@ public class PythonCompiler {
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		DictObject locals = doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
 		compilingClass.pop();
+		
+		Utils.putPublic(fnc, "__doc__", getDocstring());
 		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = NoneObject.NONE;
@@ -690,6 +706,8 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, funcdef.stop));
 		cb.stringValue = functionName;
 		
+		// Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
+		
 		compilingFunction.pop();
 	}
 
@@ -711,10 +729,6 @@ public class PythonCompiler {
 		}
 	}
 
-	private String doGetLongString(String text) {
-		return text.substring(3, text.length()-4);
-	}
-
 	private DictObject doCompileFunction(ParseTree suite,
 			List<PythonBytecode> bytecode, Token t, DictObject dict) {
 
@@ -729,10 +743,20 @@ public class PythonCompiler {
 		}
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, t));
 		
-		if (suite instanceof SuiteContext)
-			for (StmtContext c : ((SuiteContext)suite).stmt())
+		if (suite instanceof SuiteContext){
+			boolean first = true;
+			for (StmtContext c : ((SuiteContext)suite).stmt()){
+				if (first){
+					first = false;
+					String docString = getDocstring(c);
+					docstring.add(docString);
+					if (docString != null)
+						continue;
+				}
+				
 				compileStatement(c, bytecode, null);
-		else
+			}
+		} else
 			for (StmtContext c : ((String_inputContext) suite).stmt())
 				compileStatement(c, bytecode, null);
 		
@@ -741,6 +765,138 @@ public class PythonCompiler {
 		stack.pop();
 		
 		return dict;
+	}
+
+	private String getDocstring(StmtContext c) {
+		if (c.simple_stmt() != null)
+			return getDocstring(c.simple_stmt());
+		return null;
+	}
+
+	private String getDocstring(Simple_stmtContext simple_stmt) {
+		if (simple_stmt.small_stmt().size() == 1)
+			return getDocstring(simple_stmt.small_stmt(0));
+		return null;
+	}
+
+	private String getDocstring(Small_stmtContext small_stmt) {
+		if (small_stmt.expr_stmt() != null)
+			return getDocstring(small_stmt.expr_stmt());
+		return null;
+	}
+
+	private String getDocstring(Expr_stmtContext expr_stmt) {
+		if (expr_stmt.testlist() != null)
+			return getDocstring(expr_stmt.testlist());
+		return null;
+	}
+
+	private String getDocstring(TestlistContext testlist) {
+		if (testlist.test().size() == 1)
+			return getDocstring(testlist.test(0));
+		return null;
+	}
+
+	private String getDocstring(TestContext test) {
+		if (test.or_test().size() == 1)
+			return getDocstring(test.or_test(0));
+		return null;
+	}
+
+	private String getDocstring(Or_testContext or_test) {
+		if (or_test.and_test().size() == 1)
+			return getDocstring(or_test.and_test(0));
+		return null;
+	}
+
+	private String getDocstring(And_testContext and_test) {
+		if (and_test.not_test().size() == 1)
+			return getDocstring(and_test.not_test(0));
+		return null;
+	}
+
+	private String getDocstring(Not_testContext not_test) {
+		if (not_test.comparison() != null)
+			return getDocstring(not_test.comparison());
+		return null;
+	}
+
+	private String getDocstring(ComparisonContext comparison) {
+		if (comparison.expr().size() == 1)
+			return getDocstring(comparison.expr(0));
+		return null;
+	}
+
+	private String getDocstring(ExprContext expr) {
+		if (expr.xor_expr().size() == 1)
+			return getDocstring(expr.xor_expr(0));
+		return null;
+	}
+
+	private String getDocstring(Xor_exprContext xor_expr) {
+		if (xor_expr.and_expr().size() == 1)
+			return getDocstring(xor_expr.and_expr(0));
+		return null;
+	}
+
+	private String getDocstring(And_exprContext and_expr) {
+		if (and_expr.shift_expr().size() == 1)
+			return getDocstring(and_expr.shift_expr(0));
+		return null;
+	}
+
+	private String getDocstring(Shift_exprContext shift_expr) {
+		if (shift_expr.arith_expr().size() == 1)
+			return getDocstring(shift_expr.arith_expr(0));
+		return null;
+	}
+
+	private String getDocstring(Arith_exprContext arith_expr) {
+		if (arith_expr.term().size() == 1)
+			return getDocstring(arith_expr.term(0));
+		return null;
+	}
+
+	private String getDocstring(TermContext term) {
+		if (term.factor().size() == 1)
+			return getDocstring(term.factor(0));
+		return null;
+	}
+
+	private String getDocstring(FactorContext factor) {
+		if (factor.power() != null)
+			return getDocstring(factor.power());
+		return null;
+	}
+
+	private String getDocstring(PowerContext power) {
+		if (power.atom() != null)
+			return getDocstring(power.atom());
+		return null;
+	}
+
+	private String getDocstring(AtomContext atom) {
+		if (atom.string().size() == 1)
+			return getDocstring(atom.string(0));
+		return null;
+	}
+
+	private String getDocstring(StringContext string) {
+		if (string.stringLiterar() != null)
+			return getDocstring(string.stringLiterar());
+		return null;
+	}
+
+	private String getDocstring(StringLiterarContext s) {
+		if (s.SHORT_STRING() != null){
+			String ss = s.getText();
+			ss = ss.substring(1, ss.length()-1);
+			return ss;
+		} else {
+			String ss = s.getText();
+			ss = ss.substring(3, ss.length()-4);
+			return ss;
+		}
 	}
 
 	private void compileSimpleStatement(Simple_stmtContext sstmt, List<PythonBytecode> bytecode, ControllStack cs) {

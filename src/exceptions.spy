@@ -2,6 +2,8 @@
 SimplePython - embeddable python interpret in java
 Copyright (c) Peter Vanusanik, All rights reserved.
  
+ Exceptions module
+ 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
