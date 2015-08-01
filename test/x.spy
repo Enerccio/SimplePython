@@ -1,16 +1,4 @@
-import math
-
-class Anca(object):
-    """
-    Anca class!
-    """
-
-def anca():
-    """
-    anca func!
-    """
+import anca.test2.q as aaa
 
 def test():
-    print math.__doc__
-    print Anca().__doc__
-    print anca.__doc__
+    print aaa

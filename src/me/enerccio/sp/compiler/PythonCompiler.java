@@ -609,7 +609,9 @@ public class PythonCompiler {
 	}
 
 	private PythonObject getDocstring() {
-		String doc = docstring.pop();
+		String doc = Utils.peek(docstring);
+		if (docstring.size() > 0)
+			docstring.pop();
 		if (doc == null)
 			return NoneObject.NONE;
 		return new StringObject(doc.trim());
