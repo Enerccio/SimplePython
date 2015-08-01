@@ -753,6 +753,40 @@ public class PythonInterpret extends PythonObject {
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			}
+		case LOADDYNAMIC:{
+			value = null;
+			boolean found = false;
+			StringObject variable = (StringObject) o.compiled.getConstant(o.nextInt());
+			for (int i=currentFrame.size()-1; i>=0; i--){
+				FrameObject oo = currentFrame.get(i);
+				DictObject locals = oo.environment.getLocals();
+				if (locals.contains(variable.value)){
+					stack.push(locals.doGet(variable));
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				throw Utils.throwException("NameError", "dynamic variable '" + variable.value + "' is undefined");
+		} break;
+		case SAVEDYNAMIC: {
+			value = stack.pop();
+			StringObject variable = (StringObject) o.compiled.getConstant(o.nextInt());
+			boolean found = false;
+			for (int i=currentFrame.size()-1; i>=0; i--){
+				FrameObject oo = currentFrame.get(i);
+				DictObject locals = oo.environment.getLocals();
+				if (locals.contains(variable.value)){
+					locals.backingMap.put(variable, value);
+					found = true;
+					break;
+				}
+			}
+			if (!found){
+				DictObject locals = o.environment.getLocals();
+				locals.backingMap.put(variable, value);
+			}
+		} break;
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
 		}

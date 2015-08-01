@@ -593,6 +593,9 @@ public class Utils {
 			case LOADGLOBAL:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
+			case LOADDYNAMIC:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
 			case NOP:
 				break;
 			case POP:
@@ -634,6 +637,9 @@ public class Utils {
 			case SAVEGLOBAL:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
+			case SAVEDYNAMIC:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
 			case SAVE_LOCAL:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
@@ -651,8 +657,6 @@ public class Utils {
 				break;
 			case UNPACK_SEQUENCE:
 				w.writeInt(b.intValue);
-				break;
-			default:
 				break;
 			}
 			

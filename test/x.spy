@@ -1,4 +1,27 @@
-import anca.test2.q as aaa
+
+a = "test"
+
+def one():
+    global a
+    a = 5
+
+one()
+
+def closure():
+    b = 20
+    def inner():
+        dynamic b
+        print b
+    return inner
+
+def dynamic_setter():
+    dynamic b
+    b = 1024
 
 def test():
-    print aaa
+    print a
+    b = 10
+    closure()()
+    
+    dynamic_setter()
+    closure()()

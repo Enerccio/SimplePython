@@ -176,7 +176,6 @@ public class CompiledBlockObject extends PythonObject {
 			case JUMPIFNONE:
 			case JUMPIFNORETURN:
 			case JUMPIFTRUE:
-			case KCALL:
 			case PUSH_DICT:
 			case PUSH_FRAME:
 			case RCALL:
@@ -208,10 +207,12 @@ public class CompiledBlockObject extends PythonObject {
 			case KWARG:
 			case LOAD:
 			case LOADGLOBAL:
+			case LOADDYNAMIC:
 			case SAVE:
 			case PUSH:
 			case SAVEGLOBAL:
 			case SAVE_LOCAL:
+			case SAVEDYNAMIC:
 			case SETATTR:
 			case YIELD:
 				c = b.getInt();

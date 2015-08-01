@@ -426,6 +426,23 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class LoadDynamic extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1803853394223900780L;
+
+		{
+			bytecode = Bytecode.LOADDYNAMIC;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+
+	}
+	
 	public static class Save extends PythonBytecode {
 		/**
 		 * 
@@ -450,6 +467,22 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.SAVEGLOBAL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+	}
+	
+	public static class SaveDynamic extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -416468849835914035L;
+
+		{
+			bytecode = Bytecode.SAVEDYNAMIC;
 		}
 		
 		@Override
@@ -530,23 +563,6 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.SWAP_STACK;
-		}
-	}
-	
-
-	public static class KCall extends PythonBytecode {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -3080128534823197157L;
-
-		{
-			bytecode = Bytecode.KCALL;
-		}
-		
-		@Override
-		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
 

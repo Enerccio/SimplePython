@@ -29,6 +29,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.compiler.VariableStack.VariableType;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
@@ -52,6 +53,7 @@ import me.enerccio.sp.parser.pythonParser.DictorsetmakerContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
+import me.enerccio.sp.parser.pythonParser.Dynamic_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprContext;
 import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprlistContext;
@@ -61,6 +63,7 @@ import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.For_stmtContext;
 import me.enerccio.sp.parser.pythonParser.FuncdefContext;
+import me.enerccio.sp.parser.pythonParser.Global_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Import_fromContext;
@@ -944,7 +947,23 @@ public class PythonCompiler {
 			compile(smstmt.print_stmt(), bytecode);
 		} else if (smstmt.flow_stmt() != null){
 			compile(smstmt.flow_stmt(), bytecode, cs);
+		} else if (smstmt.global_stmt() != null){
+			compile(smstmt.global_stmt(), bytecode);
+		} else if (smstmt.dynamic_stmt() != null){
+			compile(smstmt.dynamic_stmt(), bytecode);
 		}
+	}
+
+	private void compile(Global_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		for (NnameContext nc : ctx.nname())
+			stack.addGlobal(nc.getText());
+	}
+	
+	private void compile(Dynamic_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		for (NnameContext nc : ctx.nname())
+			stack.addDynamic(nc.getText());
 	}
 
 	private void compile(Flow_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -1517,8 +1536,10 @@ public class PythonCompiler {
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.nname() != null){
 			String name = ctx.nname().getText();
-			if (stack.isGlobalVariable(name))
+			if (stack.typeOfVariable(name) == VariableType.GLOBAL)
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADGLOBAL, ctx.start));
+			else if (stack.typeOfVariable(name) == VariableType.DYNAMIC)
+				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOADDYNAMIC, ctx.start));
 			else
 				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.LOAD, ctx.start));
 			cb.stringValue = name;
@@ -2101,8 +2122,10 @@ public class PythonCompiler {
 
 	private void compileAssignment(NnameContext nname, List<PythonBytecode> bytecode) {
 		String name = nname.getText();
-		if (stack.isGlobalVariable(name))
+		if (stack.typeOfVariable(name) == VariableType.GLOBAL)
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVEGLOBAL, nname.start));
+		else if (stack.typeOfVariable(name) == VariableType.DYNAMIC)
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVEDYNAMIC, nname.start));
 		else
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE, nname.start));
 		cb.stringValue = name;

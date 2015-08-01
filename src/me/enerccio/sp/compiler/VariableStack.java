@@ -17,8 +17,8 @@
  */
 package me.enerccio.sp.compiler;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -28,8 +28,12 @@ import java.util.Stack;
  */
 public class VariableStack {
 	
+	public enum VariableType {
+		LOCAL, GLOBAL, DYNAMIC
+	}
+	
 	private static class VariableStackElement {
-		private Set<String> globals = new HashSet<String>();
+		private Map<String, VariableType> variables = new HashMap<String, VariableType>();
 	}
 
 	private Stack<VariableStackElement> stack = new Stack<VariableStackElement>();
@@ -53,15 +57,18 @@ public class VariableStack {
 	 * @param variable
 	 */
 	public void addGlobal(String variable){
-		stack.peek().globals.add(variable);
+		stack.peek().variables.put(variable, VariableType.GLOBAL);
 	}
 	
-	/**
-	 * Checks whether the variable is global in current scope
-	 * @param variable
-	 * @return
-	 */
-	public boolean isGlobalVariable(String variable){
-		return stack.peek().globals.contains(variable);
+	public void addDynamic(String variable){
+		stack.peek().variables.put(variable, VariableType.DYNAMIC);
 	}
+	
+	public VariableType typeOfVariable(String variable){
+		VariableStackElement e = stack.peek();
+		if (e.variables.containsKey(variable))
+			return e.variables.get(variable);
+		return VariableType.LOCAL;
+	}
+	
 }
