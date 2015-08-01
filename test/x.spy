@@ -1,12 +1,21 @@
-class Test1(object):
+class TestProxy(object):
+    def __init__(self, proxy):
+        self.proxy = proxy
+        
+    def run(self, x):
+        try:
+            print "inside proxy"
+            return self.proxy.run(x)
+        finally:
+            print "outside proxy"
+
+class Test(object):
     def __init__(self):
-        pass
+        return TestProxy(self)
     
-class Test2(object):
-    def __init__(self, x):
-        if x:
-            return Test1()
+    def run(self, x):
+        print "x = ", x
+        return "ok"
 
 def test():
-    print Test2(False)
-    print Test2(True)
+    print Test().run(10)

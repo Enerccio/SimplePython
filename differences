@@ -1,5 +1,8 @@
 Differences from python 2.7:
 
+Classes:
+	no __new__ function, since instantiation is done in java
+
 Class instances:
 	__init__ of instances can return non None value. If None is returned, the newly created instance is returned to the called.
 	If different value than None is returned from __init__, that value is returned to caller. This is very useful when creating 
@@ -10,5 +13,5 @@ Class instances:
 					...
 					if PROXY_ENABLED:
 						return EntityProxy(self)
-
 	
+	this is because we have no __new__
