@@ -1,27 +1,16 @@
+def call():
+    print "anca"
 
-a = "test"
-
-def one():
-    global a
-    a = 5
-
-one()
-
-def closure():
-    b = 20
-    def inner():
-        dynamic b
-        print b
-    return inner
-
-def dynamic_setter():
-    dynamic b
-    b = 1024
-
+import sys
+class LeetWriter(object):
+    def write(self, o):
+        if o == "\n":
+            sys.stdout.write(o)
+        else:
+            sys.stdout.write("xXx" + o + "xXx")
+        
 def test():
-    print a
-    b = 10
-    closure()()
+    dynamic default_print_stream
+    default_print_stream = LeetWriter()
     
-    dynamic_setter()
-    closure()()
+    call()

@@ -1053,10 +1053,13 @@ public class PythonCompiler {
 		
 		if (st == 1){
 			compile(ctx.test(0), bytecode);
+		} else {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
+			cb.value = NoneObject.NONE;
 		}
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.CALL, ctx.stop));
-		cb.intValue = 3 + st;
+		cb.intValue = 4;
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.POP, ctx.stop));
 	}
