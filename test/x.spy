@@ -1,6 +1,16 @@
+"""
+aaa
+"""
+def test1():
+    pass
+
+"""
+Some documentation for proxy
+"""
 class TestProxy(object):
     def __init__(self, proxy):
         self.proxy = proxy
+        self.__doc__ = proxy.__doc__
         
     def run(self, x):
         try:
@@ -9,6 +19,9 @@ class TestProxy(object):
         finally:
             print "outside proxy"
 
+"""
+Some documentation for class
+"""
 class Test(object):
     def __init__(self):
         return TestProxy(self)
@@ -18,4 +31,6 @@ class Test(object):
         return "ok"
 
 def test():
-    print Test().run(10)
+    x = Test()
+    print x.run(10)
+    print x.__doc__

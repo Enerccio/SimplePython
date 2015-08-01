@@ -555,10 +555,28 @@ public class PythonCompiler {
 		DictObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
 		compilingClass.pop();
 		
+		PythonObject vv;
+		if (classdef.docstring() != null){
+			vv = new StringObject(doGetLongString(classdef.docstring().LONG_STRING().getText()));
+		} else {
+			vv = NoneObject.NONE;
+		}
+		
 		Utils.putPublic(fnc, "function_defaults", new DictObject());
 		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
 		cb.value = cdc;
+		
+		fncb.add(Bytecode.makeBytecode(Bytecode.DUP, classdef.stop));
+		putGetAttr("__setitem__", fncb, classdef.stop);
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
+		cb.value = new StringObject("__doc__");
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
+		cb.value = vv;
+		fncb.add(cb = Bytecode.makeBytecode(Bytecode.CALL, classdef.stop));
+		cb.intValue = 2;
+		fncb.add(Bytecode.makeBytecode(Bytecode.POP, classdef.stop));
+		
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
 		cb.intValue = 1;
 		

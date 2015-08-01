@@ -489,7 +489,7 @@ dictentry
 ;
 
 classdef
-: 'class' nname ('(' testlist? ')')? ':' suite
+: (docstring NEWLINE)? 'class' nname ('(' testlist? ')')? ':' suite
 ;
 
 arglist
