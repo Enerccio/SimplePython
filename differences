@@ -1,0 +1,14 @@
+Differences from python 2.7:
+
+Class instances:
+	__init__ of instances can return non None value. If None is returned, the newly created instance is returned to the called.
+	If different value than None is returned from __init__, that value is returned to caller. This is very useful when creating 
+	proxies and other shenanigans. Example:
+	
+			class Entity(...):
+				def __init__(self, ...):
+					...
+					if PROXY_ENABLED:
+						return EntityProxy(self)
+
+	

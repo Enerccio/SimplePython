@@ -1,11 +1,12 @@
-def gen():
-    try:
-        yield "ok"
-    except GeneratorExit:
-        print "caught"
-    yield "failure at runtime!"
+class Test1(object):
+    def __init__(self):
+        pass
+    
+class Test2(object):
+    def __init__(self, x):
+        if x:
+            return Test1()
 
 def test():
-    x = gen()
-    print x
-    print x.close()
+    print Test2(False)
+    print Test2(True)
