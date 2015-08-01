@@ -20,6 +20,7 @@ package me.enerccio.sp.interpret;
 import java.util.HashMap;
 
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Utils;
 
 public interface KwArgs {
@@ -31,11 +32,18 @@ public interface KwArgs {
 	public PythonObject consume(String arg);
 
 	/** 
+	 * Removes argument from list and returns its value as instance of specified class.
+	 * Returns null if argument is not found.
+	 * Throws TypeError if value cannot be converted. 
+	 */
+	public <T> T consume(String arg, Class<T> cls);
+
+	/** 
 	 * Removes argument from list and returns its value as String. 
 	 * Returns null if argument is not found.
 	 */
 	public String consumeString(String arg);
-	
+
 	/** 
 	 * Check if kwarg list is empty and throws exception if not.
 	 * Passed name is used as function name in error message.  
@@ -61,6 +69,19 @@ public interface KwArgs {
 			return remove(arg);
 		}
 
+		@Override
+		@SuppressWarnings("unchecked")
+		public <T> T consume(String arg, Class<T> cls) {
+			if (contains(arg)) {
+				try {
+					return (T)Utils.asJavaObject(cls, remove(arg));
+				} catch (CastFailedException e) {
+					throw Utils.throwException("TypeError", "cannot convert value for argument '" + arg + "'", e);
+				}
+			}
+			return null;
+		}
+		
 		@Override
 		public String consumeString(String arg) {
 			if (containsKey(arg))
