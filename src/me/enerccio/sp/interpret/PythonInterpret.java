@@ -515,7 +515,7 @@ public class PythonInterpret extends PythonObject {
 			break;
 		case RETURN:
 			// removes the frame and returns value
-			if (o.ownedGenerator != null)
+			if (o.ownedGenerator != null && !o.yielding)
 				throw Utils.throwException("StopIteration");
 			if (o.nextInt() == 1) {
 				o.returnHappened = true;
@@ -523,6 +523,7 @@ public class PythonInterpret extends PythonObject {
 				returnee = retVal;
 			}
 			removeLastFrame();
+			o.yielding = false;
 			return ExecutionResult.EOF;
 		case SAVE:
 			// saves value into environment as variable
@@ -714,9 +715,12 @@ public class PythonInterpret extends PythonObject {
 				List<FrameObject> ol = new ArrayList<FrameObject>();
 				FrameObject oo = o;
 				while (oo != null){
-					ol.add(oo);
+					ol.add(oo.cloneFrame());
 					oo = oo.parentFrame;
 				}
+				for (int i=0; i<ol.size(); i++)
+					if (i != ol.size()-1)
+						ol.get(i).parentFrame = ol.get(i+1);
 				Collections.reverse(ol);
 				GeneratorObject generator = new GeneratorObject(name, ol);
 				generator.newObject();
@@ -724,10 +728,13 @@ public class PythonInterpret extends PythonObject {
 					fr.ownedGenerator = generator;
 				returnee = generator;
 				o.pc -= 5;
+				o.returnHappened = true;
+				o.yielding = true;
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			} else {
-				PythonObject sentValue = stack.pop();
+				PythonObject sentValue = o.sendValue;
+				o.sendValue = null;
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
 				returnee = retVal;	
@@ -745,6 +752,8 @@ public class PythonInterpret extends PythonObject {
 				for (FrameObject fr : ol)
 					fr.ownedGenerator = generator;
 				
+				o.returnHappened = true;
+				o.yielding = true;
 				removeLastFrame();
 				return ExecutionResult.EOF;
 			}
@@ -768,6 +777,9 @@ public class PythonInterpret extends PythonObject {
 		FrameObject o = this.currentFrame.removeLast();
 		if (o.parentFrame != null){
 			o.parentFrame.returnHappened = o.returnHappened;
+			o.parentFrame.yielding = o.yielding;
+			o.parentFrame.sendValue = o.sendValue;
+			o.yielding = false;
 			o.parentFrame.stack.add(o);
 		} else {
 			if (currentFrame.size() == 0) {

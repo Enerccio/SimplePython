@@ -73,6 +73,9 @@ public class FrameObject extends PythonObject {
 
 	public KwArgs.HashMapKWArgs kwargs = null;
 
+	public boolean yielding = false;
+	public PythonObject sendValue;
+
 	public Bytecode nextOpcode() {
 		++pc;
 		return Bytecode.fromNumber(dataStream.get());
@@ -81,5 +84,27 @@ public class FrameObject extends PythonObject {
 	public int nextInt(){
 		pc += 4;
 		return dataStream.getInt();
+	}
+
+	public FrameObject cloneFrame() {
+		FrameObject f = new FrameObject();
+		f.newObject();
+		f.pc = pc;
+		f.compiled = compiled;
+		f.accepts_return = accepts_return;
+		f.dataStream = ByteBuffer.wrap(f.compiled.getBytedata());
+		f.debugInLine = debugInLine;
+		f.debugLine = debugLine;
+		f.debugModule = debugModule;
+		f.environment = environment;
+		f.exception = exception;
+		f.kwargs = kwargs;
+		f.localContext = localContext;
+		f.ownedGenerator = ownedGenerator;
+		f.returnHappened = returnHappened;
+		f.yielding = yielding;
+		f.sendValue = sendValue;
+		
+		return f;
 	}
 }

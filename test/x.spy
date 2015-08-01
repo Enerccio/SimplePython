@@ -1,8 +1,11 @@
 def gen():
-    yield "ok"
+    try:
+        yield "ok"
+    except GeneratorExit:
+        print "caught"
+    yield "failure at runtime!"
 
 def test():
     x = gen()
     print x
-    print x.next()
-    print x.next()
+    print x.close()

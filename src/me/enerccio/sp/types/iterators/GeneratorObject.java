@@ -68,6 +68,9 @@ public class GeneratorObject extends PythonObject {
 		m = SEND;
 		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
 				AccessRestrictions.PUBLIC));
+		m = THROW;
+		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
+				AccessRestrictions.PUBLIC));
 		
 		PythonObject fnc = Utils.getGlobal("close_generator");
 		
@@ -102,7 +105,7 @@ public class GeneratorObject extends PythonObject {
 			throw Utils.throwException("TypeError", "send(): send called before first next called"); 
 		for (FrameObject o : this.storedFrames)
 			PythonInterpret.interpret.get().currentFrame.add(o);
-		this.storedFrames.get(this.storedFrames.size()-1).stack.add(v);
+		this.storedFrames.get(this.storedFrames.size()-1).sendValue = v;
 		return NoneObject.NONE;
 	}
 	
