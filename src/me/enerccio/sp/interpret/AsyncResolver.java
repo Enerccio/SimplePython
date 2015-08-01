@@ -23,12 +23,13 @@ import me.enerccio.sp.runtime.ModuleProvider;
 
 public abstract class AsyncResolver implements PythonDataSourceResolver {
 	
-	public static class ResolveModuleAsync {
+	public class ResolveModuleAsync {
 		private String name;
 		private String resolvePath;
 		private Semaphore s;
 		
 		public void finishLoading(ModuleProvider o){
+			p = o;
 			s.release();
 		}
 		
