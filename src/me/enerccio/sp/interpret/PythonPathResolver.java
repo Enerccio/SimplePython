@@ -48,7 +48,7 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 				if (init.exists() && !init.isDirectory()){
 					try {
 						String fname = path.getName();
-						return doResolve(init, fname, name, resolvePath);
+						return doResolve(init, fname, name, resolvePath, true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -57,7 +57,7 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 				try {
 					String fname = path.getName();
 					fname.replace(".spy", "");
-					return doResolve(path, fname, name, resolvePath);
+					return doResolve(path, fname, name, resolvePath, false);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -66,10 +66,10 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 		return null;
 	}
 
-	private ModuleProvider doResolve(File path, String name, String mname, String resolvePath) throws Exception {
+	private ModuleProvider doResolve(File path, String name, String mname, String resolvePath, boolean isp) throws Exception {
 		return new ModuleProvider(mname, path.getName(), 
 				Utils.toByteArray(new FileInputStream(path)), 
-				path.getParentFile().equals(rootPath) ? "" : (!resolvePath.equals("") ? (resolvePath + ".") : "") + path.getParentFile().getName());
+				path.getParentFile().equals(rootPath) ? "" : (!resolvePath.equals("") ? (resolvePath + ".") : "") + path.getParentFile().getName(), isp);
 	}
 
 	public static PythonPathResolver make(String string) {

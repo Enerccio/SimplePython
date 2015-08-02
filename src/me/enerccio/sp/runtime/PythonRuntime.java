@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -83,6 +84,7 @@ import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -105,10 +107,10 @@ public class PythonRuntime {
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
-	public Map<String, ModuleObject> root = Collections.synchronizedMap(new HashMap<String, ModuleObject>());
+	public Map<String, ModuleContainer> root = new TreeMap<String, ModuleContainer>();
 	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
 	/** object identifier key generator */
-	private long key = Long.MIN_VALUE;
+	private long key = Long.MIN_VALUE; 
 	
 	/* related to serialization */
 	private CyclicBarrier awaitBarrierEntry;
@@ -203,49 +205,35 @@ public class PythonRuntime {
 	
 	/** Returns module with given name */
 	public synchronized ModuleObject getModule(String key) {
-		String[] submodules = key.split(".");
-		ModuleObject m = getRoot(submodules[0]);
-		for (int i=1; i<submodules.length; i++)
-			m = (ModuleObject)m.getField(submodules[i]);
-		return m;
+		String[] submodules = key.split("\\.");
+		
+		ModuleObject r = null;
+		String path = "";
+		for (String sm : submodules){
+			r = getModule(sm, new StringObject(path));
+			path = aggregatePath(path, sm);
+		}
+		
+		if (r == null)
+			throw Utils.throwException("ImportError", "unknown module with path '" + key + "'");
+		return r;
 	}
 	
-	/**
-	 * Returns root module with that name. If such module does not exists, it will attempt to load it.
-	 * If it cannot be found, exception is thrown.
-	 * @param key name of the root module
-	 * @return
-	 */
-	public synchronized ModuleObject getRoot(String key) {
-		if (!root.containsKey(key)){
-			root.put(key, getModule(key, null));
-		}
-		return root.get(key);
+	private String aggregatePath(String path, String sm) {
+		if (path.equals(""))
+			return sm;
+		return path + "." + sm;
 	}
 
-	/**
-	 * Loads the module with given filename and returns it
-	 * @param provider
-	 * @return
-	 */
-	public ModuleObject loadModule(String filename, byte[] source) {
-		String[] tmp = filename.split("/");
-		String name = tmp[tmp.length - 1];
-		int index = name.lastIndexOf(".");
-		if (index > -1)
-			name = name.substring(0, index);
-		return loadModule(new ModuleProvider(name, filename, source, "whattheunhollyfuck"));
-	}
-	
 	/**
 	 * Loads the module from module provider and returns it
 	 * @param provider
 	 * @return
 	 */
-	private ModuleObject loadModule(ModuleProvider provider){
+	private Pair<ModuleObject, Boolean> loadModule(ModuleProvider provider){
 		DictObject globals = new DictObject();
 		ModuleObject mo = new ModuleObject(globals, provider);
-		return mo;
+		return Pair.makePair(mo, provider.isPackage());
 	}
 	
 	/**
@@ -257,13 +245,55 @@ public class PythonRuntime {
 	public synchronized ModuleObject getModule(String name, StringObject moduleResolvePath){
 		if (moduleResolvePath == null)
 			moduleResolvePath = new StringObject("");
-		ModuleObject mo = resolveModule(name, moduleResolvePath);
+		
+		String modulePath = moduleResolvePath.value;
+		if (modulePath.equals("")){
+			if (root.containsKey(name))
+				return root.get(name).module;
+		} else {
+			ModuleContainer c = null;
+			for (String pathElement : modulePath.split("\\.")){
+				if (c == null)
+					c = root.get(pathElement);
+				else
+					c = c.subpackages.get(pathElement);
+			}
+			if (c != null){
+				if (c.submodules.containsKey(name))
+					return c.submodules.get(name);
+				if (c.subpackages.containsKey(name))
+					return c.subpackages.get(name).module;
+			}
+		}
+		
+		Pair<ModuleObject, Boolean> data = resolveModule(name, moduleResolvePath);
+		ModuleObject mo = data.getFirst();
 		if (mo == null)
 			throw Utils.throwException("ImportError", "unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
-		String pp = moduleResolvePath.value;
 		mo.newObject();
-		if (pp.equals(""))
-			root.put(name, mo);
+		
+		if (!modulePath.equals("")){
+			String[] submodules = modulePath.split("\\.");
+			ModuleContainer c = null;
+			for (String pathElement : submodules){
+				if (c == null)
+					c = root.get(pathElement);
+				else
+					c = c.subpackages.get(pathElement);
+			}
+			if (data.getSecond()){
+				ModuleContainer newCont = new ModuleContainer();
+				newCont.module = mo;
+				c.subpackages.put(name, newCont);
+			} else {
+				c.submodules.put(name, mo);
+			}
+		} else {
+			ModuleContainer newCont = new ModuleContainer();
+			newCont.module = mo;
+			root.put(name, newCont);
+		}
+		
 		mo.initModule();
 		return mo;
 	}
@@ -274,7 +304,7 @@ public class PythonRuntime {
 	 * @param moduleResolvePath
 	 * @return
 	 */
-	private ModuleObject resolveModule(String name,
+	private Pair<ModuleObject, Boolean> resolveModule(String name,
 			StringObject moduleResolvePath) {
 		ModuleProvider provider = null;
 		for (PythonDataSourceResolver resolver : resolvers){
@@ -372,7 +402,7 @@ public class PythonRuntime {
 					
 					pythonParser p;
 					try {
-						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.spy")), null));
+						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.spy")), null, false));
 					} catch (Exception e1) {
 						throw new PythonException("Failed to initialize python!");
 					}
@@ -741,14 +771,6 @@ public class PythonRuntime {
 	public synchronized ClassObject getObject() {
 		ObjectTypeObject o = (ObjectTypeObject) globals.doGet(ObjectTypeObject.OBJECT_CALL);
 		return o;
-	}
-	
-	/**
-	 * Loads the module but does not return it.
-	 * @param string
-	 */
-	public void loadModule(String string) {
-		getRoot(string);
 	}
 
 	public OutputStream getOut() {

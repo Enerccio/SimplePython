@@ -27,11 +27,12 @@ import java.io.InputStream;
  */
 public class ModuleProvider {
 	
-	public ModuleProvider(String moduleName, String srcFile, byte[] source, String packageResolve){
+	public ModuleProvider(String moduleName, String srcFile, byte[] source, String packageResolve, boolean isPackage){
 		this.moduleName = moduleName;
 		this.packageResolve = packageResolve;
 		this.source = source;
 		this.srcFile = srcFile;
+		this.isPackage = isPackage;
 	}
 	
 	/**
@@ -61,10 +62,15 @@ public class ModuleProvider {
 	public String getPackageResolve() {
 		return packageResolve;
 	}
+	
+	public boolean isPackage() {
+		return isPackage;
+	}
 
 	private final String moduleName;
 	private final byte[] source;
 	private final String srcFile;
 	private final String packageResolve;
+	private final boolean isPackage;
 
 }

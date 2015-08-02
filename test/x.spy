@@ -1,2 +1,4 @@
+import anca.test2.q
+
 def test():
-    print 01000101
+    print q
