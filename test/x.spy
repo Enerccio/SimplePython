@@ -1,16 +1,2 @@
-def call():
-    print "anca"
-
-import sys
-class LeetWriter(object):
-    def write(self, o):
-        if o == "\n":
-            sys.stdout.write(o)
-        else:
-            sys.stdout.write("xXx" + o + "xXx")
-        
 def test():
-    dynamic default_print_stream
-    default_print_stream = LeetWriter()
-    
-    call()
+    pass

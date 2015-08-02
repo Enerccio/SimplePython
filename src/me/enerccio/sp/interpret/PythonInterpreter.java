@@ -845,7 +845,7 @@ public class PythonInterpreter extends PythonObject {
 			} else if (!variable.equals("*")){
 				environment.set(new StringObject(variable), 
 						target,
-						false, false);
+						true, false);
 			} else {
 				DictObject dict = (DictObject) target.fields.get(ModuleObject.__DICT__).object;
 				synchronized (dict){
@@ -856,7 +856,7 @@ public class PythonInterpreter extends PythonObject {
 								if (!kkey.startsWith("__"))
 									environment.set((StringObject)key.o, 
 											dict.backingMap.get(key),
-											false, false);
+											true, false);
 							}
 						}
 					}
