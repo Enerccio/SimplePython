@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import me.enerccio.sp.interpret.FrameObject;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -104,7 +104,7 @@ public class GeneratorObject extends PythonObject {
 		if (!nextCalled && v != NoneObject.NONE)
 			throw Utils.throwException("TypeError", "send(): send called before first next called"); 
 		for (FrameObject o : this.storedFrames)
-			PythonInterpret.interpret.get().currentFrame.add(o);
+			PythonInterpreter.interpret.get().currentFrame.add(o);
 		this.storedFrames.get(this.storedFrames.size()-1).sendValue = v;
 		return NoneObject.NONE;
 	}

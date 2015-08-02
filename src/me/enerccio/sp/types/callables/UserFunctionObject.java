@@ -22,7 +22,7 @@ import java.util.List;
 
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -96,8 +96,8 @@ public class UserFunctionObject extends CallableObject {
 			a.put(vararg, t);
 		}
 		
-		PythonInterpret.interpret.get().setArgs(a);
-		PythonInterpret.interpret.get().executeBytecode(block);
+		PythonInterpreter.interpret.get().setArgs(a);
+		PythonInterpreter.interpret.get().executeBytecode(block);
 		
 		return NoneObject.NONE; // returns immediately
 	}

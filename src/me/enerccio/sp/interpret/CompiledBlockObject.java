@@ -150,7 +150,7 @@ public class CompiledBlockObject extends PythonObject {
 			int pos = b.position();
 			Bytecode opcode = Bytecode.fromNumber(b.get());
 			
-			bd.append(String.format("{fc: %s, ac: %s} ", PythonInterpret.interpret.get().currentFrame.size(), PythonInterpret.interpret.get().getAccessCount()));
+			bd.append(String.format("{fc: %s, ac: %s} ", PythonInterpreter.interpret.get().currentFrame.size(), PythonInterpreter.interpret.get().getAccessCount()));
 			
 			if (d == null || !d.equals(block.getDebugInformation(pos))){
 				d = block.getDebugInformation(pos);

@@ -17,7 +17,7 @@
  */
 package me.enerccio.sp.types;
 
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.ComplexObject;
@@ -60,9 +60,9 @@ public final class Arithmetics {
 	public static PythonObject doOperator(PythonObject a, PythonObject b, String m) {
 		if (a instanceof ClassInstanceObject){
 			if (b == null)
-				return PythonInterpret.interpret.get().execute(false, Utils.get(a, m), null);
+				return PythonInterpreter.interpret.get().execute(false, Utils.get(a, m), null);
 			else
-				return PythonInterpret.interpret.get().execute(false, Utils.get(a, m), null, b);
+				return PythonInterpreter.interpret.get().execute(false, Utils.get(a, m), null, b);
 		}
 		
 		if (a instanceof IntObject){

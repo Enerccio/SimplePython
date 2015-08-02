@@ -17,7 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -60,23 +60,23 @@ public class IntTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "int(): Incorrect number of parameters");
 		
 		PythonObject o1 = null, o2 = null;
-		int cfc = PythonInterpret.interpret.get().currentFrame.size();
+		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
 		
 		if (arg2 == null){
 			Utils.run("getattr", arg1, new StringObject("__int__"));
-			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr, null);
-			return PythonInterpret.interpret.get().executeAll(cfc);
+			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
+			PythonInterpreter.interpret.get().execute(false, attr, null);
+			return PythonInterpreter.interpret.get().executeAll(cfc);
 		} else {
 			Utils.run("getattr", arg2, new StringObject("__int__"));
-			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr, null);
-			o2 = PythonInterpret.interpret.get().executeAll(cfc);
+			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
+			PythonInterpreter.interpret.get().execute(false, attr, null);
+			o2 = PythonInterpreter.interpret.get().executeAll(cfc);
 		}
 		
 		if (arg2 != null){
 			Utils.run("str", arg1);
-			o1 = PythonInterpret.interpret.get().executeAll(cfc);
+			o1 = PythonInterpreter.interpret.get().executeAll(cfc);
 		}
 		
 		try {

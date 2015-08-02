@@ -17,7 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -59,12 +59,12 @@ public class RealTypeObject extends TypeObject {
 			return new RealObject(((ComplexObject)a).getJavaFloat());
 		if (a instanceof ClassInstanceObject){
 			ClassInstanceObject c = (ClassInstanceObject)a;
-			int cfc = PythonInterpret.interpret.get().currentFrame.size();
+			int cfc = PythonInterpreter.interpret.get().currentFrame.size();
 			Utils.run("getattr", c, new StringObject("__int__"));
-			PythonObject attr = PythonInterpret.interpret.get().executeAll(cfc);
-			PythonInterpret.interpret.get().execute(false, attr, null);
+			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
+			PythonInterpreter.interpret.get().execute(false, attr, null);
 			try {
-				return new RealObject(((IntObject)PythonInterpret.interpret.get().executeAll(cfc)).intValue());
+				return new RealObject(((IntObject)PythonInterpreter.interpret.get().executeAll(cfc)).intValue());
 			} catch (ClassCastException e){
 				throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
 			}

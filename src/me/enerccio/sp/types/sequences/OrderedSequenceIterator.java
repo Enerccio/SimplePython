@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -87,7 +87,7 @@ public class OrderedSequenceIterator extends PythonObject {
 			throw Utils.throwException("TypeError", "next(): method requires no arguments");
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
-		PythonObject value = PythonInterpret.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
 		return value;
 	}
 

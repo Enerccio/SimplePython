@@ -18,7 +18,7 @@
 package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -63,11 +63,11 @@ public class BoundHandleObject extends PythonObject {
 		
 		if (callable instanceof UserFunctionObject){
 			UserFunctionObject c = (UserFunctionObject)callable;
-			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
-			PythonInterpret.interpret.get().currentFrame.getLast().localContext = accessor;
+			PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
+			PythonInterpreter.interpret.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject)callable;
-			PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
 		}
 		
 		return NoneObject.NONE; // returns immediately

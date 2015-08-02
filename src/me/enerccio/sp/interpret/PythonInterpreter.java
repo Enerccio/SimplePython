@@ -44,21 +44,21 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class PythonInterpret extends PythonObject {
+public class PythonInterpreter extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final boolean TRACE_ENABLED = System.getenv("SPY_TRACE_ENABLED") != null;
 	/** Thread local accessor to the interpret */
-	public static final transient ThreadLocal<PythonInterpret> interpret = new ThreadLocal<PythonInterpret>(){
+	public static final transient ThreadLocal<PythonInterpreter> interpret = new ThreadLocal<PythonInterpreter>(){
 
 		@Override
-		protected PythonInterpret initialValue() {
+		protected PythonInterpreter initialValue() {
 			try {
 				PythonRuntime.runtime.waitForNewInterpretAvailability();
 			} catch (InterruptedException e){
 				
 			}
 			
-			PythonInterpret i = new PythonInterpret();
+			PythonInterpreter i = new PythonInterpreter();
 			i.newObject();
 			interprets.add(i);
 			return i;
@@ -67,9 +67,9 @@ public class PythonInterpret extends PythonObject {
 	};
 	
 	/** Collection of all interprets created */
-	public static final Set<PythonInterpret> interprets = Collections.synchronizedSet(new HashSet<PythonInterpret>());
+	public static final Set<PythonInterpreter> interprets = Collections.synchronizedSet(new HashSet<PythonInterpreter>());
 	
-	public PythonInterpret(){
+	public PythonInterpreter(){
 		bind();
 	}
 	

@@ -19,7 +19,7 @@ package me.enerccio.sp.types;
 
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.CompiledBlockObject;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.ModuleProvider;
@@ -123,9 +123,9 @@ public class ModuleObject extends PythonObject {
 	 * Initializes the module by executing it's bytecode
 	 */
 	private void doInitModule() {
-		int cfc = PythonInterpret.interpret.get().currentFrame.size();
-		PythonInterpret.interpret.get().executeBytecode(frame);
-		PythonInterpret.interpret.get().executeAll(cfc);
+		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
+		PythonInterpreter.interpret.get().executeBytecode(frame);
+		PythonInterpreter.interpret.get().executeAll(cfc);
 	}
 
 	/**

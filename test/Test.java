@@ -2,7 +2,7 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.interpret.ExecutionResult;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.PythonPathResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
@@ -22,7 +22,7 @@ public class Test {
 			r.setAllowAutowraps(true);
 			r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
-			PythonInterpret i = PythonInterpret.interpret.get();
+			PythonInterpreter i = PythonInterpreter.interpret.get();
 			ModuleObject mo = r.getRoot("x");
 			
 			c2 = System.currentTimeMillis();

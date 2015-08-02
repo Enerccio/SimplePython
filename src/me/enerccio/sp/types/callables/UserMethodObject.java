@@ -18,7 +18,7 @@
 package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -64,11 +64,11 @@ public class UserMethodObject extends CallableObject {
 		
 		if (callable instanceof UserFunctionObject){
 			UserFunctionObject c = (UserFunctionObject)callable;
-			v = PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
-			PythonInterpret.interpret.get().currentFrame.getLast().localContext = accessor;
+			v = PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
+			PythonInterpreter.interpret.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject)callable;
-			v = PythonInterpret.interpret.get().invoke(c, kwargs, aargs);
+			v = PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
 		}
 		
 		return v; // returns immediately

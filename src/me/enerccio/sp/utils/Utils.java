@@ -46,7 +46,7 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.runtime.ModuleProvider;
@@ -133,28 +133,28 @@ public class Utils {
 			if (o instanceof IntObject)
 				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", o));
+				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("int", o));
 		}
 
 		if (aType == Long.class || aType == long.class) {
 			if (o instanceof IntObject)
 				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("int", o));
+				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("int", o));
 		}
 
 		if (aType == Float.class || aType == float.class) {
 			if (o instanceof RealObject)
 				return ((RealObject)o).floatValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", o));
+				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("float", o));
 		}
 
 		if (aType == Double.class || aType == double.class) {
 			if (o instanceof RealObject)
 				return ((RealObject)o).doubleValue();
 			else
-				return asJavaObject(aType, PythonInterpret.interpret.get().executeCall("float", o));
+				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("float", o));
 		}
 
 		if (aType == Boolean.class || aType == boolean.class) {
@@ -191,7 +191,7 @@ public class Utils {
 	}
 
 	public static PythonObject run(String function, PythonObject... args) {
-		return PythonInterpret.interpret.get().executeCall(function, args);
+		return PythonInterpreter.interpret.get().executeCall(function, args);
 	}
 	
 	/**
@@ -464,9 +464,9 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (PythonInterpret.interpret.get().currentFrame.size() == 0)
+		if (PythonInterpreter.interpret.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.generateGlobals().doGet(variable);
-		return PythonInterpret.interpret.get().environment().get(new StringObject(variable), true, false);
+		return PythonInterpreter.interpret.get().environment().get(new StringObject(variable), true, false);
 	}
 
 	/**

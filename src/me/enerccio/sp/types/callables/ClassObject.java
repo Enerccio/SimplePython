@@ -19,7 +19,7 @@ package me.enerccio.sp.types.callables;
 
 import java.util.List;
 
-import me.enerccio.sp.interpret.PythonInterpret;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -112,10 +112,10 @@ public class ClassObject extends CallableObject {
 			addToInstance(o.fields.get(__DICT__).object, instance, o);
 		}
 		
-		int cfc = PythonInterpret.interpret.get().currentFrame.size();
+		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
 
-		PythonInterpret.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
-		PythonObject o = PythonInterpret.interpret.get().executeAll(cfc);
+		PythonInterpreter.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
+		PythonObject o = PythonInterpreter.interpret.get().executeAll(cfc);
 		if (o == NoneObject.NONE)
 			return instance;
 		return o;
