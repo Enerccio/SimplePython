@@ -32,7 +32,7 @@ import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.utils.Coerce;
 
 public class SimplePython {
 
@@ -86,24 +86,16 @@ public class SimplePython {
 		r.addFactory(packagePath, clazz);
 	}
 	
-	public static PythonObject convertJava(Object java){
-		return convertJava(java, java.getClass());
-	}
-	
 	public static PythonObject asTuple(Collection<?> c){
 		PythonObject[] values = new PythonObject[c.size()];
 		int i=0;
 		for (Object o : c){
-			values[i++] = convertJava(o);
+			values[i++] = Coerce.toPython(o);
 		}
 		
 		TupleObject t = new TupleObject(values);
 		t.newObject();
 		return t;
-	}
-	
-	public static PythonObject convertJava(Object java, Class<?> javaType){
-		return Utils.cast(java, javaType);
 	}
 	
 	public static void setField(PythonObject object, String fieldName, PythonObject value){

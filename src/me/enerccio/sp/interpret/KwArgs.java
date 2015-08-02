@@ -21,6 +21,7 @@ import java.util.HashMap;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
 public interface KwArgs {
@@ -71,11 +72,10 @@ public interface KwArgs {
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public <T> T consume(String arg, Class<T> cls) {
 			if (contains(arg)) {
 				try {
-					return (T)Utils.asJavaObject(cls, remove(arg));
+					return Coerce.toJava(remove(arg), cls);
 				} catch (CastFailedException e) {
 					throw Utils.throwException("TypeError", "cannot convert value for argument '" + arg + "'", e);
 				}

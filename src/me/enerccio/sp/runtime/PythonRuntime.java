@@ -89,6 +89,7 @@ import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Pair;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -723,7 +724,7 @@ public class PythonRuntime {
 				int i=0;
 				for (PythonObject oo : args){
 					try {
-						jargs[i] = Utils.asJavaObject(types[i], oo);
+						jargs[i] = Coerce.toJava(oo, types[i]);
 						++i;
 					} catch (CastFailedException e){
 						continue outer;

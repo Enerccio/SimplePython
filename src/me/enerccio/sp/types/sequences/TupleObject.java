@@ -113,7 +113,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		return "(" + text.substring(1, text.length()-1) + ")";
 	}
 
-	/** Throws IndexExcepton if i is out of range */
+	/** Throws ArrayIndexOutOfBoundsException if i is out of range */
 	public PythonObject get(int i) {
 		return array[i]; 
 	}

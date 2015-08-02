@@ -30,6 +30,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 import me.enerccio.sp.utils.Utils;
 
@@ -184,7 +185,7 @@ public class JavaMethodObject extends CallableObject {
 	public PythonObject doCall(TupleObject args, KwArgs kwargs) throws PointerMethodIncompatibleException {
 		try {
 			if (noTypeConversion){
-				return Utils.cast(invoke(args, kwargs), boundHandle.getReturnType());
+				return Coerce.toPython(invoke(args, kwargs), boundHandle.getReturnType());
 			}
 		} catch (PythonExecutionException e){
 			throw e;
@@ -206,7 +207,7 @@ public class JavaMethodObject extends CallableObject {
 			while (i < args.len()) {
 				if ((i >= jargs.length) || (argTypes[i] == KwArgs.class))
 					throw new PointerMethodIncompatibleException(toString() + " doesn't take " + args.len() + " arguments");
-				jargs[i] = Utils.asJavaObject(argTypes[i], args.get(i));
+				jargs[i] = Coerce.toJava(args.get(i), argTypes[i]);
 				if ((kwargs != null) && (argNames != null) && kwargs.contains(argNames[i]))
 					throw new PointerMethodIncompatibleException(toString() + " got multiple values for keyword argument '" + argNames[i] + "'");
 				++i;
@@ -218,7 +219,7 @@ public class JavaMethodObject extends CallableObject {
 						// Last one
 						break;
 					if (kwargs.contains(argNames[i])) {
-						jargs[i] = Utils.asJavaObject(argTypes[i], kwargs.consume(argNames[i]));
+						jargs[i] = Coerce.toJava(kwargs.consume(argNames[i]), argTypes[i]);
 					} else {
 						throw new PointerMethodIncompatibleException(toString() + " values for argument '" + argNames[i] + "' missing");
 					}
@@ -229,7 +230,7 @@ public class JavaMethodObject extends CallableObject {
 			if ((argNames == null) || (i >= argNames.length))
 				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument " + i);
 			else
-				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument '" + argNames[i] + "'");
+				throw new PointerMethodIncompatibleException(toString() + " cannot convert value for argument '" + argNames[i] + "'", e);
 		}
 	
 		if (i < argTypes.length) {
@@ -245,7 +246,7 @@ public class JavaMethodObject extends CallableObject {
 		}
 		
 		try {
-			return Utils.cast(invoke(jargs), boundHandle.getReturnType());
+			return Coerce.toPython(invoke(jargs), boundHandle.getReturnType());
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (InvocationTargetException e){
