@@ -64,11 +64,11 @@ public class UserMethodObject extends CallableObject {
 		
 		if (callable instanceof UserFunctionObject){
 			UserFunctionObject c = (UserFunctionObject)callable;
-			v = PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
-			PythonInterpreter.interpret.get().currentFrame.getLast().localContext = accessor;
+			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
+			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject)callable;
-			v = PythonInterpreter.interpret.get().invoke(c, kwargs, aargs);
+			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
 		}
 		
 		return v; // returns immediately

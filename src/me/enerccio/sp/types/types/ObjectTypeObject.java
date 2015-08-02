@@ -95,7 +95,7 @@ public class ObjectTypeObject extends TypeObject {
 
 	
 	public static PythonObject getattribute(PythonObject self, String attribute){
-		PythonObject value = self.get(attribute, PythonInterpreter.interpret.get().getLocalContext());
+		PythonObject value = self.get(attribute, PythonInterpreter.interpreter.get().getLocalContext());
 		if (value == null)
 			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", self, attribute));
 		return value;

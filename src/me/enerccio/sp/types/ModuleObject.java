@@ -124,9 +124,9 @@ public class ModuleObject extends PythonObject {
 	 * Initializes the module by executing it's bytecode
 	 */
 	private void doInitModule() {
-		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
-		PythonInterpreter.interpret.get().executeBytecode(frame);
-		PythonInterpreter.interpret.get().executeAll(cfc);
+		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
+		PythonInterpreter.interpreter.get().executeBytecode(frame);
+		PythonInterpreter.interpreter.get().executeAll(cfc);
 	}
 
 	/**

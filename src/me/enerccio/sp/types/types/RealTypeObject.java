@@ -59,12 +59,12 @@ public class RealTypeObject extends TypeObject {
 			return new RealObject(((ComplexObject)a).getJavaFloat());
 		if (a instanceof ClassInstanceObject){
 			ClassInstanceObject c = (ClassInstanceObject)a;
-			int cfc = PythonInterpreter.interpret.get().currentFrame.size();
+			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 			Utils.run("getattr", c, new StringObject("__int__"));
-			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
-			PythonInterpreter.interpret.get().execute(false, attr, null);
+			PythonObject attr = PythonInterpreter.interpreter.get().executeAll(cfc);
+			PythonInterpreter.interpreter.get().execute(false, attr, null);
 			try {
-				return new RealObject(((IntObject)PythonInterpreter.interpret.get().executeAll(cfc)).intValue());
+				return new RealObject(((IntObject)PythonInterpreter.interpreter.get().executeAll(cfc)).intValue());
 			} catch (ClassCastException e){
 				throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
 			}

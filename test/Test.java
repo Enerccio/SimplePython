@@ -1,14 +1,12 @@
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import me.enerccio.sp.SimplePython;
-import me.enerccio.sp.interpret.ExecutionResult;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.PythonPathResolver;
-import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.types.ModuleObject;
-import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.sequences.TupleObject;
 
 
 public class Test {
@@ -17,28 +15,31 @@ public class Test {
 		
 		long c = System.currentTimeMillis();
 		long c2 = 0;
-		ExecutionResult rr;
 		
 		try {
 			SimplePython.initialize();
-			final PythonRuntime r = PythonRuntime.runtime;
-			r.setAllowAutowraps(true);
-			r.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
+			SimplePython.setAllowAutowraps(true);
+			SimplePython.addResolve(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
-			PythonInterpreter i = PythonInterpreter.interpret.get();
-			ModuleObject mo = SimplePython.getModule("x");
-			
+			SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();
 			
-			UserFunctionObject fo = (UserFunctionObject) mo.getField("test");
-			if (fo != null)
-				fo.call(new TupleObject(), null);
-			while (true){
-				rr = i.executeOnce();
-				if (rr == ExecutionResult.EOF || rr == ExecutionResult.FINISHED)
-					if (i.currentFrame.size() == 0)
-						break;
+			List<List<Integer>> ill = new ArrayList<List<Integer>>();
+			for (int i=0; i<10; i++){
+				List<Integer> ill2 = new ArrayList<Integer>();
+				for (int j=0; j<10; j++)
+					ill2.add(j);
+				ill.add(ill2);
 			}
+			System.out.println(SimplePython.asTuple(ill));
+			System.out.println(SimplePython.convertJava(ill));
+			
+			Map<String, Integer> mm = new HashMap<String, Integer>();
+			for (int i=0; i<10; i++)
+				mm.put(Integer.toBinaryString(i), i);
+			System.out.println(SimplePython.convertJava(mm));
+			
+			SimplePython.executeFunction("x", "test");
 
 		} finally {
 			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");

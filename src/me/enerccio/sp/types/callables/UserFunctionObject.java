@@ -96,8 +96,8 @@ public class UserFunctionObject extends CallableObject {
 			a.put(vararg, t);
 		}
 		
-		PythonInterpreter.interpret.get().setArgs(a);
-		PythonInterpreter.interpret.get().executeBytecode(block);
+		PythonInterpreter.interpreter.get().setArgs(a);
+		PythonInterpreter.interpreter.get().executeBytecode(block);
 		
 		return NoneObject.NONE; // returns immediately
 	}

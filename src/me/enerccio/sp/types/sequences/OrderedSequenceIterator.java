@@ -87,7 +87,7 @@ public class OrderedSequenceIterator extends PythonObject {
 			throw Utils.throwException("TypeError", "next(): method requires no arguments");
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
-		PythonObject value = PythonInterpreter.interpret.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
 		return value;
 	}
 

@@ -48,7 +48,7 @@ public class PythonInterpreter extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final boolean TRACE_ENABLED = System.getenv("SPY_TRACE_ENABLED") != null;
 	/** Thread local accessor to the interpret */
-	public static final transient ThreadLocal<PythonInterpreter> interpret = new ThreadLocal<PythonInterpreter>(){
+	public static final transient ThreadLocal<PythonInterpreter> interpreter = new ThreadLocal<PythonInterpreter>(){
 
 		@Override
 		protected PythonInterpreter initialValue() {
@@ -60,14 +60,14 @@ public class PythonInterpreter extends PythonObject {
 			
 			PythonInterpreter i = new PythonInterpreter();
 			i.newObject();
-			interprets.add(i);
+			interpreters.add(i);
 			return i;
 		}
 		
 	};
 	
 	/** Collection of all interprets created */
-	public static final Set<PythonInterpreter> interprets = Collections.synchronizedSet(new HashSet<PythonInterpreter>());
+	public static final Set<PythonInterpreter> interpreters = Collections.synchronizedSet(new HashSet<PythonInterpreter>());
 	
 	public PythonInterpreter(){
 		bind();
@@ -77,7 +77,7 @@ public class PythonInterpreter extends PythonObject {
 	 * Binds the interpret to this thread
 	 */
 	public void bind(){
-		interpret.set(this);
+		interpreter.set(this);
 	}
 	
 	/** current frame stack. Topmost element represents currently interpreted frame */

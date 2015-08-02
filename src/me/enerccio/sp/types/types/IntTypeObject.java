@@ -60,23 +60,23 @@ public class IntTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "int(): Incorrect number of parameters");
 		
 		PythonObject o1 = null, o2 = null;
-		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
+		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 		
 		if (arg2 == null){
 			Utils.run("getattr", arg1, new StringObject("__int__"));
-			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
-			PythonInterpreter.interpret.get().execute(false, attr, null);
-			return PythonInterpreter.interpret.get().executeAll(cfc);
+			PythonObject attr = PythonInterpreter.interpreter.get().executeAll(cfc);
+			PythonInterpreter.interpreter.get().execute(false, attr, null);
+			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		} else {
 			Utils.run("getattr", arg2, new StringObject("__int__"));
-			PythonObject attr = PythonInterpreter.interpret.get().executeAll(cfc);
-			PythonInterpreter.interpret.get().execute(false, attr, null);
-			o2 = PythonInterpreter.interpret.get().executeAll(cfc);
+			PythonObject attr = PythonInterpreter.interpreter.get().executeAll(cfc);
+			PythonInterpreter.interpreter.get().execute(false, attr, null);
+			o2 = PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
 		
 		if (arg2 != null){
 			Utils.run("str", arg1);
-			o1 = PythonInterpreter.interpret.get().executeAll(cfc);
+			o1 = PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
 		
 		try {

@@ -104,7 +104,7 @@ public class GeneratorObject extends PythonObject {
 		if (!nextCalled && v != NoneObject.NONE)
 			throw Utils.throwException("TypeError", "send(): send called before first next called"); 
 		for (FrameObject o : this.storedFrames)
-			PythonInterpreter.interpret.get().currentFrame.add(o);
+			PythonInterpreter.interpreter.get().currentFrame.add(o);
 		this.storedFrames.get(this.storedFrames.size()-1).sendValue = v;
 		return NoneObject.NONE;
 	}

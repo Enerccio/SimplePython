@@ -112,10 +112,10 @@ public class ClassObject extends CallableObject {
 			addToInstance(o.fields.get(__DICT__).object, instance, o);
 		}
 		
-		int cfc = PythonInterpreter.interpret.get().currentFrame.size();
+		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 
-		PythonInterpreter.interpret.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
-		PythonObject o = PythonInterpreter.interpret.get().executeAll(cfc);
+		PythonInterpreter.interpreter.get().invoke(instance.get(ClassInstanceObject.__INIT__, instance), kwargs, args);
+		PythonObject o = PythonInterpreter.interpreter.get().executeAll(cfc);
 		if (o == NoneObject.NONE)
 			return instance;
 		return o;

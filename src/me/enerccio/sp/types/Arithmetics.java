@@ -60,9 +60,9 @@ public final class Arithmetics {
 	public static PythonObject doOperator(PythonObject a, PythonObject b, String m) {
 		if (a instanceof ClassInstanceObject){
 			if (b == null)
-				return PythonInterpreter.interpret.get().execute(false, Utils.get(a, m), null);
+				return PythonInterpreter.interpreter.get().execute(false, Utils.get(a, m), null);
 			else
-				return PythonInterpreter.interpret.get().execute(false, Utils.get(a, m), null, b);
+				return PythonInterpreter.interpreter.get().execute(false, Utils.get(a, m), null, b);
 		}
 		
 		if (a instanceof IntObject){

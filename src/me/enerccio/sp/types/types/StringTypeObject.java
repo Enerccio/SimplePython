@@ -48,10 +48,10 @@ public class StringTypeObject extends TypeObject {
 		
 		PythonObject o = args.getObjects()[0];
 		if (o instanceof ClassInstanceObject){
-			int cfc = PythonInterpreter.interpret.get().currentFrame.size();
+			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 			Utils.run("getattr", args.getObjects()[0], new StringObject("__str__"));
-			PythonObject ret = PythonInterpreter.interpret.get().executeAll(cfc);
-			return PythonInterpreter.interpret.get().execute(false, ret, null);
+			PythonObject ret = PythonInterpreter.interpreter.get().executeAll(cfc);
+			return PythonInterpreter.interpreter.get().execute(false, ret, null);
 		} else
 			return new StringObject(o.toString());
 	}

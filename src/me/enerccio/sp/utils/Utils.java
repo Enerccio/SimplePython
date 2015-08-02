@@ -61,6 +61,7 @@ import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
@@ -113,6 +114,23 @@ public class Utils {
 			return NoneObject.NONE;
 		if (retType == Boolean.class || retType == boolean.class)
 			return BoolObject.fromBoolean((Boolean) ret);
+		if (ret instanceof Collection){
+			ListObject lo = new ListObject();
+			lo.newObject();
+			for (Object o : (Collection<?>)ret){
+				lo.objects.add(o == null ? NoneObject.NONE : cast(o, o.getClass()));
+			}
+			return lo;
+		}
+		if (ret instanceof Map){
+			Map<?, ?> map = (Map<?, ?>)ret;
+			DictObject dict = new DictObject();
+			for (Map.Entry<?, ?> e : map.entrySet()){
+				dict.backingMap.put(e.getKey() == null ? NoneObject.NONE : cast(e.getKey(), e.getKey().getClass()), 
+						e.getValue() == null ? NoneObject.NONE : cast(e.getValue(), e.getValue().getClass()));
+			}
+			return dict;
+		}
 		if (ret instanceof PythonObject)
 			return (PythonObject) ret;
 		if (ret == null)
@@ -133,28 +151,28 @@ public class Utils {
 			if (o instanceof IntObject)
 				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("int", o));
+				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("int", o));
 		}
 
 		if (aType == Long.class || aType == long.class) {
 			if (o instanceof IntObject)
 				return ((IntObject)o).intValue();
 			else
-				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("int", o));
+				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("int", o));
 		}
 
 		if (aType == Float.class || aType == float.class) {
 			if (o instanceof RealObject)
 				return ((RealObject)o).floatValue();
 			else
-				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("float", o));
+				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("float", o));
 		}
 
 		if (aType == Double.class || aType == double.class) {
 			if (o instanceof RealObject)
 				return ((RealObject)o).doubleValue();
 			else
-				return asJavaObject(aType, PythonInterpreter.interpret.get().executeCall("float", o));
+				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("float", o));
 		}
 
 		if (aType == Boolean.class || aType == boolean.class) {
@@ -191,7 +209,7 @@ public class Utils {
 	}
 
 	public static PythonObject run(String function, PythonObject... args) {
-		return PythonInterpreter.interpret.get().executeCall(function, args);
+		return PythonInterpreter.interpreter.get().executeCall(function, args);
 	}
 	
 	/**
@@ -464,9 +482,9 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (PythonInterpreter.interpret.get().currentFrame.size() == 0)
+		if (PythonInterpreter.interpreter.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return PythonInterpreter.interpret.get().environment().get(new StringObject(variable), true, false);
+		return PythonInterpreter.interpreter.get().environment().get(new StringObject(variable), true, false);
 	}
 
 	/**
