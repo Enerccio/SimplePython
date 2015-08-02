@@ -656,7 +656,7 @@ HEX_INTEGER
 
 /// bininteger     ::=  "0" ("b" | "B") bindigit+
 BIN_INTEGER
- : '0' [bB] BIN_DIGIT+
+ : '0' [bB]? BIN_DIGIT+
  ;
 
 /// floatnumber   ::=  pointfloat | exponentfloat
