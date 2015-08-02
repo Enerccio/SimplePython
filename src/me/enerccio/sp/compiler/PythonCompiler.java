@@ -1495,11 +1495,12 @@ public class PythonCompiler {
 	/** Compiles function call arguments */
 	private CallArgsData compileArguments(ArglistContext arglist, List<PythonBytecode> bytecode) {
 		CallArgsData rv = new CallArgsData();
+		List<PythonBytecode> kwBcs = new ArrayList<>();
 		for (ArgumentContext ac : arglist.argument()) {
 			if (ac.kwarg() != null) {
 				rv.kwArgCount ++;
 				compile(ac.kwarg().test(), bytecode);
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.KWARG, ac.kwarg().test().start));
+				kwBcs.add(0, cb = Bytecode.makeBytecode(Bytecode.KWARG, ac.kwarg().test().start));
 				cb.stringValue = ac.kwarg().nname().getText();
 			} else {
 				rv.normalArgCount ++;
@@ -1508,6 +1509,8 @@ public class PythonCompiler {
 				compile(ac.test(), bytecode);
 			}
 		}
+		for (PythonBytecode c : kwBcs)
+			bytecode.add(c);
 		if (arglist.test() != null){
 			// TODO: Support this, maybe
 			throw Utils.throwException("SyntaxError", "argument expansion not supported");
