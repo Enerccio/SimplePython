@@ -210,11 +210,11 @@ public class PythonCompiler {
 	 * @param m module
 	 * @return
 	 */
-	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, ModuleObject m) {
-		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m);
+	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, ModuleObject m, DictObject builtins) {
+		return doCompile(fcx, dict, m.fields.get(ModuleObject.__NAME__).object.toString(), m, builtins);
 	}
 	
-	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, String mn, PythonObject locals) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, DictObject dict, String mn, PythonObject locals, DictObject builtins) {
 		moduleName.set(mn);
 		compilingFunction.push(null);
 		
@@ -227,10 +227,20 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, fcx.start));
 		cb.value = NoneObject.NONE;
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCAL_CONTEXT, fcx.start));
+		if (builtins != null)
+			environments.add(builtins);
 		// locals
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, fcx.start)); 
 		cb.mapValue = dict;
 		environments.add(dict);
+		// builtins
+		if (builtins != null){
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, fcx.start)); 
+			cb.mapValue = builtins;	
+		}
+		
+		if (builtins != null)
+			dict.backingMap.put(new StringObject("__builtin__"), builtins);
 		
 		boolean first = true;
 		for (Label_or_stmtContext ls : fcx.label_or_stmt()){
@@ -247,6 +257,8 @@ public class PythonCompiler {
 		compilingClass.pop();
 		stack.pop();
 		environments.removeLast();
+		if (builtins != null)
+			environments.removeLast();
 		
 		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
 		cob.newObject();

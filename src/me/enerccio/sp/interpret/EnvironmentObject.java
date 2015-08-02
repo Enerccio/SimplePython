@@ -59,16 +59,14 @@ public class EnvironmentObject extends PythonObject {
 	 * @return value or null if none exists
 	 */
 	public PythonObject get(StringObject key, boolean isGlobal, boolean skipFirst){
+		int it = skipFirst ? 1 : 0;
 		if (isGlobal){
-			return environments.get(environments.size()-1).doGet(key);
+			it = environments.size() > 1 ? environments.size()-2 : 0;
 		}
 		
 		PythonObject o;
-		for (DictObject e : environments){
-			if (skipFirst){
-				skipFirst = false;
-				continue;
-			}
+		for (int i=it; i<environments.size(); i++){
+			DictObject e = environments.get(i);
 			o = e.doGet(key);
 			if (o != null)
 				return o;
@@ -86,16 +84,18 @@ public class EnvironmentObject extends PythonObject {
 	 * @return
 	 */
 	public PythonObject set(StringObject key, PythonObject value, boolean isGlobal, boolean skipFirst){
+		
+		int it = skipFirst ? 1 : 0;
 		if (isGlobal){
-			return environments.get(environments.size()-1).backingMap.put(key, value);
+			it = environments.size() > 1 ? environments.size()-2 : 0;
 		}
 		
 		PythonObject o;
-		for (DictObject e : environments){
-			if (skipFirst){
-				skipFirst = false;
-				continue;
-			}
+		for (int i=it; i<environments.size(); i++){
+			if (environments.size() > 1 && i == environments.size()-1)
+				break; // ignore builtins
+			
+			DictObject e = environments.get(i);
 			o = e.doGet(key);
 			if (o != null){
 				return e.backingMap.put(key, value);

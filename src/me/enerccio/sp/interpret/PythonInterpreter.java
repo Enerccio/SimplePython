@@ -105,7 +105,7 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	public PythonObject executeCall(String function, PythonObject... data) {
 		if (currentFrame.size() == 0)
-			return returnee = execute(false, PythonRuntime.runtime.generateGlobals().doGet(function), null, data);
+			return returnee = execute(false, PythonRuntime.runtime.getGlobals().doGet(function), null, data);
 		return returnee = execute(false, environment().get(new StringObject(function), false, false), null, data);
 	}
 

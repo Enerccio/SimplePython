@@ -465,7 +465,7 @@ public class Utils {
 	 */
 	public static PythonObject getGlobal(String variable) {
 		if (PythonInterpreter.interpret.get().currentFrame.size() == 0)
-			return PythonRuntime.runtime.generateGlobals().doGet(variable);
+			return PythonRuntime.runtime.getGlobals().doGet(variable);
 		return PythonInterpreter.interpret.get().environment().get(new StringObject(variable), true, false);
 	}
 

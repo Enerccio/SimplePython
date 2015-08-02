@@ -243,7 +243,7 @@ public class PythonRuntime {
 	 * @return
 	 */
 	private ModuleObject loadModule(ModuleProvider provider){
-		DictObject globals = generateGlobals();
+		DictObject globals = new DictObject();
 		ModuleObject mo = new ModuleObject(globals, provider);
 		return mo;
 	}
@@ -305,7 +305,7 @@ public class PythonRuntime {
 	 * Generates globals. This is only done once but then cloned
 	 * @return
 	 */
-	public DictObject generateGlobals() {
+	public DictObject getGlobals() {
 		if (globals == null)
 			synchronized (this){
 				if (globals == null){
@@ -378,7 +378,7 @@ public class PythonRuntime {
 					}
 					
 					PythonCompiler c = new PythonCompiler();
-					CompiledBlockObject builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE);
+					CompiledBlockObject builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE, null);
 					
 					PythonInterpreter.interpret.get().executeBytecode(builtin);
 					while (true){
@@ -394,7 +394,7 @@ public class PythonRuntime {
 				}
 			}
 		
-		return globals.cloneMap();
+		return globals;
 	}
 	
 	
