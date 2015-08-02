@@ -19,6 +19,9 @@ package me.enerccio.sp.types.callables;
 
 import java.lang.reflect.Method;
 
+import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.types.sequences.TupleObject;
+
 /**
  * Java function wrapped into callable object.
  * @author Enerccio
@@ -31,6 +34,12 @@ public class JavaFunctionObject extends JavaMethodObject {
 	public JavaFunctionObject(Method m, boolean noTypeConversion) {
 		super(null, m, noTypeConversion);
 	}
+
+	/** Usable for static methods with default signature */
+	public JavaFunctionObject(Class<?> cls, String name) throws NoSuchMethodException, SecurityException {
+		super(null, cls.getMethod(name, TupleObject.class, KwArgs.class), true);
+	}
+
 	
 	@Override
 	protected String doToString() {
