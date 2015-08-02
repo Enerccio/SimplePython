@@ -5,6 +5,9 @@ import java.io.OutputStream;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.pointer.PointerFactory;
+import me.enerccio.sp.types.sequences.StringObject;
 
 public class SimplePython {
 
@@ -40,5 +43,26 @@ public class SimplePython {
 	
 	public static ModuleObject getModule(String pythonPath){
 		return r.getModule(pythonPath);
+	}
+	
+	public static void injectGlobals(String key, PythonObject value){
+		r.getGlobals().backingMap.put(new StringObject(key), value);
+	}
+	
+	public static void addExcludePackageOrClass(String path){
+		r.addExcludePackageOrClass(path);
+	}
+	
+	public static void setAllowAutowraps(boolean autowraps){
+		r.setAllowAutowraps(autowraps);
+	}
+	
+	public static void addFactory(String packagePath, Class<? extends PointerFactory> clazz){
+		r.addFactory(packagePath, clazz);
+	}
+	
+	public static PythonObject convertJava(Object java){
+		// TODO: add coerce
+		return r.getJavaClass(java.getClass().getName(), java, null);
 	}
 }
