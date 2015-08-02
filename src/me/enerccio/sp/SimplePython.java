@@ -4,10 +4,12 @@ import java.io.OutputStream;
 
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.utils.Utils;
 
 public class SimplePython {
 
@@ -64,5 +66,17 @@ public class SimplePython {
 	public static PythonObject convertJava(Object java){
 		// TODO: add coerce
 		return r.getJavaClass(java.getClass().getName(), java, null);
+	}
+	
+	public static void setField(PythonObject object, String fieldName, PythonObject value){
+		synchronized (object){
+			if (!object.fields.containsKey(fieldName))
+				object.create(fieldName, AccessRestrictions.PUBLIC, null);
+			object.set(fieldName, null, value);
+		}
+	}
+	
+	public static PythonObject getField(PythonObject o, String fieldName){
+		return o.get(fieldName, null);
 	}
 }
