@@ -95,6 +95,16 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonRuntime {
 	
+	private boolean sandboxMode;
+	
+	public void setSandboxMode(boolean sandboxEnabled){
+		sandboxMode = sandboxEnabled;
+	}
+	
+	public boolean isSandboxMode(){
+		return sandboxMode;
+	}
+	
 	/** PythonRuntime is a singleton */
 	public static final PythonRuntime runtime = new PythonRuntime();
 	
@@ -627,7 +637,7 @@ public class PythonRuntime {
 		excludedPackages.add(packageOrClass);
 	}
 	
-	public synchronized void addAugumentor(String name, PointerFinalizer augumentor){
+	public synchronized void addPointerFinalizer(String name, PointerFinalizer augumentor){
 		augumentors.put(name, augumentor);
 	}
 	

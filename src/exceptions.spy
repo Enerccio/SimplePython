@@ -25,6 +25,9 @@ class Error(object):
         
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__message__) 
+    
+class SandboxViolationError(Error):
+    pass
         
 class BaseException(Error):
     pass

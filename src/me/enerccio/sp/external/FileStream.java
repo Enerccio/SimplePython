@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
@@ -32,6 +33,9 @@ public class FileStream {
 	private String encoding;
 	private boolean bytestream;
 	public FileStream(String file, String mode){
+		if (PythonRuntime.runtime.isSandboxMode())
+			throw Utils.throwException("SandboxViolationError", "file creation is not allowed");
+		
 		try {
 			init(file, mode);
 		} catch (Exception e){

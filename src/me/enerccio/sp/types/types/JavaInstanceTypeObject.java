@@ -40,6 +40,9 @@ public class JavaInstanceTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
+		if (PythonRuntime.runtime.isSandboxMode())
+			throw Utils.throwException("SandboxViolationError", "javainstance() not allowed");
+			
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() < 1)
