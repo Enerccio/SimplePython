@@ -20,12 +20,12 @@ package me.enerccio.sp.types.sequences;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
+import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -33,7 +33,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class OrderedSequenceIterator extends PythonObject {
+public class OrderedSequenceIterator extends PythonObject implements InternalIterator {
 	private static final long serialVersionUID = 4746975236443204424L;
 	private SequenceObject sequence;
 	private int cp = 0;
@@ -48,8 +48,8 @@ public class OrderedSequenceIterator extends PythonObject {
 	
 	static {
 		try {
-			sfields.put(SequenceObject.__ITER__,	new JavaMethodObject(OrderedSequenceIterator.class, "__iter__"));
-			sfields.put(GeneratorObject.NEXT,		new JavaMethodObject(OrderedSequenceIterator.class, "next"));
+			sfields.put(SequenceObject.__ITER__,	JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "__iter__"));
+			sfields.put(GeneratorObject.NEXT,		JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "next"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -61,17 +61,23 @@ public class OrderedSequenceIterator extends PythonObject {
 		bindMethods(sfields);
 	}
 	
-	public PythonObject __iter__(TupleObject args, KwArgs kw){
-		args.notExpectingArgs(kw);
+	@Override
+	public PythonObject __iter__() {
 		return this;
 	}
 	
-	public PythonObject next(TupleObject args, KwArgs kw){
-		args.notExpectingArgs(kw);
-		if (args.len() > 0)
-			throw Utils.throwException("TypeError", "next(): method requires no arguments");
+	@Override
+	public PythonObject next() {
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		return value;
+	}
+	
+	@Override
+	public PythonObject nextInternal() {
+		if (cp >= len)
+			return null;
 		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
 		return value;
 	}
