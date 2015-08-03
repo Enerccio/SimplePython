@@ -19,6 +19,7 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -40,19 +41,19 @@ public class JavaInstanceTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
-		if (PythonRuntime.runtime.isSandboxMode())
-			throw Utils.throwException("SandboxViolationError", "javainstance() not allowed");
-			
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() < 1)
 			throw Utils.throwException("TypeError", "javainstance(): requires at least 1 parameter");
 		
 		PythonObject clsName = args.valueAt(0);
+		
 		if (!(clsName instanceof StringObject))
 			throw Utils.throwException("TypeError", "javainstance():  first argument must be str");
 		
 		String cls = ((StringObject)clsName).value;
+		
+		PythonRuntime.runtime.checkSandboxAction("javainstance", SecureAction.JAVA_INSTANCE_CREATION, cls);
 		
 		return PythonRuntime.runtime.getJavaClass(cls, null, kwargs, Utils.removeFirst(args.getObjects()));
 	}

@@ -1,12 +1,27 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonPathResolver;
+import me.enerccio.sp.sandbox.PythonSecurityManager;
 
 
 public class Test {
@@ -22,22 +37,17 @@ public class Test {
 			SimplePython.addResolve(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
 			SimplePython.getModule("x");
+			SimplePython.setSecurityManager(new PythonSecurityManager() {
+				
+				@Override
+				public boolean actionAllowed(SecureAction a, Object... additionalDeciders) {
+					System.out.println(a + " " + Arrays.toString(additionalDeciders));
+					if (a == SecureAction.OPEN_FILE)
+						return false;
+					return true;
+				}
+			});
 			c2 = System.currentTimeMillis();
-			
-			List<List<Integer>> ill = new ArrayList<List<Integer>>();
-			for (int i=0; i<10; i++){
-				List<Integer> ill2 = new ArrayList<Integer>();
-				for (int j=0; j<10; j++)
-					ill2.add(j);
-				ill.add(ill2);
-			}
-			System.out.println(SimplePython.asTuple(ill));
-			System.out.println(SimplePython.convertJava(ill));
-			
-			Map<String, Integer> mm = new HashMap<String, Integer>();
-			for (int i=0; i<10; i++)
-				mm.put(Integer.toBinaryString(i), i);
-			System.out.println(SimplePython.convertJava(mm));
 			
 			SimplePython.executeFunction("x", "test");
 

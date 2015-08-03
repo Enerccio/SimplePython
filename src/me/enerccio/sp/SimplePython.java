@@ -23,6 +23,7 @@ import java.util.Collection;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
@@ -138,7 +139,7 @@ public class SimplePython {
 		r.addPointerFinalizer(name, finalizer);
 	}
 	
-	public static void setSandboxMode(boolean sandboxMode){
-		r.setSandboxMode(sandboxMode);
+	public static void setSecurityManager(PythonSecurityManager manager){
+		r.setSecurityManager(manager);
 	}
 }

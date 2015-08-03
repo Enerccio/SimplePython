@@ -45,6 +45,8 @@ import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
+import me.enerccio.sp.sandbox.PythonSecurityManager;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
@@ -95,14 +97,15 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonRuntime {
 	
-	private boolean sandboxMode;
+	private PythonSecurityManager manager;
 	
-	public void setSandboxMode(boolean sandboxEnabled){
-		sandboxMode = sandboxEnabled;
+	public void setSecurityManager(PythonSecurityManager manager){
+		this.manager = manager;
 	}
 	
-	public boolean isSandboxMode(){
-		return sandboxMode;
+	public void checkSandboxAction(String call, SecureAction a, Object... additionalDeciders){
+		if (this.manager != null)
+			this.manager.checkSandbox(a, call, additionalDeciders);
 	}
 	
 	/** PythonRuntime is a singleton */
