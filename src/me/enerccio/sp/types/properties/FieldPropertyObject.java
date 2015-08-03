@@ -22,6 +22,7 @@ import java.lang.reflect.Modifier;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
 public class FieldPropertyObject extends PythonObject implements PropertyObject {
@@ -54,7 +55,7 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 		if (readOnly)
 			throw Utils.throwException("TypeError", "field '" + property.getName() + "' is read-only");
 		try {
-			property.set(properter, Utils.asJavaObject(property.getType(), value));
+			property.set(properter, Coerce.toJava(value, property.getType()));
 		} catch (IllegalArgumentException | IllegalAccessException
 				| CastFailedException e) {
 			throw Utils.throwException("TypeError", "failed to access property '" + property.getName() + "'", e);
@@ -64,7 +65,7 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 	@Override
 	public PythonObject get(){
 		try {
-			return Utils.cast(property.get(properter), property.getType());
+			return Coerce.toPython(property.get(properter), property.getType());
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw Utils.throwException("TypeError", "failed to access property '" + property.getName() + "'", e);
 		}
