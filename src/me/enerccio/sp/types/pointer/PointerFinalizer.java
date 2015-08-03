@@ -15,15 +15,12 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.runtime;
+package me.enerccio.sp.types.pointer;
 
-import java.util.Map;
-import java.util.TreeMap;
+import me.enerccio.sp.types.PythonObject;
 
-import me.enerccio.sp.types.ModuleObject;
-
-public class ModuleContainer {
-	public ModuleObject module;
-	public Map<String, ModuleObject> submodules = new TreeMap<String, ModuleObject>();
-	public Map<String, ModuleContainer> subpackages = new TreeMap<String, ModuleContainer>();
+public abstract class PointerFinalizer {
+	
+	public abstract PythonObject finalizePointer(PointerObject p);
+	
 }
