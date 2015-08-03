@@ -499,7 +499,10 @@ public class Utils {
 				w.writeInt(insertValue(b.value, mmap, rmap));
 				break;
 			case KWARG:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				String[] ss = (String[]) b.object;
+				w.writeInt(ss.length);
+				for (String s : ss)
+					w.writeInt(insertValue(new StringObject(s), mmap, rmap));
 				break;
 			case PUSH_DICT:
 				w.writeInt(insertValue(b.mapValue, mmap, rmap));

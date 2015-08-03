@@ -561,9 +561,10 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case KWARG:
 			// saves value into environment as variable
-			if (o.kwargs == null)
-				o.kwargs = new KwArgs.HashMapKWArgs();
-			o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
+			jv = o.nextInt();
+			o.kwargs = new KwArgs.HashMapKWArgs();
+			for (int i=0; i<jv; i++)
+				o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
 			break;
 		case SAVE_LOCAL:
 			// saves the value exactly into locals (used by def and clas)
