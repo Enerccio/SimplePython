@@ -53,6 +53,7 @@ import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.sequences.XRangeObject;
+import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -641,7 +642,7 @@ public class PythonInterpreter extends PythonObject {
 			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
 			value = stack.pop();	// object to get attribute from
 			apo = value.get("__getattribute__", getLocalContext()); 
-			if (apo != null) {
+			if (apo != null && !(value instanceof ObjectTypeObject)) {
 				// There is __getattribute__ defined, call it directly
 				returnee = execute(false, apo, null, field);
 				o.accepts_return = true;

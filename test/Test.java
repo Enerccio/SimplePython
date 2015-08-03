@@ -37,16 +37,6 @@ public class Test {
 			SimplePython.addResolve(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
 			SimplePython.getModule("x");
-			SimplePython.setSecurityManager(new PythonSecurityManager() {
-				
-				@Override
-				public boolean actionAllowed(SecureAction a, Object... additionalDeciders) {
-					System.out.println(a + " " + Arrays.toString(additionalDeciders));
-					if (a == SecureAction.OPEN_FILE)
-						return false;
-					return true;
-				}
-			});
 			c2 = System.currentTimeMillis();
 			
 			SimplePython.executeFunction("x", "test");

@@ -112,19 +112,19 @@ public class DictObject extends ContainerObject {
 	}
 
 	// Internal use only
-	public boolean contains(String key) {
+	public synchronized boolean contains(String key) {
 		synchronized (backingMap){
 			return backingMap.containsKey(new StringObject(key));
 		}
 	}
 
-	public void put(String key, PythonObject value) {
+	public synchronized void put(String key, PythonObject value) {
 		synchronized (backingMap){
 			backingMap.put(new StringObject(key), value);
 		}
 	}
 	
-	public PythonObject getItem(String key) {
+	public synchronized PythonObject getItem(String key) {
 		StringObject so = new StringObject(key);
 		synchronized (backingMap){
 			if (!backingMap.containsKey(so))
@@ -133,7 +133,7 @@ public class DictObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject getItem(TupleObject a, KwArgs kwargs){
+	public synchronized PythonObject getItem(TupleObject a, KwArgs kwargs){
 		if (kwargs != null) kwargs.checkEmpty(__GETITEM__);
 		if (a.len() != 1)
 			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
@@ -145,7 +145,7 @@ public class DictObject extends ContainerObject {
 		}
 	}
 	
-	public PythonObject setItem(TupleObject a, KwArgs kwargs){
+	public synchronized PythonObject setItem(TupleObject a, KwArgs kwargs){
 		if (kwargs != null) kwargs.checkEmpty(__SETITEM__);
 		if (a.len() != 2)
 			throw Utils.throwException("TypeError", "__setitem__(): requires 2 parameters");
@@ -163,11 +163,11 @@ public class DictObject extends ContainerObject {
 		}
 	}
 
-	public PythonObject doGet(String str) {
+	public synchronized PythonObject doGet(String str) {
 		return doGet(new StringObject(str));
 	}
 
-	public PythonObject doGet(PythonObject key) {
+	public synchronized PythonObject doGet(PythonObject key) {
 		return backingMap.get(key);
 	}
 	

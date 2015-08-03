@@ -175,4 +175,30 @@ public class ClassObject extends CallableObject {
 		return "<class " + get(__NAME__, this).toString() + ">";
 	}
 
+	@Override
+	public PythonObject set(String key, PythonObject localContext,
+			PythonObject value) {
+		if (key.equals(__NAME__) || key.equals(__DICT__))
+			throw Utils.throwException("AttributeError", "'" + 
+					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+		if (fields.containsKey(key))
+			return super.set(key, localContext, value);
+		else {
+			((DictObject)fields.get(__DICT__).object).put(key, value);
+		}
+		return NoneObject.NONE;
+	}
+	
+	@Override
+	public void create(String key, AccessRestrictions restrictions, PythonObject currentContext){
+		
+	}
+
+	@Override
+	public synchronized PythonObject get(String key, PythonObject localContext) {
+		PythonObject o = super.get(key, localContext);
+		if (o == null && fields.containsKey(__DICT__))
+			o = ((DictObject)fields.get(__DICT__).object).getItem(key);
+		return o;
+	}
 }

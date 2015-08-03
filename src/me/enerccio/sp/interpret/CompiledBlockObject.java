@@ -132,11 +132,11 @@ public class CompiledBlockObject extends PythonObject {
 		return "<compiled-block at 0x"+Integer.toHexString(hashCode()) + ">";
 	}
 
-	public static String dis(CompiledBlockObject block){
+	public static synchronized String dis(CompiledBlockObject block){
 		return dis(block, false, 0);
 	}
 	
-	public static String dis(CompiledBlockObject block, boolean single, int offset) {
+	public static synchronized String dis(CompiledBlockObject block, boolean single, int offset) {
 		StringBuilder bdd = new StringBuilder();
 		
 		ByteBuffer b = ByteBuffer.wrap(block.getBytedata());

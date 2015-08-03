@@ -1,2 +1,18 @@
+import threading
+
+class MyThread(threading.Thread):
+    def __init__(self, x):
+        super(MyThread, self).__init__("My new shiny thread " + x)
+        
+    def execute(self):
+        for x in [1, 2, 3, 4]:
+            print x, ". iteration of thread ", self.get_name()
+
 def test():
-    print open("differences")
+    t = [MyThread(x) for x in [1, 2]]
+    print t
+    for thread in t:
+        thread.start()
+    for thread in t:
+        thread.join()
+    print "joined"

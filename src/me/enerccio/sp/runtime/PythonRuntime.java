@@ -34,6 +34,7 @@ import java.util.concurrent.CyclicBarrier;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.PrintOutputStream;
+import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -118,6 +119,7 @@ public class PythonRuntime {
 		
 		addAlias(FileStream.class.getName(), "filestream");
 		addAlias(PrintOutputStream.class.getName(), "sysoutstream");
+		addAlias(PythonThread.class.getName(), "jthread");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
