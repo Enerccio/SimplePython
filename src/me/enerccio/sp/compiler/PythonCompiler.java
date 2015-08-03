@@ -1931,6 +1931,7 @@ public class PythonCompiler {
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */
+	@SuppressWarnings("unused")
 	private void compileAssignment(TestlistContext tc, List<PythonBytecode> bytecode) {
 		if (tc.test().size() > 1) {
 			// x,y,z = ...
@@ -2140,7 +2141,7 @@ public class PythonCompiler {
 	private void addImport(String packageName, String as,
 			List<PythonBytecode> bytecode, Token t) {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.IMPORT, t));
-		cb.stringValue2 = packageName;
+		cb.object = packageName;
 		cb.stringValue = as;
 	}
 	
@@ -2179,7 +2180,6 @@ public class PythonCompiler {
 	};
 	
 	private class TryFinallyItem implements ControllStackItem {
-		private List<PythonBytecode> bcs = new LinkedList<>();
 		private Try_stmtContext finallyCtx;
 		boolean needsBreakBlock = false;
 		boolean needsContinueBlock = false;

@@ -40,7 +40,7 @@ public class PythonBytecode extends PythonObject {
 	public int intValue;
 	public PythonObject value;
 	public String stringValue;
-	public String stringValue2;
+	public Object object;
 	public DictObject mapValue;
 	public boolean booleanValue;
 	
@@ -572,7 +572,7 @@ public class PythonBytecode extends PythonObject {
 		
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s, %s)", getOpcode().toString(), stringValue2, stringValue);
+			return String.format("%s(%s, %s)", getOpcode().toString(), (String)object, stringValue);
 		}
 		
 	}

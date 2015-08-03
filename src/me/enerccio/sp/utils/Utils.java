@@ -458,7 +458,7 @@ public class Utils {
 				break;
 			case IMPORT:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
-				w.writeInt(insertValue(new StringObject(b.stringValue2), mmap, rmap));
+				w.writeInt(insertValue(new StringObject((String)b.object), mmap, rmap));
 				break;
 			case ISINSTANCE:
 				break;
