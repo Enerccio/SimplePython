@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.pointer;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ import java.util.Map;
 
 import me.enerccio.sp.types.callables.JavaCongruentAggregatorObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.FieldPropertyObject;
+import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -37,6 +40,7 @@ public abstract class WrapBaseFactory implements PointerFactory {
 	private static final long serialVersionUID = -4111009373007823950L;
 	
 	private static Map<String, List<Method>> cache = Collections.synchronizedMap(new HashMap<String, List<Method>>());
+	private static Map<String, List<Pair<Field, Boolean>>> fcache = Collections.synchronizedMap(new HashMap<String, List<Pair<Field, Boolean>>>());
 
 	@Override
 	public final PointerObject doInitialize(Object instance) {
@@ -48,6 +52,14 @@ public abstract class WrapBaseFactory implements PointerFactory {
 				if (!cache.containsKey(instance.getClass().getCanonicalName())){
 					List<Method> ml = getMethods(instance);
 					cache.put(instance.getClass().getCanonicalName(), ml);
+				}
+			}
+		
+		if (!fcache.containsKey(instance.getClass().getCanonicalName()))
+			synchronized (fcache){
+				if (!fcache.containsKey(instance.getClass().getCanonicalName())){
+					List<Pair<Field, Boolean>> ml = getFields(instance);
+					fcache.put(instance.getClass().getCanonicalName(), ml);
 				}
 			}
 		
@@ -69,10 +81,15 @@ public abstract class WrapBaseFactory implements PointerFactory {
 			for (String name : mm.keySet()){
 				Utils.putPublic(o, name, mm.get(name));
 			}
+			
+			for (Pair<Field, Boolean> fd : fcache.get(instance.getClass().getCanonicalName())){
+				Utils.putPublic(o, fd.getFirst().getName(), new FieldPropertyObject(instance, fd.getFirst(), fd.getSecond()));
+			}
 		}
 		
 		return o;
 	}
 
 	protected abstract List<Method> getMethods(Object instance);
+	protected abstract List<Pair<Field, Boolean>> getFields(Object instance);
 }

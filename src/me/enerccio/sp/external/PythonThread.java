@@ -23,11 +23,15 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
+import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
 public class PythonThread extends Thread {
 
 	private UserMethodObject call;
+	
+	@WrapField(readOnly = true)
+	public boolean executed;
 	public PythonThread(ClassInstanceObject o, String name){
 		PythonRuntime.runtime.checkSandboxAction("jthread", SecureAction.NEW_THREAD);
 		
@@ -37,6 +41,7 @@ public class PythonThread extends Thread {
 	
 	@Override
 	public void run() {
+		executed = true;
 		PythonInterpreter.interpreter.get().execute(true, call, null);
 	};
 	

@@ -9,10 +9,5 @@ class MyThread(threading.Thread):
             print x, ". iteration of thread ", self.get_name()
 
 def test():
-    t = [MyThread(x) for x in [1, 2]]
-    print t
-    for thread in t:
-        thread.start()
-    for thread in t:
-        thread.join()
-    print "joined"
+    t = MyThread(5)
+    print t.executed()

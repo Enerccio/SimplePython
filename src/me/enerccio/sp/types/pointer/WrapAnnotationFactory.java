@@ -19,9 +19,12 @@ package me.enerccio.sp.types.pointer;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import me.enerccio.sp.utils.Pair;
 
 /**
  * Wraps all public methods wrapped by @WrapMethod
@@ -34,6 +37,11 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface WrapMethod { }
 	
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface WrapField {
+		boolean readOnly() default false;
+	}
+	
 	@Override
 	protected List<Method> getMethods(Object instance) {
 		List<Method> ml = new ArrayList<Method>();
@@ -42,6 +50,15 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 				ml.add(m);
 		}
 		return ml;
+	}
+
+	@Override
+	protected List<Pair<Field, Boolean>> getFields(Object instance) {
+		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
+		for (Field f : instance.getClass().getFields())
+			if (f.isAnnotationPresent(WrapField.class))
+				fl.add(Pair.makePair(f, f.getAnnotation(WrapField.class).readOnly()));
+		return fl;
 	}
 
 }

@@ -47,6 +47,7 @@ import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
+import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
@@ -817,6 +818,10 @@ public class PythonInterpreter extends PythonObject {
 		} break;
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
+		}
+		
+		if (returnee instanceof PropertyObject){
+			returnee = ((PropertyObject)returnee).get();
 		}
 		
 		DebugInformation dd = o.compiled.getDebugInformation(spc);

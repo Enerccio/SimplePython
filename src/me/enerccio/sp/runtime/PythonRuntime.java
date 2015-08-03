@@ -63,6 +63,7 @@ import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
+import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -593,8 +594,13 @@ public class PythonRuntime {
 			return PythonInterpreter.interpreter.get().execute(false, o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()),
 					null, new StringObject(attribute), v);
 		}
-		if (o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext()) == null)
+		PythonObject field;
+		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
+		if (field != null && field instanceof PropertyObject){
+			((PropertyObject)field).set(v);
+			return NoneObject.NONE;
+		}
 		o.set(attribute, PythonInterpreter.interpreter.get().getLocalContext(), v);
 		return NoneObject.NONE;
 	}

@@ -42,3 +42,6 @@ class Thread(object):
         
     def running(self):
         return self.__jthread.threadRunning()
+    
+    def executed(self):
+        return self.__jthread.executed

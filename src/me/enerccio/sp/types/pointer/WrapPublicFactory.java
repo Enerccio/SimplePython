@@ -17,9 +17,12 @@
  */
 package me.enerccio.sp.types.pointer;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import me.enerccio.sp.utils.Pair;
 
 /**
  * Wraps all public methods of the object
@@ -36,5 +39,13 @@ public class WrapPublicFactory extends WrapBaseFactory implements PointerFactory
 			ml.add(m);
 		}
 		return ml;
+	}
+
+	@Override
+	protected List<Pair<Field, Boolean>> getFields(Object instance) {
+		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
+		for (Field f : instance.getClass().getFields())
+			fl.add(Pair.makePair(f, false));
+		return fl;
 	}
 }
