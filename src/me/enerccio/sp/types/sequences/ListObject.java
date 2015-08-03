@@ -27,6 +27,8 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.iterators.InternallyIterable;
+import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -34,7 +36,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class ListObject extends MutableSequenceObject implements SimpleIDAccessor  {
+public class ListObject extends MutableSequenceObject implements SimpleIDAccessor, InternallyIterable  {
 	private static final long serialVersionUID = 16L;
 
 	public ListObject(){
@@ -110,7 +112,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	}
 
 	@Override
-	public PythonObject createIterator() {
+	public PythonObject __iter__() {
 		PythonObject o = new OrderedSequenceIterator(this);
 		o.newObject();
 		return o;

@@ -20,7 +20,6 @@ package me.enerccio.sp.types.sequences;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.PythonObject;
@@ -47,7 +46,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	static {
 		try {
-			sfields.put(__ITER__, 		new JavaMethodObject(SequenceObject.class, "__iter__"));
+			sfields.put(__ITER__, 		JavaMethodObject.noArgMethod(SequenceObject.class, "__iter__"));
 			sfields.put(__GETITEM__,	new JavaMethodObject(SequenceObject.class, "get", PythonObject.class));
 			sfields.put(__ADD__,		new JavaMethodObject(SequenceObject.class, "add", PythonObject.class));
 		} catch (Exception e){
@@ -67,12 +66,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public abstract PythonObject get(PythonObject key);
 	
-	public PythonObject __iter__(TupleObject args, KwArgs kw) {
-		args.notExpectingArgs(kw);
-		return createIterator();
-	}
-	
-	public abstract PythonObject createIterator(); 
+	public abstract PythonObject __iter__(); 
 
 	@Override
 	protected String doToString() {

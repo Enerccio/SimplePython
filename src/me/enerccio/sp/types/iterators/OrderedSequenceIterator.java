@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.types.sequences;
+package me.enerccio.sp.types.iterators;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +24,7 @@ import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.iterators.GeneratorObject;
-import me.enerccio.sp.types.iterators.InternalIterator;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.utils.Utils;
 
 /**

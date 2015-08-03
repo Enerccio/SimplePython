@@ -26,6 +26,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -149,7 +150,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	}
 
 	@Override
-	public PythonObject createIterator() {
+	public PythonObject __iter__() {
 		PythonObject o = new OrderedSequenceIterator(this);
 		o.newObject();
 		return o;
