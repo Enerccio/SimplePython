@@ -17,15 +17,11 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * Represents objects with __contains__
@@ -38,14 +34,12 @@ public abstract class ContainerObject extends PythonObject {
 	public static final String __CONTAINS__ = "__contains__";
 	public static final String __LEN__ = "__len__";
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __CONTAINS__, new JavaMethodObject(null, ContainerObject.class.getMethod("__contains__", 
-					new Class<?>[]{PythonObject.class}), false));
-			Utils.putPublic(sfields, __LEN__, new JavaMethodObject(null, ContainerObject.class.getMethod("__len__", 
-					new Class<?>[]{}), false));
+			sfields.put(__CONTAINS__, 	new JavaMethodObject(ContainerObject.class, "__contains__", PythonObject.class)); 
+			sfields.put( __LEN__, 		JavaMethodObject.noArgMethod(ContainerObject.class, "__len__"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -54,14 +48,7 @@ public abstract class ContainerObject extends PythonObject {
 	@Override
 	public void newObject(){
 		super.newObject();
-		String m;
-		
-		m = __CONTAINS__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __LEN__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 	}
 	
 	public PythonObject __contains__(PythonObject o){

@@ -17,13 +17,12 @@
  */
 package me.enerccio.sp.types.base;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.Arithmetics;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -47,143 +46,38 @@ public abstract class NumberObject extends PythonObject {
 		
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			sfields.put(__INT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("intValue", 
-							new Class<?>[]{TupleObject.class}), true), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__ADD__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("add", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__SUB__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("sub", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__MUL__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("mul", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__DIV__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("div", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__MOD__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("mod", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__AND__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("and", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__OR__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("or", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__NOT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("not", 
-							new Class<?>[]{}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__XOR__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("xor", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__POW__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("pow", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__RSHIFT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("rs", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__LSHIFT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("ls", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			
-			
-			sfields.put(Arithmetics.__LT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("lt", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__LE__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("le", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("eq", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__NE__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("ne", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__GE__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("ge", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__GT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, NumberObject.class.getMethod("gt", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			sfields.put(__INT__, 			new JavaMethodObject(NumberObject.class, "intValue"));
+			sfields.put(Arithmetics.__ADD__, new JavaMethodObject(NumberObject.class, "add", PythonObject.class));
+			sfields.put(Arithmetics.__SUB__, new JavaMethodObject(NumberObject.class, "sub", PythonObject.class));
+			sfields.put(Arithmetics.__MUL__, new JavaMethodObject(NumberObject.class, "mul", PythonObject.class));
+			sfields.put(Arithmetics.__DIV__, new JavaMethodObject(NumberObject.class, "div", PythonObject.class));
+			sfields.put(Arithmetics.__MOD__, new JavaMethodObject(NumberObject.class, "mod", PythonObject.class));
+			sfields.put(Arithmetics.__AND__, new JavaMethodObject(NumberObject.class, "and", PythonObject.class));
+			sfields.put(Arithmetics.__OR__, new JavaMethodObject(NumberObject.class, "or", PythonObject.class));
+			sfields.put(Arithmetics.__XOR__, new JavaMethodObject(NumberObject.class, "xor", PythonObject.class));
+			sfields.put(Arithmetics.__POW__, new JavaMethodObject(NumberObject.class, "pow", PythonObject.class));
+			sfields.put(Arithmetics.__RSHIFT__, new JavaMethodObject(NumberObject.class, "rs", PythonObject.class));
+			sfields.put(Arithmetics.__LSHIFT__, new JavaMethodObject(NumberObject.class, "ls", PythonObject.class));
+			sfields.put(Arithmetics.__LT__, new JavaMethodObject(NumberObject.class, "lt", PythonObject.class));
+			sfields.put(Arithmetics.__LE__, new JavaMethodObject(NumberObject.class, "le", PythonObject.class));
+			sfields.put(Arithmetics.__EQ__, new JavaMethodObject(NumberObject.class, "eq", PythonObject.class));
+			sfields.put(Arithmetics.__NE__, new JavaMethodObject(NumberObject.class, "ne", PythonObject.class));
+			sfields.put(Arithmetics.__GE__, new JavaMethodObject(NumberObject.class, "ge", PythonObject.class));
+			sfields.put(Arithmetics.__GT__, new JavaMethodObject(NumberObject.class, "gt", PythonObject.class));
 
 		} catch (Exception e) {
-			
+			throw new RuntimeException("Fuck", e);
 		}
 	}
 
 	@Override
 	public void newObject() {	
 		super.newObject();
-		try {
-			String m;
-			
-			m = __INT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			
-			m = Arithmetics.__ADD__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__SUB__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__MUL__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__DIV__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__MOD__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__AND__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__OR__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__NOT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__XOR__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__POW__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__RSHIFT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__LSHIFT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__LT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__LE__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__EQ__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__NE__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__GE__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__GT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-
-		} catch (Exception e) {
-			
-		}
+		bindMethods(sfields);
 	};
 	
 	protected abstract PythonObject getIntValue();
@@ -198,9 +92,8 @@ public abstract class NumberObject extends PythonObject {
 	 * @param args
 	 * @return
 	 */
-	public PythonObject intValue(TupleObject args){
-		if (args.len() != 0)
-			throw Utils.throwException("TypeError", "__int__ requires zero parameters");
+	public PythonObject intValue(TupleObject args, KwArgs kw){
+		args.notExpectingArgs(kw);
 		return getIntValue();
 	}
 	

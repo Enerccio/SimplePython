@@ -17,26 +17,22 @@
  */
 package me.enerccio.sp.types.iterators;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
-import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
  * xrange implementation
  */
-public class XRangeIterator extends PythonObject {
+public class XRangeIterator extends PythonObject implements InternalIterator {
 	private static final long serialVersionUID = -543998207864616108L;
 	public static final String __ITER__ = SequenceObject.__ITER__;
-	public static final String NEXT =  "next";
+	public static final String NEXT = GeneratorObject.NEXT;
 			
 	private int i, end, step;
 
@@ -46,14 +42,12 @@ public class XRangeIterator extends PythonObject {
 		this.step = step;
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, XRangeIterator.class.getMethod("__iter__", 
-					new Class<?>[]{}), false));
-			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, XRangeIterator.class.getMethod("next", 
-					new Class<?>[]{}), false));
+			sfields.put(__ITER__,	JavaMethodObject.noArgMethod(XRangeIterator.class, "__iter__"));
+			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(XRangeIterator.class, "next"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -62,15 +56,7 @@ public class XRangeIterator extends PythonObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = __ITER__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = NEXT;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 	}
 	
 	@Override
@@ -78,15 +64,13 @@ public class XRangeIterator extends PythonObject {
 		return "<rangeiterator object at " + this.getId() + ">";
 	}
 
+	@Override
 	public PythonObject __iter__() {
 		return this;
 	}
 	
-	/** 
-	 * Internal version.
-	 * Works as next(TupleObject t) called from python, but return null instead of calling StopIteration.
-	 */
-	public PythonObject next() {
+	@Override
+	public PythonObject nextInternal() {
 		if (step > 0) {
 			// Goes up
 			if (i >= end)
@@ -101,8 +85,9 @@ public class XRangeIterator extends PythonObject {
 		return rv;
 	}
 	
-	public PythonObject next(TupleObject t) {
-		PythonObject rv = next();
+	@Override
+	public PythonObject next() {
+		PythonObject rv = nextInternal();
 		if (rv == null)
 			throw Utils.throwException("StopIteration");
 		return rv;

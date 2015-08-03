@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
@@ -50,6 +51,27 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	@Override
 	public int len() {
 		return array.length;
+	}
+	
+	/** 
+	 * Throws exception if there is any element in tuple. Should be used in parameters expecting function.
+	 */
+	public void notExpectingArgs() {
+		if (array.length == 0)
+			return;
+		throw Utils.throwException("TypeError", "function takes no arguments");
+	}
+
+	/** 
+	 * Throws exception if there is any element in tuple. Should be used in parameters expecting function.
+	 * Checks passed KWargs as well, throws exception if KWargs is not null nor empty.
+	 */
+	public void notExpectingArgs(KwArgs kw) {
+		if (kw != null)
+			kw.notExpectingKWArgs();
+		if (array.length == 0)
+			return;
+		throw Utils.throwException("TypeError", "function takes no arguments");
 	}
 	
 	@Override

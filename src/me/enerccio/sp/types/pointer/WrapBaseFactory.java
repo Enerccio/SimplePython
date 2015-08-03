@@ -62,7 +62,7 @@ public abstract class WrapBaseFactory implements PointerFactory {
 					co.newObject();
 					mm.put(name, co);
 				}
-				mm.get(name).methods.add(mmm = new JavaMethodObject(instance, m, false));
+				mm.get(name).methods.add(mmm = new JavaMethodObject(instance, m));
 				mmm.newObject();
 			}
 			

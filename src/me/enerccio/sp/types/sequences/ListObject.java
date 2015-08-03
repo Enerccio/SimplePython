@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
@@ -43,12 +41,11 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, "append", new JavaMethodObject(null, ListObject.class.getMethod("append", 
-					new Class<?>[]{PythonObject.class}), false));
+			sfields.put("append", new JavaMethodObject(ListObject.class, "append", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -57,12 +54,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = "append";
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 	}
 	
 	public synchronized PythonObject append(PythonObject value){

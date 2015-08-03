@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.types.mappings;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +24,6 @@ import java.util.Set;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -56,18 +54,14 @@ public class DictObject extends ContainerObject {
 			backingMap.put(IntObject.valueOf(k), mmap.get(k));
 	}
 
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("getItem", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
-			Utils.putPublic(sfields, __SETITEM__, new JavaMethodObject(null, DictObject.class.getMethod("setItem", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
-			Utils.putPublic(sfields, "keys", new JavaMethodObject(null, DictObject.class.getMethod("keys", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
-			Utils.putPublic(sfields, "values", new JavaMethodObject(null, DictObject.class.getMethod("values", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
+			sfields.put(__GETITEM__,	new JavaMethodObject(DictObject.class, "getItem"));
+			sfields.put(__SETITEM__,	new JavaMethodObject(DictObject.class, "setItem")); 
+			sfields.put("keys",			new JavaMethodObject(DictObject.class, "keys")); 
+			sfields.put("values",		new JavaMethodObject(DictObject.class, "values"));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
 		}
@@ -76,22 +70,7 @@ public class DictObject extends ContainerObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = __GETITEM__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __SETITEM__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = "keys";
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = "values";
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		
+		bindMethods(sfields);
 	};
 	
 	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();

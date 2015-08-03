@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.types.iterators;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ import me.enerccio.sp.utils.Utils;
 public class GeneratorObject extends PythonObject {
 	private static final long serialVersionUID = -3004146816129145535L;
 
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	public static final String __ITER__ = SequenceObject.__ITER__;
 	public static final String NEXT =  "next";
@@ -49,14 +48,10 @@ public class GeneratorObject extends PythonObject {
 
 	static {
 		try {
-			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, GeneratorObject.class.getMethod("__iter__", 
-					new Class<?>[]{}), false));
-			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, GeneratorObject.class.getMethod("next", 
-					new Class<?>[]{}), false));
-			Utils.putPublic(sfields, SEND, new JavaMethodObject(null, GeneratorObject.class.getMethod("send", 
-					new Class<?>[]{PythonObject.class}), false));
-			Utils.putPublic(sfields, THROW, new JavaMethodObject(null, GeneratorObject.class.getMethod("throwException", 
-					new Class<?>[]{ClassObject.class, PythonObject.class}), false));
+			sfields.put(__ITER__, 	JavaMethodObject.noArgMethod(GeneratorObject.class, "__iter__"));
+			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(GeneratorObject.class, "next"));
+			sfields.put(SEND, 		new JavaMethodObject(GeneratorObject.class, "send", PythonObject.class));
+			sfields.put(THROW, 		new JavaMethodObject(GeneratorObject.class, "throwException", ClassObject.class, PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -73,21 +68,7 @@ public class GeneratorObject extends PythonObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = __ITER__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = NEXT;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = SEND;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = THROW;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 		
 		PythonObject fnc = Utils.getGlobal("close_generator");
 		
@@ -97,13 +78,8 @@ public class GeneratorObject extends PythonObject {
 		Utils.putPublic(value, UserMethodObject.FUNC, fnc);
 		Utils.putPublic(value, UserMethodObject.ACCESSOR, NoneObject.NONE);
 		
-		m = CLOSE;
-		fields.put(m, new AugumentedPythonObject(value, 
-				AccessRestrictions.PUBLIC));
-		
-		m = __DEL__;
-		fields.put(m, new AugumentedPythonObject(value, 
-				AccessRestrictions.PUBLIC));
+		fields.put(CLOSE, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+		fields.put(__DEL__, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 	
 	public PythonObject __iter__() {
@@ -116,6 +92,7 @@ public class GeneratorObject extends PythonObject {
 		nextCalled = true;
 		return send(NoneObject.NONE);
 	}
+	
 	
 	public synchronized  PythonObject send(PythonObject v) {
 		if (!nextCalled && v != NoneObject.NONE)

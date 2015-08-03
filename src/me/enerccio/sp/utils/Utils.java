@@ -513,17 +513,6 @@ public class Utils {
 	    return count;
 	}
 
-	/**
-	 * Inserts value as public field of the fields
-	 * @param sfields
-	 * @param key
-	 * @param value
-	 */
-	public static void putPublic(Map<String, AugumentedPythonObject> sfields,
-			String key, JavaMethodObject value) {
-		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
-	}
-
 	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>();
 	public static byte[] compile(List<PythonBytecode> bytecode,
 			Map<Integer, PythonObject> mmap, NavigableMap<Integer, DebugInformation> dmap) throws Exception {

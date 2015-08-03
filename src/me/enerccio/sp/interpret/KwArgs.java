@@ -24,6 +24,7 @@ import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Utils;
 
 public interface KwArgs {
+	public static final KwArgs EMPTY = new KwArgs.HashMapKWArgs();
 	
 	/** 
 	 * Removes argument from list and returns its value. 
