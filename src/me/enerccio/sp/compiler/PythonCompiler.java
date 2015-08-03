@@ -587,13 +587,12 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(className);
-		DictObject cdc = doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
+		doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "function_defaults", new DictObject());
 		
-		fncb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, classdef.stop));
-		cb.value = cdc;
+		fncb.add(Bytecode.makeBytecode(Bytecode.PUSH_LOCALS, classdef.stop));
 		fncb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, classdef.stop));
 		cb.intValue = 1;
 		
@@ -655,7 +654,7 @@ public class PythonCompiler {
 		
 		compilingClass.push(null);
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
-		DictObject locals = doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
+		doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "__doc__", getDocstring());
@@ -696,35 +695,13 @@ public class PythonCompiler {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
 		cb.stringValue = "function_defaults";
 		
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
-		cb.value = locals;
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
-		cb.stringValue = "locals";
-		
-		List<DictObject> ll = new ArrayList<DictObject>();
-		ll.add(locals);
-		for (DictObject d : Utils.reverse(environments)){
-			ll.add(d);
-		}
-		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
-		closure.newObject();
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
-		cb.value = closure;
-		
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, funcdef.stop));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, funcdef.stop));
-		cb.stringValue = "closure";
-		
 		if (dc != null){
 			compile(dc, bytecode);
 		}
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SAVE_LOCAL, funcdef.stop));
 		cb.stringValue = functionName;
-		
-		// Utils.putPublic(fnc, "__doc__", new StringObject(doGetLongString(funcdef.docstring().LONG_STRING().getText())));
-		
+
 		compilingFunction.pop();
 	}
 
@@ -746,18 +723,18 @@ public class PythonCompiler {
 		}
 	}
 
-	private DictObject doCompileFunction(ParseTree suite,
+	private void doCompileFunction(ParseTree suite,
 			List<PythonBytecode> bytecode, Token t, DictObject dict) {
 
 		stack.push();
 		bytecode.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, t));
-		if (dict == null)
-			dict = new DictObject();
-		environments.add(dict);
+		if (dict != null)
+			environments.add(dict);
 		for (DictObject d : Utils.reverse(environments)){
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, t)); 
 			cb.mapValue = d;
 		}
+		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.OPEN_LOCALS, t));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, t));
 		
 		if (suite instanceof SuiteContext){
@@ -777,11 +754,9 @@ public class PythonCompiler {
 			for (StmtContext c : ((String_inputContext) suite).stmt())
 				compileStatement(c, bytecode, null);
 		
-
-		environments.removeLast();
+		if (dict != null)
+			environments.removeLast();
 		stack.pop();
-		
-		return dict;
 	}
 
 	private String getDocstring(StmtContext c) {
@@ -1906,7 +1881,7 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		DictObject locals = doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
+		doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
 		compilingClass.pop();
 		
 		if (fncb.get(fncb.size()-1) instanceof Pop){
@@ -1950,26 +1925,6 @@ public class PythonCompiler {
 		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
 		cb.stringValue = "function_defaults";
-		
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
-		cb.value = locals;
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
-		cb.stringValue = "locals";
-		
-		List<DictObject> ll = new ArrayList<DictObject>();
-		ll.add(locals);
-		for (DictObject d : Utils.reverse(environments)){
-			ll.add(d);
-		}
-		TupleObject closure = new TupleObject(ll.toArray(new PythonObject[ll.size()]));
-		closure.newObject();
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
-		cb.value = closure;
-		
-		bytecode.add(Bytecode.makeBytecode(Bytecode.SWAP_STACK, ctx.stop));
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.SETATTR, ctx.stop));
-		cb.stringValue = "closure";
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */

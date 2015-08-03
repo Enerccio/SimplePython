@@ -123,4 +123,7 @@ public class EnvironmentObject extends PythonObject {
 		return environments.get(0);
 	}
 	
+	public void pushLocals(DictObject locals){
+		environments.add(0, locals);
+	}
 }

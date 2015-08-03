@@ -618,6 +618,10 @@ public class Utils {
 				break;
 			case POP:
 				break;
+			case OPEN_LOCALS:
+				break;
+			case PUSH_LOCALS:
+				break;
 			case PUSH:
 				w.writeInt(insertValue(b.value, mmap, rmap));
 				break;

@@ -328,6 +328,16 @@ public class PythonInterpreter extends PythonObject {
 				EnvironmentObject env = currentFrame.getLast().environment;
 				env.add((DictObject)o.compiled.getConstant(o.nextInt()));
 			} break;
+		case OPEN_LOCALS:{
+			// adds new dict to env as empty locals
+				EnvironmentObject env = currentFrame.getLast().environment;
+				env.pushLocals(new DictObject());
+			} break;
+		case PUSH_LOCALS:{
+			// retrieves locals of this call and pushes them onto stack
+				EnvironmentObject env = currentFrame.getLast().environment;
+				stack.push(env.getLocals());
+			} break;
 		case PUSH_ENVIRONMENT:
 			// pushes new environment onto environment stack. 
 			// also sets flag on the current frame to later pop the environment when frame itself is popped

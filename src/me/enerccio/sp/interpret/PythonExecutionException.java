@@ -32,7 +32,7 @@ public class PythonExecutionException extends RuntimeException {
 	private PythonObject exception;
 
 	public PythonExecutionException(PythonObject o){
-		super(getMessage(o));
+		super(getMessage(o), o.fields.containsKey("__exception__") ? (Throwable)((PointerObject)o.fields.get("__exception__").object).getObject() : null);
 		this.setException(o);
 	}
 	

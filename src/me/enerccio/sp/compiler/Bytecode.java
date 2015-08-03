@@ -33,22 +33,23 @@ public enum Bytecode {
 	NOP(0), 
 	PUSH_ENVIRONMENT(8), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
 	IMPORT(12), RESOLVE_ARGS(13), PUSH_FRAME(15), PUSH_EXCEPTION(16),
+	OPEN_LOCALS(17), PUSH_LOCALS(18),
 	
 	// control
-	POP(17), PUSH(18), CALL(19), RCALL(20), ECALL(21), DUP(22),
-	SWAP_STACK(23), JUMPIFTRUE(24), JUMPIFFALSE(25), JUMPIFNONE(26),
-	JUMPIFNORETURN(27), GOTO(28), RETURN(29), SAVE_LOCAL(30),
-	TRUTH_VALUE(31),
+	POP(32), PUSH(33), CALL(34), RCALL(35), ECALL(36), DUP(37),
+	SWAP_STACK(38), JUMPIFTRUE(39), JUMPIFFALSE(40), JUMPIFNONE(41),
+	JUMPIFNORETURN(42), GOTO(43), RETURN(44), SAVE_LOCAL(45),
+	TRUTH_VALUE(46),
 	// variables
-	LOAD(32), LOADGLOBAL(33), SAVE(35), SAVEGLOBAL(36), UNPACK_SEQUENCE(37), LOADDYNAMIC(38), SAVEDYNAMIC(39),
+	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70),
 	// special call-related
-	KWARG(40),
+	KWARG(80),
 	// exceptions
-	RAISE(69), RERAISE(70),
+	RAISE(82), RERAISE(83),
 	// macros
-	GETATTR(90), SETATTR(91), ISINSTANCE(92), 
+	GETATTR(89), SETATTR(90), ISINSTANCE(91), 
 	// frames 
-	YIELD(95),
+	YIELD(96),
 	
 	// loops, iterators, boolean stuff
 	SETUP_LOOP(100), GET_ITER(101), ACCEPT_ITER(102),
@@ -93,6 +94,10 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
+			bytecode.newObject();
+			break;
+		case PUSH_LOCALS:
+			bytecode = new PushLocals();
 			bytecode.newObject();
 			break;
 		case RCALL:
@@ -249,6 +254,10 @@ public enum Bytecode {
 			break;
 		case YIELD:
 			bytecode = new Yield();
+			bytecode.newObject();
+			break;
+		case OPEN_LOCALS:
+			bytecode = new OpenLocals();
 			bytecode.newObject();
 			break;
 		}

@@ -86,11 +86,11 @@ public class CompiledBlockObject extends PythonObject {
 		return compiled;
 	}
 	
-	public PythonObject getConstant(int c){
+	public synchronized PythonObject getConstant(int c){
 		return mmap.get(c);
 	}
 	
-	public DebugInformation getDebugInformation(int c){
+	public synchronized DebugInformation getDebugInformation(int c){
 		return dmap.get(dmap.floorKey(c));
 	}
 	
@@ -108,7 +108,7 @@ public class CompiledBlockObject extends PythonObject {
 	}
 
 	@Override
-	public PythonObject set(String key, PythonObject localContext,
+	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (key.equals(CO_CODE) || key.equals(CO_CONSTS))
 			throw Utils.throwException("AttributeError", "'" + 
@@ -169,6 +169,8 @@ public class CompiledBlockObject extends PythonObject {
 			final String FORMAT = "%-25.25s";
 			switch (opcode){
 			case CALL:
+			case PUSH_LOCALS:
+			case OPEN_LOCALS:
 			case DUP:
 			case ECALL:
 			case GOTO:
