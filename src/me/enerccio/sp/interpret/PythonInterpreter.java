@@ -43,13 +43,14 @@ import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
+import me.enerccio.sp.types.iterators.InternalIterator;
+import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
-import me.enerccio.sp.types.sequences.OrderedSequenceIterator;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -385,9 +386,9 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject runnable;
 			PythonObject value = stack.pop();
 			int jv = o.nextInt();
-			if (value instanceof XRangeObject) {
+			if (value instanceof InternallyIterable) {
 				// TODO: Interface or something like that
-				stack.push(((XRangeObject)value).__iter__(TupleObject.EMPTY));
+				stack.push(((InternallyIterable)value).__iter__());
 				o.pc = jv;
 			} else {
 				runnable = environment().get(new StringObject("iter"), true, false);				
@@ -418,8 +419,8 @@ public class PythonInterpreter extends PythonObject {
 		case GET_ITER:
 			jv = o.nextInt();
 			value = stack.peek();
-			if (value instanceof XRangeIterator) {
-				value = ((XRangeIterator)value).next();
+			if (value instanceof InternalIterator) {
+				value = ((InternalIterator)value).nextInternal();
 				if (value == null) {
 					// StopIteration is not actually thrown, only emulated
 					o.pc = jv;
@@ -560,9 +561,10 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case KWARG:
 			// saves value into environment as variable
-			if (o.kwargs == null)
-				o.kwargs = new KwArgs.HashMapKWArgs();
-			o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
+			jv = o.nextInt();
+			o.kwargs = new KwArgs.HashMapKWArgs();
+			for (int i=0; i<jv; i++)
+				o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
 			break;
 		case SAVE_LOCAL:
 			// saves the value exactly into locals (used by def and clas)
@@ -609,7 +611,7 @@ public class PythonInterpreter extends PythonObject {
 				iterator = returnee;
 				
 				for (int i=ss.length-1; i>=0; i--){
-					returnee = execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT), null);
+					returnee = execute(true, Utils.get(iterator, GeneratorObject.NEXT), null);
 					if (currentFrame.size() != cfc)
 						executeAll(cfc);
 					ss[i] = returnee;
@@ -622,7 +624,7 @@ public class PythonInterpreter extends PythonObject {
 			}
 			
 			try {
-				execute(true, Utils.get(iterator, OrderedSequenceIterator.NEXT), null);
+				execute(true, Utils.get(iterator, GeneratorObject.NEXT), null);
 				if (currentFrame.size() != cfc)
 					executeAll(cfc);
 				throw Utils.throwException("ValueError", "too many values to unpack");

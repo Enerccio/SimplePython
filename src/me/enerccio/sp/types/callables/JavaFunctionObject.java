@@ -29,8 +29,14 @@ public class JavaFunctionObject extends JavaMethodObject {
 	private boolean isWrappedMethod = false;
 
 	public JavaFunctionObject(Method m, boolean noTypeConversion) {
-		super(null, m, noTypeConversion);
+		super(m, noTypeConversion);
 	}
+
+	/** Usable for static methods with default signature */
+	public JavaFunctionObject(Class<?> cls, String name) throws NoSuchMethodException, SecurityException {
+		super(cls, name);
+	}
+
 	
 	@Override
 	protected String doToString() {

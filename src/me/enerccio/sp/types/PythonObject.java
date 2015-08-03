@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.BoolObject;
@@ -38,10 +39,6 @@ import me.enerccio.sp.utils.Utils;
 public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	public static final String __EQ__ = "__eq__";
-	public static final String __NEQ__ = "__neq__";
-	public static final String __NOT__ = "__not__";
-	
 	public PythonObject(){
 		
 	}
@@ -53,45 +50,32 @@ public abstract class PythonObject implements Serializable {
 		registerObject();
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			sfields.put(Arithmetics.__EQ__, new AugumentedPythonObject(
-					new JavaMethodObject(null, PythonObject.class.getMethod("eq", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(Arithmetics.__NE__, new AugumentedPythonObject(
-					new JavaMethodObject(null, PythonObject.class.getMethod("ne", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
-			sfields.put(__NOT__, new AugumentedPythonObject(
-					new JavaMethodObject(null, PythonObject.class.getMethod("not", 
-							new Class<?>[]{PythonObject.class}), false), AccessRestrictions.PUBLIC));
+			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
+			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		} 
 	}
 	
+	protected void bindMethod(String name, JavaMethodObject m) {
+		fields.put(name, new AugumentedPythonObject(m.cloneWithThis(this), AccessRestrictions.PUBLIC));
+	}
+
+	protected void bindMethods(Map<String, JavaMethodObject> map) {
+		for (Entry<String, JavaMethodObject> e : map.entrySet())
+			bindMethod(e.getKey(), e.getValue());
+	}
+
 	/**
 	 * Initializes basic method of all objects, EQ, NE and NOT
 	 */
 	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
-		
-		try {
-			String m;
-			
-			m = Arithmetics.__EQ__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = Arithmetics.__NE__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-			m = __NOT__;
-			fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-					AccessRestrictions.PUBLIC));
-		} catch (Exception e){
-			e.printStackTrace();
-		} 
+		bindMethods(sfields);
 	}
 	
 	public PythonObject eq(PythonObject other){
@@ -100,10 +84,6 @@ public abstract class PythonObject implements Serializable {
 	
 	public PythonObject ne(PythonObject other){
 		return BoolObject.fromBoolean(other != this);
-	}
-	
-	public PythonObject not(PythonObject other){
-		return BoolObject.fromBoolean(!truthValue());
 	}
 
 	/**

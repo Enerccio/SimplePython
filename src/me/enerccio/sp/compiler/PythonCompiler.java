@@ -1495,18 +1495,22 @@ public class PythonCompiler {
 	/** Compiles function call arguments */
 	private CallArgsData compileArguments(ArglistContext arglist, List<PythonBytecode> bytecode) {
 		CallArgsData rv = new CallArgsData();
+		List<String> kws = new ArrayList<>();
 		for (ArgumentContext ac : arglist.argument()) {
 			if (ac.kwarg() != null) {
 				rv.kwArgCount ++;
 				compile(ac.kwarg().test(), bytecode);
-				bytecode.add(cb = Bytecode.makeBytecode(Bytecode.KWARG, ac.kwarg().test().start));
-				cb.stringValue = ac.kwarg().nname().getText();
+				kws.add(0, ac.kwarg().nname().getText());
 			} else {
 				rv.normalArgCount ++;
 				if (rv.kwArgCount > 0)
 					throw Utils.throwException("SyntaxError", "non-keyword arg after keyword arg");
 				compile(ac.test(), bytecode);
 			}
+		}
+		if (kws.size() > 0) {
+			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.KWARG, arglist.start));
+			cb.object = kws.toArray(new String[] {} );
 		}
 		if (arglist.test() != null){
 			// TODO: Support this, maybe
@@ -1928,6 +1932,7 @@ public class PythonCompiler {
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */
+	@SuppressWarnings("unused")
 	private void compileAssignment(TestlistContext tc, List<PythonBytecode> bytecode) {
 		if (tc.test().size() > 1) {
 			// x,y,z = ...
@@ -2137,7 +2142,7 @@ public class PythonCompiler {
 	private void addImport(String packageName, String as,
 			List<PythonBytecode> bytecode, Token t) {
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.IMPORT, t));
-		cb.stringValue2 = packageName;
+		cb.object = packageName;
 		cb.stringValue = as;
 	}
 	
@@ -2176,7 +2181,6 @@ public class PythonCompiler {
 	};
 	
 	private class TryFinallyItem implements ControllStackItem {
-		private List<PythonBytecode> bcs = new LinkedList<>();
 		private Try_stmtContext finallyCtx;
 		boolean needsBreakBlock = false;
 		boolean needsContinueBlock = false;

@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.base;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -51,7 +52,7 @@ public class ClassInstanceObject extends PythonObject {
 	private static JavaMethodObject pyHash;
 	static {
 		try {
-			pyHash = new JavaMethodObject(null, ClassInstanceObject.class.getMethod("pyHash", new Class<?>[]{TupleObject.class}), true);
+			pyHash = new JavaMethodObject(ClassInstanceObject.class, "pyHash");
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -59,16 +60,14 @@ public class ClassInstanceObject extends PythonObject {
 
 	// Should be only called when object is created, not when any other class is!
 	public void initObject() {
-		try {
-			Utils.putPublic(this, __HASH__, pyHash.cloneWithThis(this));
-		} catch (Exception e) {
-			// won't happen
-		}
+		Utils.putPublic(this, __HASH__, pyHash.cloneWithThis(this));
 	}
 	
-	public IntObject pyHash(TupleObject args){
+	public IntObject pyHash(TupleObject args, KwArgs kw){
 		if (args.len() != 0)
 			throw Utils.throwException("TypeError", "__hash__(): requires 0 parameters");
+		if (kw != null)
+			kw.notExpectingKWArgs();
 		return IntObject.valueOf(getId());
 	}
 }

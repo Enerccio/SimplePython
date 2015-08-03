@@ -17,14 +17,11 @@
  */
 package me.enerccio.sp.types.sequences;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.Arithmetics;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -45,16 +42,13 @@ public abstract class SequenceObject extends ContainerObject {
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __ADD__ = "__add__";
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, SequenceObject.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
-			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, SequenceObject.class.getMethod("get", 
-					new Class<?>[]{PythonObject.class}), false));
-			Utils.putPublic(sfields, __ADD__, new JavaMethodObject(null, SequenceObject.class.getMethod("add", 
-					new Class<?>[]{PythonObject.class}), false));
+			sfields.put(__ITER__, 		JavaMethodObject.noArgMethod(SequenceObject.class, "__iter__"));
+			sfields.put(__GETITEM__,	new JavaMethodObject(SequenceObject.class, "get", PythonObject.class));
+			sfields.put(__ADD__,		new JavaMethodObject(SequenceObject.class, "add", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -63,18 +57,7 @@ public abstract class SequenceObject extends ContainerObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = __ITER__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __GETITEM__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __ADD__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 	}
 	
 	public PythonObject add(PythonObject other){
@@ -83,14 +66,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public abstract PythonObject get(PythonObject key);
 	
-	public PythonObject __iter__(TupleObject args, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty("__iter__");
-		if (args.len() > 0)
-			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
-		return createIterator();
-	}
-	
-	public abstract PythonObject createIterator(); 
+	public abstract PythonObject __iter__(); 
 
 	@Override
 	protected String doToString() {

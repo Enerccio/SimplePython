@@ -21,20 +21,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.utils.Utils;
 
 /**
  * xrange implementation
  */
-public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
+public class XRangeObject extends PythonObject implements SimpleIDAccessor, InternallyIterable  {
 	private static final long serialVersionUID = -543998207864616108L;
 	public static final String __REVERSED__ = "__reversed__";
 	public static final String __CONTAINS__ = ContainerObject.__CONTAINS__;
@@ -50,20 +50,15 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 		this.step = step;
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = Collections.synchronizedMap(new HashMap<String, JavaMethodObject>());
 	
 	static {
 		try {
-			Utils.putPublic(sfields, __REVERSED__, new JavaMethodObject(null, XRangeObject.class.getMethod("__reversed__", 
-					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, __CONTAINS__, new JavaMethodObject(null, XRangeObject.class.getMethod("__contains__", 
-					new Class<?>[]{PythonObject.class}), true));
-			Utils.putPublic(sfields, __LEN__, new JavaMethodObject(null, XRangeObject.class.getMethod("__len__", 
-					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, __ITER__, new JavaMethodObject(null, XRangeObject.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class}), true));
-			Utils.putPublic(sfields, __GETITEM__, new JavaMethodObject(null, XRangeObject.class.getMethod("get", 
-					new Class<?>[]{PythonObject.class}), true));
+			sfields.put(__REVERSED__,	new JavaMethodObject(XRangeObject.class, "__reversed__"));
+			sfields.put(__CONTAINS__,	new JavaMethodObject(XRangeObject.class, "__contains__", PythonObject.class));
+			sfields.put(__LEN__,		new JavaMethodObject(XRangeObject.class, "__len__")); 
+			sfields.put(__ITER__,		JavaMethodObject.noArgMethod(XRangeObject.class, "__iter__")); 
+			sfields.put(__GETITEM__,	new JavaMethodObject(XRangeObject.class, "valueAt", int.class)); 
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -72,24 +67,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = __ITER__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __GETITEM__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __CONTAINS__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __LEN__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = __REVERSED__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);		
 	}
 	
 	@Override
@@ -115,19 +93,22 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor  {
 		throw Utils.throwException("TypeError", "sequence index must be integer, not '" + key.getType() + "'");
 	}
 
-	public PythonObject __iter__(TupleObject t) {
+	@Override
+	public PythonObject __iter__() {
 		XRangeIterator rv = new XRangeIterator(start, end, step);
 		rv.newObject();
 		return rv;
 	}
 	
-	public PythonObject __reversed__(TupleObject t) {
+	public PythonObject __reversed__(TupleObject t, KwArgs kw) {
+		t.notExpectingArgs(kw);
 		XRangeIterator rv = new XRangeIterator(end - 1, start - 1, - step);
 		rv.newObject();
 		return rv;
 	}
 
-	public PythonObject __len__(TupleObject t){
+	public PythonObject __len__(TupleObject t, KwArgs kw) {
+		t.notExpectingArgs(kw);
 		return IntObject.valueOf(len());
 	}
 	

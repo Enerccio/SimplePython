@@ -17,11 +17,9 @@
  */
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonPathResolver;
-import me.enerccio.sp.sandbox.PythonSecurityManager;
 
 
 public class Test {

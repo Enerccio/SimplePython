@@ -15,19 +15,16 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.types.sequences;
+package me.enerccio.sp.types.iterators;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -35,9 +32,8 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class OrderedSequenceIterator extends PythonObject {
+public class OrderedSequenceIterator extends PythonObject implements InternalIterator {
 	private static final long serialVersionUID = 4746975236443204424L;
-	public static final String NEXT = "next";
 	private SequenceObject sequence;
 	private int cp = 0;
 	private int len = 0;
@@ -47,14 +43,12 @@ public class OrderedSequenceIterator extends PythonObject {
 		this.len = sequence.len();
 	}
 	
-	private static Map<String, AugumentedPythonObject> sfields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			Utils.putPublic(sfields, SequenceObject.__ITER__, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("__iter__", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
-			Utils.putPublic(sfields, NEXT, new JavaMethodObject(null, OrderedSequenceIterator.class.getMethod("next", 
-					new Class<?>[]{TupleObject.class, KwArgs.class}), true));
+			sfields.put(SequenceObject.__ITER__,	JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "__iter__"));
+			sfields.put(GeneratorObject.NEXT,		JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "next"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -63,30 +57,26 @@ public class OrderedSequenceIterator extends PythonObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		
-		String m;
-		
-		m = SequenceObject.__ITER__;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
-		m = NEXT;
-		fields.put(m, new AugumentedPythonObject(((JavaMethodObject)sfields.get(m).object).cloneWithThis(this), 
-				AccessRestrictions.PUBLIC));
+		bindMethods(sfields);
 	}
 	
-	public PythonObject __iter__(TupleObject args, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty("__iter__");
-		if (args.len() > 0)
-			throw Utils.throwException("TypeError", "__iter__(): method requires no arguments");
+	@Override
+	public PythonObject __iter__() {
 		return this;
 	}
 	
-	public PythonObject next(TupleObject args, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty("__iter__");
-		if (args.len() > 0)
-			throw Utils.throwException("TypeError", "next(): method requires no arguments");
+	@Override
+	public PythonObject next() {
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		return value;
+	}
+	
+	@Override
+	public PythonObject nextInternal() {
+		if (cp >= len)
+			return null;
 		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
 		return value;
 	}

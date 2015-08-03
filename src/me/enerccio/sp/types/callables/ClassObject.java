@@ -59,10 +59,8 @@ public class ClassObject extends CallableObject {
 		
 		try {
 			Utils.putPublic(this, __CALL__, new JavaMethodObject(this, "call"));
-			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, this.getClass().getMethod("getAttr", 
-					new Class<?>[]{StringObject.class}), false));
-			Utils.putPublic(this, __SETATTR__, new JavaMethodObject(this, this.getClass().getMethod("setAttr", 
-					new Class<?>[]{StringObject.class, PythonObject.class}), false));
+			Utils.putPublic(this, __GETATTR__, new JavaMethodObject(this, "getAttr", StringObject.class)); 
+			Utils.putPublic(this, __SETATTR__, new JavaMethodObject(this, "setAttr", StringObject.class, PythonObject.class));
 		} catch (NoSuchMethodException e){
 			e.printStackTrace();
 		}

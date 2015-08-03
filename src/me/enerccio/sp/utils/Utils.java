@@ -35,13 +35,6 @@ import java.util.NavigableMap;
 import java.util.Stack;
 import java.util.TreeMap;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
-
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
@@ -54,19 +47,21 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
-import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SimpleIDAccessor;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class Utils {
 
@@ -87,117 +82,6 @@ public class Utils {
 		pushed[0] = data;
 		System.arraycopy(array, 0, pushed, 1, array.length);
 		return pushed;
-	}
-	
-	/**
-	 * Casts the object and type into python object
-	 * @param ret java object
-	 * @param retType type of the return
-	 * @return python object
-	 */
-	public static PythonObject cast(Object ret, Class<?> retType) {
-		if (retType == Void.class)
-			return NoneObject.NONE;
-		if (retType == Byte.class || retType == byte.class)
-			return IntObject.valueOf(((Byte) ret).byteValue());
-		if (retType == Integer.class || retType == int.class)
-			return IntObject.valueOf(((Integer) ret).longValue());
-		if (retType == Long.class || retType == long.class)
-			return IntObject.valueOf(((Long) ret).longValue());
-		if (retType == Float.class || retType == float.class)
-			return new RealObject(((Float) ret).floatValue());
-		if (retType == Double.class || retType == double.class)
-			return new RealObject(((Double) ret).doubleValue());
-		if (retType == String.class)
-			return new StringObject((String) ret);
-		if (retType == Void.class)
-			return NoneObject.NONE;
-		if (retType == Boolean.class || retType == boolean.class)
-			return BoolObject.fromBoolean((Boolean) ret);
-		if (ret instanceof Collection){
-			ListObject lo = new ListObject();
-			lo.newObject();
-			for (Object o : (Collection<?>)ret){
-				lo.objects.add(o == null ? NoneObject.NONE : cast(o, o.getClass()));
-			}
-			return lo;
-		}
-		if (ret instanceof Map){
-			Map<?, ?> map = (Map<?, ?>)ret;
-			DictObject dict = new DictObject();
-			for (Map.Entry<?, ?> e : map.entrySet()){
-				dict.backingMap.put(e.getKey() == null ? NoneObject.NONE : cast(e.getKey(), e.getKey().getClass()), 
-						e.getValue() == null ? NoneObject.NONE : cast(e.getValue(), e.getValue().getClass()));
-			}
-			return dict;
-		}
-		if (ret instanceof PythonObject)
-			return (PythonObject) ret;
-		if (ret == null)
-			return NoneObject.NONE;
-		return PythonRuntime.runtime.getJavaClass(ret.getClass().getCanonicalName(), ret, null);
-	}
-	
-	/**
-	 * Casts python object into java object
-	 * @param aType type to cast to
-	 * @param o python object to cast
-	 * @return casted java value
-	 * @throws PointerMethodIncompatibleException if it cannot be casted
-	 */
-	public static Object asJavaObject(Class<?> aType, PythonObject o)
-			throws CastFailedException {
-		if (aType == Integer.class || aType == int.class) {
-			if (o instanceof IntObject)
-				return ((IntObject)o).intValue();
-			else
-				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("int", o));
-		}
-
-		if (aType == Long.class || aType == long.class) {
-			if (o instanceof IntObject)
-				return ((IntObject)o).intValue();
-			else
-				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("int", o));
-		}
-
-		if (aType == Float.class || aType == float.class) {
-			if (o instanceof RealObject)
-				return ((RealObject)o).floatValue();
-			else
-				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("float", o));
-		}
-
-		if (aType == Double.class || aType == double.class) {
-			if (o instanceof RealObject)
-				return ((RealObject)o).doubleValue();
-			else
-				return asJavaObject(aType, PythonInterpreter.interpreter.get().executeCall("float", o));
-		}
-
-		if (aType == Boolean.class || aType == boolean.class) {
-			return new Boolean(o.truthValue());
-		}
-
-		if (aType == String.class) {
-			if (o instanceof StringObject)
-				return ((StringObject) o).getString();
-		}
-
-		if (o instanceof PointerObject) {
-			Class<?> ptype = ((PointerObject) o).getObject().getClass();
-			if (aType.isAssignableFrom(ptype))
-				return ((PointerObject) o).getObject();
-		}
-		
-		if (aType.isAssignableFrom(o.getClass()))
-			return o;
-
-		if (o == NoneObject.NONE && !aType.isPrimitive()){
-			return null;
-		}
-		
-		throw new CastFailedException("Can't convert " + o.toString() + " to " + aType.getName());
 	}
 
 	public static PythonObject get(PythonObject container, String field) {
@@ -513,17 +397,6 @@ public class Utils {
 	    return count;
 	}
 
-	/**
-	 * Inserts value as public field of the fields
-	 * @param sfields
-	 * @param key
-	 * @param value
-	 */
-	public static void putPublic(Map<String, AugumentedPythonObject> sfields,
-			String key, JavaMethodObject value) {
-		sfields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
-	}
-
 	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>();
 	public static byte[] compile(List<PythonBytecode> bytecode,
 			Map<Integer, PythonObject> mmap, NavigableMap<Integer, DebugInformation> dmap) throws Exception {
@@ -585,7 +458,7 @@ public class Utils {
 				break;
 			case IMPORT:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
-				w.writeInt(insertValue(new StringObject(b.stringValue2), mmap, rmap));
+				w.writeInt(insertValue(new StringObject((String)b.object), mmap, rmap));
 				break;
 			case ISINSTANCE:
 				break;
@@ -626,7 +499,10 @@ public class Utils {
 				w.writeInt(insertValue(b.value, mmap, rmap));
 				break;
 			case KWARG:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				String[] ss = (String[]) b.object;
+				w.writeInt(ss.length);
+				for (String s : ss)
+					w.writeInt(insertValue(new StringObject(s), mmap, rmap));
 				break;
 			case PUSH_DICT:
 				w.writeInt(insertValue(b.mapValue, mmap, rmap));

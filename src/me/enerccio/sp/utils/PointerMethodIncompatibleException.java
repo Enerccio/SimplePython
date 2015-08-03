@@ -29,4 +29,8 @@ public class PointerMethodIncompatibleException extends Exception {
 		super(string);
 	}
 
+	public PointerMethodIncompatibleException(String string, Throwable cause) {
+		super(string, cause);
+	}
+
 }
