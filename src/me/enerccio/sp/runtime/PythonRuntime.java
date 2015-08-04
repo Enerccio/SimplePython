@@ -581,7 +581,7 @@ public class PythonRuntime {
 		
 	};
 	
-	protected static PythonObject getattr(PythonObject o, String attribute){
+	public static PythonObject getattr(PythonObject o, String attribute){
 		return getattr(o, attribute, false);
 	}
 	
@@ -623,7 +623,7 @@ public class PythonRuntime {
 		return setattr(o, attribute, null);
 	}
 	
-	protected static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
+	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
 		if (o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null){
 			return PythonInterpreter.interpreter.get().execute(false, o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()),
 					null, new StringObject(attribute), v);

@@ -1,9 +1,4 @@
-class Anca(object):
-    k = 5
-    def __init__(self):
-        print Anca.k
+
 
 def test():
-    print dir(Anca)
-    print Anca.__dict__
-    print dir(Anca())
+    print __thismodule__.__dict__

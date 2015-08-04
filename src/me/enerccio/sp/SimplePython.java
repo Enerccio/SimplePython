@@ -24,12 +24,12 @@ import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
-import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
+import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Coerce;
@@ -99,15 +99,14 @@ public class SimplePython {
 	}
 	
 	public static void setField(PythonObject object, String fieldName, PythonObject value){
-		synchronized (object){
-			if (!object.fields.containsKey(fieldName))
-				object.create(fieldName, AccessRestrictions.PUBLIC, null);
-			object.set(fieldName, null, value);
-		}
+		PythonRuntime.setattr(object, fieldName, value);
 	}
 	
 	public static PythonObject getField(PythonObject o, String fieldName){
-		return o.get(fieldName, null);
+		PythonObject v = PythonRuntime.getattr(o, fieldName);
+		if (v instanceof PropertyObject)
+			return ((PropertyObject)v).get();
+		return v;
 	}
 	
 	public static PythonObject executeFunction(String module, String function){
