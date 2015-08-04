@@ -1,5 +1,9 @@
 class Anca(object):
-    pass
+    k = 5
+    def __init__(self):
+        print Anca.k
 
 def test():
-    1 + Anca()
+    print dir(Anca)
+    print Anca.__dict__
+    print dir(Anca())
