@@ -555,7 +555,7 @@ public class PythonRuntime {
 	protected static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
 		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
-				if (getattr != null)
+				if (getattr != null && !(o instanceof ClassObject))
 					return PythonInterpreter.interpreter.get().execute(false, getattr, null, new StringObject(attribute));
 		}
 		

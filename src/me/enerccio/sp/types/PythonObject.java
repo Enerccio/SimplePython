@@ -29,6 +29,7 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.MethodPropertyObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -38,24 +39,21 @@ import me.enerccio.sp.utils.Utils;
  */
 public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
+	public static final String __CLASS__ = "__class__";
 	
 	public PythonObject(){
 		
 	}
 	
-	/**
-	 * Should be called only once to initialize methods of the object
-	 */
-	public void newObject(){
-		registerObject();
-	}
-	
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+	private static MethodPropertyObject mpo;
 	static {
 		try {
 			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
 			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
+			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
+			
+			mpo = new MethodPropertyObject(__CLASS__, JavaMethodObject.noArgMethod(PythonObject.class, "getType"));
 		} catch (Exception e){
 			e.printStackTrace();
 		} 
@@ -63,6 +61,15 @@ public abstract class PythonObject implements Serializable {
 	
 	protected void bindMethod(String name, JavaMethodObject m) {
 		fields.put(name, new AugumentedPythonObject(m.cloneWithThis(this), AccessRestrictions.PUBLIC));
+	}
+	
+	/**
+	 * Should be called only once to initialize methods of the object
+	 */
+	public void newObject(){
+		registerObject();
+		bindMethods(sfields);
+		Utils.putPublic(this, __CLASS__, mpo.bindTo(this));
 	}
 
 	protected void bindMethods(Map<String, JavaMethodObject> map) {
@@ -75,7 +82,6 @@ public abstract class PythonObject implements Serializable {
 	 */
 	protected void registerObject(){
 		PythonRuntime.runtime.newInstanceInitialization(this);
-		bindMethods(sfields);
 	}
 	
 	public PythonObject eq(PythonObject other){

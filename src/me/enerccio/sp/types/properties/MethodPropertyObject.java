@@ -38,6 +38,10 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 		this.setter = setter;
 	}
 	
+	public MethodPropertyObject() {
+		
+	}
+
 	@Override
 	public void set(PythonObject set) {
 		if (setter == null)
@@ -60,4 +64,12 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 		return "<" + (setter == null ? "read-only " : " " ) + "property '" + name + "' at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
+	public MethodPropertyObject bindTo(Object self){
+		MethodPropertyObject mpo = new MethodPropertyObject();
+		mpo.name = name;
+		mpo.getter = getter.cloneWithThis(self);
+		if (setter != null)
+			mpo.setter = setter.cloneWithThis(self);
+		return mpo;
+	}
 }

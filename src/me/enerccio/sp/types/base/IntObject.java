@@ -27,14 +27,21 @@ import me.enerccio.sp.types.PythonObject;
 public class IntObject extends NumberObject {
 	private static final long serialVersionUID = 6L;
 	
+	@Override
+	public void newObject(){
+		super.newObject();
+	}
+	
 	public IntObject(){
 		newObject();
 	}
 	
 	private static IntObject[] baseMap = new IntObject[255];
 	static {
-		for (int i=0; i<255; i++)
+		for (int i=0; i<255; i++){
 			baseMap[i] = new IntObject(i-127);
+			baseMap[i].newObject();
+		}
 	}
 	
 	public static IntObject valueOf(int v){

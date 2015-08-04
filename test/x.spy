@@ -1,14 +1,6 @@
-import threading
-
-class MyThread(threading.Thread):
-    def __init__(self, x):
-        super(MyThread, self).__init__("My new shiny thread " + x)
-        
-    def execute(self):
-        for x in [1, 2, 3, 4]:
-            print x, ". iteration of thread ", self.get_name()
+class Anca(object):
+    pass
 
 def test():
-    t = MyThread(5)
-    print t.executed
-    print getattr(t, "executed")
+    for x in [1, 1.5, "anca", test, Anca, Anca(), super]:
+        print x, x.__class__, getattr(x, "__class__")

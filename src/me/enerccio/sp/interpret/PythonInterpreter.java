@@ -40,6 +40,7 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
+import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
@@ -295,7 +296,7 @@ public class PythonInterpreter extends PythonObject {
 		if (o == null)
 			return "<last frame>";
 		if (o.debugLine < 0)
-			return "<method-call>";
+			return "<system-frame>";
 		return String.format("<at module %s, line %s, char %s>", o.debugModule, o.debugLine, o.debugInLine);
 	}
 
@@ -656,7 +657,7 @@ public class PythonInterpreter extends PythonObject {
 				StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
 				value = stack.pop();	// object to get attribute from
 				apo = value.get("__getattribute__", getLocalContext()); 
-				if (apo != null && !(value instanceof ObjectTypeObject)) {
+				if (apo != null && !(value instanceof ClassObject)) {
 					// There is __getattribute__ defined, call it directly
 					returnee = execute(false, apo, null, field);
 					o.accepts_return = true;
@@ -665,7 +666,8 @@ public class PythonInterpreter extends PythonObject {
 					// Try to grab argument normally...
 					apo = value.get(field.value, getLocalContext());
 					if (apo != null) {
-						stack.push(apo);
+						returnee = apo;
+						o.accepts_return = true;
 						break;
 					}				
 					// ... and if that fails, use __getattr__ if available
