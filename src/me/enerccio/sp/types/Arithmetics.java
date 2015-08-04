@@ -90,9 +90,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 
 	private static PythonObject doOperatorInt(IntObject a, PythonObject b,
@@ -222,9 +222,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "Unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "Unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "Unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
  
 	private static PythonObject doOperatorFloat(RealObject a, PythonObject b,
@@ -311,9 +311,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 	
 	private static PythonObject doOperatorComplex(ComplexObject a,
@@ -406,9 +406,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 	
 	private static PythonObject doOperatorString(StringObject a,
@@ -420,9 +420,9 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 	
 	private static PythonObject doOperatorBool(BoolObject a,
@@ -434,8 +434,8 @@ public final class Arithmetics {
 		}
 		
 		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("type", a) + "' and '" + Utils.run("type", b) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
 		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("type", a) + "'");
+			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 }

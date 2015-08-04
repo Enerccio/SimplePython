@@ -131,7 +131,7 @@ public abstract class PythonObject implements Serializable {
 		AugumentedPythonObject field = fields.get(key);
 		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext, field))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
-					Utils.run("str", Utils.run("type", this)) + "'");
+					Utils.run("str", Utils.run("typename", this)) + "'");
 		return field.object;
 	}
 
@@ -146,11 +146,11 @@ public abstract class PythonObject implements Serializable {
 			PythonObject value){
 		if (!fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 		AugumentedPythonObject field = fields.get(key);
 		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext, field))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
-					Utils.run("str", Utils.run("type", this)) + "'");
+					Utils.run("str", Utils.run("typename", this)) + "'");
 		field.object = value;
 		if (value == null)
 			fields.remove(key);
@@ -183,7 +183,7 @@ public abstract class PythonObject implements Serializable {
 	public synchronized void create(String key, AccessRestrictions restrictions, PythonObject currentContext){
 		if (fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object already has a attribute '" + key + "'");
+					Utils.run("str", Utils.run("typename", this)) + "' object already has a attribute '" + key + "'");
 		AugumentedPythonObject field = new AugumentedPythonObject(NoneObject.NONE, restrictions, currentContext);
 		fields.put(key, field);
 	}

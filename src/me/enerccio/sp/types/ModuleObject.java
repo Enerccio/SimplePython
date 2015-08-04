@@ -83,13 +83,13 @@ public class ModuleObject extends PythonObject {
 			PythonObject value) {
 		if (key.equals(__NAME__) || key.equals(__DICT__))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		if (fields.containsKey(key))
 			return super.set(key, localContext, value);
 		else {
 			if (!globals.contains(key))
 				throw Utils.throwException("AttributeError", "'" + 
-						Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+						Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 			if (value == null)
 				globals.backingMap.remove(key);
 			else

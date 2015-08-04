@@ -112,7 +112,7 @@ public class CompiledBlockObject extends PythonObject {
 			PythonObject value) {
 		if (key.equals(CO_CODE) || key.equals(CO_CONSTS))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
 	

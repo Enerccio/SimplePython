@@ -80,9 +80,9 @@ public class DictObject extends ContainerObject {
 			PythonObject value) {
 		if (!fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 		throw Utils.throwException("AttributeError", "'" + 
-				Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
@@ -212,7 +212,7 @@ public class DictObject extends ContainerObject {
 	
 	@Override
 	public int getId(){
-		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("type", this) + "'");
+		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("typename", this) + "'");
 	}
 
 	@Override

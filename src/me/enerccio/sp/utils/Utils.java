@@ -93,7 +93,7 @@ public class Utils {
 	}
 
 	public static PythonObject run(String function, PythonObject... args) {
-		return PythonInterpreter.interpreter.get().executeCall(function, args);
+		return PythonInterpreter.interpreter.get().executeCall(true, function, args);
 	}
 	
 	/**

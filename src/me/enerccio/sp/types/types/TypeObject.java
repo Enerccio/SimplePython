@@ -23,6 +23,8 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.MethodPropertyObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -34,6 +36,17 @@ import me.enerccio.sp.utils.Utils;
 public abstract class TypeObject extends ClassObject {
 	private static final long serialVersionUID = 5891250487396458462L;
 	
+	@Override
+	public void newObject(){
+		super.newObject();
+		
+		try {
+			Utils.putPublic(this, "name", new MethodPropertyObject("name", JavaMethodObject.noArgMethod(this, "getTypeIdentificator")));
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException("kurva", e);
+		}
+	}
+	
 	public abstract String getTypeIdentificator();
 	
 	@Override
@@ -41,9 +54,9 @@ public abstract class TypeObject extends ClassObject {
 			PythonObject value) {
 		if (!fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 		throw Utils.throwException("AttributeError", "'" + 
-				Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
 	@Override

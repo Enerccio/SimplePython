@@ -267,9 +267,9 @@ public class JavaMethodObject extends CallableObject {
 			PythonObject value) {
 		if (!fields.containsKey(key))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
+					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 		throw Utils.throwException("AttributeError", "'" + 
-				Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
 	@Override

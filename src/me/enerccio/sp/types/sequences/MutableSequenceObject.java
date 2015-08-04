@@ -54,6 +54,6 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	
 	@Override
 	public int getId(){
-		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("type", this) + "'");
+		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("typename", this) + "'");
 	}
 }

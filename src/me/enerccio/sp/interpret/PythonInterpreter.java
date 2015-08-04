@@ -120,14 +120,15 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * executes single call identified by function in current environment and returns value, if any
+	 * @param internal 
 	 * @param function
 	 * @param data
 	 * @return
 	 */
-	public PythonObject executeCall(String function, PythonObject... data) {
+	public PythonObject executeCall(boolean internal, String function, PythonObject... data) {
 		if (currentFrame.size() == 0)
-			return returnee = execute(false, PythonRuntime.runtime.getGlobals().doGet(function), null, data);
-		return returnee = execute(false, environment().get(new StringObject(function), false, false), null, data);
+			return returnee = execute(internal, PythonRuntime.runtime.getGlobals().doGet(function), null, data);
+		return returnee = execute(internal, environment().get(new StringObject(function), false, false), null, data);
 	}
 
 	/**

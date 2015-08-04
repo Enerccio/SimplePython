@@ -78,7 +78,7 @@ public class UserMethodObject extends CallableObject {
 	public PythonObject set(String key, PythonObject localContext, PythonObject value) {
 		if (key.equals(SELF) || key.equals(FUNC) || key.equals(ACCESSOR))
 			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
 
