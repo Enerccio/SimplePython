@@ -41,7 +41,7 @@ import me.enerccio.sp.utils.Utils;
  */
 public class ClassObject extends CallableObject {
 	private static final long serialVersionUID = -4002910687424344724L;
-	public static final String __NAME__ = "__name__";
+	public static final String __NAME__ = "name";
 	public static final String __BASES__ = "__bases__";
 	public static final String __DICT__ = "__dict__";
 	public static final String __NEW__ = "__new__";
