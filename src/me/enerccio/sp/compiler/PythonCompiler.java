@@ -671,8 +671,6 @@ public class PythonCompiler {
 		cb.value = fnc;
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // function_defaults
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // locals
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, funcdef.stop)); // closure
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, funcdef.stop));
 		cb.value = new DictObject();
@@ -1906,8 +1904,6 @@ public class PythonCompiler {
 		cb.value = fnc;
 		
 		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // function_defaults
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // locals
-		bytecode.add(Bytecode.makeBytecode(Bytecode.DUP, ctx.stop)); // closure
 		
 		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.stop));
 		cb.value = new DictObject();

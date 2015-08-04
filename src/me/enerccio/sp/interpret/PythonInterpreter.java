@@ -144,6 +144,8 @@ public class PythonInterpreter extends PythonObject {
 	 * @return
 	 */
 	public PythonObject getLocalContext() {
+		if (currentFrame.size() == 0)
+			return NoneObject.NONE;
 		PythonObject p = currentFrame.getLast().localContext;
 		if (p == null)
 			return NoneObject.NONE;

@@ -1,4 +1,4 @@
 
 
 def test():
-    print __thismodule__.__dict__
+    print 11
