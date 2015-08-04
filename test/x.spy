@@ -10,4 +10,5 @@ class MyThread(threading.Thread):
 
 def test():
     t = MyThread(5)
-    print t.executed()
+    print t.executed
+    print getattr(t, "executed")

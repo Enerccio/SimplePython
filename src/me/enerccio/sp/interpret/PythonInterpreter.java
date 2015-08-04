@@ -651,31 +651,37 @@ public class PythonInterpreter extends PythonObject {
 			}
 			break;
 		case GETATTR: {
-			PythonObject apo;
-			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
-			value = stack.pop();	// object to get attribute from
-			apo = value.get("__getattribute__", getLocalContext()); 
-			if (apo != null && !(value instanceof ObjectTypeObject)) {
-				// There is __getattribute__ defined, call it directly
-				returnee = execute(false, apo, null, field);
-				o.accepts_return = true;
-				break;
-			} else {
-				// Try to grab argument normally...
-				apo = value.get(field.value, getLocalContext());
-				if (apo != null) {
-					stack.push(apo);
-					break;
-				}				
-				// ... and if that fails, use __getattr__ if available
-				apo = value.get("__getattr__", getLocalContext()); 
-				if (apo != null) {
+			try {
+				PythonObject apo;
+				StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
+				value = stack.pop();	// object to get attribute from
+				apo = value.get("__getattribute__", getLocalContext()); 
+				if (apo != null && !(value instanceof ObjectTypeObject)) {
 					// There is __getattribute__ defined, call it directly
 					returnee = execute(false, apo, null, field);
 					o.accepts_return = true;
 					break;
+				} else {
+					// Try to grab argument normally...
+					apo = value.get(field.value, getLocalContext());
+					if (apo != null) {
+						stack.push(apo);
+						break;
+					}				
+					// ... and if that fails, use __getattr__ if available
+					apo = value.get("__getattr__", getLocalContext()); 
+					if (apo != null) {
+						// There is __getattribute__ defined, call it directly
+						returnee = execute(false, apo, null, field);
+						o.accepts_return = true;
+						break;
+					}
+					throw Utils.throwException("AttributeError", "" + value.getType() + " object has no attribute '" + field + "'");
 				}
-				throw Utils.throwException("AttributeError", "" + value.getType() + " object has no attribute '" + field + "'");
+			} finally {
+				if (returnee instanceof PropertyObject){
+					returnee = ((PropertyObject)returnee).get();
+				}
 			}
 		}
 		case SETATTR: {
@@ -820,10 +826,6 @@ public class PythonInterpreter extends PythonObject {
 		} break;
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
-		}
-		
-		if (returnee instanceof PropertyObject){
-			returnee = ((PropertyObject)returnee).get();
 		}
 		
 		DebugInformation dd = o.compiled.getDebugInformation(spc);

@@ -21,6 +21,7 @@ License along with this library.
 class Thread(object):
     def __init__(self, name=None):
         self.__jthread = javainstance("jthread", self, name)
+        self.executed = getattr(self.__jthread, "executed")
         
     def set_name(self, name):
         self.__jthread.setThreadName(name)
@@ -42,6 +43,3 @@ class Thread(object):
         
     def running(self):
         return self.__jthread.threadRunning()
-    
-    def executed(self):
-        return self.__jthread.executed
