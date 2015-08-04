@@ -3,4 +3,4 @@ class Anca(object):
 
 def test():
     for x in [1, 1.5, "anca", test, Anca, Anca(), super]:
-        print x, x.__class__, getattr(x, "__class__")
+        print x, dir(x)

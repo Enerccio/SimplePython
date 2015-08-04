@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.BrokenBarrierException;
@@ -58,6 +60,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerObject;
@@ -349,6 +352,7 @@ public class PythonRuntime {
 	public static final String CHR = "chr";
 	public static final String ORD = "ord";
 	public static final String APPLY = "apply";
+	public static final String DIR = "dir";
 	/**
 	 * Generates globals. This is only done once but then cloned
 	 * @return
@@ -381,6 +385,7 @@ public class PythonRuntime {
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
+					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
 					o.newObject();
 					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
@@ -445,6 +450,34 @@ public class PythonRuntime {
 		return globals;
 	}
 	
+	protected static List<String> dir(PythonObject o){
+		Set<String> fields = new HashSet<String>();
+		
+		synchronized (o){
+			synchronized (o.fields){
+				fields.addAll(o.fields.keySet());
+				
+				if (o.fields.containsKey("__dict__")){
+					PythonObject dd = o.fields.get("__dict__").object;
+					if (dd instanceof DictObject){
+						synchronized (dd){
+							DictObject d = (DictObject)dd;
+							synchronized (d.backingMap){
+								for (PythonProxy pp : d.backingMap.keySet()){
+									if (pp.o instanceof StringObject)
+										fields.add(((StringObject)pp.o).value);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		
+		return new ArrayList<String>(fields);
+	}
 	
 	protected static PythonObject apply(PythonObject callable, ListObject args){
 		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
