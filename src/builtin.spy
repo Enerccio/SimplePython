@@ -301,4 +301,4 @@ def close_generator(generator):
         raise RuntimeError("generator ignored GeneratorExit")
     
 def typename(object):
-    return type(object).name
+    return type(object).__name__

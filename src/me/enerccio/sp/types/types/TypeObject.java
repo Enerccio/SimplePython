@@ -41,7 +41,7 @@ public abstract class TypeObject extends ClassObject {
 		super.newObject();
 		
 		try {
-			Utils.putPublic(this, "name", new MethodPropertyObject("name", JavaMethodObject.noArgMethod(this, "getTypeIdentificator")));
+			Utils.putPublic(this, "__name__", new MethodPropertyObject("__name__", JavaMethodObject.noArgMethod(this, "getTypeIdentificator")));
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException("kurva", e);
 		}
