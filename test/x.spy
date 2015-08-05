@@ -1,3 +1,4 @@
 def test():
-    x = "test={} anca={anca[0][wtfman]:C<+24,.2g} test2={} "
+    x = "{{}}test={} anca={anca[0][wtfman]:C<+24,.2g} test2={} "
+    print dir(x)
     print x.format(5, 10, anca=[{"wtfman":1024.2145}])

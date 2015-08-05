@@ -20,7 +20,7 @@ lexer grammar formatterLexer;
 
 OPEN_RF: '{' -> pushMode(RuleMode);
 CHAR_NOCURLY
-: ~('{' | '}')
+: '{{' | '}}' | ~('{' | '}')
 ;
 
 mode StringMode;

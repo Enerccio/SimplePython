@@ -113,7 +113,7 @@ public class Formatter {
 	}
 
 	private void format(StringBuilder target, TextContext text) {
-		target.append(text.getText());
+		target.append(text.getText().replace("{{", "{").replace("}}", "}"));
 	}
 
 	private void format(StringBuilder target,
