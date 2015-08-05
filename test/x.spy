@@ -1,4 +1,4 @@
-
+from threading import Thread
 
 def test():
-    print 11
+    print dir(Thread().__jthread)

@@ -35,6 +35,7 @@ public class Test {
 			SimplePython.addResolve(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
 			SimplePython.getModule("x");
+			SimplePython.unloadModule("anca.test2");
 			c2 = System.currentTimeMillis();
 			
 			SimplePython.executeFunction("x", "test");

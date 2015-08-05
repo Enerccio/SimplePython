@@ -47,6 +47,7 @@ public class InternalJavaPathResolver implements PythonDataSourceResolver {
 	}
 
 	private ModuleProvider doResolve(InputStream is, String fname, String mname) throws Exception {
+		if (is == null) return null;
 		return new ModuleProvider(mname, fname, Utils.toByteArray(is), "", false);
 	}
 

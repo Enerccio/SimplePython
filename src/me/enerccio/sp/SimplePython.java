@@ -133,4 +133,8 @@ public class SimplePython {
 	public static void setSecurityManager(PythonSecurityManager manager){
 		r.setSecurityManager(manager);
 	}
+	
+	public static void unloadModule(String pythonPath){
+		r.unloadModule(pythonPath);
+	}
 }

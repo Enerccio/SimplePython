@@ -224,6 +224,29 @@ public class PythonRuntime {
 		o.linkName = key++;
 	}
 	
+	public void unloadModule(String key) {
+		String name = key.substring(key.lastIndexOf('.') == 0 ? 0 : key.lastIndexOf('.')+1);
+		String modulePath =  key.substring(0, key.lastIndexOf('.'));
+		if (modulePath.equals("")){
+			if (root.containsKey(name))
+				root.remove(name);
+		} else {
+			ModuleContainer c = null;
+			for (String pathElement : modulePath.split("\\.")){
+				if (c == null)
+					c = root.get(pathElement);
+				else
+					c = c.subpackages.get(pathElement);
+			}
+			if (c != null){
+				if (c.submodules.containsKey(name))
+					c.submodules.remove(name);
+				if (c.subpackages.containsKey(name))
+					c.subpackages.remove(name);
+			}
+		}
+	}
+	
 	/** Returns module with given name */
 	public synchronized ModuleObject getModule(String key) {
 		String[] submodules = key.split("\\.");
