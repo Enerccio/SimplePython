@@ -260,7 +260,7 @@ public class SimplePython {
 			return null;
 		}
 		
-		c.call(new TupleObject(), null);
+		c.call(new TupleObject(args), null);
 		return PythonInterpreter.interpreter.get().executeAll(0);
 	}
 	
