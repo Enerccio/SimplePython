@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.sequences;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.enerccio.sp.interpret.KwArgs;
@@ -28,6 +29,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.ArgumentConsumer;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.Formatter;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -114,6 +116,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			sfields.put("endswith", new JavaMethodObject(StringObject.class, "endswith"));
 			sfields.put("expandtabs", new JavaMethodObject(StringObject.class, "expandtabs"));
 			sfields.put("find", new JavaMethodObject(StringObject.class, "find"));
+			sfields.put("format", new JavaMethodObject(StringObject.class, "format"));
 		} catch (Exception e) {
 			throw new RuntimeException("Fuck", e);
 		}
@@ -235,6 +238,10 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		
 		String substr = value.substring(start, end);
 		return IntObject.valueOf(substr.indexOf(suffix));
+	}
+	
+	public PythonObject format(TupleObject to, KwArgs kwargs){
+		return new Formatter(to, kwargs).format(value).consume();
 	}
 	
 	@Override

@@ -18,6 +18,7 @@
 package me.enerccio.sp.interpret;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.utils.CastFailedException;
@@ -61,6 +62,8 @@ public interface KwArgs {
 	 * Returns true if argument is defined
 	 */
 	public boolean contains(String string);
+	
+	public Map<String, PythonObject> getAll();
 
 
 	static class HashMapKWArgs extends HashMap<String, PythonObject>  implements KwArgs {
@@ -106,6 +109,11 @@ public interface KwArgs {
 		@Override
 		public boolean contains(String arg) {
 			return containsKey(arg);
+		}
+
+		@Override
+		public Map<String, PythonObject> getAll() {
+			return this;
 		}
 	}
 }
