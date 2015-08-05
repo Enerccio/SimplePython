@@ -1,4 +1,7 @@
+class X(object):
+    def __init__(self, x):
+        self.x = x
+
 def test():
-    x = "{{}}test={} anca={anca[0][wtfman]:C<+24,.2g} test2={} "
-    print dir(x)
-    print x.format(5, 10, anca=[{"wtfman":1024.2145}])
+    x = "test={} anca={anca[0][wtfman]:C<+24,.{2.x}g} test2={}"
+    print x.format(5, 10, X(2), anca=[{"wtfman":1024.2145}])

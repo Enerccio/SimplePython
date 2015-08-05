@@ -191,9 +191,7 @@ public class Utils {
 				String msg, RecognitionException e)
 				throws ParseCancellationException {
 			throw new ParseCancellationException("file " + source + " line "
-					+ line + ":" + charPositionInLine + " " + msg + " TOKEN TYPE " + 
-					recognizer.getVocabulary().getSymbolicName(((Token)offendingSymbol).getType())
-					);
+					+ line + ":" + charPositionInLine + " " + msg);
 		}
 	}
 

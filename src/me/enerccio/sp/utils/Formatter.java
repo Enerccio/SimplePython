@@ -32,16 +32,24 @@ import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.formatterParser;
 import me.enerccio.sp.parser.formatterParser.AccessorContext;
+import me.enerccio.sp.parser.formatterParser.Accessor_liteContext;
 import me.enerccio.sp.parser.formatterParser.Arg_nameContext;
+import me.enerccio.sp.parser.formatterParser.Arg_name_liteContext;
 import me.enerccio.sp.parser.formatterParser.Element_indexContext;
+import me.enerccio.sp.parser.formatterParser.Element_index_liteContext;
 import me.enerccio.sp.parser.formatterParser.Field_nameContext;
+import me.enerccio.sp.parser.formatterParser.Field_name_liteContext;
+import me.enerccio.sp.parser.formatterParser.FintegerContext;
 import me.enerccio.sp.parser.formatterParser.Format_specContext;
+import me.enerccio.sp.parser.formatterParser.Format_spec_elementContext;
 import me.enerccio.sp.parser.formatterParser.IntegerContext;
 import me.enerccio.sp.parser.formatterParser.Replacement_fieldContext;
+import me.enerccio.sp.parser.formatterParser.Replacement_field_liteContext;
 import me.enerccio.sp.parser.formatterParser.SegmentContext;
 import me.enerccio.sp.parser.formatterParser.SegmentsContext;
 import me.enerccio.sp.parser.formatterParser.TextContext;
 import me.enerccio.sp.parser.formatterLexer;
+import me.enerccio.sp.parser.formatterParser.Text_fspecContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -132,7 +140,85 @@ public class Formatter {
 	
 	private void format(StringBuilder target, PythonObject dataSegment,
 			Format_specContext format_spec) {
-		target.append(Utils.run("format", dataSegment, new StringObject(format_spec.getText())));
+		target.append(Utils.run("format", dataSegment, new StringObject(parseFormatSpec(format_spec))));
+	}
+
+	private String parseFormatSpec(Format_specContext ctx) {
+		StringBuilder bd = new StringBuilder();
+		for (Format_spec_elementContext se : ctx.format_spec_element())
+			format(bd, se);
+		return bd.toString();
+	}
+
+	private void format(StringBuilder target, Format_spec_elementContext s) {
+		if (s.text_fspec() != null){
+			format(target, s.text_fspec());
+		} else {
+			format(target, s.replacement_field_lite());
+		}
+	}
+
+	private void format(StringBuilder target, Text_fspecContext text) {
+		target.append(text.getText());
+	}
+
+	private void format(StringBuilder target,
+			Replacement_field_liteContext ctx) {
+		PythonObject dataSegment = getDataSegment(ctx.field_name_lite());
+		target.append(dataSegment.toString());
+	}
+
+	private PythonObject getDataSegment(Field_name_liteContext field_name_lite) {
+		if (field_name_lite == null){
+			return getIndexed(noClauseCounter++);
+		}
+		PythonObject base = getDataSegment(field_name_lite.arg_name_lite());
+		for (Accessor_liteContext ac : field_name_lite.accessor_lite()){
+			if (ac.attribute_name_lite() != null){
+				base = Utils.run("getattr", base, new StringObject(ac.getText().substring(1)));
+			} else {
+				base = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", base, new StringObject("__getitem__")), 
+						null, getElementIndex(ac.element_index_lite()));
+			}
+		}
+		return base;
+	}
+
+	private PythonObject getElementIndex(
+			Element_index_liteContext ei) {
+		String text = ei.getText();
+		try {
+		 	return IntObject.valueOf(Integer.parseInt(text));
+		} catch (NumberFormatException e){
+			// pass
+		}
+		return new StringObject(ei.index_string_lite().getText());
+	}
+
+	private PythonObject getDataSegment(Arg_name_liteContext arg_name) {
+		if (arg_name.finteger() != null){
+			return getIndexed(getInteger(arg_name.finteger()));
+		} else {
+			return getTexted(arg_name.getText());
+		}
+	}
+
+	private int getInteger(FintegerContext ic) {
+		String numberValue = ic.getText();
+		BigInteger bi = null;
+		
+		if (ic.FZERO() != null)
+			bi = new BigInteger("0", 10);
+		if (ic.FBIN_INTEGER() != null)
+			bi = new BigInteger(numberValue, 2);
+		if (ic.FOCT_INTEGER() != null)
+			bi = new BigInteger(numberValue, 8);
+		if (ic.FDECIMAL_INTEGER() != null)
+			bi = new BigInteger(numberValue, 10);
+		if (ic.FHEX_INTEGER() != null)
+			bi = new BigInteger(numberValue, 16);
+		
+		return (int)bi.longValue();
 	}
 
 	private PythonObject getDataSegment(Field_nameContext field_name) {
@@ -142,7 +228,7 @@ public class Formatter {
 		PythonObject base = getDataSegment(field_name.arg_name());
 		for (AccessorContext ac : field_name.accessor()){
 			if (ac.attribute_name() != null){
-				base = Utils.run("getattr", base, new StringObject(ac.getText()));
+				base = Utils.run("getattr", base, new StringObject(ac.getText().substring(1)));
 			} else {
 				base = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", base, new StringObject("__getitem__")), 
 						null, getElementIndex(ac.element_index()));

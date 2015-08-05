@@ -18,7 +18,7 @@
  
 parser grammar formatterParser;
 
-options {   tokenVocab = formatterLexer; }
+options { tokenVocab = formatterLexer; }
 
 source_stream
  : segments EOF
@@ -85,5 +85,53 @@ conversionType
 ;
 
 format_spec
+: format_spec_element*
+;
+
+format_spec_element
+: text_fspec | replacement_field_lite
+;
+
+text_fspec
 : FCHAR_NOCURLY+
+;
+ 
+replacement_field_lite
+: OPEN_RFL field_name_lite? CLOSE_RFL
+;
+ 
+field_name_lite
+: arg_name_lite accessor_lite*
+;
+ 
+accessor_lite
+: (FDOT attribute_name_lite) | FLIX element_index_lite FRIX
+;
+ 
+attribute_name_lite
+: fidentifier
+;
+ 
+element_index_lite
+: index_string_lite
+;
+
+index_string_lite
+: FCHAR_NORIGHTB+
+;
+ 
+arg_name_lite
+: finteger | fidentifier 
+; 
+
+finteger
+: FZERO
+| FDECIMAL_INTEGER
+| FOCT_INTEGER
+| FHEX_INTEGER
+| FBIN_INTEGER
+;
+
+fidentifier
+: FNAME
 ;

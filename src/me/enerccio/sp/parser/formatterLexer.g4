@@ -102,4 +102,75 @@ FCHAR_NOCURLY
 : ~('{' | '}')
 ;
 
+OPEN_RFL: '{' -> pushMode(SpecRuleMode);
 CLOSE_RF_SM: '}' -> popMode;
+
+mode SpecRuleMode ;
+
+FDOT: '.';
+CLOSE_RFL: '}' -> popMode;
+FLIX: '[' -> pushMode(SpecStringMode);
+FZERO: '0';
+ 
+FDECIMAL_INTEGER
+ : FNON_ZERO_DIGIT FDIGIT*
+ | FZERO+
+ ;
+
+FOCT_INTEGER
+ : FZERO [oO] FOCT_DIGIT+
+ ;
+
+FHEX_INTEGER
+ : FZERO [xX] FHEX_DIGIT+
+ ;
+
+FBIN_INTEGER
+ : FZERO [bB]? FBIN_DIGIT+
+ ;
+ 
+fragment FNON_ZERO_DIGIT
+ : [1-9]
+ ;
+
+fragment FDIGIT
+ : [0-9]
+ ;
+
+fragment FOCT_DIGIT
+ : [0-7]
+ ;
+
+fragment FHEX_DIGIT
+ : [0-9a-fA-F]
+ ;
+
+fragment FBIN_DIGIT
+ : [01]
+ ;
+ 
+ FNAME
+ : NAME_CONTENT
+ ;
+ 
+ FNAME_CONTENT
+ : FID_START FID_CONTINUE*
+ ;
+ 
+ fragment FID_START
+ : '_'
+ | [A-Z]
+ | [a-z]
+ ;
+ 
+fragment FID_CONTINUE
+ : ID_START
+ | [0-9]
+ ;
+
+mode SpecStringMode;
+FCHAR_NORIGHTB
+: ~(']')
+;
+
+FRIX: ']' -> popMode;
