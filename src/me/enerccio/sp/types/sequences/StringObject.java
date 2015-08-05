@@ -113,6 +113,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			sfields.put("count", new JavaMethodObject(StringObject.class, "count"));
 			sfields.put("endswith", new JavaMethodObject(StringObject.class, "endswith"));
 			sfields.put("expandtabs", new JavaMethodObject(StringObject.class, "expandtabs"));
+			sfields.put("find", new JavaMethodObject(StringObject.class, "find"));
 		} catch (Exception e) {
 			throw new RuntimeException("Fuck", e);
 		}
@@ -217,6 +218,24 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		return new StringObject(bd.toString());
 	}
 		
+	public PythonObject find(TupleObject to, KwArgs kwargs){
+		if (to.len() < 1 || to.len() > 3)
+			throw Utils.throwException("TypeError", "substring(): requires from 1 to 3 arguments, " + to.len() + " provided");
+		String suffix = Coerce.argument(to, 0, "endwith", String.class);
+		int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1, "start", int.class, 0);
+		int end = ArgumentConsumer.consumeArgument("count", to, kwargs, 2, "end", int.class, value.length()); 
+		
+		if (start < 0)
+			start = Math.max(0, value.length()-(-(start+1)));
+		if (end < 0)
+			end = Math.max(0, value.length()-(-(end)));
+		
+		start = Math.max(start, 0);
+		end = Math.min(value.length(), end);
+		
+		String substr = value.substring(start, end);
+		return IntObject.valueOf(substr.indexOf(suffix));
+	}
 	
 	@Override
 	public void newObject() {	

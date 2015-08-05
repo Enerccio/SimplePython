@@ -1,4 +1,5 @@
 def test():
-    x = "a\taaa\taaaaaa\taaaaaaaa\taaaaaaaa\taxxx"
-    print x.expandtabs()
-    print x.expandtabs(5)
+    x = "arathamathakathabatha"
+    print x.find("th")
+    print x.find("th", 11)
+    print x.find("th", 17, end=-3)
