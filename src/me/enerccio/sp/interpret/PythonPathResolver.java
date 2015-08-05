@@ -26,7 +26,7 @@ import me.enerccio.sp.utils.Utils;
 /**
  * PythonPath resolver. This is standard disk python path resolver. You provide path and SP will search there for .spy files and packages
  * @author Enerccio
- *
+ * @see PythonPathResolver#make(String)
  */
 public class PythonPathResolver implements PythonDataSourceResolver {
 
@@ -72,6 +72,11 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 				path.getParentFile().equals(rootPath) ? "" : (!resolvePath.equals("") ? (resolvePath + ".") : "") + path.getParentFile().getName(), isp);
 	}
 
+	/**
+	 * Base factory for python path resolver. 
+	 * @param string Absolute path 
+	 * @return PythonPathResolver corresponding to this path
+	 */
 	public static PythonPathResolver make(String string) {
 		PythonPathResolver p = new PythonPathResolver();
 		

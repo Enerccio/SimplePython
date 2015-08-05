@@ -1,4 +1,4 @@
 from threading import Thread
 
 def test():
-    print dir(Thread().__jthread)
+    print getattr(Thread(), "executed")
