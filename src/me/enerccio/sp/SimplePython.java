@@ -251,9 +251,14 @@ public class SimplePython {
 	 * @return value of the function call
 	 */
 	public static PythonObject executeFunction(ModuleObject module, String function, PythonObject... args){
-		CallableObject c = (CallableObject) getField(module, function);
-		if (c == null)
+		CallableObject c = null;
+		try {
+			c = (CallableObject) getField(module, function);
+			if (c == null)
+				return null;
+		} catch (Exception e){
 			return null;
+		}
 		
 		c.call(new TupleObject(), null);
 		return PythonInterpreter.interpreter.get().executeAll(0);
