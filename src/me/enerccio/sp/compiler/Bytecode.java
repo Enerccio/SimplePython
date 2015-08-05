@@ -79,7 +79,7 @@ public enum Bytecode {
 	 * @return
 	 */
 	public static PythonBytecode makeBytecode(Bytecode b) {
-		return makeBytecode(b, null);
+		return makeBytecode(b, null, null);
 	}
 
 	/**
@@ -88,7 +88,7 @@ public enum Bytecode {
 	 * @param t may be null
 	 * @return
 	 */
-	public static PythonBytecode makeBytecode(Bytecode b, Token t) {
+	public static PythonBytecode makeBytecode(Bytecode b, Token t, String moduleName) {
 		PythonBytecode bytecode = null;
 		
 		switch (b) {
@@ -262,7 +262,7 @@ public enum Bytecode {
 			break;
 		}
 		
-		bytecode.debugModule = PythonCompiler.moduleName.get();
+		bytecode.debugModule = moduleName;
 		if (t != null){
 			bytecode.debugLine = t.getLine();
 			bytecode.debugInLine = t.getCharPositionInLine();
