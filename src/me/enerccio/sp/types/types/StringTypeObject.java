@@ -55,4 +55,9 @@ public class StringTypeObject extends TypeObject {
 		} else
 			return new StringObject(o.toString());
 	}
+	
+	@Override
+	public void newObject(){
+		super.newObject();
+	}
 }

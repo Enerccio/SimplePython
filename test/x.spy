@@ -1,4 +1,6 @@
-from threading import Thread
-
 def test():
-    print getattr(Thread(), "executed")
+    x = "test string"
+    print x.capitalize()
+    print x.center(21)
+    print x.center(21, "x")
+    print x.center(21, fillchar="y")
