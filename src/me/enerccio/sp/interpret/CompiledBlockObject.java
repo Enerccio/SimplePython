@@ -169,8 +169,6 @@ public class CompiledBlockObject extends PythonObject {
 			final String FORMAT = "%-25.25s";
 			switch (opcode){
 			case CALL:
-			case PUSH_LOCALS:
-			case OPEN_LOCALS:
 			case DUP:
 			case ECALL:
 			case GOTO:
@@ -233,6 +231,8 @@ public class CompiledBlockObject extends PythonObject {
 			case RERAISE:
 			case RESOLVE_ARGS:
 			case SWAP_STACK:
+			case PUSH_LOCALS:
+			case OPEN_LOCALS:
 				bd.append(String.format(FORMAT, ""));
 				break;
 			//default:

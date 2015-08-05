@@ -732,7 +732,7 @@ public class PythonCompiler {
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH_DICT, t)); 
 			cb.mapValue = d;
 		}
-		bytecode.add(cb = Bytecode.makeBytecode(Bytecode.OPEN_LOCALS, t));
+		bytecode.add(Bytecode.makeBytecode(Bytecode.OPEN_LOCALS, t));
 		bytecode.add(Bytecode.makeBytecode(Bytecode.RESOLVE_ARGS, t));
 		
 		if (suite instanceof SuiteContext){
