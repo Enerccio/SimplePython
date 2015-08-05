@@ -1,6 +1,6 @@
 def test():
     x = "aaatestaaamaaataaa"
-    print x.count("aaa")
-    print x.count("aaa", 1)
-    print x.count("aaa", 1, 10)
-    print x.count("aaa", end=-1)
+    print x.endswith("aaa")
+    print x.endswith("aaa", 16)
+    print x.endswith("aaa", 16, 17)
+    print x.endswith("aaa", end=-1)
