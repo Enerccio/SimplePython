@@ -61,6 +61,7 @@ import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class Utils {
@@ -190,7 +191,9 @@ public class Utils {
 				String msg, RecognitionException e)
 				throws ParseCancellationException {
 			throw new ParseCancellationException("file " + source + " line "
-					+ line + ":" + charPositionInLine + " " + msg);
+					+ line + ":" + charPositionInLine + " " + msg + " TOKEN TYPE " + 
+					recognizer.getVocabulary().getSymbolicName(((Token)offendingSymbol).getType())
+					);
 		}
 	}
 

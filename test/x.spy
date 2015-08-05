@@ -1,3 +1,3 @@
 def test():
-    x = "tekisto naisu oooo xxxxx"
-    print x.format(10, 20, anca="mara", mara="anca")
+    x = "test={} anca={anca[0][wtfman]:C<+24,.2g} test2={} "
+    print x.format(5, 10, anca=[{"wtfman":1024.2145}])

@@ -18,6 +18,7 @@
 package me.enerccio.sp.utils;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,13 +29,21 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.parser.formatterLexer;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.formatterParser;
+import me.enerccio.sp.parser.formatterParser.AccessorContext;
+import me.enerccio.sp.parser.formatterParser.Arg_nameContext;
+import me.enerccio.sp.parser.formatterParser.Element_indexContext;
+import me.enerccio.sp.parser.formatterParser.Field_nameContext;
+import me.enerccio.sp.parser.formatterParser.Format_specContext;
+import me.enerccio.sp.parser.formatterParser.IntegerContext;
 import me.enerccio.sp.parser.formatterParser.Replacement_fieldContext;
 import me.enerccio.sp.parser.formatterParser.SegmentContext;
 import me.enerccio.sp.parser.formatterParser.SegmentsContext;
 import me.enerccio.sp.parser.formatterParser.TextContext;
+import me.enerccio.sp.parser.formatterLexer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
@@ -44,6 +53,7 @@ public class Formatter {
 	private HashMap<String, PythonObject> dataMap;
 	private List<PythonObject> indexMap;
 	private formatterParser p;
+	private int noClauseCounter = 0;
 	
 	public Formatter(TupleObject to, KwArgs kwargs) {
 		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.getAll());
@@ -81,7 +91,7 @@ public class Formatter {
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (Exception e){
-			throw Utils.throwException("RuntimeError", "format(): internal error", e);
+			throw Utils.throwException("ValueError", "format(): failed parsing format string", e);
 		}
 	}
 
@@ -107,9 +117,86 @@ public class Formatter {
 	}
 
 	private void format(StringBuilder target,
-			Replacement_fieldContext replacement_field) {
-		// TODO Auto-generated method stub
+			Replacement_fieldContext ctx) {
+		PythonObject dataSegment = getDataSegment(ctx.field_name());
+		if (ctx.conversion() != null){
+			if (ctx.conversion().conversionType().getText().equals("s")){
+				dataSegment = Utils.run("str", dataSegment);
+			}
+		}
+		if (ctx.format_spec() != null){
+			format(target, dataSegment, ctx.format_spec());
+		} else 
+			target.append(dataSegment);
+	}
+	
+	private void format(StringBuilder target, PythonObject dataSegment,
+			Format_specContext format_spec) {
+		target.append(Utils.run("format", dataSegment, new StringObject(format_spec.getText())));
+	}
+
+	private PythonObject getDataSegment(Field_nameContext field_name) {
+		if (field_name == null){
+			return getIndexed(noClauseCounter++);
+		}
+		PythonObject base = getDataSegment(field_name.arg_name());
+		for (AccessorContext ac : field_name.accessor()){
+			if (ac.attribute_name() != null){
+				base = Utils.run("getattr", base, new StringObject(ac.getText()));
+			} else {
+				base = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", base, new StringObject("__getitem__")), 
+						null, getElementIndex(ac.element_index()));
+			}
+		}
+		return base;
+	}
+
+	private PythonObject getElementIndex(Element_indexContext ei) {
+		String text = ei.getText();
+		try {
+		 	return IntObject.valueOf(Integer.parseInt(text));
+		} catch (NumberFormatException e){
+			// pass
+		}
+		return new StringObject(ei.index_string().getText());
+	}
+
+	private PythonObject getDataSegment(Arg_nameContext arg_name) {
+		if (arg_name.integer() != null){
+			return getIndexed(getInteger(arg_name.integer()));
+		} else {
+			return getTexted(arg_name.getText());
+		}
+	}
+
+	private int getInteger(IntegerContext ic) {
+		String numberValue = ic.getText();
+		BigInteger bi = null;
 		
+		if (ic.ZERO() != null)
+			bi = new BigInteger("0", 10);
+		if (ic.BIN_INTEGER() != null)
+			bi = new BigInteger(numberValue, 2);
+		if (ic.OCT_INTEGER() != null)
+			bi = new BigInteger(numberValue, 8);
+		if (ic.DECIMAL_INTEGER() != null)
+			bi = new BigInteger(numberValue, 10);
+		if (ic.HEX_INTEGER() != null)
+			bi = new BigInteger(numberValue, 16);
+		
+		return (int)bi.longValue();
+	}
+
+	private PythonObject getIndexed(int i) {
+		if (i < indexMap.size())
+			return indexMap.get(i);
+		throw Utils.throwException("IndexError", "index " + i + " outside the range");
+	}
+	
+	private PythonObject getTexted(String key) {
+		if (dataMap.containsKey(key))
+			return dataMap.get(key);
+		throw Utils.throwException("NameError", "unknown key '" + key + "'");
 	}
 
 }

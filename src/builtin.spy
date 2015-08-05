@@ -198,6 +198,9 @@ def filter(f, it):
             l.append(i)
     return l
 
+def format(value, format_spec=""):
+    return value.__format__(format_spec)
+
 def issubclass(cls, classinfo):
     if type(classinfo) == tuple:
         for c in classinfo:

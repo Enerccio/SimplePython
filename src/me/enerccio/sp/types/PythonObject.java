@@ -30,6 +30,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.properties.MethodPropertyObject;
+import me.enerccio.sp.utils.Format;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -40,6 +41,7 @@ import me.enerccio.sp.utils.Utils;
 public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public static final String __CLASS__ = "__class__";
+	public static final String __FORMAT__ = "__format__";
 	
 	public PythonObject(){
 		
@@ -52,6 +54,7 @@ public abstract class PythonObject implements Serializable {
 			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
 			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
 			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
+			sfields.put(__FORMAT__,  		 new JavaMethodObject(PythonObject.class, "format", String.class));
 			
 			mpo = new MethodPropertyObject(__CLASS__, JavaMethodObject.noArgMethod(PythonObject.class, "getType"));
 		} catch (Exception e){
@@ -199,6 +202,10 @@ public abstract class PythonObject implements Serializable {
 	@Override
 	public final String toString(){
 		return doToString();
+	}
+	
+	public PythonObject format(String formatString){
+		return new Format(this).format(formatString).consume();
 	}
 
 	/**
