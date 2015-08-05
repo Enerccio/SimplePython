@@ -19,6 +19,10 @@
  grammar formatter;
  
  source_stream
+ : segments EOF
+ ;
+ 
+ segments
  : segment*
  ;
  
@@ -107,23 +111,21 @@ string
 ;
 
 STRING
-: STRING_NO_BRACKET
+: STRING_NO_BRACKET+
 ;
 
-fragment STRING_NO_BRACKET
+STRING_NO_BRACKET
  : [\u0000-\u005C]
  | [\u005E-\u007F]
  ;
 
 TEXT
-: TEXT_NO_BRACKET
+: ANY
 ;
 
-fragment TEXT_NO_BRACKET
- : [\u0000-\u007A]
- | [\u007C]
- | [\u007F]
- ;
+ANY
+: .
+;
 
 integer
  : DECIMAL_INTEGER
@@ -510,8 +512,7 @@ fragment ID_START
  | [\uFFD2-\uFFD7]
  | [\uFFDA-\uFFDC]
  ;
-
-/// id_continue  ::=  <all characters in id_start, plus characters in the categories Mn, Mc, Nd, Pc and others with the Other_ID_Continue property>
+ 
 fragment ID_CONTINUE
  : ID_START
  | [0-9]

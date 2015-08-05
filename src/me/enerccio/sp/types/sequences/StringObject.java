@@ -18,7 +18,6 @@
 package me.enerccio.sp.types.sequences;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import me.enerccio.sp.interpret.KwArgs;

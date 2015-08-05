@@ -30,6 +30,10 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.parser.formatterLexer;
 import me.enerccio.sp.parser.formatterParser;
+import me.enerccio.sp.parser.formatterParser.Replacement_fieldContext;
+import me.enerccio.sp.parser.formatterParser.SegmentContext;
+import me.enerccio.sp.parser.formatterParser.SegmentsContext;
+import me.enerccio.sp.parser.formatterParser.TextContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -72,7 +76,7 @@ public class Formatter {
 	private String doConsume() {
 		try {
 			StringBuilder bd = new StringBuilder();
-			format(new StringBuilder());
+			format(bd);
 			return bd.toString();
 		} catch (PythonExecutionException e){
 			throw e;
@@ -82,6 +86,29 @@ public class Formatter {
 	}
 
 	private void format(StringBuilder target) {
+		format(target, p.segments());
+	}
+
+	private void format(StringBuilder target, SegmentsContext segments) {
+		for (SegmentContext s : segments.segment())
+			format(target, s);
+	}
+
+	private void format(StringBuilder target, SegmentContext s) {
+		if (s.text() != null){
+			format(target, s.text());
+		} else {
+			format(target, s.replacement_field());
+		}
+	}
+
+	private void format(StringBuilder target, TextContext text) {
+		target.append(text.getText());
+	}
+
+	private void format(StringBuilder target,
+			Replacement_fieldContext replacement_field) {
+		// TODO Auto-generated method stub
 		
 	}
 
