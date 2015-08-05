@@ -1579,7 +1579,7 @@ public class PythonCompiler {
 				}
 			}
 			bytecode.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, ctx.start));
-			cb.value = new StringObject(bd.toString());
+			cb.value = new StringObject(recompactSpecials(bd.toString()));
 		} else if (ctx.getText().startsWith("(")){
 			compile(ctx.bracket_atom(), bytecode, ctx.start);
 		} else if (ctx.getText().startsWith("[")){
@@ -1589,6 +1589,35 @@ public class PythonCompiler {
 		}
 	}
 	
+	private String recompactSpecials(String string) {
+		StringBuilder bd = new StringBuilder();
+		
+		for (int i=0; i<string.length(); i++){
+			char c = string.charAt(i);
+			
+			if (c == '\\'){
+				char next = string.charAt(++i);
+				switch (next){
+				case '\\': bd.append("\\"); break;
+				case '\'': bd.append("'"); break;
+				case '"': bd.append("\""); break;
+				case 'b': bd.append("\b"); break;
+				case 't': bd.append("\t"); break;
+				case 'n': bd.append("\n"); break;
+				case 'f': bd.append("\f"); break;
+				case 'r': bd.append("\r"); break;
+				default:
+					bd.append(c);
+					bd.append(next);
+				}
+			} else {
+				bd.append(c);
+			}
+		}
+		
+		return bd.toString();
+	}
+
 	private void compile(Bracket_atomContext ctx,
 			List<PythonBytecode> bytecode, Token t) {
 		if (ctx == null){

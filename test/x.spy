@@ -1,6 +1,4 @@
 def test():
-    x = "aaatestaaamaaataaa"
-    print x.endswith("aaa")
-    print x.endswith("aaa", 16)
-    print x.endswith("aaa", 16, 17)
-    print x.endswith("aaa", end=-1)
+    x = "a\taaa\taaaaaa\taaaaaaaa\taaaaaaaa\taxxx"
+    print x.expandtabs()
+    print x.expandtabs(5)

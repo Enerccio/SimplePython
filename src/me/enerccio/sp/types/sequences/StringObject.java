@@ -112,6 +112,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			sfields.put("center", new JavaMethodObject(StringObject.class, "center"));
 			sfields.put("count", new JavaMethodObject(StringObject.class, "count"));
 			sfields.put("endswith", new JavaMethodObject(StringObject.class, "endswith"));
+			sfields.put("expandtabs", new JavaMethodObject(StringObject.class, "expandtabs"));
 		} catch (Exception e) {
 			throw new RuntimeException("Fuck", e);
 		}
@@ -184,6 +185,36 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		
 		String substr = value.substring(start, end);
 		return BoolObject.fromBoolean(substr.endsWith(suffix));	
+	}
+	
+	public PythonObject expandtabs(TupleObject to, KwArgs kwargs){
+		if (to.len() > 1)
+			throw Utils.throwException("TypeError", "substring(): requires at most 1 argument, " + to.len() + " provided");
+		int tabs = ArgumentConsumer.consumeArgument("expandtabs", to, kwargs, 0, "tabsize", int.class, 8);
+		
+		StringBuilder bd = new StringBuilder();
+		int column = 0;
+		for (int i=0; i<value.length(); i++){
+			char c = value.charAt(i);
+			if (c == '\n' || c == '\r'){
+				bd.append(c);
+				column = 0;
+				continue;
+			}
+			
+			if (c == '\t'){
+				int rem = tabs - (column%tabs);
+				for (int j=0; j<rem; j++)
+					bd.append(" ");
+				column = 0;
+				continue;
+			}
+			
+			bd.append(c);
+			++column;
+		}
+		
+		return new StringObject(bd.toString());
 	}
 		
 	
