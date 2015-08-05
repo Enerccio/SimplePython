@@ -60,7 +60,7 @@ public class SimplePython {
 	 * insertion. First resolver that returns the module will be the one used.
 	 * @see me.enerccio.sp.interpret.PythonPathResolver
 	 */
-	public static void addResolve(PythonDataSourceResolver resolver){
+	public static void addResolver(PythonDataSourceResolver resolver){
 		r.addResolver(resolver);
 	}
 	

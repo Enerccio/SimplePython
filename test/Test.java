@@ -32,7 +32,7 @@ public class Test {
 		try {
 			SimplePython.initialize();
 			SimplePython.setAllowAutowraps(true);
-			SimplePython.addResolve(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
+			SimplePython.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
 			SimplePython.getModule("x");
 			SimplePython.unloadModule("anca.test2");
