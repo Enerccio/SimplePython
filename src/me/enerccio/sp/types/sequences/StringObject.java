@@ -22,8 +22,10 @@ import java.util.Map;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
+import me.enerccio.sp.utils.ArgumentConsumer;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
@@ -108,6 +110,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		try {
 			sfields.put("capitalize", JavaMethodObject.noArgMethod(StringObject.class, "capitalize"));
 			sfields.put("center", new JavaMethodObject(StringObject.class, "center"));
+			sfields.put("count", new JavaMethodObject(StringObject.class, "count"));
 		} catch (Exception e) {
 			throw new RuntimeException("Fuck", e);
 		}
@@ -122,14 +125,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			throw Utils.throwException("TypeError", "center(): requires 1 or 2 arguments, " + to.len() + " provided");
 		try {
 			int llen = Coerce.toJava(to.get(0), Integer.class);
-			String fill = " ";
-			if (to.len() == 2)
-				if (kwargs != null)
-					kwargs.checkEmpty("center");
-				else
-					fill = Coerce.toJava(to.get(1), String.class);
-			if (kwargs != null)
-				fill = kwargs.consume("fillchar", String.class);
+			String fill = ArgumentConsumer.consumeArgument("center", to, kwargs, 1, "fillchar", String.class, " ");
 			if (llen <= value.length())
 				return new StringObject(value);
 			StringBuilder strb = new StringBuilder();
@@ -140,6 +136,36 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			for (int i=ldiff/2; i<ldiff; i++)
 				strb.append(fill);
 			return new StringObject(strb.toString());
+		} catch (CastFailedException e) {
+			throw Utils.throwException("TypeError", "center(): first argument must be int, second argument must be str");
+		}
+	}
+	
+	public PythonObject count(TupleObject to, KwArgs kwargs){
+		if (to.len() < 1 || to.len() > 3)
+			throw Utils.throwException("TypeError", "center(): requires 1 or 2 arguments, " + to.len() + " provided");
+		try {
+			String sub = Coerce.toJava(to.get(0), String.class);
+			int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1, "start", int.class, 0);
+			int end = ArgumentConsumer.consumeArgument("count", to, kwargs, 2, "end", int.class, value.length()); 
+			
+			if (start < 0)
+				start = Math.max(0, value.length()-(-(start+1)));
+			if (end < 0)
+				end = Math.max(0, value.length()-(-(end)));
+			
+			start = Math.max(start, 0);
+			end = Math.min(value.length(), end);
+			
+			String substr = value.substring(0, end);
+			int c = 0;
+			for (int i=start; i<end; i++){
+				if (substr.regionMatches(i, sub, 0, sub.length())){
+					++c;
+					i += sub.length();
+				}
+			}
+			return IntObject.valueOf(c);
 		} catch (CastFailedException e) {
 			throw Utils.throwException("TypeError", "center(): first argument must be int, second argument must be str");
 		}

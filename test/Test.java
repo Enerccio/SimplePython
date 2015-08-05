@@ -39,7 +39,6 @@ public class Test {
 			c2 = System.currentTimeMillis();
 			
 			SimplePython.executeFunction("x", "test");
-
 		} finally {
 			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");
 			System.out.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");
