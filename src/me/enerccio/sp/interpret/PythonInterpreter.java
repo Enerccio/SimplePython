@@ -379,7 +379,7 @@ public class PythonInterpreter extends PythonObject {
 					args[i + va2.length] = va2[i];
 			}
 			
-			returnee = execute(true, runnable, o.kwargs, args);
+			returnee = execute(false, runnable, o.kwargs, args);
 			o.kwargs = null;
 			o.accepts_return = true;
 			break;
@@ -461,7 +461,7 @@ public class PythonInterpreter extends PythonObject {
 				args[i] = stack.pop();
 			runnable = stack.pop();
 			
-			returnee = execute(true, runnable, null, args);
+			returnee = execute(false, runnable, null, args);
 			o.accepts_return = true;
 			break;
 		}
