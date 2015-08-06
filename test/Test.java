@@ -16,7 +16,6 @@
  * License along with this library.
  */
 import java.io.File;
-import java.lang.reflect.Array;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;

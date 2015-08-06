@@ -68,6 +68,17 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class LoadBuiltin extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4386928314919066014L;
+
+		{
+			bytecode = Bytecode. LOADBUILTIN;
+		}
+	}
+	
 	public static class OpenLocals extends PythonBytecode {
 		/**
 		 * 

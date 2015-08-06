@@ -41,7 +41,7 @@ public enum Bytecode {
 	JUMPIFNORETURN(42), GOTO(43), RETURN(44), SAVE_LOCAL(45),
 	TRUTH_VALUE(46),
 	// variables
-	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70),
+	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70), LOADBUILTIN(71),
 	// special call-related
 	KWARG(80),
 	// exceptions
@@ -94,6 +94,10 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
+			bytecode.newObject();
+			break;
+		case LOADBUILTIN:
+			bytecode = new LoadBuiltin();
 			bytecode.newObject();
 			break;
 		case PUSH_LOCALS:
