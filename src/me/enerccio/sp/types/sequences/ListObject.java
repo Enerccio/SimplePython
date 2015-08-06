@@ -131,6 +131,12 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		return super.hashCode();
 	}
 
+	public PythonObject get(int i) {
+		if (i >= objects.size() || i<-(objects.size()))
+			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
+		return objects.get(Utils.morphAround(i, objects.size()));
+	}
+	
 	@Override
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){

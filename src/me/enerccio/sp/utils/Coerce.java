@@ -1,5 +1,6 @@
 package me.enerccio.sp.utils;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.types.ListTypeObject;
 
 public class Coerce {
 	private static final Map<Class<?>, Coercion> COERCIONS = new HashMap<>();
@@ -29,25 +31,39 @@ public class Coerce {
 	/** Coerces PythonObject to specified java class, if possible */
 	@SuppressWarnings("unchecked")
 	public static <X> X toJava(PythonObject o, Class<X> clazz) throws CastFailedException {
-		// 1st, return PythonObject if requested
+		// 0th, can't do null
+		if (o == null)
+			throw new CastFailedException("Can't coerce null");
+		
+		// 1st, return array if requested
+		if (clazz.isArray()) {
+			ListObject lo = ListTypeObject.make_list(o);
+			X rv = (X)Array.newInstance(clazz.getComponentType(), lo.len());
+			for (int i=0; i<lo.len(); i++) {
+				Array.set(rv, i, Coerce.toJava(lo.get(i), clazz.getComponentType()));
+			}
+			return (X)rv;
+		}
+		
+		// 2st, return PythonObject if requested
 		if (clazz.isAssignableFrom(o.getClass()))
 			return clazz.cast(o);
 
-		// 2nd, coerce None directly
+		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {
 			if (clazz.isPrimitive())
 				throw new CastFailedException("Can't convert None to " + clazz.getName());
 			return null;
 		}
 
-		// 3rd, try to coerce pointers directly 
+		// 4rd, try to coerce pointers directly 
 		if (o instanceof PointerObject) {
 			Class<?> ptype = ((PointerObject) o).getObject().getClass();
 			if (clazz.isAssignableFrom(ptype))
 				return clazz.cast(((PointerObject) o).getObject());
 		}
 		
-		// 4th, use Coercion class
+		// 5th, use Coercion class
 		Coercion co = (Coercion) COERCIONS.get(clazz);
 		if (co == null) {
 			// Can't coerce directly

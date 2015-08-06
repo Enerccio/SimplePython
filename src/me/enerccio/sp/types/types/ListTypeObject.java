@@ -47,23 +47,30 @@ public class ListTypeObject extends TypeObject {
 		return lo;
 	}
 	
+	public static ListObject make_list(PythonObject o) {
+		ListObject lo;
+		if (o instanceof SequenceObject)
+			lo = new ListObject((SequenceObject)o);
+		 else
+			lo = new ListObject(o);
+		lo.newObject();
+		return lo;
+	}
+
+	
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined
-		ListObject lo;
+		;
 		if (args.len() == 0) {
-			lo = new ListObject();
+			ListObject lo = new ListObject();
+			lo.newObject();
+			return lo;
 		} else if (args.len() == 1) {
-			PythonObject o = args.get(0);
-			if (o instanceof SequenceObject)
-				lo = new ListObject((SequenceObject)o);
-			 else
-				lo = new ListObject(o);
-		} else
-			throw Utils.throwException("TypeError", "list() takes at most 1 argument");
-		lo.newObject();
-		return lo;
+			return make_list(args.get(0));
+		}
+		throw Utils.throwException("TypeError", "list() takes at most 1 argument");
 	}
 
 }
