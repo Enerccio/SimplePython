@@ -27,6 +27,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -167,5 +168,11 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			if (o.equals(array[i]))
 				return true;
 		return false;
+	}
+
+	public DictObject convertKwargs(KwArgs kwargs) {
+		if (kwargs == null)
+			return new DictObject();
+		return kwargs.toDict();
 	}
 }

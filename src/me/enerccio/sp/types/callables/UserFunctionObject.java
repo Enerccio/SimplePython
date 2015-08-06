@@ -45,6 +45,9 @@ public class UserFunctionObject extends CallableObject {
 	public boolean isVararg;
 	/** Vararg name */
 	public String vararg;
+
+	public boolean isKvararg = false;
+	public String kvararg;
 	
 	public UserFunctionObject(){
 		
@@ -68,11 +71,10 @@ public class UserFunctionObject extends CallableObject {
 	 */
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		TupleObject oargs = args;
 		args = refillArgs(args, kwargs);
 		int argc = args.len();
 		int rargs = this.args.size();
-		if (isVararg)
-			++rargs;
 		
 		if (argc < rargs)
 			throw Utils.throwException("TypeError",  fields.get("__name__").object + "(): incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
@@ -83,17 +85,22 @@ public class UserFunctionObject extends CallableObject {
 		DictObject a = new DictObject();
 		
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
-		for (int i=0; i<argc; i++){
+		for (int i=0; i<oargs.len(); i++){
 			if (i < this.args.size())
 				a.put(this.args.get(i), args.getObjects()[i]);
 			else
-				vargs.add(args.getObjects()[i]);
+				vargs.add(oargs.getObjects()[i]);
 		}
 		
 		if (isVararg){
 			TupleObject t = (TupleObject) Utils.list2tuple(vargs);
 			t.newObject();
 			a.put(vararg, t);
+		}
+		
+		if (isKvararg){
+			DictObject kwdict = args.convertKwargs(kwargs);
+			a.put(kvararg, kwdict);
 		}
 		
 		PythonInterpreter.interpreter.get().setArgs(a);
@@ -128,7 +135,7 @@ public class UserFunctionObject extends CallableObject {
 				throw Utils.throwException("TypeError", fields.get("__name__").object + "() required argument '" + key + "' missing");
 			}
 		}
-		if (kwargs != null)
+		if (kwargs != null && !isKvararg)
 			kwargs.checkEmpty(fields.get("__name__").object + "()");
 		return new TupleObject(pl); // pl.toArray(new PythonObject[pl.size()]));
 	}

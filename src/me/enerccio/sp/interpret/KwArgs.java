@@ -18,9 +18,11 @@
 package me.enerccio.sp.interpret;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
@@ -115,5 +117,17 @@ public interface KwArgs {
 		public Map<String, PythonObject> getAll() {
 			return this;
 		}
+
+		@Override
+		public DictObject toDict() {
+			DictObject dict = new DictObject();
+			for (String key : new HashSet<String>(keySet())){
+				dict.put(key, consume(key));
+			}
+			return dict;
+		}
 	}
+
+
+	public DictObject toDict();
 }

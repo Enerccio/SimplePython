@@ -171,8 +171,16 @@ farg
 ;
 
 vararg
-: '*' nname
+: svararg | kvararg | (svararg ',' kvararg)
 ; 
+
+svararg
+: '*' nname
+;
+
+kvararg
+: '**' nname
+;
 
 label_or_stmt
 : stmt

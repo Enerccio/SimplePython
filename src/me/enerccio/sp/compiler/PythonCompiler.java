@@ -101,6 +101,7 @@ import me.enerccio.sp.parser.pythonParser.Testlist_compContext;
 import me.enerccio.sp.parser.pythonParser.TrailerContext;
 import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
+import me.enerccio.sp.parser.pythonParser.VarargContext;
 import me.enerccio.sp.parser.pythonParser.While_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_exprContext;
@@ -648,8 +649,15 @@ public class PythonCompiler {
 		
 		fnc.args = arguments;
 		if (funcdef.vararg() != null){
-			fnc.isVararg = true;
-			fnc.vararg = funcdef.vararg().nname().getText();
+			VarargContext vc = funcdef.vararg();
+			if (vc.svararg() != null){
+				fnc.isVararg = true;
+				fnc.vararg = vc.svararg().nname().getText();
+			}
+			if (vc.kvararg() != null){
+				fnc.isKvararg = true;
+				fnc.kvararg = vc.kvararg().nname().getText();
+			}
 		}
 		
 		compilingClass.push(null);
@@ -1906,8 +1914,15 @@ public class PythonCompiler {
 		
 		fnc.args = arguments;
 		if (ctx.vararg() != null){
-			fnc.isVararg = true;
-			fnc.vararg = ctx.vararg().nname().getText();
+			VarargContext vc = ctx.vararg();
+			if (vc.svararg() != null){
+				fnc.isVararg = true;
+				fnc.vararg = vc.svararg().nname().getText();
+			}
+			if (vc.kvararg() != null){
+				fnc.isKvararg = true;
+				fnc.kvararg = vc.kvararg().nname().getText();
+			}
 		}
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();

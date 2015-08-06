@@ -160,7 +160,8 @@ public class Formatter {
 			Format_specContext format_spec) {
 		String formatSpec = parseFormatSpec(format_spec);
 		if (formatField != null){
-			target.append(PythonInterpreter.interpreter.get().execute(true, formatField, null, dataSegment, Coerce.toPython(formatSpec)));
+			target.append(PythonInterpreter.interpreter.get().execute(true, formatField, null, dataSegment, 
+					Coerce.toPython(formatSpec, String.class)));
 		} else
 			target.append(Utils.run("format", dataSegment, new StringObject(formatSpec)));
 	}
@@ -298,7 +299,8 @@ public class Formatter {
 	private PythonObject getIndexed(int i) {
 		used.add(IntObject.valueOf(i));
 		if (getValue != null){
-			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(i), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
+			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(i), 
+					Coerce.toPython(indexMap, indexMap.getClass()), Coerce.toPython(dataMap, dataMap.getClass()));
 		}
 		
 		if (i < indexMap.size())
@@ -309,7 +311,8 @@ public class Formatter {
 	private PythonObject getTexted(String key) {
 		used.add(new StringObject(key));
 		if (getValue != null){
-			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(key), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
+			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(key, String.class), 
+					Coerce.toPython(indexMap, indexMap.getClass()), Coerce.toPython(dataMap, dataMap.getClass()));
 		}
 		if (dataMap.containsKey(key))
 			return dataMap.get(key);
