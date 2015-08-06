@@ -126,4 +126,8 @@ public class EnvironmentObject extends PythonObject {
 	public void pushLocals(DictObject locals){
 		environments.add(0, locals);
 	}
+	
+	public PythonObject getBuiltin(String key){
+		return environments.get(environments.size()-1).doGet(key);
+	}
 }
