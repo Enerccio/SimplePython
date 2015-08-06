@@ -304,3 +304,25 @@ def replace(s, old, new, maxreplace=-1):
 
     """
     return s.replace(old, new, maxreplace)
+
+
+class Formatter(object):
+    def format(self, format_string, *args, **kwargs):
+        self.vformat(format_string, args, kwargs)
+        
+    def vformat(self, format_string, args, kwargs):
+        return (javainstance("formatter", self.get_value, self.check_unused_args, self.format_field)
+                    .doFormat(format_string, args, kwargs))
+    
+    def get_value(self, key, args, kwargs):
+        if type(key) == str:
+            return kwargs[key]
+        else:
+            return args[key]
+        
+    def check_unused_args(self, used_ags, args, kwargs):
+        pass
+    
+    def format_field(self, value, format_spec):
+        return format(value, format_spec)
+        

@@ -22,7 +22,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -52,6 +54,8 @@ import me.enerccio.sp.parser.formatterLexer;
 import me.enerccio.sp.parser.formatterParser.Text_fspecContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.callables.CallableObject;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
@@ -62,6 +66,18 @@ public class Formatter {
 	private List<PythonObject> indexMap;
 	private formatterParser p;
 	private int noClauseCounter = 0;
+	private CallableObject getValue;
+	private CallableObject checkUnused;
+	private CallableObject formatField;
+	private Set<PythonObject> used = new HashSet<PythonObject>();
+	
+	public Formatter(TupleObject to, DictObject kwargs, CallableObject getValue, CallableObject checkUnused, CallableObject formatField) {
+		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.asStringDict());
+		indexMap = new ArrayList<PythonObject>(Arrays.asList(to.getObjects()));
+		this.getValue = getValue;
+		this.checkUnused = checkUnused;
+		this.formatField = formatField;
+	}
 	
 	public Formatter(TupleObject to, KwArgs kwargs) {
 		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.getAll());
@@ -91,7 +107,7 @@ public class Formatter {
 		return consumed;
 	}
 
-	private String doConsume() {
+	public String doConsume() {
 		try {
 			StringBuilder bd = new StringBuilder();
 			format(bd);
@@ -110,6 +126,8 @@ public class Formatter {
 	private void format(StringBuilder target, SegmentsContext segments) {
 		for (SegmentContext s : segments.segment())
 			format(target, s);
+		if (checkUnused != null)
+			PythonInterpreter.interpreter.get().execute(true, checkUnused, null, Coerce.toPython(used), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
 	}
 
 	private void format(StringBuilder target, SegmentContext s) {
@@ -140,7 +158,11 @@ public class Formatter {
 	
 	private void format(StringBuilder target, PythonObject dataSegment,
 			Format_specContext format_spec) {
-		target.append(Utils.run("format", dataSegment, new StringObject(parseFormatSpec(format_spec))));
+		String formatSpec = parseFormatSpec(format_spec);
+		if (formatField != null){
+			target.append(PythonInterpreter.interpreter.get().execute(true, formatField, null, dataSegment, Coerce.toPython(formatSpec)));
+		} else
+			target.append(Utils.run("format", dataSegment, new StringObject(formatSpec)));
 	}
 
 	private String parseFormatSpec(Format_specContext ctx) {
@@ -274,12 +296,21 @@ public class Formatter {
 	}
 
 	private PythonObject getIndexed(int i) {
+		used.add(IntObject.valueOf(i));
+		if (getValue != null){
+			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(i), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
+		}
+		
 		if (i < indexMap.size())
 			return indexMap.get(i);
 		throw Utils.throwException("IndexError", "index " + i + " outside the range");
 	}
 	
 	private PythonObject getTexted(String key) {
+		used.add(new StringObject(key));
+		if (getValue != null){
+			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(key), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
+		}
 		if (dataMap.containsKey(key))
 			return dataMap.get(key);
 		throw Utils.throwException("NameError", "unknown key '" + key + "'");
