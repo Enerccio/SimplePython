@@ -101,6 +101,11 @@ public class PythonInterpreter extends PythonObject {
 		interpreter.set(this);
 	}
 	
+	private EnvironmentObject nullEnv  = new EnvironmentObject();
+	{
+		nullEnv.add(PythonRuntime.runtime.getGlobals());
+	}
+	
 	/** current frame stack. Topmost element represents currently interpreted frame */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 	/** Number of times this interpret is accessed by itself. If >0, interpret can't be serialized */
@@ -136,6 +141,8 @@ public class PythonInterpreter extends PythonObject {
 	 * @return
 	 */
 	public EnvironmentObject environment() {
+		if (currentFrame.size() == 0)
+			return nullEnv;
 		return currentFrame.getLast().environment;
 	}
 	
