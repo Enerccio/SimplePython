@@ -475,9 +475,7 @@ public class PythonRuntime {
 		return globals;
 	}
 	
-	protected static PythonObject dir(PythonObject o){
-		if (o.fields.containsKey("__dir__"))
-			return PythonInterpreter.interpreter.get().execute(true, o.fields.get("__dir__").object, null);
+	protected static List<String> dir(PythonObject o){
 		Set<String> fields = new HashSet<String>();
 		
 		synchronized (o){
@@ -501,7 +499,21 @@ public class PythonRuntime {
 			}
 		}
 		
-		return Coerce.toPython(new ArrayList<String>(fields), ArrayList.class);
+		if (o.fields.containsKey("__dir__")){
+			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.fields.get("__dir__").object, null);
+			if (!(dirCall instanceof ListObject))
+				throw Utils.throwException("TypeError", "dir(): __dir__ must return list");
+			ListObject lo = (ListObject) dirCall;
+			synchronized (lo.objects){
+				for (PythonObject po : lo.objects){
+					if (!(po instanceof StringObject))
+						throw Utils.throwException("TypeError", "dir(): __dir__ returned other elements in a list than str");
+					fields.add(((StringObject)po).value);
+				}
+			}
+		}
+		
+		return new ArrayList<String>(fields);
 	}
 	
 	protected static PythonObject apply(PythonObject callable, ListObject args){

@@ -3,7 +3,11 @@ from string import Formatter
 class X(object):
     def __init__(self, x):
         self.x = x
+        
+    def __dir__(self):
+        return ["aaa", "bbb"]
 
 def test():
+    print dir(X(2))
     x = "test={} anca={anca[0][wtfman]:C<+24,.{2.x}g} test2={}"
     print Formatter().format(x, 5, 10, X(2), anca=[{"wtfman":"xxx"}])
