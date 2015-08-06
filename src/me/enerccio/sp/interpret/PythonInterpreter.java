@@ -322,6 +322,12 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(returnee);
 		}
 		
+		DebugInformation dd = o.compiled.getDebugInformation(spc);
+
+		o.debugModule = dd.modulename;
+		o.debugLine = dd.lineno;
+		o.debugInLine = dd.charno;
+		
 		if (TRACE_ENABLED)
 			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
 		
@@ -832,12 +838,6 @@ public class PythonInterpreter extends PythonObject {
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
 		}
-		
-		DebugInformation dd = o.compiled.getDebugInformation(spc);
-
-		o.debugModule = dd.modulename;
-		o.debugLine = dd.lineno;
-		o.debugInLine = dd.charno;
 			
 		return ExecutionResult.OK;
 	}

@@ -1,3 +1,6 @@
+print "x"
+anca()
+
 from string import Formatter
 
 class X(object):
