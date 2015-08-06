@@ -160,8 +160,7 @@ public class Utils {
 		try {
 			return new JavaFunctionObject(clazz.getDeclaredMethod(method, signature), noTypeConversion);
 		} catch (NoSuchMethodException e){
-			// will not happen
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	

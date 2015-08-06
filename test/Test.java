@@ -1,25 +1,10 @@
-/*
- * SimplePython - embeddable python interpret in java
- * Copyright (c) Peter Vanusanik, All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library.
- */
 import java.io.File;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonPathResolver;
+import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.utils.Coerce;
 
 
 public class Test {
@@ -34,11 +19,17 @@ public class Test {
 			SimplePython.setAllowAutowraps(true);
 			SimplePython.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
 			
-			SimplePython.getModule("x");
-			SimplePython.unloadModule("anca.test2");
+			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();
-			
-			SimplePython.executeFunction("x", "test");
+			if (x.getField("test") != null)
+				SimplePython.executeFunction("x", "test");
+			if (x.getField("lst") != null) {
+				int[] ar = Coerce.toJava(x.getField("lst"), int[].class);
+				System.out.println(ar[0]);
+				System.out.println(ar[1]);
+				System.out.println(ar[2]);
+			}
+
 		} finally {
 			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");
 			System.out.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");

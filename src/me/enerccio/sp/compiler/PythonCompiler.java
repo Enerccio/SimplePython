@@ -1652,8 +1652,8 @@ public class PythonCompiler {
 	private void compile(ListmakerContext listmaker, List<PythonBytecode> bytecode, Token token) {
 		if (listmaker == null) {
 			// [ ]
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, token);
-			cb.stringValue = ListTypeObject.LIST_CALL;
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, token);
+			cb.stringValue = ListTypeObject.MAKE_LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, token);
 			cb.intValue = 0;
 			return;
@@ -1662,7 +1662,7 @@ public class PythonCompiler {
 			// [ x for x in somethingiterable ]
 			List_forContext fCtx = listmaker.list_for();
 			// Generate empty list
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, listmaker.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, listmaker.start);
 			cb.stringValue = ListTypeObject.LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);
 			cb.intValue = 0;
@@ -1675,8 +1675,8 @@ public class PythonCompiler {
 			addBytecode(bytecode, Bytecode.POP, fCtx.start);
 			/** Stack: TOP -> list */			
 		} else {
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, listmaker.start);
-			cb.stringValue = ListTypeObject.LIST_CALL;
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, listmaker.start);
+			cb.stringValue = ListTypeObject.MAKE_LIST_CALL;
 			for (TestContext t : listmaker.test())
 				compile(t, bytecode);
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);

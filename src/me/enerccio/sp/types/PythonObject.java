@@ -99,8 +99,8 @@ public abstract class PythonObject implements Serializable {
 	 * Returns type of this object
 	 * @return
 	 */
-	public PythonObject getType(){
-		return Utils.run("type", this);
+	public ClassObject getType(){
+		return PythonRuntime.getType(this);
 	}
 	
 	/**

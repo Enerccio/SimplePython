@@ -55,6 +55,11 @@ public class TypeTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "type";
 	}
+	
+	@Override
+	public ClassObject getType() {
+		return this;
+	}
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
