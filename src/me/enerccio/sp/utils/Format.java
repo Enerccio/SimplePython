@@ -56,7 +56,7 @@ public class Format {
 			parser.addErrorListener(new ThrowingErrorListener("<input string>"));
 			p = parser;
 		} catch (Exception e){
-			throw Utils.throwException("RuntimeError", "format(): internal error", e);
+			throw Utils.throwException("RuntimeError", "__format__(): internal error", e);
 		}
 		return this;
 	}
@@ -74,7 +74,7 @@ public class Format {
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (Exception e){
-			throw Utils.throwException("ValueError", "format(): failed parsing format string", e);
+			throw Utils.throwException("ValueError", "__format__(): failed parsing format string", e);
 		}
 	}
 
@@ -142,9 +142,9 @@ public class Format {
 		
 		if (!(dataSegment instanceof NumberObject)){
 			if (align == Align.EQ)
-				throw Utils.throwException("TypeError", "format(): align = only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
+				throw Utils.throwException("TypeError", "__format__(): align = only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
 			if (signSpecified)
-				throw Utils.throwException("TypeError", "format(): sign only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
+				throw Utils.throwException("TypeError", "__format__(): sign only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
 		}
 	}
 

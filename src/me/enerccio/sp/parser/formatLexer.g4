@@ -36,38 +36,38 @@ COMMA: ',';
 FSDOT: '.';
 
 FDECIMAL_INTEGER
- : FNON_ZERO_DIGIT FDIGIT*
- | FZERO+
- ;
+: FNON_ZERO_DIGIT FDIGIT*
+| FZERO+
+;
 
 FOCT_INTEGER
- : FZERO [oO] FOCT_DIGIT+
- ;
+: FZERO [oO] FOCT_DIGIT+
+;
 
 FHEX_INTEGER
- : FZERO [xX] FHEX_DIGIT+
- ;
+: FZERO [xX] FHEX_DIGIT+
+;
 
 FBIN_INTEGER
- : FZERO [bB]? FBIN_DIGIT+
- ;
+: FZERO [bB]? FBIN_DIGIT+
+;
  
 fragment FNON_ZERO_DIGIT
- : [1-9]
- ;
+: [1-9]
+;
 
 fragment FDIGIT
- : [0-9]
- ;
+: [0-9]
+;
 
 fragment FOCT_DIGIT
- : [0-7]
- ;
+: [0-7]
+;
 
 fragment FHEX_DIGIT
- : [0-9a-fA-F]
- ;
+: [0-9a-fA-F]
+;
 
 fragment FBIN_DIGIT
- : [01]
- ;
+: [01]
+;

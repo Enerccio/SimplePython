@@ -19,12 +19,22 @@
 lexer grammar formatterLexer;
 
 OPEN_RF: '{' -> pushMode(RuleMode);
-CHAR_NOCURLY
+
+TEXT_NOCURLY
+: CHAR_NOCURLY+
+;
+
+fragment CHAR_NOCURLY
 : '{{' | '}}' | ~('{' | '}')
 ;
 
 mode StringMode;
-CHAR_NORIGHTB
+
+TEXT_NORIGHTB
+: CHAR_NORIGHTB+
+;
+
+fragment CHAR_NORIGHTB
 : ~(']')
 ;
 
@@ -41,64 +51,68 @@ LS: 's';
 ZERO: '0';
  
 DECIMAL_INTEGER
- : NON_ZERO_DIGIT DIGIT*
- | ZERO+
- ;
+: NON_ZERO_DIGIT DIGIT*
+| ZERO+
+;
 
 OCT_INTEGER
- : ZERO [oO] OCT_DIGIT+
- ;
+: ZERO [oO] OCT_DIGIT+
+;
 
 HEX_INTEGER
- : ZERO [xX] HEX_DIGIT+
- ;
+: ZERO [xX] HEX_DIGIT+
+;
 
 BIN_INTEGER
- : ZERO [bB]? BIN_DIGIT+
- ;
+: ZERO [bB]? BIN_DIGIT+
+;
  
- fragment NON_ZERO_DIGIT
- : [1-9]
- ;
+fragment NON_ZERO_DIGIT
+: [1-9]
+;
 
 fragment DIGIT
- : [0-9]
- ;
+: [0-9]
+;
 
 fragment OCT_DIGIT
- : [0-7]
- ;
+: [0-7]
+;
 
 fragment HEX_DIGIT
- : [0-9a-fA-F]
- ;
+: [0-9a-fA-F]
+;
 
 fragment BIN_DIGIT
- : [01]
- ;
+: [01]
+;
  
- NAME
- : NAME_CONTENT
- ;
+NAME
+: NAME_CONTENT
+;
  
- NAME_CONTENT
- : ID_START ID_CONTINUE*
- ;
+NAME_CONTENT
+: ID_START ID_CONTINUE*
+;
  
- fragment ID_START
- : '_'
- | [A-Z]
- | [a-z]
- ;
+fragment ID_START
+: '_'
+| [A-Z]
+| [a-z]
+;
  
 fragment ID_CONTINUE
- : ID_START
- | [0-9]
- ;
+: ID_START
+| [0-9]
+;
  
 mode SpecMode;
 
-FCHAR_NOCURLY
+FTEXT_NOCURLY
+: FCHAR_NOCURLY+
+;
+
+fragment FCHAR_NOCURLY
 : ~('{' | '}')
 ;
 
@@ -113,63 +127,68 @@ FLIX: '[' -> pushMode(SpecStringMode);
 FZERO: '0';
  
 FDECIMAL_INTEGER
- : FNON_ZERO_DIGIT FDIGIT*
- | FZERO+
- ;
+: FNON_ZERO_DIGIT FDIGIT*
+| FZERO+
+;
 
 FOCT_INTEGER
- : FZERO [oO] FOCT_DIGIT+
- ;
+: FZERO [oO] FOCT_DIGIT+
+;
 
 FHEX_INTEGER
- : FZERO [xX] FHEX_DIGIT+
- ;
+: FZERO [xX] FHEX_DIGIT+
+;
 
 FBIN_INTEGER
- : FZERO [bB]? FBIN_DIGIT+
- ;
- 
+: FZERO [bB]? FBIN_DIGIT+
+;
+
 fragment FNON_ZERO_DIGIT
- : [1-9]
- ;
+: [1-9]
+;
 
 fragment FDIGIT
- : [0-9]
- ;
+: [0-9]
+;
 
 fragment FOCT_DIGIT
- : [0-7]
- ;
+: [0-7]
+;
 
 fragment FHEX_DIGIT
- : [0-9a-fA-F]
- ;
+: [0-9a-fA-F]
+;
 
 fragment FBIN_DIGIT
- : [01]
- ;
+: [01]
+;
  
- FNAME
- : NAME_CONTENT
- ;
+FNAME
+: NAME_CONTENT
+;
  
- FNAME_CONTENT
- : FID_START FID_CONTINUE*
- ;
+FNAME_CONTENT
+: FID_START FID_CONTINUE*
+;
  
- fragment FID_START
- : '_'
- | [A-Z]
- | [a-z]
- ;
+fragment FID_START
+: '_'
+| [A-Z]
+| [a-z]
+;
  
 fragment FID_CONTINUE
- : ID_START
- | [0-9]
- ;
+: ID_START
+| [0-9]
+;
 
 mode SpecStringMode;
-FCHAR_NORIGHTB
+
+FTEXT_NORIGHTB
+: FCHAR_NORIGHTB+
+;
+
+fragment FCHAR_NORIGHTB
 : ~(']')
 ;
 

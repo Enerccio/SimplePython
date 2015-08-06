@@ -475,7 +475,9 @@ public class PythonRuntime {
 		return globals;
 	}
 	
-	protected static List<String> dir(PythonObject o){
+	protected static PythonObject dir(PythonObject o){
+		if (o.fields.containsKey("__dir__"))
+			return PythonInterpreter.interpreter.get().execute(true, o.fields.get("__dir__").object, null);
 		Set<String> fields = new HashSet<String>();
 		
 		synchronized (o){
@@ -499,9 +501,7 @@ public class PythonRuntime {
 			}
 		}
 		
-		
-		
-		return new ArrayList<String>(fields);
+		return Coerce.toPython(new ArrayList<String>(fields), ArrayList.class);
 	}
 	
 	protected static PythonObject apply(PythonObject callable, ListObject args){

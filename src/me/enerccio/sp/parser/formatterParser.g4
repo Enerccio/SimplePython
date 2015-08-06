@@ -21,55 +21,55 @@ parser grammar formatterParser;
 options { tokenVocab = formatterLexer; }
 
 source_stream
- : segments EOF
- ;
+: segments EOF
+;
  
 segments 
- : segment*
- ;
+: segment*
+;
  
 segment
- : (text | replacement_field)
- ;
+: text | replacement_field
+;
  
 text
- : CHAR_NOCURLY+
- ;
+: TEXT_NOCURLY
+;
  
 replacement_field
- : OPEN_RF field_name? (EXLM conversion)? ((COLON format_spec CLOSE_RF_SM) | CLOSE_RF)
- ;
+: OPEN_RF field_name? (EXLM conversion)? ((COLON format_spec CLOSE_RF_SM) | CLOSE_RF)
+;
  
 field_name 
- : arg_name accessor*
- ;
+: arg_name accessor*
+;
  
 accessor
- : (DOT attribute_name) | LIX element_index RIX
- ;
+: (DOT attribute_name) | LIX element_index RIX
+;
  
 arg_name
- : integer | identifier 
- ;
+: integer | identifier 
+;
  
 integer
- : ZERO
- | DECIMAL_INTEGER
- | OCT_INTEGER
- | HEX_INTEGER
- | BIN_INTEGER
- ;
+: ZERO
+| DECIMAL_INTEGER
+| OCT_INTEGER
+| HEX_INTEGER
+| BIN_INTEGER
+;
  
 attribute_name
- : identifier
- ;
+: identifier
+;
  
 element_index
 : index_string
 ;
 
 index_string
-: CHAR_NORIGHTB+
+: TEXT_NORIGHTB
 ;
 
 identifier
@@ -93,7 +93,7 @@ format_spec_element
 ;
 
 text_fspec
-: FCHAR_NOCURLY+
+: FTEXT_NOCURLY
 ;
  
 replacement_field_lite
@@ -117,7 +117,7 @@ element_index_lite
 ;
 
 index_string_lite
-: FCHAR_NORIGHTB+
+: FTEXT_NORIGHTB
 ;
  
 arg_name_lite
