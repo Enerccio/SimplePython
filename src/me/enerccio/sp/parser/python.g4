@@ -654,7 +654,7 @@ DECIMAL_INTEGER
 
 /// octinteger     ::=  "0" ("o" | "O") octdigit+
 OCT_INTEGER
- : '0' [oO] OCT_DIGIT+
+ : '0' [oO]? OCT_DIGIT+
  ;
 
 /// hexinteger     ::=  "0" ("x" | "X") hexdigit+
