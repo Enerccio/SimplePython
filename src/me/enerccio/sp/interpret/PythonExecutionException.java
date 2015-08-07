@@ -17,11 +17,17 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.PointerObject;
+import me.enerccio.sp.types.sequences.ListObject;
 
 /**
  * Represents exception raised in SimplePython or java code that wants to raise SimplePython's exception
@@ -35,14 +41,32 @@ public class PythonExecutionException extends RuntimeException {
 	public PythonExecutionException(PythonObject o){
 		super(getMessage(o), o.fields.containsKey("__exception__") ? (Throwable)((PointerObject)o.fields.get("__exception__").object).getObject() : null);
 		this.setException(o);
+		init();
 	}
 	
 	public PythonExecutionException(PythonObject o, Throwable cause){
 		super(getMessage(o), cause);
 		this.setException(o);
 		o.fields.put("__exception__", new AugumentedPythonObject(new PointerObject(cause), AccessRestrictions.PUBLIC));
+		init();
 	}
 	
+	private void init() {
+		StackTraceElement[] el = getStackTrace();
+		
+		try {
+			List<StackTraceElement> stl = new ArrayList<StackTraceElement>(Arrays.asList(el));
+			ListObject lo = (ListObject) exception.fields.get("stack").object;
+			List<PythonObject> pstack = new ArrayList<PythonObject>(lo.objects);
+			Collections.reverse(pstack);
+			for (PythonObject o : pstack)
+				stl.add(0, new StackTraceElement("<python>", o.toString(), null, -2));
+			setStackTrace(stl.toArray(new StackTraceElement[stl.size()]));
+		} catch (Exception e){
+			setStackTrace(el);
+		}
+	}
+
 	public static String getMessage(PythonObject o) {
 		if (o.fields.containsKey("__message__") && o.fields.containsKey("__class__"))
 			return o.fields.get("__class__").object.fields.get(ClassObject.__NAME__).object.toString() + ": " + o.fields.get("__message__").object.toString();
@@ -56,7 +80,7 @@ public class PythonExecutionException extends RuntimeException {
 	}
 
 	public void setException(PythonObject exception) {
-		this.exception = exception;
+		this.exception = exception; // exception.fields.get("stack").object.toString().replace(">,", ">,\n")
 	}
 	
 	

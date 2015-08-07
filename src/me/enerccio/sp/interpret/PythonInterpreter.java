@@ -882,9 +882,6 @@ public class PythonInterpreter extends PythonObject {
 		} else {
 			if (currentFrame.size() == 0) {
 				if (o.exception != null) {
-					try {
-						System.err.println(o.exception.fields.get("stack").object.toString().replace(">,", ">,\n"));
-					} catch (Exception e) {};
 					if (o.exception.get("__exception__", null) != null)
 						throw new PythonExecutionException(o.exception, (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject());
 					throw new PythonExecutionException(o.exception);

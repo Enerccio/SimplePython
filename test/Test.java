@@ -23,12 +23,6 @@ public class Test {
 			c2 = System.currentTimeMillis();
 			if (x.getField("test") != null)
 				SimplePython.executeFunction("x", "test");
-			if (x.getField("lst") != null) {
-				int[] ar = Coerce.toJava(x.getField("lst"), int[].class);
-				System.out.println(ar[0]);
-				System.out.println(ar[1]);
-				System.out.println(ar[2]);
-			}
 
 		} finally {
 			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");
