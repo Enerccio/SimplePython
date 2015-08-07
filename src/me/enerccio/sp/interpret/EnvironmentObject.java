@@ -130,4 +130,8 @@ public class EnvironmentObject extends PythonObject {
 	public PythonObject getBuiltin(String key){
 		return environments.get(environments.size()-1).doGet(key);
 	}
+
+	public List<DictObject> toClosure() {
+		return new ArrayList<DictObject>(environments);
+	}
 }

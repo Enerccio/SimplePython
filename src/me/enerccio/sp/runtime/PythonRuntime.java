@@ -32,6 +32,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
@@ -277,8 +278,7 @@ public class PythonRuntime {
 	 * @return
 	 */
 	private Pair<ModuleObject, Boolean> loadModule(ModuleProvider provider){
-		DictObject globals = new DictObject();
-		ModuleObject mo = new ModuleObject(globals, provider);
+		ModuleObject mo = new ModuleObject(provider);
 		return Pair.makePair(mo, provider.isPackage());
 	}
 	
@@ -386,7 +386,9 @@ public class PythonRuntime {
 		if (globals == null)
 			synchronized (this){
 				if (globals == null){
+					buildingGlobals.set(true);
 					globals = new DictObject();
+					buildingGlobals.set(false);
 					
 					EnvironmentObject e = new EnvironmentObject();
 					e.newObject();
@@ -456,7 +458,7 @@ public class PythonRuntime {
 					}
 					
 					PythonCompiler c = new PythonCompiler();
-					CompiledBlockObject builtin = c.doCompile(p.file_input(), globals, "builtin", NoneObject.NONE, null);
+					CompiledBlockObject builtin = c.doCompile(p.file_input(), "builtin", NoneObject.NONE, null);
 					
 					PythonInterpreter.interpreter.get().executeBytecode(builtin);
 					while (true){
@@ -469,6 +471,8 @@ public class PythonRuntime {
 							continue;
 						throw new PythonException("Failed to initialize python!");
 					}
+					
+					buildingGlobals.set(false);
 				}
 			}
 		
@@ -881,6 +885,11 @@ public class PythonRuntime {
 	
 	public OutputStream getErr() {
 		return err;
+	}
+
+	private AtomicBoolean buildingGlobals = new AtomicBoolean(false);
+	public boolean buildingGlobals() {
+		return buildingGlobals.get();
 	}
 }
 

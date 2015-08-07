@@ -176,7 +176,6 @@ public class CompiledBlockObject extends PythonObject {
 			case JUMPIFNONE:
 			case JUMPIFNORETURN:
 			case JUMPIFTRUE:
-			case PUSH_DICT:
 			case PUSH_FRAME:
 			case RCALL:
 			case UNPACK_SEQUENCE:
@@ -234,6 +233,7 @@ public class CompiledBlockObject extends PythonObject {
 			case SWAP_STACK:
 			case PUSH_LOCALS:
 			case OPEN_LOCALS:
+			case RESOLVE_CLOSURE:
 				bd.append(String.format(FORMAT, ""));
 				break;
 			//default:

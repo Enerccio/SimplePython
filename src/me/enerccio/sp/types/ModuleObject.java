@@ -19,6 +19,7 @@ package me.enerccio.sp.types;
 
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -41,24 +42,20 @@ public class ModuleObject extends PythonObject {
 	public static final String __THISMODULE__ = "__thismodule__";
 	private DictObject globals;
 
-	public ModuleObject(DictObject globals, ModuleProvider provider) {
+	public ModuleObject(ModuleProvider provider) {
 		this.provider = provider;
 
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
-		Utils.putPublic(this, __DICT__, globals);
 		
 		try {
 			pythonParser p = Utils.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx, globals, this, PythonRuntime.runtime.getGlobals());
+				frame = new PythonCompiler().doCompile(fcx, this, PythonRuntime.runtime.getGlobals());
 			}
 		} catch (Exception e) {
 			throw Utils.throwException("SyntaxError", "failed to parse source code of " + provider, e);
 		}
-		globals.backingMap.put(new StringObject(__THISMODULE__), this);
-		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
-		this.globals = globals;
 	}
 	
 	/** provider bound to this module */
@@ -125,7 +122,15 @@ public class ModuleObject extends PythonObject {
 	private void doInitModule() {
 		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 		PythonInterpreter.interpreter.get().executeBytecode(frame);
+		
+		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame.getLast();
+		
 		PythonInterpreter.interpreter.get().executeAll(cfc);
+		
+		globals = newFrame.environment.getLocals();
+		Utils.putPublic(this, __DICT__, globals);
+		globals.backingMap.put(new StringObject(__THISMODULE__), this);
+		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
 	}
 
 	/**

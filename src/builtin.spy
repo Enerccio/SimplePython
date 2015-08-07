@@ -62,7 +62,7 @@ def divmod(a, b):
     return int(math.floor(a/b)), int(a%b)
 
 class iter(object):
-    class sentinel_iter(object):
+    class callable_iterator(object):
         def __init__(self, fnc, __sentinel):
             self.__sentinel = __sentinel
             self.__fnc = fnc

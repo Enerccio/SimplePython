@@ -31,7 +31,7 @@ import me.enerccio.sp.compiler.PythonBytecode.*;
 public enum Bytecode {
 	// System
 	NOP(0), 
-	PUSH_ENVIRONMENT(8), PUSH_DICT(10), PUSH_LOCAL_CONTEXT(11), 
+	PUSH_ENVIRONMENT(8), RESOLVE_CLOSURE(10), PUSH_LOCAL_CONTEXT(11), 
 	IMPORT(12), RESOLVE_ARGS(13), PUSH_FRAME(15), PUSH_EXCEPTION(16),
 	OPEN_LOCALS(17), PUSH_LOCALS(18),
 	
@@ -94,6 +94,10 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
+			bytecode.newObject();
+			break;
+		case RESOLVE_CLOSURE:
+			bytecode = new ResolveClosure();
 			bytecode.newObject();
 			break;
 		case LOADBUILTIN:
@@ -162,10 +166,6 @@ public enum Bytecode {
 			break;
 		case PUSH:
 			bytecode = new Push();
-			bytecode.newObject();
-			break;
-		case PUSH_DICT:
-			bytecode = new PushDict();
 			bytecode.newObject();
 			break;
 		case PUSH_ENVIRONMENT:

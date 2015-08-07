@@ -104,6 +104,7 @@ public class UserFunctionObject extends CallableObject {
 		}
 		
 		PythonInterpreter.interpreter.get().setArgs(a);
+		PythonInterpreter.interpreter.get().setClosure(closure);
 		PythonInterpreter.interpreter.get().executeBytecode(block);
 		
 		return NoneObject.NONE; // returns immediately
@@ -148,5 +149,14 @@ public class UserFunctionObject extends CallableObject {
 	@Override
 	public boolean truthValue() {
 		return true;
+	}
+
+	private List<DictObject> closure;
+	public void setClosure(List<DictObject> closure) {
+		this.closure = closure;
+	}
+	
+	public List<DictObject> getClosure(){
+		return closure;
 	}
 }

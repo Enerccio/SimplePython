@@ -507,8 +507,7 @@ public class Utils {
 				for (String s : ss)
 					w.writeInt(insertValue(new StringObject(s), mmap, rmap));
 				break;
-			case PUSH_DICT:
-				w.writeInt(insertValue(b.mapValue, mmap, rmap));
+			case RESOLVE_CLOSURE:
 				break;
 			case PUSH_ENVIRONMENT:
 				break;

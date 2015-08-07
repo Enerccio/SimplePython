@@ -68,6 +68,17 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class ResolveClosure extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 438692838129066014L;
+
+		{
+			bytecode = Bytecode.RESOLVE_CLOSURE;
+		}
+	}
+	
 	public static class LoadBuiltin extends PythonBytecode {
 		/**
 		 * 
@@ -229,22 +240,6 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.PUSH_LOCAL_CONTEXT;
-		}
-	}
-	
-	public static class PushDict extends PythonBytecode {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 2091671127142060613L;
-
-		{
-			bytecode = Bytecode.PUSH_DICT;
-		}
-		
-		@Override
-		protected String doToString() {
-			return String.format("%s(%s)", getOpcode().toString(), mapValue);
 		}
 	}
 	
