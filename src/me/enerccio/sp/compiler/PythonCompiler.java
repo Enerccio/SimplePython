@@ -628,6 +628,8 @@ public class PythonCompiler {
 		
 		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
+		Utils.putPublic(fnc, "__location__", new StringObject(moduleName + " line " + funcdef.start.getLine() + ", char " + funcdef.start.getCharPositionInLine()));
+				
 		
 		compilingFunction.push(functionName);
 		
