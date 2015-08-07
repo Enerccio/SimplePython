@@ -23,10 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.Utils;
@@ -43,6 +47,48 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		
 	}
 	
+	public ListObject(SequenceObject o) {
+		for (int i = 0; i<o.len(); i++)
+			append(o.get(IntObject.valueOf(i)));
+	}
+	
+	/** If passed object is iterable or has __GETITEM__ defined, creates list filled with objects in this list */ 
+	public ListObject(PythonObject o) {
+		PythonObject iter = o.get(__ITER__, null);
+		try {
+			PythonObject iterator;
+			if (iter == null) {
+				// Use iter() function to grab iterator
+				iterator = Utils.run("iter", o);
+			} else {
+				iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
+				if (iterator instanceof InternalIterator) {
+					InternalIterator ii = (InternalIterator)iterator;
+					PythonObject item = ii.next();
+					while (item != null) {
+						append(item);
+						item = ii.next();
+					}
+					return;
+				}
+			}
+			PythonObject next = iterator.get("next", null);
+			if (next == null)
+				throw Utils.throwException("TypeError", "iterator of " + o.toString() + " has no next() method");
+			while (true) {
+				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
+				append(item);
+			}
+		} catch (PythonExecutionException e) {
+			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+				; // nothing
+			else if (PythonRuntime.isinstance(e.getException(), PythonRuntime.INDEX_ERROR).truthValue())
+				; // still nothing
+			else
+				throw e;
+		}
+	}
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
@@ -81,6 +127,13 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		return super.hashCode();
 	}
 
+	@Override
+	public PythonObject get(int i) {
+		if (i >= objects.size() || i<-(objects.size()))
+			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
+		return objects.get(Utils.morphAround(i, objects.size()));
+	}
+	
 	@Override
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){

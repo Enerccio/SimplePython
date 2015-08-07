@@ -92,6 +92,7 @@ public class Utils {
 		return run("setattr", container, new StringObject(field), value);
 	}
 
+	/** Executes builtin with specified parameters and waits until it finishes */ 
 	public static PythonObject run(String function, PythonObject... args) {
 		return PythonInterpreter.interpreter.get().executeCall(true, function, args);
 	}
@@ -160,8 +161,7 @@ public class Utils {
 		try {
 			return new JavaFunctionObject(clazz.getDeclaredMethod(method, signature), noTypeConversion);
 		} catch (NoSuchMethodException e){
-			// will not happen
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	

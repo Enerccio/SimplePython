@@ -48,15 +48,12 @@ public abstract class PythonObject implements Serializable {
 	}
 	
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	private static MethodPropertyObject mpo;
 	static {
 		try {
 			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
 			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
 			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
 			sfields.put(__FORMAT__,  		 new JavaMethodObject(PythonObject.class, "format", String.class));
-			
-			mpo = new MethodPropertyObject(__CLASS__, JavaMethodObject.noArgMethod(PythonObject.class, "getType"));
 		} catch (Exception e){
 			e.printStackTrace();
 		} 
@@ -72,7 +69,7 @@ public abstract class PythonObject implements Serializable {
 	public void newObject(){
 		registerObject();
 		bindMethods(sfields);
-		Utils.putPublic(this, __CLASS__, mpo.bindTo(this));
+		Utils.putPublic(this, __CLASS__, getType());
 	}
 
 	protected void bindMethods(Map<String, JavaMethodObject> map) {
@@ -99,8 +96,8 @@ public abstract class PythonObject implements Serializable {
 	 * Returns type of this object
 	 * @return
 	 */
-	public PythonObject getType(){
-		return Utils.run("type", this);
+	public ClassObject getType(){
+		return PythonRuntime.getType(this);
 	}
 	
 	/**

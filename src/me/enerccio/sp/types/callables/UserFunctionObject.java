@@ -143,6 +143,8 @@ public class UserFunctionObject extends CallableObject {
 
 	@Override
 	protected String doToString() {
+		if (fields.get("__location__") != null)
+			return "<function " + fields.get("__name__").object + " at " + fields.get("__location__").object.toString()  + ">";
 		return "<function " + fields.get("__name__").object + ">";
 	}
 
