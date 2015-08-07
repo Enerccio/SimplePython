@@ -34,6 +34,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
@@ -58,10 +59,18 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaCongruentAggregatorObject;
+import me.enerccio.sp.types.callables.JavaFunctionObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
+import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
@@ -71,6 +80,7 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
 import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
@@ -146,6 +156,10 @@ public class PythonRuntime {
 	private volatile boolean allowedNewInterpret = true;
 	private OutputStream out = System.out;
 	private OutputStream err = System.err;
+	public static ClassObject ERROR;
+	public static ClassObject STOP_ITERATION;
+	public static ClassObject GENERATOR_EXIT;
+	public static ClassObject INDEX_ERROR;
 	
 	/**
 	 * Waits until creation of new interprets is possible
@@ -381,6 +395,30 @@ public class PythonRuntime {
 	public static final String ORD = "ord";
 	public static final String APPLY = "apply";
 	public static final String DIR = "dir";
+	
+	/** Some basic types */
+	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
+	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
+	public static final TypeObject NONE_TYPE = new NoneTypeObject();
+	public static final TypeObject STRING_TYPE = new StringTypeObject();
+	public static final TypeObject INT_TYPE = new IntTypeObject();
+	public static final TypeObject TUPLE_TYPE = new TupleTypeObject();
+	public static final TypeObject LIST_TYPE = new ListTypeObject();
+	public static final TypeObject DICT_TYPE = new DictTypeObject();
+	public static final TypeObject BOOL_TYPE = new BoolTypeObject();
+	
+	static {
+		OBJECT_TYPE.newObject();
+		TYPE_TYPE.newObject();
+		NONE_TYPE.newObject();
+		STRING_TYPE.newObject();
+		INT_TYPE.newObject();
+		TUPLE_TYPE.newObject();
+		LIST_TYPE.newObject();
+		DICT_TYPE.newObject();
+		BOOL_TYPE.newObject();
+	}
+	
 	/**
 	 * Generates globals. This is only done once but then cloned
 	 * @return
@@ -416,33 +454,25 @@ public class PythonRuntime {
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
 					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
-					globals.put(TypeTypeObject.TYPE_CALL, o = new TypeTypeObject());
-					o.newObject();
-					globals.put(StringTypeObject.STRING_CALL, o = new StringTypeObject());
-					o.newObject();
-					globals.put(IntTypeObject.INT_CALL, o = new IntTypeObject());
-					o.newObject();
+					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
+					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
+					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
+					globals.put(ListTypeObject.LIST_CALL, LIST_TYPE);
+					globals.put(ListTypeObject.MAKE_LIST_CALL, Utils.staticMethodCall(true, ListTypeObject.class, "make_list", TupleObject.class, KwArgs.class));
+					globals.put(DictTypeObject.DICT_CALL, DICT_TYPE);
+					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
+					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
+					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
 					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
+					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
-					o.newObject();
-					globals.put(TupleTypeObject.TUPLE_CALL, o = new TupleTypeObject());
-					o.newObject();
-					globals.put(ListTypeObject.LIST_CALL, o = new ListTypeObject());
-					o.newObject();
-					globals.put(ObjectTypeObject.OBJECT_CALL, o = ObjectTypeObject.inst);
 					o.newObject();
 					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
 					o.newObject();
 					globals.put(JavaInstanceTypeObject.JAVA_CALL, o = new JavaInstanceTypeObject());
 					o.newObject();
-					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
-					o.newObject();
-					globals.put(DictTypeObject.DICT_CALL, o = new DictTypeObject());
-					o.newObject();
 					globals.put(MethodTypeObject.METHOD_CALL, o = new MethodTypeObject());
-					o.newObject();
-					globals.put(BoolTypeObject.BOOL_CALL, o = new BoolTypeObject());
 					o.newObject();
 					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, o = new JavaCallableTypeObject());
 					o.newObject();
@@ -476,6 +506,11 @@ public class PythonRuntime {
 							continue;
 						throw new PythonException("Failed to initialize python!");
 					}
+					
+					ERROR			= (ClassObject)globals.getItem("Error");
+					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
+					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
+					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
 					
 					buildingGlobals.set(false);
 				}
@@ -570,13 +605,34 @@ public class PythonRuntime {
 		return BoolObject.fromBoolean(a == b);
 	}
 	
-	protected static PythonObject isinstance(PythonObject testee, PythonObject clazz){
+	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
 		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE : BoolObject.FALSE;
+	}
+	
+	/** Returns true if testee is ClassObject derived from clazz */
+	public static boolean isderived(PythonObject testee, ClassObject clazz){
+		if (!(testee instanceof ClassObject))
+			return false;
+		if (testee.equals(clazz))
+			return true;
+		SequenceObject lst;
+		try {
+			lst = (SequenceObject)testee.get("__bases__", null);
+			if (lst == null)
+				return false;
+			for (int i=0; i<lst.len(); i++)
+				if (isderived(lst.get(i), clazz))
+					return true;
+		} catch (ClassCastException e) {
+			return false;
+		}
+		return false;
 	}
 
 	public static boolean doIsInstance(PythonObject testee, PythonObject clazz, boolean skipIgnore) {
 		if (clazz instanceof ClassObject){
-			return isClassInstance(testee, (ClassObject)clazz);
+			ClassObject cls = (ClassObject)testee.get("__class__", null);
+			return isderived((ClassObject)cls, (ClassObject)clazz);
 		}
 		
 		if (clazz instanceof TupleObject){
@@ -589,33 +645,52 @@ public class PythonRuntime {
 			return false;
 		}
 		
-		if (clazz instanceof TypeObject){
-			return Utils.run("type", testee).equals(clazz);
+		if (clazz instanceof TypeObject) {
+			clazz.equals(getType(testee));
 		}
 		
 		throw Utils.throwException("TypeError", "isinstance() arg 2 must be a class, type, or tuple of classes and types");
 	}
-
-	private static boolean isClassInstance(PythonObject testee,
-			ClassObject clazz) {
-		if (!(testee instanceof ClassInstanceObject)){
-			return false;
-		}
-		ClassObject cls = (ClassObject) Utils.get(testee, "__class__");
-		return checkClassAssignable(cls, clazz);
-	}
-
-	private static boolean checkClassAssignable(ClassObject cls, ClassObject clazz) {
-		if (Utils.equals(cls, clazz))
-			return true;
-		for (PythonObject o : ((TupleObject)Utils.get(clazz, "__bases__")).getObjects())
-			if (o instanceof ClassObject){
-				if (checkClassAssignable(cls, (ClassObject)o)){
-					return true;
-				}
-			}
-			
-		return false;
+	
+	public static ClassObject getType(PythonObject py) {
+		if (py instanceof PythonBytecode)
+			return (ClassObject)Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
+		if (py instanceof IntObject)
+			return (ClassObject)Utils.getGlobal(IntTypeObject.INT_CALL);
+		if (py instanceof RealObject)
+			return (ClassObject)Utils.getGlobal(RealTypeObject.REAL_CALL);
+		if (py instanceof ListObject)
+			return PythonRuntime.LIST_TYPE;
+		if (py instanceof ClassInstanceObject)
+			return (ClassObject)((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
+		if (py instanceof ClassObject)
+			return PythonRuntime.TYPE_TYPE;
+		if (py == NoneObject.NONE)
+			return PythonRuntime.NONE_TYPE;
+		if (py instanceof SliceObject)
+			return (ClassObject)Utils.getGlobal(SliceTypeObject.SLICE_CALL);
+		if (py instanceof TupleObject)
+			return PythonRuntime.TUPLE_TYPE;
+		if (py instanceof DictObject)
+			return PythonRuntime.DICT_TYPE;
+		if (py instanceof StringObject)
+			return PythonRuntime.STRING_TYPE;
+		if (py instanceof PointerObject)
+			return (ClassObject)Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
+		if (py instanceof UserFunctionObject)
+			return (ClassObject)Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
+		if (py instanceof UserMethodObject)
+			return (ClassObject)Utils.getGlobal(MethodTypeObject.METHOD_CALL);
+		if (py instanceof BoolObject)
+			return PythonRuntime.BOOL_TYPE;
+		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
+			return (ClassObject)Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
+		if (py instanceof ComplexObject)
+			return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
+		if (py instanceof BoundHandleObject)
+			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+		
+		return OBJECT_TYPE;
 	}
 
 	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>(){

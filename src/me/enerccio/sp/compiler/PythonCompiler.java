@@ -566,6 +566,7 @@ public class PythonCompiler {
 		else {
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, classdef.start);
 			cb.stringValue = "object";
+			c = 1;
 		}
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.start);
 		cb.intValue = c;
@@ -628,6 +629,8 @@ public class PythonCompiler {
 		
 		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
+		Utils.putPublic(fnc, "__location__", new StringObject(moduleName + " line " + funcdef.start.getLine() + ", char " + funcdef.start.getCharPositionInLine()));
+				
 		
 		compilingFunction.push(functionName);
 		
@@ -984,11 +987,24 @@ public class PythonCompiler {
 
 	private void compile(Raise_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
-		if (ctx.test() != null)
-			compile(ctx.test(), bytecode);
-		cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
-		if (ctx.test() != null)
+		if (ctx.test().size() > 1) {
+			// raise Error, "argument"
+			compile(ctx.test(0), bytecode);	// Exception class
+			compile(ctx.test(1), bytecode);	// Argument
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+			cb.intValue = 1;
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 			cb.booleanValue = true;
+		} else if (ctx.test().size() == 1) {
+			// raise Error("argument") or raise Error
+			compile(ctx.test(0), bytecode);
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+			cb.booleanValue = true;
+		} else {
+			// raise # and nothing else
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+			cb.booleanValue = false;
+		}
 	}
 
 	private void compile(Return_stmtContext ctx, List<PythonBytecode> bytecode) {
@@ -1652,8 +1668,8 @@ public class PythonCompiler {
 	private void compile(ListmakerContext listmaker, List<PythonBytecode> bytecode, Token token) {
 		if (listmaker == null) {
 			// [ ]
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, token);
-			cb.stringValue = ListTypeObject.LIST_CALL;
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, token);
+			cb.stringValue = ListTypeObject.MAKE_LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, token);
 			cb.intValue = 0;
 			return;
@@ -1662,7 +1678,7 @@ public class PythonCompiler {
 			// [ x for x in somethingiterable ]
 			List_forContext fCtx = listmaker.list_for();
 			// Generate empty list
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, listmaker.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, listmaker.start);
 			cb.stringValue = ListTypeObject.LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);
 			cb.intValue = 0;
@@ -1675,8 +1691,8 @@ public class PythonCompiler {
 			addBytecode(bytecode, Bytecode.POP, fCtx.start);
 			/** Stack: TOP -> list */			
 		} else {
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, listmaker.start);
-			cb.stringValue = ListTypeObject.LIST_CALL;
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, listmaker.start);
+			cb.stringValue = ListTypeObject.MAKE_LIST_CALL;
 			for (TestContext t : listmaker.test())
 				compile(t, bytecode);
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);
