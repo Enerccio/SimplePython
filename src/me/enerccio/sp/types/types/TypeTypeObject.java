@@ -137,6 +137,8 @@ public class TypeTypeObject extends TypeObject {
 			return Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
 		if (py instanceof BoundHandleObject)
 			return Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+		if (py instanceof NoneObject)
+			return Utils.getGlobal(NoneTypeObject.NONE_TYPE_CALL);
 		
 		return NoneObject.NONE;
 	}

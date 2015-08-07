@@ -85,6 +85,7 @@ import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
+import me.enerccio.sp.types.types.NoneTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.RealTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
@@ -448,6 +449,8 @@ public class PythonRuntime {
 					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, o = new BoundFunctionTypeObject());
 					o.newObject();
 					globals.put(XRangeTypeObject.XRANGE_CALL, o = new XRangeTypeObject());
+					o.newObject();
+					globals.put(NoneTypeObject.NONE_TYPE_CALL, o = new NoneTypeObject());
 					o.newObject();
 					
 					pythonParser p;
