@@ -55,21 +55,13 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	/** If passed object is iterable or has __GETITEM__ defined, creates list filled with objects in this list */ 
 	public ListObject(PythonObject o) {
 		PythonObject iter = o.get(__ITER__, null);
-		PythonObject getitem = null;
-		if (iter == null) {
-			getitem = o.get(__GETITEM__, null);
-			if (getitem == null)
-				throw Utils.throwException("TypeError", o.toString() + " is not iterable");
-		}
 		try {
-			if (getitem != null) {
-				int i = 0;
-				while (true) {
-					PythonObject item = PythonInterpreter.interpreter.get().execute(true, getitem, null, IntObject.valueOf(i));
-					append(item);
-				}
+			PythonObject iterator;
+			if (iter == null) {
+				// Use iter() function to grab iterator
+				iterator = Utils.run("iter", o);
 			} else {
-				PythonObject iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
+				iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
 				if (iterator instanceof InternalIterator) {
 					InternalIterator ii = (InternalIterator)iterator;
 					PythonObject item = ii.next();
@@ -79,16 +71,20 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 					}
 					return;
 				}
-				PythonObject next = iterator.get("next", null);
-				if (next == null)
-					throw Utils.throwException("TypeError", "iterator of " + o.toString() + " has no next() method");
-				while (true) {
-					PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
-					append(item);
-				}
+			}
+			PythonObject next = iterator.get("next", null);
+			if (next == null)
+				throw Utils.throwException("TypeError", "iterator of " + o.toString() + " has no next() method");
+			while (true) {
+				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
+				append(item);
 			}
 		} catch (PythonExecutionException e) {
-			if (!PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+				; // nothing
+			else if (PythonRuntime.isinstance(e.getException(), PythonRuntime.INDEX_ERROR).truthValue())
+				; // still nothing
+			else
 				throw e;
 		}
 	}

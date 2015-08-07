@@ -155,8 +155,10 @@ public class PythonRuntime {
 	private volatile boolean allowedNewInterpret = true;
 	private OutputStream out = System.out;
 	private OutputStream err = System.err;
+	public static PythonObject ERROR;
 	public static PythonObject STOP_ITERATION;
 	public static PythonObject GENERATOR_EXIT;
+	public static PythonObject INDEX_ERROR;
 	
 	/**
 	 * Waits until creation of new interprets is possible
@@ -504,6 +506,11 @@ public class PythonRuntime {
 							continue;
 						throw new PythonException("Failed to initialize python!");
 					}
+					
+					ERROR			= (ClassObject)globals.getItem("Error");
+					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
+					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
+					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
 					
 					buildingGlobals.set(false);
 				}

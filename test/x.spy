@@ -1,3 +1,8 @@
-y = list([1,2,3,4,5])
+class X:
+	def __getitem__(self, x):
+		if x > 5 : raise IndexError(x)
+		return -x
 
-print y
+lst = X()
+
+print lst

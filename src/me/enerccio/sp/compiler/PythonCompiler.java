@@ -566,6 +566,7 @@ public class PythonCompiler {
 		else {
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, classdef.start);
 			cb.stringValue = "object";
+			c = 1;
 		}
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.start);
 		cb.intValue = c;

@@ -92,6 +92,7 @@ public class Utils {
 		return run("setattr", container, new StringObject(field), value);
 	}
 
+	/** Executes builtin with specified parameters and waits until it finishes */ 
 	public static PythonObject run(String function, PythonObject... args) {
 		return PythonInterpreter.interpreter.get().executeCall(true, function, args);
 	}
