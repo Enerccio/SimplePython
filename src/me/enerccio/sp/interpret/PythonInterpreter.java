@@ -734,7 +734,7 @@ public class PythonInterpreter extends PythonObject {
 			// raises python exception
 			PythonObject s = Utils.peek(stack);
 			if (s == null)
-				throw Utils.throwException("InterpretError", "no exception is being handled but raise called");
+				throw Utils.throwException("TypeError", "no exception is being handled but raise called");
 			else if (PythonRuntime.isinstance(s, PythonRuntime.ERROR).truthValue()) {
 				// Throw exception normally
 				throw new PythonExecutionException(s);

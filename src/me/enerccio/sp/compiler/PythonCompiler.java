@@ -987,11 +987,24 @@ public class PythonCompiler {
 
 	private void compile(Raise_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
-		if (ctx.test() != null)
-			compile(ctx.test(), bytecode);
-		cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
-		if (ctx.test() != null)
+		if (ctx.test().size() > 1) {
+			// raise Error, "argument"
+			compile(ctx.test(0), bytecode);	// Exception class
+			compile(ctx.test(1), bytecode);	// Argument
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+			cb.intValue = 1;
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 			cb.booleanValue = true;
+		} else if (ctx.test().size() == 1) {
+			// raise Error("argument") or raise Error
+			compile(ctx.test(0), bytecode);
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+			cb.booleanValue = true;
+		} else {
+			// raise # and nothing else
+			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+			cb.booleanValue = false;
+		}
 	}
 
 	private void compile(Return_stmtContext ctx, List<PythonBytecode> bytecode) {
