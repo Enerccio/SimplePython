@@ -44,10 +44,10 @@ def any(iterable):
 def callable(object):
     if object is None: return False
     t = type(object)
-    if t == function(): return True
-    if t == method(): return True
-    if t == type(): return True
-    if t == javamethod(): return True
+    if t == function: return True
+    if t == method: return True
+    if t == type: return True
+    if t == javamethod: return True
     return hasattr(object, "__call__")
 
 def cmp(x, y):
@@ -61,23 +61,7 @@ def cmp(x, y):
 def divmod(a, b):
     return int(math.floor(a/b)), int(a%b)
 
-def __iter():
-    class iter(object):
-        def __init__(self, o):
-            self.__data_source = o
-            self.__index = 0
-            
-        def __iter__(self):
-            return self
-        
-        def next(self):
-            try:
-                i = self.__index
-                self.__index += 1
-                return self.__data_source[i]
-            except IndexError:
-                raise StopIteration()
-            
+class iter(object):
     class sentinel_iter(object):
         def __init__(self, fnc, __sentinel):
             self.__sentinel = __sentinel
@@ -89,19 +73,26 @@ def __iter():
             if (value == self.__sentinel):
                 raise StopIteration()
             return value
-        
-    def factory(obj, sentinel=None):
-        if callable(sentinel):
-            return sentinel_iter(obj, sentinel)
-        if hasattr(obj, "__iter__"):
-            return obj.__iter__()
+    
+    def __init__(self, itervalue, sentinel=None):
+        if hasattr(itervalue, "__iter__"):
+            return itervalue.__iter__()
+        elif callable(itervalue):
+            return sentinel_iter(itervalue, sentinel)
         else:
-            return iter(obj)
-    factory.__name__ = "iter"
-    return factory
-
-iter = __iter()
-__iter = None
+            self.__data_source = itervalue
+            self.__index = 0
+            
+    def __iter__(self):
+        return self
+        
+    def next(self):
+        try:
+            i = self.__index
+            self.__index += 1
+            return self.__data_source[i]
+        except IndexError:
+            raise StopIteration()
 
 class enumerate(object):
     def __init__(self, seq, start=0):

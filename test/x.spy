@@ -6,6 +6,15 @@ class X(object):
         
     def __dir__(self):
         return ["aaa", "bbb"]
+    
+class Y(object):
+    def __getitem__(self, x):
+        y = -x
+        if x > 5: raise IndexError()
+        return y
+
+lst = Y()
+i = iter(lst)
 
 def test():
     print dir(X(2))
