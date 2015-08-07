@@ -624,8 +624,8 @@ public class PythonRuntime {
 			return false;
 		}
 		
-		if (clazz instanceof TypeObject){
-			return Utils.run("type", testee).equals(clazz);
+		if (clazz instanceof TypeObject) {
+			clazz.equals(getType(testee));
 		}
 		
 		throw Utils.throwException("TypeError", "isinstance() arg 2 must be a class, type, or tuple of classes and types");
