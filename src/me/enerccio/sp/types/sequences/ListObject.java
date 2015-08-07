@@ -127,6 +127,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		return super.hashCode();
 	}
 
+	@Override
 	public PythonObject get(int i) {
 		if (i >= objects.size() || i<-(objects.size()))
 			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);

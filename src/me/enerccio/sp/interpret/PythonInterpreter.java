@@ -735,7 +735,15 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject s = Utils.peek(stack);
 			if (s == null)
 				throw Utils.throwException("InterpretError", "no exception is being handled but raise called");
-			throw new PythonExecutionException(s);
+			else if (PythonRuntime.isinstance(s, PythonRuntime.ERROR).truthValue()) {
+				// Throw exception normally
+				throw new PythonExecutionException(s);
+			} else  if (PythonRuntime.isderived(s, PythonRuntime.ERROR)) {
+				// Throw new exception instance
+				s = ((ClassObject)s).call(TupleObject.EMPTY, KwArgs.EMPTY);
+				throw new PythonExecutionException(s);
+			} else
+				throw Utils.throwException("TypeError", "exceptions must be Error instance or class derived from Error, not " + s.toString());
 		}
 		case RERAISE: {
 			PythonObject s = stack.pop();

@@ -92,6 +92,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		o.newObject();
 		return o;
 	}
+	
+	@Override
+	public PythonObject get(int i) {
+		return valueAt(i);
+	}
 
 	@Override
 	public PythonObject valueAt(int idx) {

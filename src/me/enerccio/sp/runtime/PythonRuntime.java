@@ -80,6 +80,7 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
 import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
@@ -155,10 +156,10 @@ public class PythonRuntime {
 	private volatile boolean allowedNewInterpret = true;
 	private OutputStream out = System.out;
 	private OutputStream err = System.err;
-	public static PythonObject ERROR;
-	public static PythonObject STOP_ITERATION;
-	public static PythonObject GENERATOR_EXIT;
-	public static PythonObject INDEX_ERROR;
+	public static ClassObject ERROR;
+	public static ClassObject STOP_ITERATION;
+	public static ClassObject GENERATOR_EXIT;
+	public static ClassObject INDEX_ERROR;
 	
 	/**
 	 * Waits until creation of new interprets is possible
@@ -461,12 +462,11 @@ public class PythonRuntime {
 					globals.put(DictTypeObject.DICT_CALL, DICT_TYPE);
 					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
+					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
 					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
 					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
-					o.newObject();
-					globals.put(ObjectTypeObject.OBJECT_CALL, o = ObjectTypeObject.inst);
 					o.newObject();
 					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
 					o.newObject();
@@ -608,10 +608,31 @@ public class PythonRuntime {
 	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
 		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE : BoolObject.FALSE;
 	}
+	
+	/** Returns true if testee is ClassObject derived from clazz */
+	public static boolean isderived(PythonObject testee, ClassObject clazz){
+		if (!(testee instanceof ClassObject))
+			return false;
+		if (testee.equals(clazz))
+			return true;
+		SequenceObject lst;
+		try {
+			lst = (SequenceObject)testee.get("__bases__", null);
+			if (lst == null)
+				return false;
+			for (int i=0; i<lst.len(); i++)
+				if (isderived(lst.get(i), clazz))
+					return true;
+		} catch (ClassCastException e) {
+			return false;
+		}
+		return false;
+	}
 
 	public static boolean doIsInstance(PythonObject testee, PythonObject clazz, boolean skipIgnore) {
 		if (clazz instanceof ClassObject){
-			return isClassInstance(testee, (ClassObject)clazz);
+			ClassObject cls = (ClassObject)testee.get("__class__", null);
+			return isderived((ClassObject)cls, (ClassObject)clazz);
 		}
 		
 		if (clazz instanceof TupleObject){
@@ -670,28 +691,6 @@ public class PythonRuntime {
 			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
 		
 		return OBJECT_TYPE;
-	}
-
-	private static boolean isClassInstance(PythonObject testee,
-			ClassObject clazz) {
-		if (!(testee instanceof ClassInstanceObject)){
-			return false;
-		}
-		ClassObject cls = (ClassObject) Utils.get(testee, "__class__");
-		return checkClassAssignable(cls, clazz);
-	}
-
-	private static boolean checkClassAssignable(ClassObject cls, ClassObject clazz) {
-		if (Utils.equals(cls, clazz))
-			return true;
-		for (PythonObject o : ((TupleObject)Utils.get(clazz, "__bases__")).getObjects())
-			if (o instanceof ClassObject){
-				if (checkClassAssignable(cls, (ClassObject)o)){
-					return true;
-				}
-			}
-			
-		return false;
 	}
 
 	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>(){
