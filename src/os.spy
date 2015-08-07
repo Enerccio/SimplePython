@@ -21,3 +21,6 @@ License along with this library.
 SEEK_SET = 0
 SEEK_CUR = 1
 SEEK_END = 2
+
+def _exit(status=0):
+    javainstance("terminator", status)

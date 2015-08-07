@@ -15,31 +15,16 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.sandbox;
+package me.enerccio.sp.external;
 
-import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 
-public abstract class PythonSecurityManager {
-	
-	public static final PythonSecurityManager DISABLE_ALL = new PythonSecurityManager(){
+public class PythonTerminator {
 
-		@Override
-		public boolean actionAllowed(SecureAction a,
-				Object... additionalDeciders) {
-			return false;
-		}
-		
-	};
-
-	public enum SecureAction {
-		OPEN_FILE, JAVA_INSTANCE_CREATION, NEW_THREAD, TERMINATE_JAVA
+	public PythonTerminator(int returnCode){
+		PythonRuntime.runtime.checkSandboxAction("_exit", SecureAction.TERMINATE_JAVA, returnCode);
+		Runtime.getRuntime().exit(returnCode);
 	}
 	
-	public void checkSandbox(SecureAction a, String callName, Object... additionalDeciders){
-		if (!actionAllowed(a, additionalDeciders)){
-			throw Utils.throwException("SandboxViolationError", callName+"(): not allowed");
-		}
-	}
-	
-	public abstract boolean actionAllowed(SecureAction a, Object... additionalDeciders);
 }

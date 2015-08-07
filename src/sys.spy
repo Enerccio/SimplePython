@@ -20,3 +20,6 @@ License along with this library.
 
 stdout = javainstance("sysoutstream", False)
 stderr = javainstance("sysoutstream", True)
+
+def exit(status=0):
+    raise SystemExit(status)

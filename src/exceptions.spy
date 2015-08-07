@@ -2,7 +2,7 @@
 SimplePython - embeddable python interpret in java
 Copyright (c) Peter Vanusanik, All rights reserved.
  
- Exceptions module
+ Exceptions module 
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -102,7 +102,9 @@ class SystemError(Exception):
     pass
 
 class SystemExit(BaseException):
-    pass
+    def __init__(self, status):
+        super(BaseException, self).__init__(str(status))
+        self.exit = status
 
 class TypeError(StandardError):
     pass
