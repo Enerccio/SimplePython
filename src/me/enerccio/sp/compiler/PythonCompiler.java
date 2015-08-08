@@ -150,12 +150,13 @@ public class PythonCompiler {
 	 * @param globals list of globals for the environment
 	 * @param args string arguments that function requires
 	 * @param vargarg null or name of the vararg argument
+	 * @param kwararg 
 	 * @param defaults function defaults
 	 * @param locals map of locals for the function
 	 * @return completed object
 	 */
 	public UserFunctionObject doCompile(String_inputContext sctx, List<DictObject> globals, 
-			List<String> args, String vargarg, DictObject defaults, DictObject locals) {
+			List<String> args, String vargarg, String kwararg, DictObject defaults, DictObject locals) {
 		moduleName = "generated-functions";
 		stack.push();
 		compilingFunction.push("generated-function");
@@ -170,6 +171,11 @@ public class PythonCompiler {
 		if (vargarg != null){
 			fnc.isVararg = true;
 			fnc.vararg = vargarg;
+		}
+		
+		if (kwararg != null){
+			fnc.isKvararg = true;
+			fnc.kvararg = kwararg;
 		}
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();

@@ -50,19 +50,20 @@ public class FunctionTypeObject extends TypeObject {
 		return "function";
 	}
 
-	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name, dict)
+	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name, kwargs_name, dict)
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
-		if (args.len() != 6)
-			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 6, got " + args.len());
+		if (args.len() != 7)
+			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 7, got " + args.len());
 		
 		String src = null;
 		DictObject dict = null;
 		List<DictObject> maps = new ArrayList<DictObject>();
 		List<String> aas = new ArrayList<String>();
 		String vararg = null;
+		String kwararg = null;
 		DictObject defaults = null;
 		
 		try {
@@ -83,7 +84,11 @@ public class FunctionTypeObject extends TypeObject {
 			if (arg != NoneObject.NONE)
 				vararg = ((StringObject)arg).value;
 			
-			arg = args.getObjects()[5];
+			arg = args.getObjects()[4];
+			if (arg != NoneObject.NONE)
+				kwararg = ((StringObject)arg).value;
+			
+			arg = args.getObjects()[6];
 			if (arg != NoneObject.NONE)
 				defaults = (DictObject)arg;
 			else
@@ -105,7 +110,7 @@ public class FunctionTypeObject extends TypeObject {
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ThrowingErrorListener("<generated>"));
 		
-		return c.doCompile(parser.string_input(), maps, aas, vararg, defaults, dict);
+		return c.doCompile(parser.string_input(), maps, aas, vararg, kwararg, defaults, dict);
 	}
 
 }
