@@ -48,6 +48,7 @@ import me.enerccio.sp.parser.pythonParser.Continue_stmtContext;
 import me.enerccio.sp.parser.pythonParser.DecoratedContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorContext;
 import me.enerccio.sp.parser.pythonParser.DecoratorsContext;
+import me.enerccio.sp.parser.pythonParser.Del_stmtContext;
 import me.enerccio.sp.parser.pythonParser.DictentryContext;
 import me.enerccio.sp.parser.pythonParser.DictorsetmakerContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
@@ -929,6 +930,86 @@ public class PythonCompiler {
 			compile(smstmt.global_stmt(), bytecode);
 		} else if (smstmt.dynamic_stmt() != null){
 			compile(smstmt.dynamic_stmt(), bytecode);
+		} else if (smstmt.del_stmt() != null){
+			compile(smstmt.del_stmt(), bytecode);
+		}
+	}
+
+	private void compile(Del_stmtContext ctx, List<PythonBytecode> bytecode) {
+		compileDel(ctx.exprlist(), bytecode);
+	}
+
+	private void compileDel(ExprlistContext exprlist,
+			List<PythonBytecode> bytecode) {
+		for (ExprContext ctx : exprlist.expr())
+			compileDel(ctx, bytecode, false);
+	}
+
+	private void compileDel(ExprContext ctx, List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.xor_expr().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use xor in del statemenet");
+		compileDel(ctx.xor_expr(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(Xor_exprContext ctx,
+			List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.and_expr().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use and in del statemenet");
+		compileDel(ctx.and_expr(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(And_exprContext ctx,
+			List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.shift_expr().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use shift in del statemenet");
+		compileDel(ctx.shift_expr(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(Shift_exprContext ctx,
+			List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.arith_expr().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+		compileDel(ctx.arith_expr(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(Arith_exprContext ctx,
+			List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.term().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+		compileDel(ctx.term(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(TermContext ctx, List<PythonBytecode> bytecode,
+			boolean delkeyOnly) {
+		if (ctx.factor().size() > 1)
+			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+		compileDel(ctx.factor(0), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(FactorContext ctx,
+			List<PythonBytecode> bytecode, boolean delkeyOnly) {
+		if (ctx.factor() != null)
+			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+		compileDel(ctx.power(), bytecode, delkeyOnly);
+	}
+
+	private void compileDel(PowerContext ctx, List<PythonBytecode> bytecode,
+			boolean delkeyOnly) {
+		if (ctx.factor() != null)
+			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+		if (ctx.trailer().size() > 0){
+			
+		} else {
+			compileDel(ctx.atom(), false);
+		}
+	}
+
+	private void compileDel(AtomContext atom, boolean delkeyOnly) {
+		if (!delkeyOnly){
+			if (atom.nname() != null){
+				
+			}
+			throw Utils.throwException("SyntaxError", "can't use atoms in del statemenet");
 		}
 	}
 

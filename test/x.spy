@@ -1,14 +1,5 @@
-class X:
-	def __getitem__(self, x):
-		if x > 5 : raise IndexError(x)
-		return -x
-
-lst = X()
-
-class Z:
-	def __init__(self):
-		raise TypeError, self
+def x(a, b, c):
+	print a, b, c,
 
 def test():
-	print list(lst)
-	Z()
+	x(*(1, 2, 3))

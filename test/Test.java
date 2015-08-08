@@ -4,8 +4,6 @@ import java.nio.file.Paths;
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonPathResolver;
 import me.enerccio.sp.types.ModuleObject;
-import me.enerccio.sp.utils.Coerce;
-
 
 public class Test {
 	
