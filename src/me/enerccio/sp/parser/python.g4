@@ -142,429 +142,434 @@ tokens { INDENT, DEDENT }
  */
 
 /// file_input: (NEWLINE | stmt)* ENDMARKER
-file_input
- : ( NEWLINE | label_or_stmt )* EOF
+file_input:
+ ( NEWLINE | label_or_stmt )* EOF
  ;
  
- string_input
- : (stmt | NEWLINE)* (stmt | EOF)
+string_input:
+ (stmt | NEWLINE)* (stmt | EOF)
  ;
  
 eval_input: testlist NEWLINE* EOF;
 
-decorator
-: '@' test ('(' arglist? ')')? NEWLINE
+decorator:
+ '@' test ('(' arglist? ')')? NEWLINE
 ;
 
-decorators
-: decorator+
+decorators:
+ decorator+
 ;
 
-decorated
-: decorators (classdef | funcdef)
+decorated:
+ decorators (classdef | funcdef)
 ;
 
-funcdef
-: 'def' nname '(' ((farg? (',' farg)* (',' vararg)? ','?) | (vararg ','?)) ')' ':' suite
+funcdef:
+ 'def' nname '(' ((farg? (',' farg)* (',' vararg)? ','?) | (vararg ','?)) ')' ':' suite
 ;
 
-farg
-: nname ('=' test)?
+farg:
+ nname ('=' test)?
 ;
 
-vararg
-: svararg | kvararg | (svararg ',' kvararg)
+vararg:
+ svararg | kvararg | (svararg ',' kvararg)
 ; 
 
-svararg
-: '*' nname
+svararg:
+ '*' nname
 ;
 
-kvararg
-: '**' nname
+kvararg:
+ '**' nname
 ;
 
-label_or_stmt
-: stmt
+label_or_stmt:
+ stmt
 ;
 
-stmt
-: simple_stmt | compound_stmt
+stmt:
+ simple_stmt | compound_stmt
 ;
 
-label
-: nname ':' suite?
+label:
+ nname ':' suite?
 ;
 
-simple_stmt
-: small_stmt (';' small_stmt)* ';'? (NEWLINE | EOF)
+simple_stmt:
+ small_stmt (';' small_stmt)* ';'? (NEWLINE | EOF)
 ;
 
-small_stmt
-: (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt |
+small_stmt:
+ (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt |
              import_stmt | global_stmt | dynamic_stmt | exec_stmt)
 ;
 
-exec_stmt
-: 'exec' expr ('in' test (',' test)?)?
+exec_stmt:
+ 'exec' expr ('in' test (',' test)?)?
 ;
 
-parenthesesless_call
-: nname arglist?
-| testlist '=' nname arglist?
+parenthesesless_call:
+ nname arglist?
+ | testlist '=' nname arglist?
 ;
 
-expr_stmt
-: testlist (augassignexp | ('=' yield_or_expr)*)
+expr_stmt:
+ testlist (augassignexp | ('=' yield_or_expr)*)
 ;                
  
-yield_or_expr
-: yield_expr | testlist
+yield_or_expr:
+ yield_expr | testlist
 ;
  
-augassignexp
-: augassign yield_or_expr
+augassignexp:
+ augassign yield_or_expr
 ;
 
-augassign
-: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
+augassign:
+ ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
             '<<=' | '>>=' | '**=' | '//=')
 ;
 
-print_stmt
-: 'print' ( (test (',' test)* endp?)? |
+print_stmt:
+ 'print' ( (test (',' test)* endp?)? |
                       push test ((',' test)+ endp?)?)
 ;
 
-push
-: '>>'
+push:
+ '>>'
 ;
 
-endp
-: (',')
+endp:
+ (',')
 ;
 
-del_stmt
-: 'del' exprlist
+del_stmt:
+ 'del' exprlist
 ;
 
-pass_stmt
-: 'pass'
+pass_stmt:
+ 'pass'
 ;
 
-flow_stmt
-: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt
+flow_stmt:
+ break_stmt| continue_stmt | return_stmt | raise_stmt | yield_stmt
 ;
 
-yield_stmt
-: yield_expr
+yield_stmt:
+ yield_expr
 ;
 
-break_stmt
-: 'break'
+break_stmt:
+ 'break'
 ;
 
-continue_stmt
-: 'continue'
+continue_stmt:
+ 'continue'
 ;
 
-return_stmt
-: 'return' testlist?
+return_stmt:
+ 'return' testlist?
 ;
 
-raise_stmt
-: 'raise' (test (',' test)? )?
+raise_stmt:
+ 'raise' (test (',' test)? )?
 ;
 
-import_stmt
-: import_name | import_from
+import_stmt:
+ import_name | import_from
 ;
 
-import_name
-: 'import' dotted_as_names
+import_name:
+ 'import' dotted_as_names
 ;
 
-import_from
-: ('from' dotted_name 'import' (star | '(' import_as_names ')' | import_as_names))
+import_from:
+ ('from' dotted_name 'import' (star | '(' import_as_names ')' | import_as_names))
 ;
 
-star
-: '*'
+star:
+ '*'
 ;
 
-import_as_name
-: nname ('as' nname)?
+import_as_name:
+ nname ('as' nname)?
 ;
 
-dotted_as_name
-: dotted_name ('as' nname)?
+dotted_as_name:
+ dotted_name ('as' nname)?
 ;
 
-import_as_names
-: import_as_name (',' import_as_name)* (',')?
+import_as_names:
+ import_as_name (',' import_as_name)* (',')?
 ;
 
-dotted_as_names
-: dotted_as_name (',' dotted_as_name)*
+dotted_as_names:
+ dotted_as_name (',' dotted_as_name)*
 ;
 
-dotted_name
-: nname ('.' nname)*
+dotted_name:
+ nname ('.' nname)*
 ;
 
-nname
-: NAME
+nname:
+ NAME
 ;
 
-global_stmt
-: 'global' nname (',' nname)*
+global_stmt:
+ 'global' nname (',' nname)*
 ;
 
-dynamic_stmt
-: 'dynamic' nname (',' nname)*
+dynamic_stmt:
+ 'dynamic' nname (',' nname)*
 ;
 
-compound_stmt
-: if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated
+compound_stmt:
+ if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated
 ;
 
-if_stmt
-: 'if' test ':' suite ('elif' test ':' suite)* else_block?
+if_stmt:
+ 'if' test ':' suite ('elif' test ':' suite)* else_block?
 ;
 
-else_block
-: 'else' ':' suite
+else_block:
+ 'else' ':' suite
 ;
 
-switch_stmt
-: 'switch' test ':' NEWLINE INDENT case_block+ else_block? DEDENT
+switch_stmt:
+ 'switch' test ':' NEWLINE INDENT case_block+ else_block? DEDENT
 ;
 
-case_block
-: 'case' test ':' suite
+case_block:
+ 'case' test ':' suite
 ;
 
-default_block
-: 'default' ':' suite
+default_block:
+ 'default' ':' suite
 ;
 
-while_stmt
-: 'while' test ':' suite ('else' ':' suite)?
+while_stmt:
+ 'while' test ':' suite ('else' ':' suite)?
 ;
 
-for_stmt
-: 'for' exprlist 'in' testlist ':' suite ('else' ':' suite)?
+for_stmt:
+ 'for' exprlist 'in' testlist ':' suite ('else' ':' suite)?
 ;
 
-try_stmt
-: 'try' ':' suite (
+try_stmt:
+ 'try' ':' suite (
        (try_except+ else_block? try_finally?)
        | try_finally
    )
 ;
 
-try_except
-: except_clause ':' suite
+try_except:
+ except_clause ':' suite
 ;
 
-try_finally
-: 'finally' ':' suite
+try_finally:
+ 'finally' ':' suite
 ; 
 
-except_clause
-: 'except' (test (('as' | ',') test)?)?
+except_clause:
+ 'except' (test (('as' | ',') test)?)?
 ;
 
-suite
-: simple_stmt | NEWLINE INDENT stmt+ DEDENT
+suite:
+ simple_stmt | NEWLINE INDENT stmt+ DEDENT
 ;
 
-test
-: or_test ('if' or_test 'else' test)? | lambdef
+test:
+ or_test ('if' or_test 'else' test)? | lambdef
 ;
 
-or_test
-: and_test ('or' and_test)*
+or_test:
+ and_test ('or' and_test)*
 ;
 
-and_test
-: not_test ('and' not_test)*
+and_test:
+ not_test ('and' not_test)*
 ;
 
-not_test
-: 'not' not_test | comparison
+not_test:
+ 'not' not_test | comparison
 ;
 
-comparison
-: expr (comp_op expr)*
+comparison:
+ expr (comp_op expr)*
 ;
 
-comp_op
-: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
+comp_op:
+ '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
 ;
 
-expr
-: xor_expr ('|' xor_expr)*
+expr:
+ xor_expr ('|' xor_expr)*
 ;
 
-xor_expr
-: and_expr ('^' and_expr)*
+xor_expr:
+ and_expr ('^' and_expr)*
 ;
 
-and_expr
-: shift_expr ('&' shift_expr)*
+and_expr:
+ shift_expr ('&' shift_expr)*
 ;
 
-shift_expr
-: arith_expr (('<<'|'>>') arith_expr)*
+shift_expr:
+ arith_expr (('<<'|'>>') arith_expr)*
 ;
 
-arith_expr
-: term (('+'|'-') term)*
+arith_expr:
+ term (('+'|'-') term)*
 ;
 
-term
-: factor (('*'|'/'|'%') factor)*
+term:
+ factor (('*'|'/'|'%') factor)*
 ;
 
-factor
-: ('+'|'-'|'~') factor | power
+factor:
+ ('+'|'-'|'~') factor | power
 ;
 
-power
-: atom trailer* ('**' factor)? 
+power:
+ atom trailer* ('**' factor)? 
 ; 
 
-atom: ('(' bracket_atom? ')' |
-       '[' listmaker? ']' |
-       '{' dictorsetmaker? '}' |
-       nname | number | string+)
+atom:
+ '(' bracket_atom? ')'
+ | '[' listmaker? ']'
+ | '{' dictorsetmaker? '}'
+ | nname
+ | number
+ | string+
 ;
 
-bracket_atom
-: yield_expr | testlist_comp
+bracket_atom:
+ yield_expr | testlist_comp
 ;
 
-yield_expr
-: 'yield' testlist?
+yield_expr:
+ 'yield' testlist?
 ;
 
-listmaker
-: test ( list_for | (',' test)* ','? )
+listmaker:
+ test ( list_for | (',' test)* ','? )
 ;
 
-dictorsetmaker
-: test ( list_for | (',' test)* ','? )
-| dictentry (comp_for | (',' dictentry)* ','?)
+dictorsetmaker:
+ test ( list_for | (',' test)* ','? )
+ | dictentry (comp_for | (',' dictentry)* ','?)
 ;
 
-testlist_comp
-: test ( comp_for | (',' test)* ','? )
+testlist_comp:
+ test ( comp_for | (',' test)* ','? )
 ;
 
-lambdef
-: 'lambda' farg? (',' farg)* (',' vararg)? ':' suite
+lambdef:
+ 'lambda' farg? (',' farg)* (',' vararg)? ':' suite
 ; 
 
-trailer
-: '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME
+trailer:
+ '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME
 ;
 
-subscriptlist
-: subscript (',' subscript)* ','?
+subscriptlist:
+ subscript (',' subscript)* ','?
 ;
 
-ellipsis
-: '.' '.' '.'
+ellipsis:
+ '.' '.' '.'
 ;
 
-subscript
-: ellipsis | stest | test? ':' test? sliceop?
+subscript:
+ ellipsis | stest | test? ':' test? sliceop?
 ;
 
-stest
-: test
+stest:
+ test
 ;
 
-sliceop
-: ':' test?
+sliceop:
+ ':' test?
 ;
 
-exprlist
-: expr (',' expr)* ','?
+exprlist:
+ expr (',' expr)* ','?
 ;
 
-testlist
-: test (',' test)* ','?
+testlist:
+ test (',' test)* ','?
 ;
 
-dictentry
-: test ':' test
+dictentry:
+ test ':' test
 ;
 
-classdef
-: 'class' nname ('(' testlist? ')')? ':' suite
+classdef:
+ 'class' nname ('(' testlist? ')')? ':' suite
 ;
 
-arglist
-: (argument ',')* (argument ','?
-                         |'*' test )
+arglist:
+ (argument ',')* (
+    argument ','?
+    | '*' test
+ )
 ;
 
-argument
-: test comp_for? | kwarg
+argument:
+ test comp_for? | kwarg
 ;
 
-kwarg
-: nname '=' test
+kwarg:
+ nname '=' test
 ;
 
-list_iter
-: list_for | list_if
+list_iter:
+ list_for | list_if
 ;
 
-list_for
-: 'for' exprlist 'in' testlist list_iter?
+list_for:
+ 'for' exprlist 'in' testlist list_iter?
 ;
 
-list_if
-: 'if' test list_iter?
+list_if:
+ 'if' test list_iter?
 ;
 
-comp_iter
-: comp_for | comp_if
+comp_iter:
+ comp_for | comp_if
 ;
 
-comp_for
-: 'for' exprlist 'in' or_test comp_iter?
+comp_for:
+ 'for' exprlist 'in' or_test comp_iter?
 ;
 
-comp_if
-: 'if' test comp_iter?
+comp_if:
+ 'if' test comp_iter?
 ;
 
-testlist1
-: test (',' test)*
+testlist1:
+ test (',' test)*
 ;
 
-string
- : stringLiterar
+string:
+ stringLiterar
  ;
 
-number
- : integer
+number:
+ integer
  | FLOAT_NUMBER
  | IMAG_NUMBER
  ;
  
 /// imagnumber ::=  (floatnumber | intpart) ("j" | "J")
-IMAG_NUMBER
- : ( FLOAT_NUMBER | INT_PART ) [jJ]
+IMAG_NUMBER:
+ ( FLOAT_NUMBER | INT_PART ) [jJ]
  ;
 
 /// integer        ::=  decimalinteger | octinteger | hexinteger | bininteger
-integer
- : DECIMAL_INTEGER
+integer:
+ DECIMAL_INTEGER
  | OCT_INTEGER
  | HEX_INTEGER
  | BIN_INTEGER
