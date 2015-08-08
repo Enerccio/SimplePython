@@ -29,7 +29,6 @@ import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.properties.MethodPropertyObject;
 import me.enerccio.sp.utils.Format;
 import me.enerccio.sp.utils.Utils;
 

@@ -210,6 +210,7 @@ public class CompiledBlockObject extends PythonObject {
 					bd.append(String.format(" - global"));
 				}
 				break;
+			case DELATTR:
 			case GETATTR:
 			case KWARG:
 			case LOAD:

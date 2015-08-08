@@ -1,8 +1,8 @@
+class X: pass
 
 def test():
-	a = 5
-	print a
-	del a
-	a = 10
-	del a
-	del a
+	x = X()
+	x.test = "test"
+	print x.test
+	del x.test
+	print x.test

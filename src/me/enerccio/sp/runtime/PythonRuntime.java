@@ -745,14 +745,20 @@ public class PythonRuntime {
 	}
 	
 	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
-		if (o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null){
+		if (o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null && v != null){
 			return PythonInterpreter.interpreter.get().execute(false, o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()),
 					null, new StringObject(attribute), v);
+		} else if (o.get("__delattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null && v == null){
+			return PythonInterpreter.interpreter.get().execute(false, o.get("__delattr__", PythonInterpreter.interpreter.get().getLocalContext()),
+					null, new StringObject(attribute));
 		}
 		PythonObject field;
-		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null)
+		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null && v != null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
 		if (field != null && field instanceof PropertyObject){
+			if (v != null)
+				throw Utils.throwException("AttributeError", "attribute '" + attribute + "' is a property and can't be deleted");
+			
 			((PropertyObject)field).set(v);
 			return NoneObject.NONE;
 		}

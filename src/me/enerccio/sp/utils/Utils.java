@@ -47,7 +47,6 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -535,6 +534,9 @@ public class Utils {
 			case DEL:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				w.writeInt(b.booleanValue ? 1 : 0);
+				break;
+			case DELATTR:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
 			case SAVE:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));

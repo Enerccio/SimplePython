@@ -628,8 +628,6 @@ public class PythonInterpreter extends PythonObject {
 			
 			try {
 				Utils.run("iter", seq);
-				if (currentFrame.size() != cfc)
-					executeAll(cfc);
 				iterator = returnee;
 				
 				for (int i=ss.length-1; i>=0; i--){
@@ -707,8 +705,15 @@ public class PythonInterpreter extends PythonObject {
 				}
 			}
 		}
+		case DELATTR:{
+			runnable = environment().getBuiltin("delattr");
+			PythonObject[] args = new PythonObject[2];
+			args[1] = new StringObject(((StringObject)o.compiled.getConstant(o.nextInt())).value);	// attribute
+			args[0] = stack.pop();																	// object
+			returnee = execute(false, runnable, null, args);
+		} break;
 		case SETATTR: {
-			runnable = environment().get(new StringObject("setattr"), true, false);
+			runnable = environment().getBuiltin("setattr");
 			PythonObject[] args = new PythonObject[3];
 			// If argument for SETATTR is not set, attribute name is pop()ed from stack   
 			PythonObject po = o.compiled.getConstant(o.nextInt());
@@ -721,7 +726,7 @@ public class PythonInterpreter extends PythonObject {
 				args[0] = stack.pop();									// object
 				args[2] = stack.pop();									// value
 			} 
-			returnee = execute(true, runnable, null, args);
+			returnee = execute(false, runnable, null, args);
 			break;
 		}
 		case ISINSTANCE:
