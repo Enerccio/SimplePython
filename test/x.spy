@@ -1,8 +1,7 @@
 class X: pass
 
 def test():
-	x = X()
-	x.test = "test"
-	print x.test
-	del x.test
-	print x.test
+	x = [1, 2, 3, 4]
+	print x
+	del x[1:2]
+	print x
