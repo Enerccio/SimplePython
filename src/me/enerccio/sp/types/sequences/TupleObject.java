@@ -175,4 +175,9 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			return new DictObject();
 		return kwargs.toDict();
 	}
+
+	@Override
+	public void deleteKey(PythonObject key) {
+		throw Utils.throwException("TypeError", "'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+	}
 }

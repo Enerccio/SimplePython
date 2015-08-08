@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -197,5 +198,19 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	@Override
 	public boolean containsItem(PythonObject o) {
 		return objects.contains(o);
+	}
+
+	@Override
+	public synchronized void deleteKey(PythonObject key) {
+		if (key instanceof SliceObject){
+			throw new NotImplementedException();
+		}
+		PythonObject idx = key;
+		if (!(idx instanceof IntObject))
+			throw Utils.throwException("TypeError", "Index must be int");
+		int i = (int) ((IntObject)idx).intValue();
+		if (i >= len() || i<-(len()))
+			throw  Utils.throwException("IndexError", "Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+		objects.remove((Utils.morphAround(i, len())));
 	}
 }

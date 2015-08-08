@@ -32,14 +32,16 @@ public abstract class ContainerObject extends PythonObject {
 	private static final long serialVersionUID = 1631363547607776261L;
 
 	public static final String __CONTAINS__ = "__contains__";
+	public static final String __DELKEY__ = "__delkey__";
 	public static final String __LEN__ = "__len__";
 	
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
 		try {
-			sfields.put(__CONTAINS__, 	new JavaMethodObject(ContainerObject.class, "__contains__", PythonObject.class)); 
-			sfields.put( __LEN__, 		JavaMethodObject.noArgMethod(ContainerObject.class, "__len__"));
+			sfields.put(__CONTAINS__, 	new JavaMethodObject(ContainerObject.class, __CONTAINS__, PythonObject.class));
+			sfields.put(__DELKEY__, 	new JavaMethodObject(ContainerObject.class, __DELKEY__, PythonObject.class)); 
+			sfields.put( __LEN__, 		JavaMethodObject.noArgMethod(ContainerObject.class, __LEN__));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -58,6 +60,11 @@ public abstract class ContainerObject extends PythonObject {
 	public PythonObject __len__(){
 		return IntObject.valueOf(len());
 	}
+	
+	public PythonObject __delkey__(PythonObject key){
+		deleteKey(key);
+		return NoneObject.NONE;
+	}
 
 	/**
 	 * returns true if object o is in this container
@@ -71,6 +78,12 @@ public abstract class ContainerObject extends PythonObject {
 	 * @return
 	 */
 	public abstract int len();
+	
+	/**
+	 * Removes key from the container or throws attribute error
+	 * @param key to remove
+	 */
+	public abstract void deleteKey(PythonObject key);
 	
 	@Override
 	public final boolean truthValue(){

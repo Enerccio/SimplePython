@@ -249,6 +249,9 @@ class set(object):
     def __contains__(self, key):
         return key in self.__inner_map
     
+    def __delkey__(self, key):
+        del self.__inner_map[key]
+    
 def print_function(objects, sep=' ', end='\n', file=sys.stdout):
     if file is None:
          file = sys.stdout

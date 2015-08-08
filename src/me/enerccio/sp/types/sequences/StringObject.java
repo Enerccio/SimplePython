@@ -253,4 +253,9 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		super.newObject();
 		bindMethods(sfields);
 	};
+	
+	@Override
+	public void deleteKey(PythonObject key) {
+		throw Utils.throwException("TypeError", "'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+	}
 }

@@ -231,4 +231,11 @@ public class DictObject extends ContainerObject {
 		}
 		return strDict;
 	}
+
+	@Override
+	public synchronized void deleteKey(PythonObject key) {
+		if (!backingMap.containsKey(key))
+			throw Utils.throwException("NameError", "__delkey__(): unknown key '" + key.toString() + "'");
+		backingMap.remove(key);
+	}
 }
