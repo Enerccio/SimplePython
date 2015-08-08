@@ -38,9 +38,9 @@ public class InternalJavaPathResolver implements PythonDataSourceResolver {
 	public ModuleProvider resolve(String name, String resolvePath) {
 		if (name.contains("."))
 			return null;
-		InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".spy");
+		InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".py");
 		try {
-			return doResolve(is, name+".spy", name);
+			return doResolve(is, name+".py", name);
 		} catch (Exception e) {
 			return null;
 		}

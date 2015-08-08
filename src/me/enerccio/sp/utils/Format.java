@@ -129,9 +129,17 @@ public class Format {
 		if (ctx.precision() != null)
 			precision = getIntValue(ctx.precision().finteger());
 		
+		if (ctx.type() != null)
+			mode = ctx.type().getText();
+		
 		switch (mode){
 		case "s":
 			text = dataSegment.toString();
+			break;
+		case "b":
+			if (!(dataSegment instanceof IntObject))
+				unsupportedMode(mode, dataSegment);
+			text = String.format("b", ((IntObject)dataSegment).getJavaInt());
 			break;
 		}
 		
@@ -146,6 +154,10 @@ public class Format {
 			if (signSpecified)
 				throw Utils.throwException("TypeError", "__format__(): sign only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
 		}
+	}
+
+	private void unsupportedMode(String mode, PythonObject dataSegment) {
+		throw Utils.throwException("TypeError", "__format__(): unsupported mode '" + mode + "' for type '" + Utils.run("typename", dataSegment) + "'");
 	}
 
 	private Integer getIntValue(FintegerContext ic) {

@@ -487,7 +487,7 @@ public class PythonRuntime {
 					
 					pythonParser p;
 					try {
-						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.spy")), null, false));
+						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), null, false));
 					} catch (Exception e1) {
 						throw new PythonException("Failed to initialize python!");
 					}

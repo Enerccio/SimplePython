@@ -39,12 +39,12 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 	@Override
 	public ModuleProvider resolve(String name, String resolvePath) {
 		String pp = resolvePath.replace(".", File.separator);
-		File path = new File(new File(rootPath, pp), name + ".spy");
+		File path = new File(new File(rootPath, pp), name + ".py");
 		if (!path.exists())
 			path = new File(new File(rootPath, pp), name);
 		if (path.exists()){
 			if (path.isDirectory()){
-				File init = new File(path, "__init__.spy");
+				File init = new File(path, "__init__.py");
 				if (init.exists() && !init.isDirectory()){
 					try {
 						String fname = path.getName();
@@ -56,7 +56,7 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 			} else {
 				try {
 					String fname = path.getName();
-					fname.replace(".spy", "");
+					fname.replace(".py", "");
 					return doResolve(path, fname, name, resolvePath, false);
 				} catch (Exception e) {
 					e.printStackTrace();
