@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
+import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
 
@@ -67,9 +68,10 @@ public class FrameObject extends PythonObject {
 		return "<frame object 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 	
-	public String debugModule;
+	public ModuleInfo debugModule;
 	public int debugLine;
 	public int debugInLine;
+	public String debugFunction;
 
 	public KwArgs.HashMapKWArgs kwargs = null;
 
@@ -95,6 +97,7 @@ public class FrameObject extends PythonObject {
 		f.dataStream = ByteBuffer.wrap(f.compiled.getBytedata());
 		f.debugInLine = debugInLine;
 		f.debugLine = debugLine;
+		f.debugFunction = debugFunction;
 		f.debugModule = debugModule;
 		f.environment = environment;
 		f.exception = exception;

@@ -24,6 +24,8 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.runtime.ModuleInfo;
+import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -41,6 +43,11 @@ import me.enerccio.sp.utils.Utils;
  */
 public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
+	private static final ModuleInfo OBJECT_MODULE_INFO = new ModuleInfo() {
+		@Override public String getName() { return "<object>"; }
+		@Override public ModuleProvider getIncludeProvider() { return null; }
+		@Override public String getFileName() { return getName(); }
+	};
 	public static final String OBJECT_CALL = "object";
 	public static final String __CONTAINS__ = "__contains__";
 	public static final String IS = "is";
@@ -63,10 +70,10 @@ public class ObjectTypeObject extends TypeObject {
 		Utils.putPublic(usf, "function_defaults", new DictObject());
 		PythonBytecode cb;
 		List<PythonBytecode> usfb = new ArrayList<PythonBytecode>();
-		usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT));
-		usfb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH));
+		usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, null, null, OBJECT_MODULE_INFO));
+		usfb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, null, null, OBJECT_MODULE_INFO));
 		cb.value = NoneObject.NONE;
-		usfb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN));
+		usfb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, null, null, OBJECT_MODULE_INFO));
 		cb.intValue = 1;
 		
 		usf.block = new CompiledBlockObject(usfb);

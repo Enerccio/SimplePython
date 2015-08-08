@@ -512,7 +512,11 @@ public class PythonRuntime {
 					}
 					
 					PythonCompiler c = new PythonCompiler();
-					CompiledBlockObject builtin = c.doCompile(p.file_input(), "builtin", NoneObject.NONE, null);
+					CompiledBlockObject builtin = c.doCompile(p.file_input(), new ModuleInfo() { 
+						@Override public ModuleProvider getIncludeProvider() { return null ; }
+						@Override public String getName() { return "<builtin>"; }
+						@Override public String getFileName() { return getName(); }
+					}, null);
 					
 					PythonInterpreter.interpreter.get().executeBytecode(builtin);
 					while (true){

@@ -23,6 +23,7 @@ import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
+import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
@@ -35,7 +36,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class ModuleObject extends PythonObject {
+public class ModuleObject extends PythonObject implements ModuleInfo {
 	private static final long serialVersionUID = -2347220852204272570L;
 	public static final String __NAME__ = "__name__";
 	public static final String __DICT__ = "__dict__";
@@ -68,6 +69,21 @@ public class ModuleObject extends PythonObject {
 	@Override
 	public boolean truthValue() {
 		return true;
+	}
+	
+	@Override 
+	public ModuleProvider getIncludeProvider() { 
+		return provider;
+	}
+	
+	@Override
+	public String getName() {
+		return provider.getModuleName();
+	}
+
+	@Override
+	public String getFileName() {
+		return provider.getSrcFile();
 	}
 	
 	public void injectGlobal(String key, PythonObject value) {

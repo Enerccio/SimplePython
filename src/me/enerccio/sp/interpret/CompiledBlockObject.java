@@ -26,6 +26,7 @@ import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -48,15 +49,16 @@ public class CompiledBlockObject extends PythonObject {
 
 	public static class DebugInformation {
 		public int lineno, charno;
-		public String modulename;
+		public ModuleInfo module;
+		public String function;
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + charno;
 			result = prime * result + lineno;
-			result = prime * result
-					+ ((modulename == null) ? 0 : modulename.hashCode());
+			result = prime * result + function.hashCode();
+			result = prime * result + module.hashCode();
 			return result;
 		}
 		@Override
@@ -72,15 +74,12 @@ public class CompiledBlockObject extends PythonObject {
 				return false;
 			if (lineno != other.lineno)
 				return false;
-			if (modulename == null) {
-				if (other.modulename != null)
-					return false;
-			} else if (!modulename.equals(other.modulename))
+			if (!function.equals(other.function))
+				return false;
+			if (!module.equals(other.module))
 				return false;
 			return true;
 		}
-		
-		
 	}
 	
 	private byte[] compiled;
@@ -165,7 +164,7 @@ public class CompiledBlockObject extends PythonObject {
 				
 				bd.append(
 					String.format("<at %s %-7.7s> ",
-						d.modulename, " " + d.lineno + ":" + d.charno));
+						d.module.getName(), " " + d.lineno + ":" + d.charno));
 				
 			}
 			
