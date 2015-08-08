@@ -95,130 +95,138 @@ public final class Arithmetics {
 			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 
-	private static PythonObject doOperatorInt(IntObject a, PythonObject b,
-			String m) {
+	private static PythonObject doOperatorInt(IntObject a, PythonObject b, String m) {
 		boolean isInt = b instanceof IntObject;
 		boolean isFloat = b instanceof RealObject;
 		boolean isComplex = b instanceof ComplexObject;
 		boolean isNumber = b instanceof NumberObject;
 		
-		if (isInt || isFloat || isComplex){
-			switch (m){
+		switch (m){
 			case __ADD__:
-				if (isInt){
+				if (isInt)
 					return IntObject.valueOf(a.intValue() + ((IntObject) b).intValue());
-				}
-				if (isFloat){
-					return new RealObject((double)a.intValue() + ((RealObject) b).doubleValue());
-				}
-				if (isComplex){
+				if (isFloat)
+					return new RealObject((double)a.intValue() + ((NumberObject) b).getJavaFloat());
+				if (isNumber)
+					return IntObject.valueOf(a.intValue() + ((NumberObject) b).getJavaInt().longValue());
+				if (isComplex)
 					return new ComplexObject((double)a.intValue() + ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
-				}
+				break;
 			case __SUB__:
-				if (isInt){
+				if (isInt)
 					return IntObject.valueOf(a.intValue() - ((IntObject) b).intValue());
-				}
-				if (isFloat){
-					return new RealObject((double)a.intValue() - ((RealObject) b).doubleValue());
-				}
-				if (isComplex){
+				if (isFloat)
+					return new RealObject((double)a.intValue() - ((NumberObject) b).getJavaFloat());
+				if (isNumber)
+					return IntObject.valueOf(a.intValue() - ((NumberObject) b).getJavaInt().longValue());
+				if (isComplex)
 					return new ComplexObject((double)a.intValue() - ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
-				}
+				break;
 			case __MUL__:
-				if (isInt){
+				if (isInt)
 					return IntObject.valueOf(a.intValue() * ((IntObject) b).intValue());
-				}
-				if (isFloat){
-					return new RealObject((double)a.intValue() * ((RealObject) b).doubleValue());
-				}
-				if (isComplex){
+				if (isFloat)
+					return new RealObject((double)a.intValue() * ((NumberObject) b).getJavaFloat());
+				if (isNumber)
+					return IntObject.valueOf(a.intValue() * ((NumberObject) b).getJavaInt().longValue());
+				if (isComplex)
 					return new ComplexObject((double)a.intValue() * ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
-				}
+				break;
 			case __DIV__:
-				if (isInt){
+				if (isInt)
 					return IntObject.valueOf(a.intValue() / ((IntObject) b).intValue());
-				}
-				if (isFloat){
-					return new RealObject((double)a.intValue() / ((RealObject) b).doubleValue());
-				}
-				if (isComplex){
+				if (isFloat)
+					return new RealObject((double)a.intValue() / ((NumberObject) b).getJavaFloat());
+				if (isNumber)
+					return IntObject.valueOf(a.intValue() / ((NumberObject) b).getJavaInt().longValue());
+				if (isComplex)
 					return new ComplexObject((double)a.intValue() / ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
-				}
+				break;
 			case __MOD__:
-				if (isInt){
+				if (isInt)
 					return IntObject.valueOf(a.intValue() % ((IntObject) b).intValue());
-				}
-				if (isFloat){
-					return new RealObject((double)a.intValue() % ((RealObject) b).doubleValue());
-				}
-				if (isComplex){
+				if (isFloat)
+					return new RealObject((double)a.intValue() % ((NumberObject) b).getJavaFloat());
+				if (isNumber)
+					return IntObject.valueOf(a.intValue() % ((NumberObject) b).getJavaInt().longValue());
+				if (isComplex)
 					return new ComplexObject((double)a.intValue() % ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
-				}
+				break;
 			case __AND__:
-				if (isInt){
-					return IntObject.valueOf(a.intValue() & ((IntObject) b).intValue());
-				}
+				if (isFloat)
+					break;
+				if (isNumber)	// int and bool
+					return IntObject.valueOf(a.intValue() & ((NumberObject) b).getJavaInt().longValue());
 				break; // Unknown operation
 			case __OR__:
-				if (isInt){
-					return IntObject.valueOf(a.intValue() | ((IntObject) b).intValue());
-				}
+				if (isFloat)
+					break;
+				if (isNumber)	// int and bool
+					return IntObject.valueOf(a.intValue() | ((NumberObject) b).getJavaInt().longValue());
 				break; // Unknown operation
 			case __XOR__:
-				if (isInt){
-					return IntObject.valueOf(a.intValue() ^ ((IntObject) b).intValue());
-				}
+				if (isFloat)
+					break;
+				if (isNumber)	// int and bool
+					return IntObject.valueOf(a.intValue() ^ ((NumberObject) b).getJavaInt().longValue());
 				break; // Unknown operation
 			case __NOT__:
-				if (isInt){
-					return IntObject.valueOf(~a.intValue());
-				}
-				break; // Unknown operation
+				return IntObject.valueOf(~a.intValue());
 			case __POW__:
-				if (isInt){
+				if (isFloat)
+					return new RealObject(Math.pow((double)a.intValue(), ((RealObject) b).getJavaFloat()));
+				if (isNumber)
 					return IntObject.valueOf((int) Math.pow(a.intValue(),  ((IntObject) b).intValue()));
-				}
-				if (isFloat){
-					return new RealObject(Math.pow((double)a.intValue(), ((RealObject) b).doubleValue()));
-				}
-				if (isComplex){
+				if (isComplex)
 					return new ComplexObject(Math.pow((double)a.intValue(), ((ComplexObject) b).getRealPart()), ((ComplexObject) b).getImagPart());
-				}
 			case __RSHIFT__:
-				if (isInt){
+				if (isFloat)
+					break;
+				if (isNumber)	// int and bool
 					return IntObject.valueOf(a.intValue() >> ((IntObject) b).intValue());
-				}
 				break; // Unknown operation
 			case __LSHIFT__:
-				if (isInt){
+				if (isFloat)
+					break;
+				if (isNumber)	// int and bool
 					return IntObject.valueOf(a.intValue() << ((IntObject) b).intValue());
-				}
 				break; // Unknown operation
 			case __LT__ :
-				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) < 0);
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() < ((NumberObject)b).getJavaInt());
+				if (isFloat)
+					return BoolObject.fromBoolean(a.getJavaFloat() < ((NumberObject)b).getJavaFloat());
 				break; // Unknown operation
 			case __GT__ :
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() > ((NumberObject)b).getJavaInt());
 				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) > 0);
+					return BoolObject.fromBoolean(a.getJavaFloat() > ((NumberObject)b).getJavaFloat());
 				break; // Unknown operation
 			case __LE__ :
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() <= ((NumberObject)b).getJavaInt());
 				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) <= 0);
+					return BoolObject.fromBoolean(a.getJavaFloat() <= ((NumberObject)b).getJavaFloat());
 				break; // Unknown operation
 			case __GE__ :
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() >= ((NumberObject)b).getJavaInt());
 				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) >= 0);
+					return BoolObject.fromBoolean(a.getJavaFloat() >= ((NumberObject)b).getJavaFloat());
 				break; // Unknown operation
 			case __EQ__ :
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() == ((NumberObject)b).getJavaInt());
 				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) == 0);
-				break; // Unknown operation
+					return BoolObject.fromBoolean(a.getJavaFloat() == ((NumberObject)b).getJavaFloat());
+				return BoolObject.FALSE;
 			case __NE__ :
+				if (isInt)
+					return BoolObject.fromBoolean(a.getJavaInt() != ((NumberObject)b).getJavaInt());
 				if (isNumber)
-					return BoolObject.fromBoolean(a.getJavaInt().compareTo(((NumberObject)b).getJavaInt()) != 0);
-				break; // Unknown operation
-			}
+					return BoolObject.fromBoolean(a.getJavaFloat() != ((NumberObject)b).getJavaFloat());
+				return BoolObject.TRUE;
 		}
 		
 		if (b != null)
@@ -232,58 +240,58 @@ public final class Arithmetics {
 		boolean isInt = b instanceof IntObject;
 		boolean isFloat = b instanceof RealObject;
 		boolean isComplex = b instanceof ComplexObject;
+		boolean isNumber = b instanceof NumberObject;
 		
-		if (isInt || isFloat || isComplex){
-			switch (m){
+		switch (m){
 			case __ADD__:
 				if (isInt){
-					return new RealObject(a.doubleValue() + ((IntObject) b).intValue());
+					return new RealObject(a.getJavaFloat() + ((IntObject) b).intValue());
 				}
 				if (isFloat){
-					return new RealObject(a.doubleValue() + ((RealObject) b).doubleValue());
+					return new RealObject(a.getJavaFloat() + ((RealObject) b).getJavaFloat());
 				}
 				if (isComplex){
-					return new ComplexObject(a.doubleValue() + ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(a.getJavaFloat() + ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __SUB__:
 				if (isInt){
-					return new RealObject(a.doubleValue() - ((IntObject) b).intValue());
+					return new RealObject(a.getJavaFloat() - ((IntObject) b).intValue());
 				}
 				if (isFloat){
-					return new RealObject(a.doubleValue() - ((RealObject) b).doubleValue());
+					return new RealObject(a.getJavaFloat() - ((RealObject) b).getJavaFloat());
 				}
 				if (isComplex){
-					return new ComplexObject(a.doubleValue() - ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(a.getJavaFloat() - ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __MUL__:
 				if (isInt){
-					return new RealObject(a.doubleValue() * ((IntObject) b).intValue());
+					return new RealObject(a.getJavaFloat() * ((IntObject) b).intValue());
 				}
 				if (isFloat){
-					return new RealObject(a.doubleValue() * ((RealObject) b).doubleValue());
+					return new RealObject(a.getJavaFloat() * ((RealObject) b).getJavaFloat());
 				}
 				if (isComplex){
-					return new ComplexObject(a.doubleValue() * ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(a.getJavaFloat() * ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __DIV__:
 				if (isInt){
-					return new RealObject(a.doubleValue() / ((IntObject) b).intValue());
+					return new RealObject(a.getJavaFloat() / ((IntObject) b).intValue());
 				}
 				if (isFloat){
-					return new RealObject(a.doubleValue() / ((RealObject) b).doubleValue());
+					return new RealObject(a.getJavaFloat() / ((RealObject) b).getJavaFloat());
 				}
 				if (isComplex){
-					return new ComplexObject(a.doubleValue() / ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(a.getJavaFloat() / ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __MOD__:
 				if (isInt){
-					return new RealObject(a.doubleValue() % ((IntObject) b).intValue());
+					return new RealObject(a.getJavaFloat() % ((IntObject) b).intValue());
 				}
 				if (isFloat){
-					return new RealObject(a.doubleValue() % ((RealObject) b).doubleValue());
+					return new RealObject(a.getJavaFloat() % ((RealObject) b).getJavaFloat());
 				}
 				if (isComplex){
-					return new ComplexObject(a.doubleValue() % ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(a.getJavaFloat() % ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				}
 			case __AND__:
 				break; // Unknown operation
@@ -295,19 +303,43 @@ public final class Arithmetics {
 				break; // Unknown operation
 			case __POW__:
 				if (isInt){
-					return new RealObject(Math.pow(a.doubleValue(), ((IntObject) b).intValue()));
+					return new RealObject(Math.pow(a.getJavaFloat(), ((IntObject) b).intValue()));
 				}
 				if (isFloat){
-					return new RealObject(Math.pow(a.doubleValue(), ((RealObject) b).doubleValue()));
+					return new RealObject(Math.pow(a.getJavaFloat(), ((RealObject) b).getJavaFloat()));
 				}
 				if (isComplex){
-					return new ComplexObject(Math.pow(a.doubleValue(), ((ComplexObject) b).getRealPart()), ((ComplexObject) b).getImagPart());
+					return new ComplexObject(Math.pow(a.getJavaFloat(), ((ComplexObject) b).getRealPart()), ((ComplexObject) b).getImagPart());
 				}
+
+			case __LT__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() < ((NumberObject)b).getJavaFloat());
+				break; // Unknown operation
+			case __GT__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() > ((NumberObject)b).getJavaFloat());
+				break; // Unknown operation
+			case __LE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() <= ((NumberObject)b).getJavaFloat());
+				break; // Unknown operation
+			case __GE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() >= ((NumberObject)b).getJavaFloat());
+				break; // Unknown operation
+			case __EQ__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() == ((NumberObject)b).getJavaFloat());
+				return BoolObject.FALSE;
+			case __NE__ :
+				if (isNumber)
+					return BoolObject.fromBoolean(a.getJavaFloat() != ((NumberObject)b).getJavaFloat());
+				return BoolObject.TRUE;
 			case __RSHIFT__:
 				break; // Unknown operation
 			case __LSHIFT__:
 				break; // Unknown operation
-			}
 		}
 		
 		if (b != null)
@@ -322,14 +354,13 @@ public final class Arithmetics {
 		boolean isFloat = b instanceof RealObject;
 		boolean isComplex = b instanceof ComplexObject;
 		
-		if (isInt || isFloat || isComplex){
-			switch (m){
+		switch (m){
 			case __ADD__:
 				if (isInt){
 					return new ComplexObject(a.getRealPart() + ((IntObject)b).intValue(), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(a.getRealPart() + ((RealObject)b).doubleValue(), a.getImagPart());
+					return new ComplexObject(a.getRealPart() + ((RealObject)b).getJavaFloat(), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(a.getRealPart() + ((ComplexObject)b).getRealPart(), 
@@ -340,7 +371,7 @@ public final class Arithmetics {
 					return new ComplexObject(a.getRealPart() - ((IntObject)b).intValue(), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(a.getRealPart() - ((RealObject)b).doubleValue(), a.getImagPart());
+					return new ComplexObject(a.getRealPart() - ((RealObject)b).getJavaFloat(), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(a.getRealPart() - ((ComplexObject)b).getRealPart(), 
@@ -351,7 +382,7 @@ public final class Arithmetics {
 					return new ComplexObject(a.getRealPart() * ((IntObject)b).intValue(), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(a.getRealPart() * ((RealObject)b).doubleValue(), a.getImagPart());
+					return new ComplexObject(a.getRealPart() * ((RealObject)b).getJavaFloat(), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(a.getRealPart() * ((ComplexObject)b).getRealPart(), 
@@ -362,7 +393,7 @@ public final class Arithmetics {
 					return new ComplexObject(a.getRealPart() / ((IntObject)b).intValue(), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(a.getRealPart() / ((RealObject)b).doubleValue(), a.getImagPart());
+					return new ComplexObject(a.getRealPart() / ((RealObject)b).getJavaFloat(), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(a.getRealPart() / ((ComplexObject)b).getRealPart(), 
@@ -373,7 +404,7 @@ public final class Arithmetics {
 					return new ComplexObject(a.getRealPart() % ((IntObject)b).intValue(), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(a.getRealPart() % ((RealObject)b).doubleValue(), a.getImagPart());
+					return new ComplexObject(a.getRealPart() % ((RealObject)b).getJavaFloat(), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(a.getRealPart() % ((ComplexObject)b).getRealPart(), 
@@ -392,17 +423,20 @@ public final class Arithmetics {
 					return new ComplexObject(Math.pow(a.getRealPart(), ((IntObject)b).intValue()), a.getImagPart());
 				}
 				if (isFloat){
-					return new ComplexObject(Math.pow(a.getRealPart(), ((RealObject)b).doubleValue()), a.getImagPart());
+					return new ComplexObject(Math.pow(a.getRealPart(), ((RealObject)b).getJavaFloat()), a.getImagPart());
 				}
 				if (isComplex){
 					return new ComplexObject(Math.pow(a.getRealPart(), ((ComplexObject)b).getRealPart()), 
 							 Math.pow(a.getImagPart(), ((ComplexObject)b).getImagPart()));
 				}
+			case __EQ__ :
+				return BoolObject.FALSE;
+			case __NE__ :
+				return BoolObject.TRUE;
 			case __RSHIFT__:
 				break; // Unknown operation
 			case __LSHIFT__:
 				break; // Unknown operation
-			}
 		}
 		
 		if (b != null)
@@ -411,12 +445,46 @@ public final class Arithmetics {
 			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 	
-	private static PythonObject doOperatorString(StringObject a,
-			PythonObject b, String m) {
-		
+	public static PythonObject doOperatorString(StringObject a, PythonObject b, String m) {
+		boolean isString = b instanceof StringObject;
 		switch (m){
-		case __ADD__:
-			return new StringObject(a.value + Utils.run("str", b).toString());
+			case __ADD__:
+				return new StringObject(a.value + Utils.run("str", b).toString());
+			case __MUL__:
+				if (b instanceof IntObject) {
+					// "a" * 5 -> "aaaaa"
+					StringBuilder sb = new StringBuilder();
+					for (int i=0; i<((IntObject)b).getJavaInt(); i++)
+						sb.append(a.value);
+					return new StringObject(sb.toString());
+				}
+				break; // Rest is not supported
+			case __MOD__:
+				throw Utils.throwException("TypeError", "string format not yet supported"); // :(
+			case __LT__ :
+				if (isString)
+					return a.value.compareTo(((StringObject)b).value) < 0 ? BoolObject.TRUE : BoolObject.FALSE;
+				break; // Unknown operation
+			case __GT__ :
+				if (isString)
+					return a.value.compareTo(((StringObject)b).value) > 0 ? BoolObject.TRUE : BoolObject.FALSE;
+				break; // Unknown operation
+			case __LE__ :
+				if (isString)
+					return a.value.compareTo(((StringObject)b).value) <= 0 ? BoolObject.TRUE : BoolObject.FALSE;
+				break; // Unknown operation
+			case __GE__ :
+				if (isString)
+					return a.value.compareTo(((StringObject)b).value) >= 0 ? BoolObject.TRUE : BoolObject.FALSE;
+				break; // Unknown operation
+			case __EQ__ :
+				if (isString)
+					return ((StringObject)b).value.equals(a.value) ? BoolObject.TRUE : BoolObject.FALSE;
+				return BoolObject.FALSE;
+			case __NE__ :
+				if (isString)
+					return ((StringObject)b).value.equals(a.value) ? BoolObject.FALSE : BoolObject.TRUE;
+				return BoolObject.TRUE;
 		}
 		
 		if (b != null)
@@ -425,17 +493,17 @@ public final class Arithmetics {
 			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 	
-	private static PythonObject doOperatorBool(BoolObject a,
-			PythonObject b, String m) {
-		
+	private static PythonObject doOperatorBool(BoolObject a, PythonObject b, String m) {
 		switch (m){
-		case __NOT__:
-			return BoolObject.fromBoolean(!a.truthValue());
+			case __NOT__:
+				return BoolObject.fromBoolean(!a.truthValue());
+			case __EQ__ :
+				return b.truthValue() == a.truthValue() ? BoolObject.TRUE : BoolObject.FALSE;
+			case __NE__ :
+				return b.truthValue() != a.truthValue() ? BoolObject.TRUE : BoolObject.FALSE;
+			default:
+				// Rest is compared as int(a), b
+				return doOperatorInt(IntObject.valueOf(a.getJavaInt()), b, m);
 		}
-		
-		if (b != null)
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of types '" + Utils.run("typename", a) + "' and '" + Utils.run("typename", b) + "'");
-		else
-			throw Utils.throwException("TypeError", "unknown operation " + m + " of type '" + Utils.run("typename", a) + "'");
 	}
 }
