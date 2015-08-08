@@ -643,6 +643,15 @@ public class PythonBytecode extends PythonObject {
 		}
 	}	
 	
+	public static class UnpackKwArg extends PythonBytecode {
+		private static final long serialVersionUID = -985151216623131210L;
+
+		{
+			bytecode = Bytecode.UNPACK_KWARG;
+		}
+		
+	}	
+	
 	public static class UnpackSequence extends PythonBytecode {
 		/**
 		 * 

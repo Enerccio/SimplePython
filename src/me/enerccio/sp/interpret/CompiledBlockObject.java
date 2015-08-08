@@ -250,6 +250,7 @@ public class CompiledBlockObject extends PythonObject {
 			case PUSH_LOCALS:
 			case OPEN_LOCALS:
 			case RESOLVE_CLOSURE:
+			case UNPACK_KWARG:
 				bd.append(String.format(FORMAT, ""));
 				break;
 			//default:

@@ -564,6 +564,8 @@ public class Utils {
 			case TRUTH_VALUE:
 				w.writeInt(b.intValue);
 				break;
+			case UNPACK_KWARG:
+				break;
 			case UNPACK_SEQUENCE:
 				w.writeInt(b.intValue);
 				break;

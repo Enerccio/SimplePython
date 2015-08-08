@@ -44,7 +44,7 @@ public enum Bytecode {
 	// variables
 	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70), LOADBUILTIN(71),
 	// special call-related
-	KWARG(80),
+	KWARG(80), UNPACK_KWARG(81),
 	// exceptions
 	RAISE(82), RERAISE(83),
 	// macros
@@ -206,6 +206,10 @@ public enum Bytecode {
 			break;
 		case KWARG:
 			bytecode = new KwArg();
+			bytecode.newObject();
+			break;
+		case UNPACK_KWARG:
+			bytecode = new UnpackKwArg();
 			bytecode.newObject();
 			break;
 		case UNPACK_SEQUENCE:

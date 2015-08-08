@@ -510,10 +510,11 @@ classdef:
 ;
 
 arglist:
- (argument ',')* (
-    argument ','?
-    | '*' test
- )
+ (argument ',')* ( argument (',' '*' test)? (',' arg_kwexpand)? )
+;
+
+arg_kwexpand:
+  '**' test
 ;
 
 argument:
