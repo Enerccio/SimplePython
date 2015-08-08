@@ -202,6 +202,14 @@ public class CompiledBlockObject extends PythonObject {
 				else
 					bd.append(String.format(FORMAT, "" + c + " - exits frame"));
 				break;
+			case DEL:
+				c = b.getInt();
+				boolean isGlobal = b.getInt() == 1;
+				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
+				if (isGlobal){
+					bd.append(String.format(" - global"));
+				}
+				break;
 			case GETATTR:
 			case KWARG:
 			case LOAD:

@@ -68,6 +68,39 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class Del extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 538692838919066014L;
+
+		{
+			bytecode = Bytecode.DEL;
+		}
+	}
+	
+	public static class DelAttr extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 638692838919066014L;
+
+		{
+			bytecode = Bytecode.DELATTR;
+		}
+	}
+	
+	public static class DelKey extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 738692838919066014L;
+
+		{
+			bytecode = Bytecode.DELKEY;
+		}
+	}
+	
 	public static class ResolveClosure extends PythonBytecode {
 		/**
 		 * 

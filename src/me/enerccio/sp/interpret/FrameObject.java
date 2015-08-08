@@ -78,7 +78,7 @@ public class FrameObject extends PythonObject {
 
 	public Bytecode nextOpcode() {
 		++pc;
-		return Bytecode.fromNumber(dataStream.get());
+		return Bytecode.fromNumber(((short) (dataStream.get() & 0xff)));
 	}
 	
 	public int nextInt(){

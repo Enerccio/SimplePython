@@ -50,9 +50,11 @@ public enum Bytecode {
 	GETATTR(89), SETATTR(90), ISINSTANCE(91), 
 	// frames 
 	YIELD(96),
+	// delete
+	DEL(104), DELATTR(105), DELKEY(106),
 	
 	// loops, iterators, boolean stuff
-	SETUP_LOOP(100), GET_ITER(101), ACCEPT_ITER(102),
+	SETUP_LOOP(128), GET_ITER(129), ACCEPT_ITER(130),
 	;
 	
 	Bytecode(int id){
@@ -70,7 +72,7 @@ public enum Bytecode {
 		for (Bytecode b : values())
 			if (b.id == intValue)
 				return b;
-		return null;
+		throw new NullPointerException("bytecode not found: " + intValue);
 	}
 	
 	/**
@@ -94,6 +96,18 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
+			bytecode.newObject();
+			break;
+		case DEL:
+			bytecode = new Del();
+			bytecode.newObject();
+			break;
+		case DELATTR:
+			bytecode = new DelAttr();
+			bytecode.newObject();
+			break;
+		case DELKEY:
+			bytecode = new DelKey();
 			bytecode.newObject();
 			break;
 		case RESOLVE_CLOSURE:

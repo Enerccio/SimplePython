@@ -861,6 +861,11 @@ public class PythonInterpreter extends PythonObject {
 				throw Utils.throwException("NameError", "builtin name '" + vname + "' is undefined");
 			stack.push(value);
 		} break;
+		case DEL: {
+			StringObject vname = (StringObject) o.compiled.getConstant(o.nextInt());
+			boolean isGlobal = o.nextInt() == 1;
+			environment().delete(vname, isGlobal);
+		} break;
 		default:
 			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
 		}

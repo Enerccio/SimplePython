@@ -25,6 +25,7 @@ import java.util.List;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.utils.Utils;
 
 /**
  * Environment object represents environment. Environment is responsible for fetching variable values
@@ -133,5 +134,25 @@ public class EnvironmentObject extends PythonObject {
 
 	public List<DictObject> toClosure() {
 		return new ArrayList<DictObject>(environments);
+	}
+
+	public void delete(StringObject vname, boolean isGlobal) {
+		if (environments.size() == 1){
+			delete(vname, false);
+			return;
+		} else {
+			if (isGlobal) {
+				if (environments.get(0).backingMap.containsKey(vname)){
+					environments.get(environments.size()-2).backingMap.remove(vname);
+					return;
+				}
+			} else {
+				if (environments.get(0).backingMap.containsKey(vname)){
+					environments.get(0).backingMap.remove(vname);
+					return;
+				} 
+			}
+		}
+		throw Utils.throwException("NameError", "name '" + vname.toString() + "' is not defined");
 	}
 }

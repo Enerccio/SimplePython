@@ -1,5 +1,8 @@
-def x(a, b, c):
-	print a, b, c,
 
 def test():
-	x(*(1, 2, 3))
+	a = 5
+	print a
+	del a
+	a = 10
+	del a
+	del a

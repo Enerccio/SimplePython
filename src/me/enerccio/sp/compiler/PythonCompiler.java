@@ -1000,14 +1000,21 @@ public class PythonCompiler {
 		if (ctx.trailer().size() > 0){
 			
 		} else {
-			compileDel(ctx.atom(), false);
+			compileDel(ctx.atom(), bytecode, false);
 		}
 	}
 
-	private void compileDel(AtomContext atom, boolean delkeyOnly) {
+	private void compileDel(AtomContext atom, List<PythonBytecode> bytecode,
+			boolean delkeyOnly) {
 		if (!delkeyOnly){
 			if (atom.nname() != null){
-				
+				String vname = atom.nname().getText();
+				if (stack.typeOfVariable(vname) == VariableType.DYNAMIC)
+					throw Utils.throwException("SyntaxError", "can't use del statemenet on dynamic variables");
+				cb = addBytecode(bytecode, Bytecode.DEL, atom.nname().start);
+				cb.stringValue = atom.nname().getText();
+				cb.booleanValue = stack.typeOfVariable(vname) == VariableType.GLOBAL;
+				return;
 			}
 			throw Utils.throwException("SyntaxError", "can't use atoms in del statemenet");
 		}
