@@ -55,6 +55,7 @@ import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dynamic_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Exec_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprContext;
 import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprlistContext;
@@ -938,7 +939,31 @@ public class PythonCompiler {
 			compile(smstmt.dynamic_stmt(), bytecode);
 		} else if (smstmt.del_stmt() != null){
 			compile(smstmt.del_stmt(), bytecode);
+		} else if (smstmt.exec_stmt() != null){
+			compile(smstmt.exec_stmt(), bytecode);
 		}
+	}
+
+	private void compile(Exec_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+		cb.stringValue = "exec_function";
+		compile(ctx.expr(), bytecode);
+		if (ctx.test().size() == 2){
+			compile(ctx.test(0), bytecode);
+			compile(ctx.test(1), bytecode);
+		} else if (ctx.test().size() == 1){
+			compile(ctx.test(0), bytecode);
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+		} else {
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+		}
+		cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+		cb.intValue = 3;
 	}
 
 	private void compile(Del_stmtContext ctx, List<PythonBytecode> bytecode) {

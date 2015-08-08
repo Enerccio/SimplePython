@@ -155,4 +155,11 @@ public class EnvironmentObject extends PythonObject {
 		}
 		throw Utils.throwException("NameError", "name '" + vname.toString() + "' is not defined");
 	}
+
+	public DictObject getGlobals() {
+		if (environments.size() == 1)
+			return environments.get(0);
+		else
+			return environments.get(environments.size()-2);
+	}
 }

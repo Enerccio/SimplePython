@@ -1,8 +1,10 @@
 def y(**kwargs):
 	print kwargs
+	
+print anca
 
 def test():
-	y(anca=5)
+	exec "print y(anca=5)"
 	
 	x = 1
 	print x.__format__("b")

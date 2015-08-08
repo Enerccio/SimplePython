@@ -200,7 +200,11 @@ simple_stmt
 
 small_stmt
 : (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt |
-             import_stmt | global_stmt | dynamic_stmt)
+             import_stmt | global_stmt | dynamic_stmt | exec_stmt)
+;
+
+exec_stmt
+: 'exec' expr ('in' test (',' test)?)?
 ;
 
 parenthesesless_call

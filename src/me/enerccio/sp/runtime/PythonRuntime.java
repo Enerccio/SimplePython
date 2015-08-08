@@ -395,6 +395,9 @@ public class PythonRuntime {
 	public static final String ORD = "ord";
 	public static final String APPLY = "apply";
 	public static final String DIR = "dir";
+	public static final String EXEC = "exec_function";
+	public static final String LOCALS = "locals";
+	public static final String GLOBALS = "globals";
 	
 	/** Some basic types */
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
@@ -454,6 +457,9 @@ public class PythonRuntime {
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
 					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
+					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
+					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
+					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, String.class, DictObject.class, DictObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
@@ -517,6 +523,25 @@ public class PythonRuntime {
 			}
 		
 		return globals;
+	}
+	
+	protected static PythonObject locals(){
+		return PythonInterpreter.interpreter.get().environment().getLocals();
+	}
+	
+	protected static PythonObject globals(){
+		return PythonInterpreter.interpreter.get().environment().getGlobals();
+	}
+	
+	
+	protected static PythonObject exec_function(String code, DictObject locals, DictObject globals){
+		if (locals == null){
+			locals = (DictObject) Utils.run("locals");
+		}
+		if (globals == null){
+			globals = (DictObject) Utils.run("globals");
+		}
+		return NoneObject.NONE;
 	}
 	
 	protected static List<String> dir(PythonObject o){
