@@ -552,6 +552,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject compile(PythonObject source, StringObject filename){
+		PythonRuntime.runtime.checkSandboxAction("compile", SecureAction.RUNTIME_COMPILE, source, filename);
+		
 		CompiledBlockObject block;
 		
 		if (source instanceof StringObject){
@@ -587,6 +589,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject exec_function(PythonObject code, DictObject locals, DictObject globals){
+		PythonRuntime.runtime.checkSandboxAction("exec", SecureAction.RUNTIME_EVAL, code);
+		
 		if (locals == null){
 			locals = (DictObject) Utils.run("locals");
 		}
@@ -640,6 +644,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject eval_function(String code, DictObject locals, DictObject globals){
+		PythonRuntime.runtime.checkSandboxAction("eval", SecureAction.RUNTIME_EVAL, code);
+		
 		if (locals == null){
 			locals = (DictObject) Utils.run("locals");
 		}

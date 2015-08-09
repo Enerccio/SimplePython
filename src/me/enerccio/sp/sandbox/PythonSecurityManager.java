@@ -32,7 +32,8 @@ public abstract class PythonSecurityManager {
 	};
 
 	public enum SecureAction {
-		OPEN_FILE, JAVA_INSTANCE_CREATION, NEW_THREAD, TERMINATE_JAVA
+		OPEN_FILE, JAVA_INSTANCE_CREATION, NEW_THREAD, TERMINATE_JAVA,
+		DISASSEMBLY, RUNTIME_EVAL, RUNTIME_COMPILE
 	}
 	
 	public void checkSandbox(SecureAction a, String callName, Object... additionalDeciders){
