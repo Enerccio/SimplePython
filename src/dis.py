@@ -18,3 +18,16 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+def dis(object):
+    """
+    Disassembles the object, if is a object that can be disassembled into standard stream
+    """
+    
+    if type(object) == compiled_block:
+        dis_compiled_block(object)
+        
+
+def dis_compiled_block(cb):
+    dass = javainstance("disassembler", cb.co_code, cb.co_consts, cb.co_debug)
+    for bytecode in dass:
+        print bytecode

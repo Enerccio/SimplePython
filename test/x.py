@@ -1,6 +1,8 @@
 def test():
 	W().test()
 
+import dis
+
 class W(object):
 	def __init__(self):
 		super(W, self).__init__()
@@ -12,9 +14,8 @@ class W(object):
 		print y.co_code
 		print y.co_consts
 		print y.co_debug
-		print bytecode(0)
-		print dir(bytecode(0))
-		bytecode(0).value = 5
+		
+		dis.dis(y)
 		
 		"""
 		x = 1

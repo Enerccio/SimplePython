@@ -175,7 +175,7 @@ public class BytecodeTypeObject extends TypeObject {
 			case POP:
 				break;
 			case PUSH:
-				bytecode.value = args.get(0);
+				bytecode.value = args.get(1);
 				break;
 			case PUSH_ENVIRONMENT:
 				break;

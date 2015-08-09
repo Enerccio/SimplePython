@@ -60,6 +60,9 @@ public class PythonBytecode extends PythonObject {
 			Utils.putPublic(this, "string_value", new FieldPropertyObject(this, PythonBytecode.class, "stringValue", true));
 			Utils.putPublic(this, "object", new FieldPropertyObject(this, PythonBytecode.class, "object", true));
 			Utils.putPublic(this, "bool_value", new FieldPropertyObject(this, PythonBytecode.class, "booleanValue", true));
+			Utils.putPublic(this, "_lineno", new FieldPropertyObject(this, PythonBytecode.class, "debugLine", true));
+			Utils.putPublic(this, "_charno", new FieldPropertyObject(this, PythonBytecode.class, "debugCharacter", true));
+			Utils.putPublic(this, "_function", new FieldPropertyObject(this, PythonBytecode.class, "debugFunction", true));
 		} catch (NoSuchFieldException | SecurityException e) {
 			throw new RuntimeException("yellow sky", e);
 		}

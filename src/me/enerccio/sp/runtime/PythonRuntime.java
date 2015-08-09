@@ -39,6 +39,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
 import me.enerccio.sp.external.PrintOutputStream;
@@ -147,6 +148,7 @@ public class PythonRuntime {
 		addAlias(PythonThread.class.getName(), "jthread");
 		addAlias(FormatterAccessor.class.getName(), "formatter");
 		addAlias(PythonTerminator.class.getName(), "terminator");
+		addAlias(Disassembler.class.getName(), "disassembler");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
