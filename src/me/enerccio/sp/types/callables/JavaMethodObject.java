@@ -243,6 +243,7 @@ public class JavaMethodObject extends CallableObject {
 			} else if (argTypes[i] == KwArgs.class) {
 				jargs[i] = kwargs == null ? KwArgs.EMPTY : kwargs;
 			}
+			throw new PointerMethodIncompatibleException(toString() + " too few arguments "); 
 		}
 		
 		try {

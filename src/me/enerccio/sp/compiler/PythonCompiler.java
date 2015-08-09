@@ -202,7 +202,7 @@ public class PythonCompiler {
 		return fnc;
 	}
 	
-	public CompiledBlockObject doCompileExec(File_inputContext fcx, DictObject globals, DictObject locals){
+	public CompiledBlockObject doCompileExec(File_inputContext fcx){
 		moduleName = "exec-eval";
 		stack.push();
 		compilingFunction.push("exec-eval");

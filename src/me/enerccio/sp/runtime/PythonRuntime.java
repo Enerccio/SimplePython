@@ -165,6 +165,7 @@ public class PythonRuntime {
 	public static ClassObject STOP_ITERATION;
 	public static ClassObject GENERATOR_EXIT;
 	public static ClassObject INDEX_ERROR;
+	public static ClassObject AST;
 	
 	/**
 	 * Waits until creation of new interprets is possible
@@ -403,6 +404,7 @@ public class PythonRuntime {
 	public static final String EXEC = "exec_function";
 	public static final String LOCALS = "locals";
 	public static final String GLOBALS = "globals";
+	public static final String COMPILE = "compile";
 	
 	/** Some basic types */
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
@@ -464,7 +466,8 @@ public class PythonRuntime {
 					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
 					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
 					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
-					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, String.class, DictObject.class, DictObject.class));
+					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, DictObject.class, DictObject.class));
+					globals.put(COMPILE, Utils.staticMethodCall(PythonRuntime.class, COMPILE, PythonObject.class, StringObject.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
@@ -522,6 +525,7 @@ public class PythonRuntime {
 					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
 					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
 					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
+					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);
 				}
@@ -538,8 +542,42 @@ public class PythonRuntime {
 		return PythonInterpreter.interpreter.get().environment().getGlobals();
 	}
 	
+	protected static PythonObject compile(PythonObject source, StringObject filename){
+		CompiledBlockObject block;
+		
+		if (source instanceof StringObject){
+			PythonCompiler c = new PythonCompiler();
+			String src = ((StringObject)source).value;
+
+			ANTLRInputStream is = new ANTLRInputStream(src);
+			pythonLexer lexer = new pythonLexer(is);
+			lexer.removeErrorListeners();
+			lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
+			CommonTokenStream stream = new CommonTokenStream(lexer);
+			pythonParser parser = new pythonParser(stream);
+			
+			parser.removeErrorListeners();
+			parser.addErrorListener(new ThrowingErrorListener("<generated>"));
+			block = c.doCompileExec(parser.file_input());
+		} else if (isderived(source, AST)){
+			ListObject lo = (ListObject)PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("get_bytecode")), null);
+			// mundane check
+			List<PythonBytecode> pbl = new ArrayList<PythonBytecode>();
+			for (PythonObject o : lo.objects){
+				if (!(o instanceof PythonBytecode))
+					throw Utils.throwException("TypeError", "compile(): returned bytecode from ast was not of type 'bytecode', but instead of type '" + Utils.run("typename", o) + "'");
+				pbl.add((PythonBytecode)o);
+			}
+			block = new CompiledBlockObject(pbl);
+		} else {
+			PythonObject str = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("read_all")), null);
+			block = (CompiledBlockObject)  Utils.run("compile", str, filename);
+		}
+		
+		return block;
+	}
 	
-	protected static PythonObject exec_function(String code, DictObject locals, DictObject globals){
+	protected static PythonObject exec_function(PythonObject code, DictObject locals, DictObject globals){
 		if (locals == null){
 			locals = (DictObject) Utils.run("locals");
 		}
@@ -547,17 +585,13 @@ public class PythonRuntime {
 			globals = (DictObject) Utils.run("globals");
 		}
 		
-		PythonCompiler c = new PythonCompiler();
+		CompiledBlockObject block;
 		
-		ANTLRInputStream is = new ANTLRInputStream(code);
-		pythonLexer lexer = new pythonLexer(is);
-		lexer.removeErrorListeners();
-		lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
-		CommonTokenStream stream = new CommonTokenStream(lexer);
-		pythonParser parser = new pythonParser(stream);
-		
-		parser.removeErrorListeners();
-		parser.addErrorListener(new ThrowingErrorListener("<generated>"));
+		if (code instanceof CompiledBlockObject){
+			block = (CompiledBlockObject) code;
+		} else {
+			block = (CompiledBlockObject) Utils.run("compile", code, new StringObject("<exec-source>"));
+		}
 		
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
@@ -565,7 +599,7 @@ public class PythonRuntime {
 		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
 		
-		fnc.block = c.doCompileExec(parser.file_input(), globals, locals);
+		fnc.block = block;
 		
 		fnc.setClosure(Arrays.asList(new DictObject[]{locals, globals, runtime.getGlobals()}));
 		Utils.putPublic(fnc, "function_defaults", new DictObject());
