@@ -4,6 +4,8 @@ def y(**kwargs):
 print __name__
 print __thismodule__
 
+import ast
+
 def test():
 	print ast.BYTECODE_NAMES
 	print ast.BYTECODE_NUMBERS

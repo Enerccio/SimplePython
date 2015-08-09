@@ -88,7 +88,13 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 
 	@Override
 	protected String doToString() {
-		return "<iterator of " + sequence.toString()  + ">";
+		return "<iterator of " + clampIter(sequence.toString())  + ">";
+	}
+
+	private String clampIter(String string) {
+		if (string.length() > 50)
+			return string.substring(0, 50) + "...";
+		return string;
 	}
 
 }
