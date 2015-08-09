@@ -34,6 +34,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
@@ -51,6 +54,7 @@ import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -109,6 +113,7 @@ import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
 
 /**
  * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
@@ -541,6 +546,33 @@ public class PythonRuntime {
 		if (globals == null){
 			globals = (DictObject) Utils.run("globals");
 		}
+		
+		PythonCompiler c = new PythonCompiler();
+		
+		ANTLRInputStream is = new ANTLRInputStream(code);
+		pythonLexer lexer = new pythonLexer(is);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
+		CommonTokenStream stream = new CommonTokenStream(lexer);
+		pythonParser parser = new pythonParser(stream);
+		
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ThrowingErrorListener("<generated>"));
+		
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
+		
+		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
+		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
+		
+		fnc.block = c.doCompileExec(parser.file_input(), globals, locals);
+		
+		fnc.setClosure(Arrays.asList(new DictObject[]{locals, globals, runtime.getGlobals()}));
+		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.args = new ArrayList<String>();
+		
+		PythonInterpreter.interpreter.get().execute(true, fnc, null);
+		
 		return NoneObject.NONE;
 	}
 	

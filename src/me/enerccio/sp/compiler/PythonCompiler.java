@@ -135,7 +135,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
  *
  */
 public class PythonCompiler {
-	private static volatile long genFunc = 0;
+	public static volatile long genFunc = 0;
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
@@ -200,6 +200,33 @@ public class PythonCompiler {
 		
 		compilingFunction.pop();
 		return fnc;
+	}
+	
+	public CompiledBlockObject doCompileExec(File_inputContext fcx, DictObject globals, DictObject locals){
+		moduleName = "exec-eval";
+		stack.push();
+		compilingFunction.push("exec-eval");
+		
+		ArrayList<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+		
+		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, fcx.start);
+		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
+		cb.value = NoneObject.NONE;
+		addBytecode(bytecode, Bytecode.PUSH_LOCAL_CONTEXT, fcx.start);
+		
+		compilingClass.push(null);
+		for (Label_or_stmtContext ls : fcx.label_or_stmt()){
+			compile(ls, bytecode, null);
+		}
+		compilingClass.pop();
+		
+		CompiledBlockObject block = new CompiledBlockObject(bytecode);
+		block.newObject();
+		
+		stack.pop();
+		compilingFunction.pop();
+		
+		return block;
 	}
 	
 	/**

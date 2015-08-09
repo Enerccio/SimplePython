@@ -1,11 +1,11 @@
 def y(**kwargs):
 	print kwargs
-	
-print anca
 
 def test():
-	exec "print y(anca=5)"
+	x = 15
+	exec "print y(anca=5, mara=x)"
 	
+	"""
 	x = 1
 	print x.__format__("b")
 	print x.__format__("c")
@@ -15,3 +15,4 @@ def test():
 	print x.__format__("X")
 	print x.__format__("n")
 	print x.__format__("")
+	"""
