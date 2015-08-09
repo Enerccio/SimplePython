@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types.types;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.KwArgs;
@@ -24,6 +27,8 @@ import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.MethodPropertyObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
@@ -42,6 +47,33 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "bytecode";
+	}
+	
+
+	@Override
+	public void newObject(){
+		super.newObject();
+		
+		try {
+			Utils.putPublic(this, "names", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "names")));
+			Utils.putPublic(this, "numbers", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "numbers")));
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException("kurva", e);
+		}
+	}
+	
+	public Map<String, Integer> names(){
+		Map<String, Integer> tMap = new TreeMap<String, Integer>();
+		for (Bytecode b : Bytecode.values())
+			tMap.put(b.name(), b.id);
+		return tMap;
+	}
+	
+	public Map<Integer, String> numbers(){
+		Map<Integer, String> tMap = new TreeMap<Integer, String>();
+		for (Bytecode b : Bytecode.values())
+			tMap.put(b.id, b.name());
+		return tMap;
 	}
 	
 	private static ModuleInfo mook = new ModuleInfo() {

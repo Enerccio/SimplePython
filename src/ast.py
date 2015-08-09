@@ -26,7 +26,7 @@ def get_bytecode_types():
         g[name] = bytecode_names[name]
     return bytecode_names, bytecode_numbers
 
-# BYTECODE_NAMES, BYTECODE_NUMBERS = get_bytecode_types()
+BYTECODE_NAMES, BYTECODE_NUMBERS = get_bytecode_types()
 
 class AST(object):
     def __init__(self):
