@@ -41,6 +41,11 @@ public class CompiledBlockObject extends PythonObject {
 		this.bytecode = bytecode;
 	}
 	
+	public CompiledBlockObject(byte[] bytecode, Map<Integer, PythonObject> mmap) {
+		this.compiled = bytecode;
+		this.mmap = mmap;
+	}
+
 	public static class DebugInformation {
 		public int lineno, charno;
 		public String modulename;
@@ -99,7 +104,10 @@ public class CompiledBlockObject extends PythonObject {
 		super.newObject();
 		mmap = new HashMap<Integer, PythonObject>();
 		try {
-			compiled = Utils.compile(bytecode, mmap, dmap);
+			if (compiled == null) {
+				compiled = Utils.compile(bytecode, mmap, dmap);
+				bytecode = null;
+			}
 		} catch (Exception e) {
 			throw Utils.throwException("TypeError", "invalid bytecode", e);
 		}

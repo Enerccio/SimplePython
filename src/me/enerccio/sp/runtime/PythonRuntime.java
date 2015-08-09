@@ -92,6 +92,7 @@ import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BoolTypeObject;
 import me.enerccio.sp.types.types.BoundFunctionTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
+import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
@@ -498,6 +499,8 @@ public class PythonRuntime {
 					o.newObject();
 					globals.put(NoneTypeObject.NONE_TYPE_CALL, o = new NoneTypeObject());
 					o.newObject();
+					globals.put(CompiledBlockTypeObject.COMPILED_CALL, o = new CompiledBlockTypeObject());
+					o.newObject();
 					
 					pythonParser p;
 					try {
@@ -552,13 +555,13 @@ public class PythonRuntime {
 			ANTLRInputStream is = new ANTLRInputStream(src);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
+			lexer.addErrorListener(new ThrowingErrorListener(filename.value));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 			
 			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener("<generated>"));
-			block = c.doCompileExec(parser.file_input());
+			parser.addErrorListener(new ThrowingErrorListener(filename.value));
+			block = c.doCompile(parser.file_input(), filename.value);
 		} else if (isderived(source, AST)){
 			ListObject lo = (ListObject)PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("get_bytecode")), null);
 			// mundane check
@@ -780,6 +783,8 @@ public class PythonRuntime {
 			return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
 		if (py instanceof BoundHandleObject)
 			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+		if (py instanceof CompiledBlockObject)
+			return (ClassObject)Utils.getGlobal(CompiledBlockTypeObject.COMPILED_CALL);
 		
 		return OBJECT_TYPE;
 	}

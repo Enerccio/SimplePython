@@ -202,10 +202,11 @@ public class PythonCompiler {
 		return fnc;
 	}
 	
-	public CompiledBlockObject doCompileExec(File_inputContext fcx){
-		moduleName = "exec-eval";
+	public CompiledBlockObject doCompile(File_inputContext fcx, String filename){
+		moduleName = filename;
 		stack.push();
-		compilingFunction.push("exec-eval");
+		compilingFunction.push(null);
+		compilingClass.push(null);
 		
 		ArrayList<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		
@@ -224,7 +225,9 @@ public class PythonCompiler {
 		block.newObject();
 		
 		stack.pop();
+		compilingClass.pop();
 		compilingFunction.pop();
+		
 		
 		return block;
 	}
