@@ -406,6 +406,7 @@ public class PythonRuntime {
 	public static final String LOCALS = "locals";
 	public static final String GLOBALS = "globals";
 	public static final String COMPILE = "compile";
+	public static final String EVAL = "eval";
 	
 	/** Some basic types */
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
@@ -469,6 +470,7 @@ public class PythonRuntime {
 					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
 					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, DictObject.class, DictObject.class));
 					globals.put(COMPILE, Utils.staticMethodCall(PythonRuntime.class, COMPILE, PythonObject.class, StringObject.class));
+					globals.put(EVAL, Utils.staticMethodCall(true, PythonRuntime.class, EVAL, TupleObject.class, KwArgs.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
@@ -611,6 +613,64 @@ public class PythonRuntime {
 		PythonInterpreter.interpreter.get().execute(true, fnc, null);
 		
 		return NoneObject.NONE;
+	}
+	
+	protected static PythonObject eval(TupleObject to, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.checkEmpty("eval");
+		if (to.len() < 1 || to.len() > 3)
+			throw Utils.throwException("TypeObject", "eval(): requires 1 to 3 arguments, got " + to.len());
+		try {
+			String s = Coerce.toJava(to.get(0), String.class);
+			DictObject d1 = null;
+			if (to.len()>1)
+				d1 = Coerce.toJava(to.get(1), DictObject.class);
+			DictObject d2 = null;
+			if (to.len()>2)
+				d1 = Coerce.toJava(to.get(2), DictObject.class);
+			
+			return eval_function(s, d1, d2);
+		} catch (CastFailedException e){
+			throw Utils.throwException("TypeObject", "eval(): wrong types of arguments to eval, first argument must be 'str', remaining two arguments must be 'dict' objects");
+		}
+	}
+	
+	protected static PythonObject eval_function(String code, DictObject locals, DictObject globals){
+		if (locals == null){
+			locals = (DictObject) Utils.run("locals");
+		}
+		if (globals == null){
+			globals = (DictObject) Utils.run("globals");
+		}
+		
+		CompiledBlockObject block;
+		
+		PythonCompiler c = new PythonCompiler();
+
+		ANTLRInputStream is = new ANTLRInputStream(code);
+		pythonLexer lexer = new pythonLexer(is);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(new ThrowingErrorListener("<eval>"));
+		CommonTokenStream stream = new CommonTokenStream(lexer);
+		pythonParser parser = new pythonParser(stream);
+		
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ThrowingErrorListener("<eval>"));
+		block = c.doCompileEval(parser.eval_input());
+		
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
+		
+		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
+		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
+		
+		fnc.block = block;
+		
+		fnc.setClosure(Arrays.asList(new DictObject[]{locals, globals, runtime.getGlobals()}));
+		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.args = new ArrayList<String>();
+		
+		return PythonInterpreter.interpreter.get().execute(true, fnc, null);
 	}
 	
 	protected static List<String> dir(PythonObject o){

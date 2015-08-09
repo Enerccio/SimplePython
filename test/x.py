@@ -3,10 +3,7 @@ def y(**kwargs):
 
 def test():
 	x = 15
-	exec "print y(anca=5, mara=x)"
-	y = compile("print y", "anca")
-	print y
-	exec y
+	print eval("x*x*2")
 	
 	"""
 	x = 1

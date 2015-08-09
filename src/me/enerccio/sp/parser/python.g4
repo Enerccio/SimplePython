@@ -149,6 +149,8 @@ file_input
  string_input
  : (stmt | NEWLINE)* (stmt | EOF)
  ;
+ 
+eval_input: testlist NEWLINE* EOF;
 
 decorator
 : '@' test ('(' arglist? ')')? NEWLINE

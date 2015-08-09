@@ -55,6 +55,7 @@ import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dynamic_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Eval_inputContext;
 import me.enerccio.sp.parser.pythonParser.Exec_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprContext;
 import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
@@ -228,6 +229,41 @@ public class PythonCompiler {
 		compilingClass.pop();
 		compilingFunction.pop();
 		
+		return block;
+	}
+	
+	public CompiledBlockObject doCompileEval(Eval_inputContext ecx){
+		moduleName = "eval-function";
+		stack.push();
+		compilingFunction.push("eval-function");
+		compilingClass.push(null);
+		
+		ArrayList<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+		
+		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, ecx.start);
+		cb = addBytecode(bytecode, Bytecode.PUSH, ecx.start);
+		cb.value = NoneObject.NONE;
+		addBytecode(bytecode, Bytecode.PUSH_LOCAL_CONTEXT, ecx.start);
+		
+		compilingClass.push(null);
+		int i = 0;
+		int total = ecx.testlist().test().size();
+		for (TestContext tc : ecx.testlist().test()){
+			compile(tc, bytecode);
+			if (i != total-1)
+				addBytecode(bytecode, Bytecode.POP, tc.stop);
+		}
+		cb = addBytecode(bytecode, Bytecode.RETURN, ecx.stop);
+		cb.intValue = 0;
+		
+		compilingClass.pop();
+		
+		CompiledBlockObject block = new CompiledBlockObject(bytecode);
+		block.newObject();
+		
+		stack.pop();
+		compilingClass.pop();
+		compilingFunction.pop();
 		
 		return block;
 	}
