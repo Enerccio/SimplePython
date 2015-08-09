@@ -107,6 +107,7 @@ public class FrameObject extends PythonObject {
 		f.returnHappened = returnHappened;
 		f.yielding = yielding;
 		f.sendValue = sendValue;
+		f.stack = stack;
 		
 		return f;
 	}

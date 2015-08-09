@@ -4,12 +4,12 @@ def y(**kwargs):
 print __name__
 print __thismodule__
 
-def test2(*args):
-	print args
-	
-	
-x = "abcd"
-test2(*x)
+def yielder():
+	for x in xrange(3):
+		yield x*x
+		
+x, y, z = yielder()
+print x, y, z
 
 def test():
 	print ast.BYTECODE_NAMES
