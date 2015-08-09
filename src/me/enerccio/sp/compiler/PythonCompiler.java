@@ -288,8 +288,10 @@ public class PythonCompiler {
 		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
 		// create new environment
 		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, fcx.start);
-		if (builtins != null)
+		if (builtins != null) {
 			addBytecode(bytecode, Bytecode.OPEN_LOCALS, fcx.start);
+			addBytecode(bytecode, Bytecode.RESOLVE_ARGS, fcx.start);
+		}
 		// context
 		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
 		cb.value = NoneObject.NONE;

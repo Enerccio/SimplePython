@@ -1,7 +1,8 @@
 def y(**kwargs):
 	print kwargs
 	
-import ast
+print __name__
+print __thismodule__
 
 def test():
 	print ast.BYTECODE_NAMES

@@ -125,12 +125,16 @@ public class ModuleObject extends PythonObject {
 		
 		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame.getLast();
 		
+		DictObject args = new DictObject();
+		args.put(__THISMODULE__, this);
+		args.put(__NAME__, new StringObject(provider.getModuleName()));
+		
+		PythonInterpreter.interpreter.get().setArgs(args);
+		
 		PythonInterpreter.interpreter.get().executeAll(cfc);
 		
 		globals = newFrame.environment.getLocals();
 		Utils.putPublic(this, __DICT__, globals);
-		globals.backingMap.put(new StringObject(__THISMODULE__), this);
-		globals.backingMap.put(new StringObject(__NAME__), new StringObject(provider.getModuleName()));
 	}
 
 	/**
