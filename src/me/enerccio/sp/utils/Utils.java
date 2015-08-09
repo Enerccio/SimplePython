@@ -409,8 +409,9 @@ public class Utils {
 		
 		DebugInformation d = null;
 		kkey.set(0);
-		if (bytecode.get(bytecode.size() - 1).getOpcode() != Bytecode.NOP)
-			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP));
+		PythonBytecode last = bytecode.get(bytecode.size() - 1);
+		if (last.getOpcode() != Bytecode.NOP)
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, null, null, last.debugModule));
 		
 		int itc = 0;
 		for (PythonBytecode b : bytecode){
@@ -419,9 +420,10 @@ public class Utils {
 			
 			if (d == null || notEqual(d, b)){
 				d = new DebugInformation();
-				d.charno = b.debugInLine;
+				d.charno = b.debugCharacter;
 				d.lineno = b.debugLine;
-				d.modulename = b.debugModule == null ? "<nomodule>" : b.debugModule;
+				d.function = b.debugFunction;
+				d.module = b.debugModule;
 				dmap.put(ii, d);
 			}
 			
@@ -562,6 +564,8 @@ public class Utils {
 			case TRUTH_VALUE:
 				w.writeInt(b.intValue);
 				break;
+			case UNPACK_KWARG:
+				break;
 			case UNPACK_SEQUENCE:
 				w.writeInt(b.intValue);
 				break;
@@ -585,8 +589,8 @@ public class Utils {
 	}
 
 	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
-		return d.charno != b.debugInLine || d.lineno != b.debugLine || 
-				(b.debugModule == null ? "<nomodule>".equals(d.modulename) : !d.modulename.equals(b.debugModule));
+		return d.charno != b.debugCharacter || d.lineno != b.debugLine
+				 || !d.module.equals(b.debugModule)  || !d.function.equals(b.debugFunction) ;
 	}
 
 	private static int insertValue(PythonObject v, Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {

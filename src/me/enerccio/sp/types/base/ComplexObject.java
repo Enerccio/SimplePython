@@ -67,11 +67,11 @@ public class ComplexObject extends NumberObject {
 	}
 	
 	public double getRealPart(){
-		return ((RealObject) Utils.get(this, REAL_ACCESSOR)).doubleValue();
+		return ((RealObject) Utils.get(this, REAL_ACCESSOR)).getJavaFloat();
 	}
 	
 	public double getImagPart(){
-		return ((RealObject) Utils.get(this, IMAG_ACCESSOR)).doubleValue();
+		return ((RealObject) Utils.get(this, IMAG_ACCESSOR)).getJavaFloat();
 	}
 
 	@Override

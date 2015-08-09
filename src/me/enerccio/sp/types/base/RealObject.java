@@ -63,14 +63,6 @@ public class RealObject extends NumberObject {
 		return Double.valueOf(value).hashCode();
 	}
 
-	public float floatValue() {
-		return (float)doubleValue();
-	}
-	
-	public double doubleValue(){
-		return value;
-	}
-
 	@Override
 	protected PythonObject getIntValue() {
 		return IntObject.valueOf(new Double(value).longValue());

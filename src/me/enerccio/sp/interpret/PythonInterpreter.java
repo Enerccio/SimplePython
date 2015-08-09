@@ -282,8 +282,9 @@ public class PythonInterpreter extends PythonObject {
 	 * @param e
 	 */
 	private void handleException(PythonExecutionException e) {
-		currentFrame.peekLast().exception = e.getException();
-		PythonObject stack = Utils.run("getattr", exception(), new StringObject("stack"));
+		PythonObject pe = e.getException();
+		currentFrame.peekLast().exception = pe;
+		PythonObject stack = pe.get("stack", null);
 		if (stack instanceof ListObject){
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
@@ -295,8 +296,13 @@ public class PythonInterpreter extends PythonObject {
 	 * Inserts current instruction into stack
 	 * @return
 	 */
-	private StringObject makeStack() {
-		return new StringObject(makeStackString());
+	private PythonException.StackElement makeStack() {
+		FrameObject o = currentFrame.getLast();
+		if (o == null)
+			return PythonException.LAST_FRAME; 
+		if (o.debugLine < 0)
+			return PythonException.SYSTEM_FRAME;
+		return new PythonException.StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
 	}
 
 	/**
@@ -320,6 +326,14 @@ public class PythonInterpreter extends PythonObject {
 	private ExecutionResult executeSingleInstruction(FrameObject o) {
 		int spc = o.pc;
 		o.dataStream.position(spc);
+
+		DebugInformation dd = o.compiled.getDebugInformation(spc);
+
+		o.debugModule = dd.module;
+		o.debugLine = dd.lineno;
+		o.debugFunction = dd.function;
+		o.debugInLine = dd.charno;
+		
 		Bytecode opcode = o.nextOpcode();
 		Stack<PythonObject> stack = o.stack;
 		
@@ -330,12 +344,6 @@ public class PythonInterpreter extends PythonObject {
 			else
 				stack.push(returnee);
 		}
-		
-		DebugInformation dd = o.compiled.getDebugInformation(spc);
-
-		o.debugModule = dd.modulename;
-		o.debugLine = dd.lineno;
-		o.debugInLine = dd.charno;
 		
 		if (TRACE_ENABLED)
 			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
@@ -393,10 +401,10 @@ public class PythonInterpreter extends PythonObject {
 					throw Utils.throwException("TypeError", returnee + ": last argument must be a 'tuple'");
 				PythonObject[] vra = ((TupleObject)tp).getObjects();
 				args = new PythonObject[va2.length - 1 + vra.length];
-				for (int i=0; i<va2.length; i++)
+				for (int i=0; i<va2.length - 1; i++)
 					args[i] = va2[i];
 				for (int i=0; i<vra.length; i++)
-					args[i + va2.length] = va2[i];
+					args[i + va2.length - 1] = vra[i];
 			}
 			
 			returnee = execute(false, runnable, o.kwargs, args);
@@ -583,11 +591,18 @@ public class PythonInterpreter extends PythonObject {
 			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())), stack.pop(), false, false);
 			break;
 		case KWARG:
-			// saves value into environment as variable
+			// stores kwargs using stored list of key names
 			jv = o.nextInt();
-			o.kwargs = new KwArgs.HashMapKWArgs();
-			for (int i=0; i<jv; i++)
-				o.kwargs.put(o.compiled.getConstant(o.nextInt()).toString(), stack.pop());
+			boolean doingNew = o.kwargs == null;
+			if (doingNew)
+				o.kwargs = new KwArgs.HashMapKWArgs();
+			for (int i=0; i<jv; i++) {
+				String key = o.compiled.getConstant(o.nextInt()).toString();
+				if (!doingNew)
+					if (o.kwargs.contains(key))
+						throw Utils.throwException("TypeError", "got multiple values for keyword argument '" + key + "'");
+				o.kwargs.put(key, stack.pop());
+			}
 			break;
 		case SAVE_LOCAL:
 			// saves the value exactly into locals (used by def and clas)
@@ -658,6 +673,29 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(obj);
 			
 			break;
+		case UNPACK_KWARG: {
+			value = stack.pop();
+			PythonObject keysFn = value.get("keys", null);
+			PythonObject getItemFn = value.get("__getitem__", null);
+			if ((keysFn == null) || (getItemFn == null))
+				Utils.throwException("TypeError", "argument after ** must be a mapping, not " + value.toString());
+			iterator = Utils.run("iter", execute(true, keysFn, null)).get(GeneratorObject.NEXT, null);
+			if (o.kwargs == null)
+				o.kwargs = new KwArgs.HashMapKWArgs();
+			try {
+				while (true) {
+					PythonObject key = execute(true, iterator, null);
+					returnee = execute(true, getItemFn, null, key);
+					o.kwargs.put(key.toString(), returnee);
+				}
+			} catch (PythonExecutionException e){
+				if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue()){
+					; // nothing
+				} else
+					throw e;
+			}
+			break;
+		}
 		case PUSH_LOCAL_CONTEXT:
 			// pushes value from stack into currentContex and makrs the push into frame
 			o.localContext = stack.pop();

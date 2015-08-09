@@ -56,11 +56,18 @@ public class PythonExecutionException extends RuntimeException {
 		
 		try {
 			List<StackTraceElement> stl = new ArrayList<StackTraceElement>(Arrays.asList(el));
-			ListObject lo = (ListObject) exception.fields.get("stack").object;
-			List<PythonObject> pstack = new ArrayList<PythonObject>(lo.objects);
-			Collections.reverse(pstack);
-			for (PythonObject o : pstack)
-				stl.add(0, new StackTraceElement("<python>", o.toString(), null, -2));
+			PythonObject stack = exception.get("stack", null);
+			if (stack != null) {
+				List<PythonObject> pstack = new ArrayList<PythonObject>(((ListObject)stack).objects);
+				Collections.reverse(pstack);
+				for (PythonObject o : pstack) {
+					if (!(o instanceof PythonException.StackElement))
+						// Shouldn't actually happen
+						continue;
+					PythonException.StackElement se = (PythonException.StackElement)o;
+					stl.add(0, new StackTraceElement(se.module.getName(), se.function, se.module.getFileName(), se.line));
+				}
+			}
 			setStackTrace(stl.toArray(new StackTraceElement[stl.size()]));
 		} catch (Exception e){
 			setStackTrace(el);
@@ -81,7 +88,5 @@ public class PythonExecutionException extends RuntimeException {
 
 	public void setException(PythonObject exception) {
 		this.exception = exception; // exception.fields.get("stack").object.toString().replace(">,", ">,\n")
-	}
-	
-	
+	}	
 }
