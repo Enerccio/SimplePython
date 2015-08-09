@@ -28,9 +28,9 @@ PUSH_FRAME=15
 PUSH_EXCEPTION=16
 OPEN_LOCALS=17 
 PUSH_LOCALS=18
-POP=32 
-PUSH=33 
-CALL=34 
+POP=31 
+PUSH=32 
+CALL=33 
 RCALL=35 
 ECALL=36 
 DUP=37
@@ -68,11 +68,11 @@ def get_bytecode_types():
     bytecode_names = {}
     bytecode_numbers = {}
     g = globals()
-    for name in g.keys():
-        value = g[name]
+    for nameXX in g.keys():
+        value = g[nameXX]
         if type(value) == int:
-            bytecode_names[value] = name
-            bytecode_numbers[name] = value
+            bytecode_names[value] = nameXX
+            bytecode_numbers[nameXX] = value
     return bytecode_names, bytecode_numbers
 
 BYTECODE_NAMES, BYTECODE_NUMBERS = get_bytecode_types()

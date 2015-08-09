@@ -138,12 +138,12 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public class PythonCompiler {
 	public static volatile long genFunc = 0;
-	private static ModuleInfo GENERATED_FUNCTIONS = new ModuleInfo() {
+	private static final ModuleInfo GENERATED_FUNCTIONS = new ModuleInfo() {
 		@Override public ModuleProvider getIncludeProvider() { return null ; }
 		@Override public String getName() { return "<generated-functions>"; };
 		@Override public String getFileName() { return getName(); }
 	};
-	private static ModuleInfo EVAL_FUNCTIONS = new ModuleInfo() {
+	private static final ModuleInfo EVAL_FUNCTIONS = new ModuleInfo() {
 		@Override public ModuleProvider getIncludeProvider() { return null ; }
 		@Override public String getName() { return "<eval>"; };
 		@Override public String getFileName() { return getName(); }
@@ -2052,7 +2052,7 @@ public class PythonCompiler {
 				/** Stack: TOP -> set(list) */
 			} else {
 				// dict - Get setitem method
-				putGetAttr("__setitem__", bytecode, cCtx.start);
+				putGetAttr(DictObject.__SETITEM__, bytecode, cCtx.start);
 				compileCompFor(dictorsetmaker.dictentry(0), cCtx, bytecode);
 				/** Stack: TOP -> dict -> dict.put */
 				addBytecode(bytecode, Bytecode.POP, dictorsetmaker.start);
@@ -2187,7 +2187,7 @@ public class PythonCompiler {
 			FargContext fctx = ctx.farg(i);
 			if (fctx.test() != null){
 				addBytecode(bytecode, Bytecode.DUP, fctx.start);
-				putGetAttr("__setitem__", bytecode, fctx.start);
+				putGetAttr(DictObject.__SETITEM__, bytecode, fctx.start);
 				cb = addBytecode(bytecode, Bytecode.PUSH, fctx.start);
 				cb.value = new StringObject(fctx.nname().getText());
 				compile(fctx.test(), bytecode);
@@ -2325,12 +2325,12 @@ public class PythonCompiler {
 					throw Utils.throwException("SyntaxError", "list indices must be integers, not tuple");
 				SubscriptContext s = t.subscriptlist().subscript(0);
 				if (s.stest() != null) {
-					// xyz[a] = ...
-					putGetAttr("__setitem__", bytecode, s.stest().start);
-					addBytecode(bytecode, Bytecode.SWAP_STACK, s.stest().start);
-					compile(s.stest().test(), bytecode);
-					addBytecode(bytecode, Bytecode.SWAP_STACK, s.stest().stop);
-					cb = addBytecode(bytecode, Bytecode.CALL, s.stest().stop);
+					// xyz[a] = value
+					// 																// stack -> value -> xyz
+					putGetAttr(DictObject.__SETITEM__, bytecode, s.stest().start);	// stack -> value -> xyz.__SETITEM__
+					addBytecode(bytecode, Bytecode.SWAP_STACK, s.stest().stop);		// stack -> xyz.__SETITEM__ -> value 
+					compile(s.stest().test(), bytecode);							// stack -> xyz.__SETITEM__ -> value -> a
+					cb = addBytecode(bytecode, Bytecode.KCALL, s.stest().stop);		
 					cb.intValue = 2;
 				} else {
 					// xyz[a:b] = ...

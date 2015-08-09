@@ -37,7 +37,7 @@ public enum Bytecode {
 	OPEN_LOCALS(17), PUSH_LOCALS(18),
 	
 	// control
-	POP(32), PUSH(33), CALL(34), RCALL(35), ECALL(36), DUP(37),
+	POP(31), PUSH(32), CALL(33), KCALL(34), RCALL(35), ECALL(36), DUP(37),
 	SWAP_STACK(38), JUMPIFTRUE(39), JUMPIFFALSE(40), JUMPIFNONE(41),
 	JUMPIFNORETURN(42), GOTO(43), RETURN(44), SAVE_LOCAL(45),
 	TRUTH_VALUE(46),
@@ -114,6 +114,10 @@ public enum Bytecode {
 			break;
 		case RCALL:
 			bytecode = new RCall();
+			bytecode.newObject();
+			break;
+		case KCALL:
+			bytecode = new KCall();
 			bytecode.newObject();
 			break;
 		case ECALL:

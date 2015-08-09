@@ -480,6 +480,9 @@ public class Utils {
 				jumpMap.put(itc, b.intValue);
 				w.writeInt(0);
 				break;
+			case KCALL:
+				w.writeInt(b.intValue);
+				break;
 			case LOAD:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
