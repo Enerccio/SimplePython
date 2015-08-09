@@ -131,4 +131,19 @@ public abstract class SequenceObject extends ContainerObject {
 		
 		return new int[]{sav, sov, stv, reverse ? 1 : 0};
 	}
+	
+	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
+		if (!(idx instanceof IntObject))
+			throw Utils.throwException("TypeError", "Index must be int");
+		int i = (int) ((IntObject)idx).intValue();
+		if (i >= o.len() || i<-(o.len()))
+			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
+		return o.valueAt(morphAround(i, o.len()));
+	}
+
+	public static int morphAround(int i, int len) {
+		if (i<0)
+			return len-(Math.abs(i));
+		return i;
+	}
 }

@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.utils;
 
-import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,9 +24,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -50,7 +46,6 @@ import me.enerccio.sp.parser.formatterParser.Replacement_field_liteContext;
 import me.enerccio.sp.parser.formatterParser.SegmentContext;
 import me.enerccio.sp.parser.formatterParser.SegmentsContext;
 import me.enerccio.sp.parser.formatterParser.TextContext;
-import me.enerccio.sp.parser.formatterLexer;
 import me.enerccio.sp.parser.formatterParser.Text_fspecContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -58,7 +53,7 @@ import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 
 public class Formatter {
 
@@ -86,16 +81,7 @@ public class Formatter {
 
 	public Formatter format(String value) {
 		try {
-			ANTLRInputStream is = new ANTLRInputStream(new ByteArrayInputStream(value.getBytes()));
-			formatterLexer lexer = new formatterLexer(is);
-			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener("<input string>"));
-			CommonTokenStream stream = new CommonTokenStream(lexer);
-			formatterParser parser = new formatterParser(stream);
-			
-			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener("<input string>"));
-			p = parser;
+			p = ParserGenerator.parseFormatter(value);
 		} catch (Exception e){
 			throw Utils.throwException("RuntimeError", "format(): internal error", e);
 		}

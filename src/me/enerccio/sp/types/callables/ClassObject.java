@@ -32,6 +32,7 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
+import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -104,7 +105,7 @@ public class ClassObject extends CallableObject {
 		ClassInstanceObject instance = new ClassInstanceObject();
 		Utils.putPublic(instance, __CLASS__, this);
 		
-		List<ClassObject> bbases = Utils.resolveDiamonds(this);
+		List<ClassObject> bbases = DiamondResolver.resolveDiamonds(this);
 		
 		for (ClassObject o : bbases){
 			addToInstance(o.fields.get(__DICT__).object, instance, o);

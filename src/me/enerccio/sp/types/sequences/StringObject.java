@@ -115,7 +115,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 
 	@Override
 	public PythonObject get(PythonObject key) {
-		return Utils.doGet(this, key);
+		return doGet(this, key);
 	}
 
 	@Override

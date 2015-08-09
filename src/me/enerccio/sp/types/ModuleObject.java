@@ -29,6 +29,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -49,7 +50,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
 		
 		try {
-			pythonParser p = Utils.parse(this.provider);
+			pythonParser p = ParserGenerator.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
 				frame = new PythonCompiler().doCompile(fcx, this, PythonRuntime.runtime.getGlobals());

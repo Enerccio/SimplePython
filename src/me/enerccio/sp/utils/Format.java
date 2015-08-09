@@ -17,14 +17,9 @@
  */
 package me.enerccio.sp.utils;
 
-import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.parser.formatLexer;
 import me.enerccio.sp.parser.formatParser;
 import me.enerccio.sp.parser.formatParser.FintegerContext;
 import me.enerccio.sp.parser.formatParser.Format_specificationContext;
@@ -33,7 +28,7 @@ import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.sequences.StringObject;
-import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 
 public class Format {
 	
@@ -45,16 +40,7 @@ public class Format {
 	private formatParser p;
 	public Format format(String value) {
 		try {
-			ANTLRInputStream is = new ANTLRInputStream(new ByteArrayInputStream(value.getBytes()));
-			formatLexer lexer = new formatLexer(is);
-			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener("<input string>"));
-			CommonTokenStream stream = new CommonTokenStream(lexer);
-			formatParser parser = new formatParser(stream);
-			
-			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener("<input string>"));
-			p = parser;
+			p = ParserGenerator.parseFormat(value);
 		} catch (Exception e){
 			throw Utils.throwException("RuntimeError", "__format__(): internal error", e);
 		}

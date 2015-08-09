@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 
 import me.enerccio.sp.runtime.ModuleProvider;
-import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.utils.StaticTools.IOUtils;
 
 /**
  * PythonPath resolver. This is standard disk python path resolver. You provide path and SP will search there for .spy files and packages
@@ -68,7 +68,7 @@ public class PythonPathResolver implements PythonDataSourceResolver {
 
 	private ModuleProvider doResolve(File path, String name, String mname, String resolvePath, boolean isp) throws Exception {
 		return new ModuleProvider(mname, path.getName(), 
-				Utils.toByteArray(new FileInputStream(path)), 
+				IOUtils.toByteArray(new FileInputStream(path)), 
 				path.getParentFile().equals(rootPath) ? "" : (!resolvePath.equals("") ? (resolvePath + ".") : "") + path.getParentFile().getName(), isp);
 	}
 

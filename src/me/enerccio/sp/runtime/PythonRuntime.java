@@ -34,9 +34,6 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.Disassembler;
@@ -55,7 +52,6 @@ import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -114,8 +110,10 @@ import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.StaticTools.DiamondResolver;
+import me.enerccio.sp.utils.StaticTools.IOUtils;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
-import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
 
 /**
  * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
@@ -508,7 +506,11 @@ public class PythonRuntime {
 					
 					pythonParser p;
 					try {
-						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), null, false));
+						p = ParserGenerator.parse(new ModuleProvider("builtin", 
+																	 "builtin", 
+																	 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), 
+																	 null, 
+																	 false));
 					} catch (Exception e1) {
 						throw new PythonException("Failed to initialize python!");
 					}
@@ -562,16 +564,7 @@ public class PythonRuntime {
 			PythonCompiler c = new PythonCompiler();
 			String src = ((StringObject)source).value;
 
-			ANTLRInputStream is = new ANTLRInputStream(src);
-			pythonLexer lexer = new pythonLexer(is);
-			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener(filename.value));
-			CommonTokenStream stream = new CommonTokenStream(lexer);
-			pythonParser parser = new pythonParser(stream);
-			
-			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener(filename.value));
-			block = c.doCompile(parser.file_input(), filename.value);
+			block = c.doCompile(ParserGenerator.parseCompileFunction(src, filename.value).file_input(), filename.value);
 		} else if (isderived(source, AST)){
 			ListObject lo = (ListObject)PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("get_bytecode")), null);
 			// mundane check
@@ -658,17 +651,7 @@ public class PythonRuntime {
 		CompiledBlockObject block;
 		
 		PythonCompiler c = new PythonCompiler();
-
-		ANTLRInputStream is = new ANTLRInputStream(code);
-		pythonLexer lexer = new pythonLexer(is);
-		lexer.removeErrorListeners();
-		lexer.addErrorListener(new ThrowingErrorListener("<eval>"));
-		CommonTokenStream stream = new CommonTokenStream(lexer);
-		pythonParser parser = new pythonParser(stream);
-		
-		parser.removeErrorListeners();
-		parser.addErrorListener(new ThrowingErrorListener("<eval>"));
-		block = c.doCompileEval(parser.eval_input());
+		block = c.doCompileEval(ParserGenerator.parseEval(code).eval_input());
 		
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
@@ -760,7 +743,7 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject mro(ClassObject clazz){
-		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
+		List<ClassObject> ll = DiamondResolver.resolveDiamonds(clazz);
 		Collections.reverse(ll);
 		TupleObject to = (TupleObject) Utils.list2tuple(ll);
 		to.newObject();
