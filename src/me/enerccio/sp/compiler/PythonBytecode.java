@@ -51,6 +51,12 @@ public class PythonBytecode extends PythonObject {
 	}
 	
 	@Override
+	public String toString(){
+		String str = super.toString();
+		return str.replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r");
+	}
+	
+	@Override
 	public void newObject(){
 		super.newObject();
 		
@@ -97,6 +103,11 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DEL;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s) - %s", getOpcode().toString(), stringValue, booleanValue);
+		}
 	}
 	
 	public static class DelAttr extends PythonBytecode {
@@ -107,6 +118,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.DELATTR;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	
@@ -129,6 +145,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode. LOADBUILTIN;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	
@@ -162,6 +183,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.YIELD;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	

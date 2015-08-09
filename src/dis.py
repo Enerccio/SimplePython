@@ -29,5 +29,17 @@ def dis(object):
 
 def dis_compiled_block(cb):
     dass = javainstance("disassembler", cb.co_code, cb.co_consts, cb.co_debug)
+    last_lineno = 1
     for bytecode in dass:
-        print bytecode
+        s = ""
+        if last_lineno == -1:
+           print "function " + bytecode._function + ": "
+        if bytecode._lineno > last_lineno:
+            s += str(bytecode._lineno) + "\t"
+            last_lineno = bytecode._lineno 
+        else:
+            s += "\t"
+        
+        s += str(dass.last_bytecode_pos) + "\t"
+        s += str(bytecode)
+        print s

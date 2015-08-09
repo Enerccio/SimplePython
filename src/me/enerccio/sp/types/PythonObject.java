@@ -196,7 +196,7 @@ public abstract class PythonObject implements Serializable {
 	}
 	
 	@Override
-	public final String toString(){
+	public String toString(){
 		return doToString();
 	}
 	
