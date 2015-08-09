@@ -155,7 +155,7 @@ public class CompiledBlockObject extends PythonObject {
 		while (b.hasRemaining()){
 			StringBuilder bd = new StringBuilder();
 			int pos = b.position();
-			Bytecode opcode = Bytecode.fromNumber(b.get());
+			Bytecode opcode = Bytecode.fromNumber(((short) (b.get() & 0xff)));
 			
 			bd.append(String.format("{fc: %s, ac: %s} ", PythonInterpreter.interpreter.get().currentFrame.size(), PythonInterpreter.interpreter.get().getAccessCount()));
 			
