@@ -19,8 +19,8 @@ License along with this library.
 """
 
 def get_bytecode_types():
-    bytecode_names = bytecode.names()
-    bytecode_numbers = bytecode.numbers()
+    bytecode_names = bytecode.names
+    bytecode_numbers = bytecode.numbers
     g = globals()
     for name in bytecode_names.keys():
         g[name] = bytecode_names[name]

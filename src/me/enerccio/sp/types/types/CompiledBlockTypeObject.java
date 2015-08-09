@@ -54,7 +54,7 @@ public class CompiledBlockTypeObject extends TypeObject {
 			for (PythonObject key : mm.keySet()){
 				if (!(key instanceof IntObject))
 					throw new CastFailedException("blah");
-				consts.put(((IntObject)key).getJavaInt().intValue(), mm.get(key));
+				consts.put((int) ((IntObject)key).getJavaInt(), mm.get(key));
 			}
 			PythonRuntime.runtime.checkSandboxAction("compiled_block", SecureAction.RUNTIME_COMPILE, s, consts);
 			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(), consts);

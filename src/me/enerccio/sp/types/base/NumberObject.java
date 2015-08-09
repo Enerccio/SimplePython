@@ -83,7 +83,7 @@ public abstract class NumberObject extends PythonObject {
 	protected abstract PythonObject getIntValue();
 	
 	/** Converts number to BigInteger */ 
-	public abstract Long getJavaInt();
+	public abstract long getJavaInt();
 	/** Converts number to float */
 	public abstract double getJavaFloat();
 	

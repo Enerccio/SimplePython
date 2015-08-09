@@ -2,20 +2,16 @@ def test():
 	W().test()
 
 import dis
+import ast
 
 class W(object):
 	def __init__(self):
 		super(W, self).__init__()
 		
 	def test(self):
-		y = compile("print 10", "anca");
-		print y
-		print dir(y)
-		print y.co_code
-		print y.co_consts
-		print y.co_debug
-		
+		y = compile("print 10\na = 5\nprint a\ndef aaa(): \n\tprint aaa\naaa()\nraise ValueError, 'test'", "anca");
 		dis.dis(y)
+		exec y 
 		
 		"""
 		x = 1
