@@ -582,8 +582,9 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case RETURN:
 			// removes the frame and returns value
-			if (o.ownedGenerator != null && !o.yielding)
-				throw Utils.throwException("StopIteration");
+			if (o.ownedGenerator != null)
+				if (!o.yielding)
+					throw Utils.throwException("StopIteration");
 			if (o.nextInt() == 1) {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
@@ -834,7 +835,7 @@ public class PythonInterpreter extends PythonObject {
 				List<FrameObject> ol = new ArrayList<FrameObject>();
 				FrameObject oo = o;
 				while (oo != null){
-					ol.add(oo);
+					ol.add(oo.cloneFrame());
 					oo = oo.parentFrame;
 				}
 				Collections.reverse(ol);

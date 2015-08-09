@@ -1,15 +1,14 @@
 def y(**kwargs):
 	print kwargs
 	
-print __name__
-print __thismodule__
+# import ast
 
 def yielder():
 	for x in xrange(3):
-		yield x*x
-		
-x, y, z = yielder()
-print x, y, z
+		yield -x
+
+a, b, c = yielder()
+print a, b, c
 
 def test():
 	print ast.BYTECODE_NAMES

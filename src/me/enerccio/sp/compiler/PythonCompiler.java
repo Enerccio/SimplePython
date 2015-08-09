@@ -1184,6 +1184,7 @@ public class PythonCompiler {
 
 	private void compile(Yield_stmtContext ctx, List<PythonBytecode> bytecode) {
 		compile(ctx.yield_expr(), bytecode);
+		addBytecode(bytecode, Bytecode.POP, ctx.start);
 	}
 
 	private void compile(Yield_exprContext ctx, List<PythonBytecode> bytecode) {
