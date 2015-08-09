@@ -1,9 +1,13 @@
 def y(**kwargs):
 	print kwargs
+	
+import ast
 
 def test():
-	y(anca=5)
+	print ast.BYTECODE_NAMES
+	print ast.BYTECODE_NUMBERS
 	
+	"""
 	x = 1
 	print x.__format__("b")
 	print x.__format__("c")
@@ -13,3 +17,4 @@ def test():
 	print x.__format__("X")
 	print x.__format__("n")
 	print x.__format__("")
+	"""

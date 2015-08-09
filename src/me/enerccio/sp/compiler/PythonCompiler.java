@@ -55,6 +55,8 @@ import me.enerccio.sp.parser.pythonParser.Dotted_as_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_as_namesContext;
 import me.enerccio.sp.parser.pythonParser.Dotted_nameContext;
 import me.enerccio.sp.parser.pythonParser.Dynamic_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Eval_inputContext;
+import me.enerccio.sp.parser.pythonParser.Exec_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprContext;
 import me.enerccio.sp.parser.pythonParser.Expr_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ExprlistContext;
@@ -134,7 +136,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
  *
  */
 public class PythonCompiler {
-	private static volatile long genFunc = 0;
+	public static volatile long genFunc = 0;
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
@@ -199,6 +201,71 @@ public class PythonCompiler {
 		
 		compilingFunction.pop();
 		return fnc;
+	}
+	
+	public CompiledBlockObject doCompile(File_inputContext fcx, String filename){
+		moduleName = filename;
+		stack.push();
+		compilingFunction.push(null);
+		compilingClass.push(null);
+		
+		ArrayList<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+		
+		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, fcx.start);
+		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
+		cb.value = NoneObject.NONE;
+		addBytecode(bytecode, Bytecode.PUSH_LOCAL_CONTEXT, fcx.start);
+		
+		compilingClass.push(null);
+		for (Label_or_stmtContext ls : fcx.label_or_stmt()){
+			compile(ls, bytecode, null);
+		}
+		compilingClass.pop();
+		
+		CompiledBlockObject block = new CompiledBlockObject(bytecode);
+		block.newObject();
+		
+		stack.pop();
+		compilingClass.pop();
+		compilingFunction.pop();
+		
+		return block;
+	}
+	
+	public CompiledBlockObject doCompileEval(Eval_inputContext ecx){
+		moduleName = "eval-function";
+		stack.push();
+		compilingFunction.push("eval-function");
+		compilingClass.push(null);
+		
+		ArrayList<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+		
+		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, ecx.start);
+		cb = addBytecode(bytecode, Bytecode.PUSH, ecx.start);
+		cb.value = NoneObject.NONE;
+		addBytecode(bytecode, Bytecode.PUSH_LOCAL_CONTEXT, ecx.start);
+		
+		compilingClass.push(null);
+		int i = 0;
+		int total = ecx.testlist().test().size();
+		for (TestContext tc : ecx.testlist().test()){
+			compile(tc, bytecode);
+			if (i != total-1)
+				addBytecode(bytecode, Bytecode.POP, tc.stop);
+		}
+		cb = addBytecode(bytecode, Bytecode.RETURN, ecx.stop);
+		cb.intValue = 0;
+		
+		compilingClass.pop();
+		
+		CompiledBlockObject block = new CompiledBlockObject(bytecode);
+		block.newObject();
+		
+		stack.pop();
+		compilingClass.pop();
+		compilingFunction.pop();
+		
+		return block;
 	}
 	
 	/**
@@ -938,7 +1005,31 @@ public class PythonCompiler {
 			compile(smstmt.dynamic_stmt(), bytecode);
 		} else if (smstmt.del_stmt() != null){
 			compile(smstmt.del_stmt(), bytecode);
+		} else if (smstmt.exec_stmt() != null){
+			compile(smstmt.exec_stmt(), bytecode);
 		}
+	}
+
+	private void compile(Exec_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+		cb.stringValue = "exec_function";
+		compile(ctx.expr(), bytecode);
+		if (ctx.test().size() == 2){
+			compile(ctx.test(0), bytecode);
+			compile(ctx.test(1), bytecode);
+		} else if (ctx.test().size() == 1){
+			compile(ctx.test(0), bytecode);
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+		} else {
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+		}
+		cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+		cb.intValue = 3;
 	}
 
 	private void compile(Del_stmtContext ctx, List<PythonBytecode> bytecode) {

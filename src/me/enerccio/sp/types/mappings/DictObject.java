@@ -238,4 +238,14 @@ public class DictObject extends ContainerObject {
 			throw Utils.throwException("NameError", "__delkey__(): unknown key '" + key.toString() + "'");
 		backingMap.remove(key);
 	}
+
+	public synchronized Map<PythonObject, PythonObject> asRegularDict() {
+		Map<PythonObject, PythonObject> map = new HashMap<PythonObject, PythonObject>();
+		
+		for (PythonProxy pyproxy : backingMap.keySet()){
+			map.put(pyproxy.o, backingMap.get(pyproxy));
+		}
+		
+		return map;
+	}
 }

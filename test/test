@@ -1,1 +1,3 @@
-anca={anca[0][wtfman]!s:C<+{1.anca},.20b{7}}aaaaaaaaaaa{10[4].anca!s:{5.anca[4]}}{}{{x
+def anca(a):
+	print a*a
+anca(x)

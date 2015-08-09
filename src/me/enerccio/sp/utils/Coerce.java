@@ -276,6 +276,17 @@ public class Coerce {
 				throw new CastFailedException("Can't convert " + o.toString() + " to string");
 			}
 		});
+		
+		COERCIONS.put(Map.class, new Coercion() {
+			/** Coerces boolean. Everything can be coerced to boolean */
+			@Override
+			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
+				if (o instanceof DictObject)
+					return ((DictObject)o).asRegularDict();
+				
+				throw new CastFailedException("Can't convert " + o.toString() + " to Map");
+			}
+		});
 
 }
 	

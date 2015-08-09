@@ -149,6 +149,8 @@ file_input
  string_input
  : (stmt | NEWLINE)* (stmt | EOF)
  ;
+ 
+eval_input: testlist NEWLINE* EOF;
 
 decorator
 : '@' test ('(' arglist? ')')? NEWLINE
@@ -200,7 +202,11 @@ simple_stmt
 
 small_stmt
 : (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt |
-             import_stmt | global_stmt | dynamic_stmt)
+             import_stmt | global_stmt | dynamic_stmt | exec_stmt)
+;
+
+exec_stmt
+: 'exec' expr ('in' test (',' test)?)?
 ;
 
 parenthesesless_call

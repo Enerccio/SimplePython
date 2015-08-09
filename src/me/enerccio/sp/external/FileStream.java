@@ -84,11 +84,17 @@ public class FileStream {
 	@WrapMethod
 	public StringObject read(int count){
 		byte[] data = new byte[count];
+		int rc;
 		try {
-			file.read(data);
+			rc = file.read(data);
 		} catch (IOException e) {
 			throw Utils.throwException("IOError", "read failed", e);
 		}
+		
+		data = truncate(data, rc);
+		if (data.length == 0)
+			return new StringObject("");
+		
 		if (bytestream)
 			return new StringObject(new String(data));
 		else
@@ -99,6 +105,16 @@ public class FileStream {
 			}
 	}
 	
+	private byte[] truncate(byte[] data, int rc) {
+		if (rc == -1)
+			return new byte[0];
+		
+		byte[] b = new byte[rc];
+		for (int i=0; i<rc; i++)
+			b[i] = data[i];
+		return b;
+	}
+
 	@WrapMethod
 	public void seek(int pos, int whence) {
 		try {

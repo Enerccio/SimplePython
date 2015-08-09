@@ -181,6 +181,14 @@ class file(object):
     def writeline(self, seq):
         for x in iter(seq):
             self.write(x)
+            
+    def read_all(self):
+        value = ""
+        while True:
+            n = self.read(256)
+            if n == "":
+                return value
+            value += n
         
 def filter(f, it):
     l = []
