@@ -1,9 +1,11 @@
 def y(**kwargs):
 	print kwargs
+	
+import ast
 
 def test():
-	x = 15
-	print eval("x*x*2")
+	print ast.BYTECODE_NAMES
+	print ast.BYTECODE_NUMBERS
 	
 	"""
 	x = 1
