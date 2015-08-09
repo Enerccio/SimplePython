@@ -27,6 +27,8 @@ import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -57,6 +59,8 @@ public class FunctionTypeObject extends TypeObject {
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 7)
 			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 7, got " + args.len());
+		
+		PythonRuntime.runtime.checkSandboxAction("function", SecureAction.RUNTIME_COMPILE);
 		
 		String src = null;
 		DictObject dict = null;
