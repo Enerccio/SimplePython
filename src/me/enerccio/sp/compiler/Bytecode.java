@@ -90,191 +90,191 @@ public enum Bytecode {
 		switch (b) {
 		case CALL:
 			bytecode = new Call();
-			bytecode.newObject();
+			
 			break;
 		case DEL:
 			bytecode = new Del();
-			bytecode.newObject();
+			
 			break;
 		case DELATTR:
 			bytecode = new DelAttr();
-			bytecode.newObject();
+			
 			break;
 		case RESOLVE_CLOSURE:
 			bytecode = new ResolveClosure();
-			bytecode.newObject();
+			
 			break;
 		case LOADBUILTIN:
 			bytecode = new LoadBuiltin();
-			bytecode.newObject();
+			
 			break;
 		case PUSH_LOCALS:
 			bytecode = new PushLocals();
-			bytecode.newObject();
+			
 			break;
 		case RCALL:
 			bytecode = new RCall();
-			bytecode.newObject();
+			
 			break;
 		case KCALL:
 			bytecode = new KCall();
-			bytecode.newObject();
+			
 			break;
 		case ECALL:
 			bytecode = new ECall();
-			bytecode.newObject();
+			
 			break;
 		case ACCEPT_ITER:
 			bytecode = new AcceptIter();
-			bytecode.newObject();
+			
 			break;
 		case TRUTH_VALUE:
 			bytecode = new TruthValue();
-			bytecode.newObject();
+			
 			break;
 		case DUP:
 			bytecode = new Dup();
-			bytecode.newObject();
+			
 			break;
 		case GOTO:
 			bytecode = new Goto();
-			bytecode.newObject();
+			
 			break;
 		case JUMPIFFALSE:
 			bytecode = new JumpIfFalse();
-			bytecode.newObject();
+			
 			break;
 		case JUMPIFTRUE:
 			bytecode = new JumpIfTrue();
-			bytecode.newObject();
+			
 			break;
 		case JUMPIFNONE:
 			bytecode = new JumpIfNone();
-			bytecode.newObject();
+			
 			break;
 		case JUMPIFNORETURN:
 			bytecode = new JumpIfNoReturn();
-			bytecode.newObject();
+			
 			break;
 		case LOAD:
 			bytecode = new Load();
-			bytecode.newObject();
+			
 			break;
 		case LOADGLOBAL:
 			bytecode = new LoadGlobal();
-			bytecode.newObject();
+			
 			break;
 		case NOP:
 			bytecode = new Nop();
-			bytecode.newObject();
+			
 			break;
 		case POP:
 			bytecode = new Pop();
-			bytecode.newObject();
+			
 			break;
 		case PUSH:
 			bytecode = new Push();
-			bytecode.newObject();
+			
 			break;
 		case PUSH_ENVIRONMENT:
 			bytecode = new PushEnvironment();
-			bytecode.newObject();
+			
 			break;
 		case RETURN:
 			bytecode = new Return();
-			bytecode.newObject();
+			
 			break;
 		case SAVE:
 			bytecode = new Save();
-			bytecode.newObject();
+			
 			break;
 		case SAVEGLOBAL:
 			bytecode = new SaveGlobal();
-			bytecode.newObject();
+			
 			break;
 		case SAVEDYNAMIC:
 			bytecode = new SaveDynamic();
-			bytecode.newObject();
+			
 			break;
 		case LOADDYNAMIC:
 			bytecode = new LoadDynamic();
-			bytecode.newObject();
+			
 			break;
 		case IMPORT:
 			bytecode = new Import();
-			bytecode.newObject();
+			
 			break;
 		case SWAP_STACK:
 			bytecode = new SwapStack();
-			bytecode.newObject();
+			
 			break;
 		case KWARG:
 			bytecode = new KwArg();
-			bytecode.newObject();
+			
 			break;
 		case UNPACK_KWARG:
 			bytecode = new UnpackKwArg();
-			bytecode.newObject();
+			
 			break;
 		case UNPACK_SEQUENCE:
 			bytecode = new UnpackSequence();
-			bytecode.newObject();
+			
 			break;
 		case PUSH_LOCAL_CONTEXT:
 			bytecode = new PushLocalContext();
-			bytecode.newObject();
+			
 			break;
 		case RESOLVE_ARGS:
 			bytecode = new ResolveArgs();
-			bytecode.newObject();
+			
 			break;
 		case GETATTR:
 			bytecode = new GetAttr();
-			bytecode.newObject();
+			
 			break;
 		case SETATTR:
 			bytecode = new SetAttr();
-			bytecode.newObject();
+			
 			break;
 		case ISINSTANCE:
 			bytecode = new IsInstance();
-			bytecode.newObject();
+			
 			break;
 		case RAISE:
 			bytecode = new Raise();
-			bytecode.newObject();
+			
 			break;
 		case RERAISE:
 			bytecode = new Reraise();
-			bytecode.newObject();
+			
 			break;
 		case PUSH_FRAME:
 			bytecode = new PushFrame();
-			bytecode.newObject();
+			
 			break;
 		case PUSH_EXCEPTION:
 			bytecode = new PushException();
-			bytecode.newObject();
+			
 			break;
 		case SAVE_LOCAL:
 			bytecode = new SaveLocal();
-			bytecode.newObject();
+			
 			break;
 		case SETUP_LOOP:
 			bytecode = new SetupLoop();
-			bytecode.newObject();
+			
 			break;
 		case GET_ITER:
 			bytecode = new GetIter();
-			bytecode.newObject();
+			
 			break;
 		case YIELD:
 			bytecode = new Yield();
-			bytecode.newObject();
+			
 			break;
 		case OPEN_LOCALS:
 			bytecode = new OpenLocals();
-			bytecode.newObject();
+			
 			break;
 		}
 		

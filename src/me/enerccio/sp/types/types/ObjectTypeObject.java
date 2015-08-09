@@ -29,6 +29,7 @@ import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -79,7 +80,12 @@ public class ObjectTypeObject extends TypeObject {
 		usf.block = new CompiledBlockObject(usfb);
 		usf.block.newObject();
 		
-		md.put(ClassInstanceObject.__INIT__, usf);
+		BoundHandleObject bh = new BoundHandleObject();
+		bh.newObject();
+		Utils.putPublic(bh, BoundHandleObject.ACCESSOR, this);
+		Utils.putPublic(bh, BoundHandleObject.FUNC, usf);
+		md.put(ClassInstanceObject.__INIT__, bh);
+		
 		try {
 			JavaFunctionObject func = null;
 			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("getattribute", new Class<?>[]{PythonObject.class, String.class}), false);

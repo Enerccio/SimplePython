@@ -916,7 +916,7 @@ public class PythonRuntime {
 		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null && v != null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
 		if (field != null && field instanceof PropertyObject){
-			if (v != null)
+			if (v == null)
 				throw Utils.throwException("AttributeError", "attribute '" + attribute + "' is a property and can't be deleted");
 			
 			((PropertyObject)field).set(v);

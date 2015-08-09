@@ -174,13 +174,15 @@ public class PythonInterpreter extends PythonObject {
 				int cfc = currentFrame.size();
 				((CallableObject)callable).call(new TupleObject(args), kwargs);
 				return executeAll(cfc);
-			} else {
+			} else if (internalCall) {
 				int cfc = currentFrame.size();
 				returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
 				if (cfc < currentFrame.size()){
 					returnee = executeAll(cfc);
 				}
 				return returnee;
+			} else {
+				return returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
 			}
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());

@@ -29,6 +29,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -36,6 +37,7 @@ public class CompiledBlockObject extends PythonObject {
 	private static final long serialVersionUID = -3047853375265834154L;
 	public static final String CO_CODE = "co_code";
 	public static final String CO_CONSTS = "co_consts";
+	public static final String CO_DEBUG = "co_debug";
 
 	private List<PythonBytecode> bytecode;
 	public CompiledBlockObject(List<PythonBytecode> bytecode){
@@ -112,12 +114,13 @@ public class CompiledBlockObject extends PythonObject {
 		}
 		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
 		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
+		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
 
 	@Override
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		if (key.equals(CO_CODE) || key.equals(CO_CONSTS))
+		if (key.equals(CO_CODE) || key.equals(CO_CONSTS) || key.equals(CO_DEBUG))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
