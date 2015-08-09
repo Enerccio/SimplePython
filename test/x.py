@@ -4,7 +4,12 @@ def y(**kwargs):
 print __name__
 print __thismodule__
 
-import ast
+def test2(*args):
+	print args
+	
+	
+x = "abcd"
+test2(*x)
 
 def test():
 	print ast.BYTECODE_NAMES

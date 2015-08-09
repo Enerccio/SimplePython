@@ -509,8 +509,9 @@ classdef:
  'class' nname ('(' testlist? ')')? ':' suite
 ;
 
-arglist:
- (argument ',')* ( argument (',' '*' test)? (',' arg_kwexpand)? )
+arglist: (argument ',')* (argument ','?
+                         |'*' test (',' argument)* (',' arg_kwexpand)? 
+                         | arg_kwexpand)
 ;
 
 arg_kwexpand:

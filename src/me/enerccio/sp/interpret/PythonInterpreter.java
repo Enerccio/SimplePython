@@ -395,16 +395,15 @@ public class PythonInterpreter extends PythonObject {
 			
 			if (va){
 				PythonObject[] va2 = args;
-				PythonObject tp = va2[va2.length-1];
-				if (!(tp instanceof TupleObject))
-					// TODO: Not really...
-					throw Utils.throwException("TypeError", returnee + ": last argument must be a 'tuple'");
-				PythonObject[] vra = ((TupleObject)tp).getObjects();
-				args = new PythonObject[va2.length - 1 + vra.length];
+				PythonObject iterable = va2[va2.length-1];
+				ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(iterable), null);
+				
+				
+				args = new PythonObject[va2.length - 1 + lo.objects.size()];
 				for (int i=0; i<va2.length - 1; i++)
 					args[i] = va2[i];
-				for (int i=0; i<vra.length; i++)
-					args[i + va2.length - 1] = vra[i];
+				for (int i=0; i<lo.objects.size(); i++)
+					args[i + va2.length - 1] = lo.objects.get(i);
 			}
 			
 			returnee = execute(false, runnable, o.kwargs, args);
