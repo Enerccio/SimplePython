@@ -479,6 +479,7 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(frame);
 			}
 			break;
+		case KCALL:
 		case RCALL: {
 			// I have no idea what this shit is
 			PythonObject[] args = new PythonObject[o.nextInt()];
@@ -488,7 +489,7 @@ public class PythonInterpreter extends PythonObject {
 			runnable = stack.pop();
 			
 			returnee = execute(false, runnable, null, args);
-			o.accepts_return = true;
+			o.accepts_return = (opcode == Bytecode.RCALL);	// KCALL ignores returned value
 			break;
 		}
 		case GOTO:

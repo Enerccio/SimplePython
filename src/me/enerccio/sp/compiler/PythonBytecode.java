@@ -346,6 +346,19 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class KCall extends PythonBytecode {
+		private static final long serialVersionUID = 9058117934717120328L;
+
+		{
+			bytecode = Bytecode.KCALL;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), intValue);
+		}
+	}
+	
 	public static class ECall extends PythonBytecode {
 		private static final long serialVersionUID = 9058117934717120328L;
 
