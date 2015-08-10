@@ -17,8 +17,12 @@
  */
 package me.enerccio.sp.types.system;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -53,5 +57,15 @@ public class StaticMethodObject extends PythonObject {
 	@Override
 	protected String doToString() {
 		return "<static method of " + fields.get(__FUNC__).toString() + ">";
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

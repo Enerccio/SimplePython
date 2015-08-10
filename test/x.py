@@ -1,5 +1,11 @@
+def failure():
+	raise ValueError
+
 def test():
-	W().test()
+	y = 0
+	for x in xrange(1024):
+		y += x
+	print x
 
 import dis
 import ast

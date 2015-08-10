@@ -20,6 +20,7 @@ package me.enerccio.sp.types.sequences;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
@@ -54,6 +55,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(__REVERSED__,	new JavaMethodObject(XRangeObject.class, "__reversed__"));
 			sfields.put(__CONTAINS__,	new JavaMethodObject(XRangeObject.class, "__contains__", PythonObject.class));
 			sfields.put(__LEN__,		new JavaMethodObject(XRangeObject.class, "__len__")); 
@@ -63,11 +65,20 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);		
 	}
 	
 	@Override

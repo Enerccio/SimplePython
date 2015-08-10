@@ -17,6 +17,11 @@
  */
 package me.enerccio.sp.types.base;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -69,5 +74,15 @@ public class ClassInstanceObject extends PythonObject {
 		if (kw != null)
 			kw.notExpectingKWArgs();
 		return IntObject.valueOf(getId());
+	}
+
+	@Override
+	public Set<String> getGenHandleNames() {
+		return new HashSet<String>();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return new HashMap<String, JavaMethodObject>();
 	}
 }

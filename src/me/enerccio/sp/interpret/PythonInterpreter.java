@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import sun.net.www.protocol.http.HttpURLConnection.TunnelState;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
@@ -42,6 +41,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
@@ -294,7 +294,7 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject pe = e.getException();
 		currentFrame.peekLast().exception = pe;
 		PythonObject stack = pe.get("stack", null);
-		if (stack instanceof ListObject){
+		if (stack instanceof ListObject && !e.noStackGeneration){
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
 		}
@@ -559,15 +559,15 @@ public class PythonInterpreter extends PythonObject {
 				else
 					pushOntoStack(o, value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
 				break;
-			} else if (value.fields.containsKey("__nonzero__")) {
-				runnable = value.fields.get("__nonzero__").object;
+			} else if (value.get("__nonzero__", null) != null) {
+				runnable = value.get("__nonzero__", null);
 				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				if (jv == 1)
 					o.pc-=5;
 				break;
-			} else if (value.fields.containsKey("__len__")) {
-				runnable = value.fields.get("__len__").object;
+			} else if (value.get("__len__", null) != null) {
+				runnable = value.get("__len__", null);
 				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				o.pc-=5;
@@ -778,8 +778,11 @@ public class PythonInterpreter extends PythonObject {
 		}
 		case RERAISE: {
 			PythonObject s = stack.pop();
-			if (s != NoneObject.NONE)
-				throw new PythonExecutionException(s);
+			if (s != NoneObject.NONE) {
+				PythonExecutionException pee = new PythonExecutionException(s);
+				pee.noStackGeneration(true);
+				throw pee;
+			}
 			break;
 		}
 		case PUSH_FRAME:
@@ -951,7 +954,7 @@ public class PythonInterpreter extends PythonObject {
 						target,
 						true, false);
 			} else {
-				DictObject dict = (DictObject) target.fields.get(ModuleObject.__DICT__).object;
+				DictObject dict = (DictObject) target.getEditableFields().get(ModuleObject.__DICT__).object;
 				synchronized (dict){
 					synchronized (dict.backingMap){
 						for (PythonProxy key : dict.backingMap.keySet()){
@@ -988,14 +991,14 @@ public class PythonInterpreter extends PythonObject {
 			} else {
 				if (target instanceof ModuleObject){
 					ModuleObject mod = (ModuleObject)target;
-					PythonObject target2 = ((DictObject)mod.fields.get(ModuleObject.__DICT__).object).doGet(mm);
+					PythonObject target2 = ((DictObject)mod.getEditableFields().get(ModuleObject.__DICT__).object).doGet(mm);
 					if (target2 != null){
 						pythonImport(environment, variable, modulePath, target2);
 						return;
 					}
 				} 
-				if (target.fields.containsKey(mm)) {
-					pythonImport(environment, variable, modulePath, target.fields.get(mm).object);
+				if (target.get(mm, null) != null) {
+					pythonImport(environment, variable, modulePath, target.get(mm, null));
 					return;
 				} else {
 					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve()));
@@ -1070,5 +1073,14 @@ public class PythonInterpreter extends PythonObject {
 
 	public void setClosure(List<DictObject> closure) {
 		this.currentClosure = closure;
+	}
+	@Override
+	public Set<String> getGenHandleNames() {
+		return new HashSet<String>();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return new HashMap<String, JavaMethodObject>();
 	}
 }

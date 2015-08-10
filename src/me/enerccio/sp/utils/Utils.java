@@ -107,7 +107,7 @@ public class Utils {
 	 * @param value public or private
 	 */
 	public static void putPublic(PythonObject target, String key, PythonObject value) {
-		target.fields.put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+		target.getEditableFields().put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 
 	/**

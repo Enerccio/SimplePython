@@ -72,5 +72,4 @@ public class BoolObject extends NumberObject {
 	protected String doToString() {
 		return value ? "True" : "False";
 	}
-
 }

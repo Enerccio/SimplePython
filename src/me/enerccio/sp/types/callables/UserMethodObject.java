@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types.callables;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
@@ -45,6 +48,16 @@ public class UserMethodObject extends CallableObject {
 			// will not happen
 		}
 	};
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 	
 	/**
 	 * Calls this method. Will insert onto frame stack and returns None.
