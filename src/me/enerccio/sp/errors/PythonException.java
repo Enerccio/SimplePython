@@ -17,12 +17,17 @@
  */
 package me.enerccio.sp.errors;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import me.enerccio.sp.interpret.StackElement;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.sequences.ListObject;
 
 
 /**
@@ -48,6 +53,7 @@ public abstract class PythonException extends RuntimeException {
 		this.message = message;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static PythonException translate(PythonObject e) {
 		Class<? extends PythonException> jcls = null;
 		String message;
@@ -56,9 +62,19 @@ public abstract class PythonException extends RuntimeException {
 			message = e.get("__message__", null).toString();
 			if (jcls == null)
 				return null;
-			return jcls.getConstructor(String.class).newInstance(message);
+			PythonException pe = jcls.getConstructor(String.class).newInstance(message);; 
+			pe.addPythonStack((List)((ListObject)e.get("stack", null)).objects);
+			return pe; 
 		} catch (ClassCastException | NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ce) {
 			return null;
 		}
+	}
+	
+	public void addPythonStack(List<StackElement> trace) {
+		// Collections.reverse(pstack);
+		List<StackTraceElement> stl = new ArrayList<StackTraceElement>(Arrays.asList(getStackTrace()));
+		for (StackElement se : trace)
+			stl.add(0, new StackTraceElement(se.module.getName(), se.function, se.module.getFileName(), se.line));
+		setStackTrace(stl.toArray(new StackTraceElement[stl.size()]));
 	}
 }
