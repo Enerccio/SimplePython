@@ -56,6 +56,10 @@ public enum Bytecode {
 	
 	// loops, iterators, boolean stuff
 	SETUP_LOOP(128), GET_ITER(129), ACCEPT_ITER(130),
+	
+	// math macros
+	ADD(164), SUB(165), MUL(166), DIV(167), MOD(168), AND(169), OR(170), XOR(171), POW(172), RSHIFT(173), LSHIFT(174),
+	LT(175), LESS(176), GREATER(177), GE(178), EQ(179), NEW(180)
 	;
 	
 	Bytecode(int id){
@@ -274,6 +278,26 @@ public enum Bytecode {
 			break;
 		case OPEN_LOCALS:
 			bytecode = new OpenLocals();
+			
+			break;
+		case ADD:
+		case AND:
+		case DIV:
+		case EQ:
+		case GE:
+		case GREATER:
+		case LESS:
+		case LSHIFT:
+		case LT:
+		case MOD:
+		case MUL:
+		case NEW:
+		case OR:
+		case POW:
+		case RSHIFT:
+		case SUB:
+		case XOR:
+			bytecode = new BinaryOperator(b);
 			
 			break;
 		}

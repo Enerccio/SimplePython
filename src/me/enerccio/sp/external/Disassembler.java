@@ -141,34 +141,37 @@ public class Disassembler {
 				bytecode.booleanValue = readBuff.getInt() == 1;
 				break;
 			case GETATTR:
-				break;
 			case ISINSTANCE:
-				break;
 			case NOP:
-				break;
 			case OPEN_LOCALS:
-				break;
 			case POP:
-				break;
 			case PUSH_ENVIRONMENT:
-				break;
 			case PUSH_EXCEPTION:
-				break;
 			case PUSH_LOCALS:
-				break;
 			case PUSH_LOCAL_CONTEXT:
-				break;
 			case RAISE:
-				break;
 			case RERAISE:
-				break;
 			case RESOLVE_ARGS:
-				break;
 			case RESOLVE_CLOSURE:
-				break;
 			case SWAP_STACK:
-				break;
 			case UNPACK_KWARG:
+			case ADD:
+			case AND:
+			case DIV:
+			case EQ:
+			case GE:
+			case GREATER:
+			case LESS:
+			case LSHIFT:
+			case LT:
+			case MOD:
+			case MUL:
+			case NEW:
+			case OR:
+			case POW:
+			case RSHIFT:
+			case SUB:
+			case XOR:
 				break;
 			}
 		} catch (CastFailedException e){

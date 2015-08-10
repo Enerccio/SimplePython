@@ -237,6 +237,40 @@ public class BytecodeTypeObject extends TypeObject {
 			case KCALL:
 				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
 				break;
+			case ADD:
+				break;
+			case AND:
+				break;
+			case DIV:
+				break;
+			case EQ:
+				break;
+			case GE:
+				break;
+			case GREATER:
+				break;
+			case LESS:
+				break;
+			case LSHIFT:
+				break;
+			case LT:
+				break;
+			case MOD:
+				break;
+			case MUL:
+				break;
+			case NEW:
+				break;
+			case OR:
+				break;
+			case POW:
+				break;
+			case RSHIFT:
+				break;
+			case SUB:
+				break;
+			case XOR:
+				break;
 			}
 			
 			bytecode.newObject();
