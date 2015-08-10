@@ -296,13 +296,13 @@ public class PythonInterpreter extends PythonObject {
 	 * Inserts current instruction into stack
 	 * @return
 	 */
-	private PythonException.StackElement makeStack() {
+	private StackElement makeStack() {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
-			return PythonException.LAST_FRAME; 
+			return StackElement.LAST_FRAME; 
 		if (o.debugLine < 0)
-			return PythonException.SYSTEM_FRAME;
-		return new PythonException.StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
+			return StackElement.SYSTEM_FRAME;
+		return new StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
 	}
 
 	/**
