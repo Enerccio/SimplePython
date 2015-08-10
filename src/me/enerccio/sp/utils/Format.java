@@ -24,9 +24,8 @@ import me.enerccio.sp.parser.formatParser;
 import me.enerccio.sp.parser.formatParser.FintegerContext;
 import me.enerccio.sp.parser.formatParser.Format_specificationContext;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NumberObject;
-import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.base.NumberObject.NumberType;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 
@@ -91,12 +90,11 @@ public class Format {
 		
 		if (dataSegment instanceof NumberObject){
 			align = Align.RIGHT;
+			if (((NumberObject)dataSegment).getNumberType() == NumberType.FLOAT)
+				mode = "g";
+			else if (((NumberObject)dataSegment).getNumberType() == NumberType.INT)
+				mode = "d";
 		}
-		
-		if (dataSegment instanceof IntObject)
-			mode = "d";
-		if (dataSegment instanceof RealObject)
-			mode = "g";
 		
 		if (ctx.sign() != null){
 			if (ctx.sign().getText().equals("-"))
@@ -123,9 +121,9 @@ public class Format {
 			text = dataSegment.toString();
 			break;
 		case "b":
-			if (!(dataSegment instanceof IntObject))
+			if (!NumberObject.isInteger(dataSegment))
 				unsupportedMode(mode, dataSegment);
-			text = String.format("b", ((IntObject)dataSegment).getJavaInt());
+			text = String.format("b", ((NumberObject)dataSegment).intValue());
 			break;
 		}
 		

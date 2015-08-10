@@ -25,11 +25,12 @@ import java.util.Map;
 import java.util.Set;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.InternalIterator;
@@ -51,7 +52,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	public ListObject(SequenceObject o) {
 		for (int i = 0; i<o.len(); i++)
-			append(o.get(IntObject.valueOf(i)));
+			append(o.get(NumberObject.valueOf(i)));
 	}
 	
 	/** If passed object is iterable or has __GETITEM__ defined, creates list filled with objects in this list */ 
@@ -124,6 +125,19 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	public List<PythonObject> objects = Collections.synchronizedList(new ArrayList<PythonObject>());
 	
+	public PythonObject add(PythonObject b) {
+		if (b instanceof ListObject) {
+			ListObject l = new ListObject();
+			l.newObject();
+			for (PythonObject o : objects)
+				l.objects.add(o);
+			for (PythonObject o : ((ListObject)b).objects)
+				l.objects.add(o);
+			return l;
+		}
+		throw new TypeError("can only concatenate list (not '" + b.toString() + "') to list");
+	}
+	
 	@Override
 	public int len() {
 		return objects.size();
@@ -191,8 +205,8 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	@Override
 	public PythonObject set(PythonObject key, PythonObject value) {
 		
-		if (key instanceof IntObject){
-			int i = (int) ((IntObject)key).intValue();
+		if (NumberObject.isInteger(key)) {
+			int i = ((NumberObject)key).intValue();
 			if (i >= len() || i<-(len()))
 				throw Utils.throwException("IndexError", "incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 			int idx = morphAround(i, len());
@@ -217,9 +231,9 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 			throw new NotImplementedException();
 		}
 		PythonObject idx = key;
-		if (!(idx instanceof IntObject))
+		if (!NumberObject.isInteger(idx))
 			throw Utils.throwException("TypeError", "Index must be int");
-		int i = (int) ((IntObject)idx).intValue();
+		int i = ((NumberObject)idx).intValue();
 		if (i >= len() || i<-(len()))
 			throw  Utils.throwException("IndexError", "Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 		objects.remove((morphAround(i, len())));

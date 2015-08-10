@@ -42,6 +42,8 @@ public abstract class PythonObject implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public static final String __CLASS__ = "__class__";
 	public static final String __FORMAT__ = "__format__";
+	public static final String __EQ__ = "__eq__";
+	public static final String __NE__ = "__ne__";
 	
 	public PythonObject(){
 		
@@ -50,10 +52,9 @@ public abstract class PythonObject implements Serializable {
 	protected static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	static {
 		try {
-			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
-			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
-			sfields.put(Arithmetics.__NE__,  new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
-			sfields.put(__FORMAT__,  		 new JavaMethodObject(PythonObject.class, "format", String.class));
+			sfields.put(__EQ__, 		 new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
+			sfields.put(__NE__, 		 new JavaMethodObject(PythonObject.class, "ne", PythonObject.class));
+			sfields.put(__FORMAT__,  	 new JavaMethodObject(PythonObject.class, "format", String.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		} 
@@ -75,6 +76,8 @@ public abstract class PythonObject implements Serializable {
 	 */
 	public void newObject(){
 		registerObject();
+		if (getType() == null)
+			throw new NullPointerException("Type is NULL");
 		Utils.putPublic(this, __CLASS__, getType());
 	}
 
@@ -118,7 +121,7 @@ public abstract class PythonObject implements Serializable {
 	/**
 	 * Fields of this object are stored here.
 	 */
-	protected Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	public Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
 	
 	public Map<String, AugumentedPythonObject> getEditableFields(){
 		return fields;

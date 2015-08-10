@@ -26,7 +26,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -51,7 +51,7 @@ public class DictObject extends ContainerObject {
 	public DictObject(Map<Integer, PythonObject> mmap) {
 		newObject();
 		for (Integer k : mmap.keySet())
-			backingMap.put(IntObject.valueOf(k), mmap.get(k));
+			backingMap.put(NumberObject.valueOf(k), mmap.get(k));
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();

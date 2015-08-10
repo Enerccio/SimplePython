@@ -49,7 +49,6 @@ import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
-import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
@@ -60,10 +59,8 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
-import me.enerccio.sp.types.base.ComplexObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -74,8 +71,8 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
-import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerFactory;
+import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
@@ -92,15 +89,16 @@ import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
+import me.enerccio.sp.types.types.FloatTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
+import me.enerccio.sp.types.types.LongTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.NoneTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
-import me.enerccio.sp.types.types.RealTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -108,8 +106,8 @@ import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
-import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.StaticTools.IOUtils;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -121,7 +119,10 @@ import me.enerccio.sp.utils.Utils;
  *
  */
 public class PythonRuntime {
-	
+	public static int PREALOCATED_INTEGERS = 512;	// Goes from -PREALOCATED_INTEGERS to PREALOCATED_INTEGERS  
+	public static boolean USE_BIGNUM_LONG = false;	// True to use BigNum as backend for python 'long' number 
+	public static boolean USE_DOUBLE_FLOAT = false;	// True to use double as backend for python 'float' number
+	public static boolean USE_INT_ONLY = false;		// True to disable long completely; long(x) will return int and int arithmetic may throw TypeError on overflow  
 	private PythonSecurityManager manager;
 	
 	public void setSecurityManager(PythonSecurityManager manager){
@@ -166,6 +167,8 @@ public class PythonRuntime {
 	public static ClassObject STOP_ITERATION;
 	public static ClassObject GENERATOR_EXIT;
 	public static ClassObject INDEX_ERROR;
+	public static ClassObject TYPE_ERROR;
+	public static ClassObject VALUE_ERROR;
 	public static ClassObject AST;
 	
 	/**
@@ -414,6 +417,8 @@ public class PythonRuntime {
 	public static final TypeObject NONE_TYPE = new NoneTypeObject();
 	public static final TypeObject STRING_TYPE = new StringTypeObject();
 	public static final TypeObject INT_TYPE = new IntTypeObject();
+	public static final TypeObject LONG_TYPE = new LongTypeObject();
+	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject TUPLE_TYPE = new TupleTypeObject();
 	public static final TypeObject LIST_TYPE = new ListTypeObject();
 	public static final TypeObject DICT_TYPE = new DictTypeObject();
@@ -425,6 +430,8 @@ public class PythonRuntime {
 		NONE_TYPE.newObject();
 		STRING_TYPE.newObject();
 		INT_TYPE.newObject();
+		LONG_TYPE.newObject();
+		FLOAT_TYPE.newObject();
 		TUPLE_TYPE.newObject();
 		LIST_TYPE.newObject();
 		DICT_TYPE.newObject();
@@ -463,7 +470,7 @@ public class PythonRuntime {
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
-					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
+					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, int.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
 					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
 					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
@@ -480,7 +487,7 @@ public class PythonRuntime {
 					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
 					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
-					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
+					globals.put(FloatTypeObject.FLOAT_CALL, o = new FloatTypeObject());
 					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
@@ -512,7 +519,7 @@ public class PythonRuntime {
 																	 null, 
 																	 false));
 					} catch (Exception e1) {
-						throw new PythonException("Failed to initialize python!");
+						throw new RuntimeException("Failed to initialize python!");
 					}
 					
 					PythonCompiler c = new PythonCompiler();
@@ -531,13 +538,15 @@ public class PythonRuntime {
 							break;
 						if (r == ExecutionResult.EOF)
 							continue;
-						throw new PythonException("Failed to initialize python!");
+						throw new RuntimeException("Failed to initialize python!");
 					}
 					
 					ERROR			= (ClassObject)globals.getItem("Error");
 					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
 					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
 					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
+					TYPE_ERROR		= (ClassObject)globals.getItem("TypeError");
+					VALUE_ERROR		= (ClassObject)globals.getItem("ValueError");
 					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);
@@ -722,8 +731,7 @@ public class PythonRuntime {
 		return PythonInterpreter.interpreter.get().executeAll(cfc);
 	}
 	
-	protected static PythonObject chr(IntObject i){
-		int v = (int) i.intValue();
+	protected static PythonObject chr(int v){
 		if (v < 0 || v > 255)
 			throw Utils.throwException("ValueError", "chr(): value outside range");
 		return new StringObject(Character.toString((char)v));
@@ -733,7 +741,7 @@ public class PythonRuntime {
 		String s = i.value;
 		if (s.length() != 1)
 			throw Utils.throwException("ValueError", "ord(): string must be single character length");
-		return IntObject.valueOf(s.charAt(0));
+		return NumberObject.valueOf(s.charAt(0));
 	}
 	
 	protected static PythonObject classmethod(UserFunctionObject o){
@@ -810,10 +818,20 @@ public class PythonRuntime {
 	public static ClassObject getType(PythonObject py) {
 		if (py instanceof PythonBytecode)
 			return (ClassObject)Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
-		if (py instanceof IntObject)
-			return (ClassObject)Utils.getGlobal(IntTypeObject.INT_CALL);
-		if (py instanceof RealObject)
-			return (ClassObject)Utils.getGlobal(RealTypeObject.REAL_CALL);
+		if (py instanceof NumberObject) {
+			switch (((NumberObject)py).getNumberType()) {
+				case BOOL:
+					return PythonRuntime.BOOL_TYPE;
+				case COMPLEX:
+					return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
+				case FLOAT:
+					return PythonRuntime.FLOAT_TYPE;
+				case INT:
+					return PythonRuntime.INT_TYPE;
+				case LONG:
+					return PythonRuntime.LONG_TYPE;
+				}
+		}
 		if (py instanceof ListObject)
 			return PythonRuntime.LIST_TYPE;
 		if (py instanceof ClassInstanceObject)
@@ -836,12 +854,8 @@ public class PythonRuntime {
 			return (ClassObject)Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
 		if (py instanceof UserMethodObject)
 			return (ClassObject)Utils.getGlobal(MethodTypeObject.METHOD_CALL);
-		if (py instanceof BoolObject)
-			return PythonRuntime.BOOL_TYPE;
 		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
 			return (ClassObject)Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
-		if (py instanceof ComplexObject)
-			return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
 		if (py instanceof BoundHandleObject)
 			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
 		if (py instanceof CompiledBlockObject)

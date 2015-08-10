@@ -48,7 +48,7 @@ import me.enerccio.sp.parser.formatterParser.SegmentsContext;
 import me.enerccio.sp.parser.formatterParser.TextContext;
 import me.enerccio.sp.parser.formatterParser.Text_fspecContext;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -197,7 +197,7 @@ public class Formatter {
 			Element_index_liteContext ei) {
 		String text = ei.getText();
 		try {
-		 	return IntObject.valueOf(Integer.parseInt(text));
+		 	return NumberObject.valueOf(Integer.parseInt(text));
 		} catch (NumberFormatException e){
 			// pass
 		}
@@ -249,7 +249,7 @@ public class Formatter {
 	private PythonObject getElementIndex(Element_indexContext ei) {
 		String text = ei.getText();
 		try {
-		 	return IntObject.valueOf(Integer.parseInt(text));
+		 	return NumberObject.valueOf(Integer.parseInt(text));
 		} catch (NumberFormatException e){
 			// pass
 		}
@@ -283,7 +283,7 @@ public class Formatter {
 	}
 
 	private PythonObject getIndexed(int i) {
-		used.add(IntObject.valueOf(i));
+		used.add(NumberObject.valueOf(i));
 		if (getValue != null){
 			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(i), 
 					Coerce.toPython(indexMap, indexMap.getClass()), Coerce.toPython(dataMap, dataMap.getClass()));

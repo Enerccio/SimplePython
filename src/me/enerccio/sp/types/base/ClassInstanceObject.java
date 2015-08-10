@@ -68,12 +68,12 @@ public class ClassInstanceObject extends PythonObject {
 		Utils.putPublic(this, __HASH__, pyHash.cloneWithThis(this));
 	}
 	
-	public IntObject pyHash(TupleObject args, KwArgs kw){
+	public NumberObject pyHash(TupleObject args, KwArgs kw){
 		if (args.len() != 0)
 			throw Utils.throwException("TypeError", "__hash__(): requires 0 parameters");
 		if (kw != null)
 			kw.notExpectingKWArgs();
-		return IntObject.valueOf(getId());
+		return NumberObject.valueOf(getId());
 	}
 
 	@Override
