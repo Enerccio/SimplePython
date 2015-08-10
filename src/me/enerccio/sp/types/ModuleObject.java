@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
@@ -27,6 +30,7 @@ import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -161,5 +165,15 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 	 */
 	public PythonObject getField(String string) {
 		return globals.doGet(string);
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

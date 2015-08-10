@@ -17,8 +17,12 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Represents root exception that can be raised by SimplePython
@@ -69,6 +73,16 @@ public class PythonException extends RuntimeException {
 		@Override
 		protected String doToString() {
 			return "<" + module.getName() + " at line " + line + " " + character + ">"; 
+		}
+		
+		@Override
+		public Set<String> getGenHandleNames() {
+			return PythonObject.sfields.keySet();
+		}
+
+		@Override
+		protected Map<String, JavaMethodObject> getGenHandles() {
+			return PythonObject.sfields;
 		}
 	}
 

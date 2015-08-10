@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
@@ -31,6 +32,7 @@ import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -489,5 +491,15 @@ public class CompiledBlockObject extends PythonObject {
 		rmap.put(v, key);
 		mmap.put(key, v);
 		return key;
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

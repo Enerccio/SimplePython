@@ -2,11 +2,10 @@ def failure():
 	raise ValueError
 
 def test():
-	# W().test()
-	try:
-		failure()
-	except TypeError, e:
-		pass
+	y = 0
+	for x in xrange(1024):
+		y += x
+	print x
 
 import dis
 import ast

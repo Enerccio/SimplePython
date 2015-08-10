@@ -19,6 +19,8 @@ package me.enerccio.sp.types.callables;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.KwArgs;
@@ -160,5 +162,15 @@ public class UserFunctionObject extends CallableObject {
 	
 	public List<DictObject> getClosure(){
 		return closure;
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

@@ -19,6 +19,7 @@ package me.enerccio.sp.types.iterators;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
@@ -47,17 +48,27 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(SequenceObject.__ITER__,	JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "__iter__"));
 			sfields.put(GeneratorObject.NEXT,		JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "next"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	@Override

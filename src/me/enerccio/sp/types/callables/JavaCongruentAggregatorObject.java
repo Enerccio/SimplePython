@@ -19,6 +19,7 @@ package me.enerccio.sp.types.callables;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.interpret.KwArgs;
@@ -59,4 +60,13 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 		return "<java-methods " + name + ">";
 	}
 
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 }
