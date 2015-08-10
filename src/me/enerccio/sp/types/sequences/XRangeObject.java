@@ -26,7 +26,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ContainerObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.XRangeIterator;
@@ -99,8 +99,8 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	}
 
 	public PythonObject get(PythonObject key) {
-		if (key instanceof IntObject)
-			return IntObject.valueOf(start + step * ((IntObject)key).intValue());
+		if (NumberObject.isInteger(key))
+			return NumberObject.valueOf(start + step * ((NumberObject)key).intValue());
 		throw Utils.throwException("TypeError", "sequence index must be integer, not '" + key.getType() + "'");
 	}
 
@@ -120,7 +120,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 
 	public PythonObject __len__(TupleObject t, KwArgs kw) {
 		t.notExpectingArgs(kw);
-		return IntObject.valueOf(len());
+		return NumberObject.valueOf(len());
 	}
 	
 	public PythonObject __contains__(PythonObject o) {
@@ -134,7 +134,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 
 	@Override
 	public PythonObject valueAt(int idx) {
-		return get(IntObject.valueOf(idx));
+		return get(NumberObject.valueOf(idx));
 	}
 	
 	@Override

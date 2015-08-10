@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.utils.Utils;
@@ -91,7 +91,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 			if (i <= end)
 				return null;
 		}
-		IntObject rv = IntObject.valueOf(i);
+		NumberObject rv = NumberObject.valueOf(i);
 		i += step;
 		return rv;
 	}

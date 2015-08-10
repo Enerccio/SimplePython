@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.base;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -31,16 +32,18 @@ public class ComplexObject extends NumberObject {
 	private static final long serialVersionUID = 9L;
 	private static final String REAL_ACCESSOR = "real";
 	private static final String IMAG_ACCESSOR = "imag";
-	
+
+	@Override public NumberType getNumberType() { return NumberType.COMPLEX; }
+
 	public ComplexObject(){
 		newObject();
 	}
 	
 	public ComplexObject(double r, double i){
-		this(new RealObject(r), new RealObject(i));
+		this(NumberObject.valueOf(r), NumberObject.valueOf(i));
 	}
 	
-	public ComplexObject(RealObject r, RealObject i) {
+	public ComplexObject(NumberObject r, NumberObject i) {
 		fields.put(REAL_ACCESSOR, new AugumentedPythonObject(r, AccessRestrictions.PUBLIC));
 		fields.put(IMAG_ACCESSOR, new AugumentedPythonObject(i, AccessRestrictions.PUBLIC));
 		newObject();
@@ -50,33 +53,10 @@ public class ComplexObject extends NumberObject {
 	protected void registerObject(){
 		
 	}
-	
-	@Override 
-	public long getJavaInt() {
-		throw Utils.throwException("TypeError", "can't convert complex to int");
-	}
-	
-	@Override
-	public double getJavaFloat() {
-		throw Utils.throwException("TypeError", "can't convert complex to float");
-	}
 
 	@Override
 	public boolean truthValue() {
-		return Utils.get(this, REAL_ACCESSOR).truthValue();
-	}
-	
-	public double getRealPart(){
-		return ((RealObject) Utils.get(this, REAL_ACCESSOR)).getJavaFloat();
-	}
-	
-	public double getImagPart(){
-		return ((RealObject) Utils.get(this, IMAG_ACCESSOR)).getJavaFloat();
-	}
-
-	@Override
-	protected PythonObject getIntValue() {
-		return Utils.get(this, REAL_ACCESSOR);
+		return Utils.get(this, REAL_ACCESSOR).truthValue() || Utils.get(this, IMAG_ACCESSOR).truthValue();
 	}
 	
 	@Override
@@ -96,5 +76,88 @@ public class ComplexObject extends NumberObject {
 	@Override
 	protected String doToString() {
 		return "(" + fields.get(REAL_ACCESSOR).object.toString() + "+" + fields.get(IMAG_ACCESSOR).object.toString() + "j)";
+	}
+
+	@Override public int intValue() { throw new TypeError("can't convert complex to int"); }
+	@Override public long longValue() {  throw new TypeError("can't convert complex to long"); }
+	@Override public float floatValue() {  throw new TypeError("can't convert complex to float"); }
+	@Override public double doubleValue() {  throw new TypeError("can't convert complex to float"); }
+	@Override public double getRealValue() { return ((NumberObject)fields.get(REAL_ACCESSOR).object).doubleValue() ; }
+	@Override public double getImaginaryValue() { return ((NumberObject)fields.get(IMAG_ACCESSOR).object).doubleValue() ; }
+	
+	@Override
+	public PythonObject add(PythonObject b){
+		if (b instanceof NumberObject) {
+			NumberObject n = (NumberObject)b;
+			return new ComplexObject(getRealValue() + n.getRealValue(), getImaginaryValue() + n.getImaginaryValue() );
+		}
+		return invalidOperation("+", b);
+	}
+	
+	@Override
+	public PythonObject sub(PythonObject b){
+		if (b instanceof NumberObject) {
+			NumberObject n = (NumberObject)b;
+			return new ComplexObject(getRealValue() - n.getRealValue(), getImaginaryValue() - n.getImaginaryValue() );
+		}
+		return invalidOperation("-", b);
+	}
+	
+	@Override
+	public PythonObject mul(PythonObject b){
+		if (b instanceof NumberObject) {
+			NumberObject n = (NumberObject)b;
+			return new ComplexObject(getRealValue() * n.getRealValue(), getImaginaryValue() * n.getImaginaryValue() );
+		}
+		return invalidOperation("*", b);
+	}
+	
+	@Override
+	public PythonObject div(PythonObject b){
+		if (b instanceof NumberObject) {
+			NumberObject n = (NumberObject)b;
+			return new ComplexObject(getRealValue() / n.getRealValue(), getImaginaryValue() / n.getImaginaryValue() );
+
+		}
+		return invalidOperation("/", b);
+	}
+	
+	@Override
+	public PythonObject mod(PythonObject b){
+		if (b instanceof NumberObject) {
+			NumberObject n = (NumberObject)b;
+			return new ComplexObject(getRealValue() % n.getRealValue(), getImaginaryValue() % n.getImaginaryValue() );
+		}
+		return invalidOperation("%", b);
+	}
+	
+	@Override
+	public PythonObject lt(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
+	}
+
+	@Override
+	public PythonObject le(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
+	}
+
+	@Override
+	public PythonObject eq(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
+	}
+
+	@Override
+	public PythonObject ne(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
+	}
+
+	@Override
+	public PythonObject gt(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
+	}
+
+	@Override
+	public PythonObject ge(PythonObject b) {
+		throw new TypeError("no ordering relation is defined for complex numbers");
 	}
 }

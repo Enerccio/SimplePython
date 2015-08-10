@@ -26,7 +26,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.properties.MethodPropertyObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -100,7 +100,7 @@ public class BytecodeTypeObject extends TypeObject {
 			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
 		
 		try {
-			IntObject byteNum = (IntObject) args.getObjects()[0];
+			NumberObject byteNum = (NumberObject) args.getObjects()[0];
 			
 			Bytecode b = Bytecode.fromNumber((int) byteNum.intValue());
 			if (b == null)

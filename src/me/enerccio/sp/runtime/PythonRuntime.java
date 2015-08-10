@@ -59,10 +59,8 @@ import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
-import me.enerccio.sp.types.base.ComplexObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.base.RealObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -91,15 +89,16 @@ import me.enerccio.sp.types.types.BytecodeTypeObject;
 import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
+import me.enerccio.sp.types.types.FloatTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
+import me.enerccio.sp.types.types.LongTypeObject;
 import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.NoneTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
-import me.enerccio.sp.types.types.RealTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
@@ -120,7 +119,10 @@ import me.enerccio.sp.utils.Utils;
  *
  */
 public class PythonRuntime {
-	
+	public static int PREALOCATED_INTEGERS = 512;	// Goes from -PREALOCATED_INTEGERS to PREALOCATED_INTEGERS  
+	public static boolean USE_BIGNUM_LONG = false;	// True to use BigNum as backend for python 'long' number 
+	public static boolean USE_DOUBLE_FLOAT = false;	// True to use double as backend for python 'float' number
+	public static boolean USE_INT_ONLY = false;		// True to disable long completely; long(x) will return int and int arithmetic may throw TypeError on overflow  
 	private PythonSecurityManager manager;
 	
 	public void setSecurityManager(PythonSecurityManager manager){
@@ -464,7 +466,7 @@ public class PythonRuntime {
 					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
-					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, IntObject.class));
+					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, int.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
 					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
 					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
@@ -481,7 +483,7 @@ public class PythonRuntime {
 					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
 					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
-					globals.put(RealTypeObject.REAL_CALL, o = new RealTypeObject());
+					globals.put(FloatTypeObject.FLOAT_CALL, o = new FloatTypeObject());
 					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
 					o.newObject();
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
@@ -720,8 +722,7 @@ public class PythonRuntime {
 		return PythonInterpreter.interpreter.get().executeAll(cfc);
 	}
 	
-	protected static PythonObject chr(IntObject i){
-		int v = (int) i.intValue();
+	protected static PythonObject chr(int v){
 		if (v < 0 || v > 255)
 			throw Utils.throwException("ValueError", "chr(): value outside range");
 		return new StringObject(Character.toString((char)v));
@@ -731,7 +732,7 @@ public class PythonRuntime {
 		String s = i.value;
 		if (s.length() != 1)
 			throw Utils.throwException("ValueError", "ord(): string must be single character length");
-		return IntObject.valueOf(s.charAt(0));
+		return NumberObject.valueOf(s.charAt(0));
 	}
 	
 	protected static PythonObject classmethod(UserFunctionObject o){
@@ -808,10 +809,20 @@ public class PythonRuntime {
 	public static ClassObject getType(PythonObject py) {
 		if (py instanceof PythonBytecode)
 			return (ClassObject)Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
-		if (py instanceof IntObject)
-			return (ClassObject)Utils.getGlobal(IntTypeObject.INT_CALL);
-		if (py instanceof RealObject)
-			return (ClassObject)Utils.getGlobal(RealTypeObject.REAL_CALL);
+		if (py instanceof NumberObject) {
+			switch (((NumberObject)py).getNumberType()) {
+				case BOOL:
+					return PythonRuntime.BOOL_TYPE;
+				case COMPLEX:
+					return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
+				case FLOAT:
+					return (ClassObject)Utils.getGlobal(FloatTypeObject.FLOAT_CALL);
+				case INT:
+					return (ClassObject)Utils.getGlobal(IntTypeObject.INT_CALL);
+				case LONG:
+					return (ClassObject)Utils.getGlobal(LongTypeObject.LONG_CALL);
+				}
+		}
 		if (py instanceof ListObject)
 			return PythonRuntime.LIST_TYPE;
 		if (py instanceof ClassInstanceObject)
@@ -834,12 +845,8 @@ public class PythonRuntime {
 			return (ClassObject)Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
 		if (py instanceof UserMethodObject)
 			return (ClassObject)Utils.getGlobal(MethodTypeObject.METHOD_CALL);
-		if (py instanceof BoolObject)
-			return PythonRuntime.BOOL_TYPE;
 		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
 			return (ClassObject)Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
-		if (py instanceof ComplexObject)
-			return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
 		if (py instanceof BoundHandleObject)
 			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
 		if (py instanceof CompiledBlockObject)

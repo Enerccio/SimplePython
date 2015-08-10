@@ -1,7 +1,11 @@
 package me.enerccio.sp.interpret;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /** Container for stack data */
 public class StackElement extends PythonObject {
@@ -13,6 +17,16 @@ public class StackElement extends PythonObject {
 	public final int line;
 	public final int character;
 	public final String function;
+
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+	
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 	
 	private StackElement() {
 		line = character = -1;

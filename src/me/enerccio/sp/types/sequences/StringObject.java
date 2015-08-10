@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.ArgumentConsumer;
@@ -47,14 +47,14 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		try {
 			sfields.putAll(ImmutableSequenceObject.getSFields());
 			// __ADD__ is defined in SequenceObject
-			sfields.put(Arithmetics.__MUL__, new JavaMethodObject(StringObject.class, "mul", PythonObject.class));
-			sfields.put(Arithmetics.__MOD__, new JavaMethodObject(StringObject.class, "mod", PythonObject.class));
-			sfields.put(Arithmetics.__LT__, new JavaMethodObject(StringObject.class, "lt", PythonObject.class));
-			sfields.put(Arithmetics.__LE__, new JavaMethodObject(StringObject.class, "le", PythonObject.class));
-			sfields.put(Arithmetics.__EQ__, new JavaMethodObject(StringObject.class, "eq", PythonObject.class));
-			sfields.put(Arithmetics.__NE__, new JavaMethodObject(StringObject.class, "ne", PythonObject.class));
-			sfields.put(Arithmetics.__GE__, new JavaMethodObject(StringObject.class, "ge", PythonObject.class));
-			sfields.put(Arithmetics.__GT__, new JavaMethodObject(StringObject.class, "gt", PythonObject.class));
+			sfields.put(NumberObject.__MUL__, new JavaMethodObject(StringObject.class, "mul", PythonObject.class));
+			sfields.put(NumberObject.__MOD__, new JavaMethodObject(StringObject.class, "mod", PythonObject.class));
+			sfields.put(NumberObject.__LT__, new JavaMethodObject(StringObject.class, "lt", PythonObject.class));
+			sfields.put(NumberObject.__LE__, new JavaMethodObject(StringObject.class, "le", PythonObject.class));
+			sfields.put(NumberObject.__EQ__, new JavaMethodObject(StringObject.class, "eq", PythonObject.class));
+			sfields.put(NumberObject.__NE__, new JavaMethodObject(StringObject.class, "ne", PythonObject.class));
+			sfields.put(NumberObject.__GE__, new JavaMethodObject(StringObject.class, "ge", PythonObject.class));
+			sfields.put(NumberObject.__GT__, new JavaMethodObject(StringObject.class, "gt", PythonObject.class));
 			sfields.put("capitalize", JavaMethodObject.noArgMethod(StringObject.class, "capitalize"));
 			sfields.put("center", new JavaMethodObject(StringObject.class, "center"));
 			sfields.put("count", new JavaMethodObject(StringObject.class, "count"));
@@ -153,38 +153,6 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		return false;
 	}
 	
-	public PythonObject mul(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__MUL__);
-	}
-	
-	public PythonObject mod(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__MOD__);
-	}
-
-	public PythonObject lt(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__LT__);
-	}
-	
-	public PythonObject le(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__LE__);
-	}
-	
-	public PythonObject eq(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__EQ__);
-	}
-	
-	public PythonObject ne(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__NE__);
-	}
-	
-	public PythonObject gt(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__GT__);
-	}
-	
-	public PythonObject ge(PythonObject arg){
-		return Arithmetics.doOperatorString(this, arg, Arithmetics.__GE__);
-	}	
-	
 	public String capitalize(){
 		return value.toUpperCase();
 	}
@@ -231,7 +199,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 				i += sub.length();
 			}
 		}
-		return IntObject.valueOf(c);
+		return NumberObject.valueOf(c);
 	}
 	
 	public PythonObject endswith(TupleObject to, KwArgs kwargs){
@@ -300,7 +268,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		end = Math.min(value.length(), end);
 		
 		String substr = value.substring(start, end);
-		return IntObject.valueOf(substr.indexOf(suffix));
+		return NumberObject.valueOf(substr.indexOf(suffix));
 	}
 	
 	public PythonObject format(TupleObject to, KwArgs kwargs){
@@ -310,5 +278,60 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	@Override
 	public void deleteKey(PythonObject key) {
 		throw Utils.throwException("TypeError", "'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+	}
+	
+	public PythonObject mul(PythonObject b){
+		if (b instanceof NumberObject) {
+			if (((NumberObject)b).getNumberType() == NumberObject.NumberType.INT) {
+				// "a" * 5 -> "aaaaa"
+				StringBuilder sb = new StringBuilder();
+				for (int i=0; i<((NumberObject)b).intValue(); i++)
+					sb.append(value);
+				return new StringObject(sb.toString());
+			}
+		}
+		throw new TypeError("can't multiply sequence by non-int of type '" + b + "'");
+	}
+	
+	public PythonObject mod(PythonObject b){
+		throw new TypeError("string format not yet supported"); // :(
+	}
+
+	public PythonObject lt(PythonObject b) {
+		if (b instanceof StringObject)
+			return value.compareTo(((StringObject)b).value) < 0 ? BoolObject.TRUE : BoolObject.FALSE;
+		return BoolObject.FALSE;
+
+	}
+
+	public PythonObject le(PythonObject b) {
+		if (b instanceof StringObject)
+			return value.compareTo(((StringObject)b).value) <= 0 ? BoolObject.TRUE : BoolObject.FALSE;
+		return BoolObject.FALSE;
+	}
+
+	public PythonObject eq(PythonObject b) {
+		if (b instanceof StringObject)
+			return ((StringObject)b).value.equals(value) ? BoolObject.TRUE : BoolObject.FALSE;
+		return BoolObject.FALSE;
+	}
+
+	@Override
+	public PythonObject ne(PythonObject b) {
+		if (b instanceof StringObject)
+			return ((StringObject)b).value.equals(value) ? BoolObject.FALSE : BoolObject.TRUE;
+		return BoolObject.FALSE;
+	}
+
+	public PythonObject gt(PythonObject b) {
+		if (b instanceof StringObject)
+			return value.compareTo(((StringObject)b).value) > 0 ? BoolObject.TRUE : BoolObject.FALSE;
+		return BoolObject.FALSE;
+	}
+
+	public PythonObject ge(PythonObject b) {
+		if (b instanceof StringObject)
+			return value.compareTo(((StringObject)b).value) >= 0 ? BoolObject.TRUE : BoolObject.FALSE;
+		return BoolObject.FALSE;
 	}
 }

@@ -71,7 +71,7 @@ public abstract class ContainerObject extends PythonObject {
 	}
 	
 	public PythonObject __len__(){
-		return IntObject.valueOf(len());
+		return NumberObject.valueOf(len());
 	}
 	
 	public PythonObject __delkey__(PythonObject key){

@@ -24,7 +24,7 @@ import java.util.List;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -92,8 +92,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		final int prime = 31;
         int result = 1;
         for (int i=0; i<array.length; i++)
-	        result = (int) (prime * result
-	                + ((IntObject)Utils.run("hash", array[i])).intValue());
+	        result = (prime * result
+	                + ((NumberObject)Utils.run("hash", array[i])).intValue());
 
         return result;
 	}
