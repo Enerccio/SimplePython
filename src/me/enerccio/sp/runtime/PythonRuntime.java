@@ -34,9 +34,6 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.external.FileStream;
@@ -51,7 +48,6 @@ import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
-import me.enerccio.sp.interpret.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
@@ -77,8 +73,8 @@ import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
-import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerFactory;
+import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory;
 import me.enerccio.sp.types.pointer.WrapNoMethodsFactory;
@@ -111,10 +107,13 @@ import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
-import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Utils;
 import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 /**
  * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
@@ -166,6 +165,8 @@ public class PythonRuntime {
 	public static ClassObject STOP_ITERATION;
 	public static ClassObject GENERATOR_EXIT;
 	public static ClassObject INDEX_ERROR;
+	public static ClassObject TYPE_ERROR;
+	public static ClassObject VALUE_ERROR;
 	public static ClassObject AST;
 	
 	/**
@@ -508,7 +509,7 @@ public class PythonRuntime {
 					try {
 						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), null, false));
 					} catch (Exception e1) {
-						throw new PythonException("Failed to initialize python!");
+						throw new RuntimeException("Failed to initialize python!");
 					}
 					
 					PythonCompiler c = new PythonCompiler();
@@ -527,13 +528,15 @@ public class PythonRuntime {
 							break;
 						if (r == ExecutionResult.EOF)
 							continue;
-						throw new PythonException("Failed to initialize python!");
+						throw new RuntimeException("Failed to initialize python!");
 					}
 					
 					ERROR			= (ClassObject)globals.getItem("Error");
 					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
 					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
 					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
+					TYPE_ERROR		= (ClassObject)globals.getItem("TypeError");
+					VALUE_ERROR		= (ClassObject)globals.getItem("ValueError");
 					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);

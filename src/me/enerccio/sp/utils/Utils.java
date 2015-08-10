@@ -38,6 +38,7 @@ import java.util.TreeMap;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
@@ -106,7 +107,17 @@ public class Utils {
 	public static RuntimeException throwException(String type, String text, Throwable cause) {
 		return new PythonExecutionException(run(type, new StringObject(text)), cause);
 	}
-	
+
+	/**
+	 * throws exception of that type, that text and that cause
+	 * @param type
+	 * @param text
+	 * @return
+	 */
+	public static RuntimeException throwException(ClassObject type, String text, Throwable cause) {
+		return new PythonExecutionException(type.call(new TupleObject(new StringObject(text)), KwArgs.EMPTY), cause);
+	}
+
 	/**
 	 * throws exception of that type and that text
 	 * @param type

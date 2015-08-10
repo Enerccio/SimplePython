@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -250,7 +251,11 @@ public class JavaMethodObject extends CallableObject {
 			return Coerce.toPython(invoke(jargs), boundHandle.getReturnType());
 		} catch (PythonExecutionException e){
 			throw e;
+		} catch (PythonException e) {
+			throw Utils.throwException(e.type, e.message, e);
 		} catch (InvocationTargetException e){
+			if (e.getTargetException() instanceof PythonException)
+				throw Utils.throwException(((PythonException)e.getTargetException()).type, ((PythonException)e.getTargetException()).message, e.getTargetException());
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
 			throw Utils.throwException("TypeError", toString() + ": failed java call", e);

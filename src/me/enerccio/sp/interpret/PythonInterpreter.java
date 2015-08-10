@@ -32,6 +32,7 @@ import sun.net.www.protocol.http.HttpURLConnection.TunnelState;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -930,10 +931,19 @@ public class PythonInterpreter extends PythonObject {
 			o.parentFrame.stack.add(o);
 		} else {
 			if (currentFrame.size() == 0) {
-				if (o.exception != null) {
-					if (o.exception.get("__exception__", null) != null)
-						throw new PythonExecutionException(o.exception, (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject());
-					throw new PythonExecutionException(o.exception);
+				PythonObject e = o.exception;
+				if (e != null) {
+					if (e.get("__exception__", null) != null) {
+						Throwable t = (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject();
+						if (t instanceof PythonException)
+							throw (PythonException)t;
+						throw new PythonExecutionException(e, t);
+					} else {
+						PythonException pe = PythonException.translate(e);
+						if (pe != null)
+							throw pe;
+						throw new PythonExecutionException(e);
+					}
 				}
 			} else
 				currentFrame.peekLast().exception = o.exception;
