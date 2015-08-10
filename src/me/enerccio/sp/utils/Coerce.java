@@ -45,7 +45,8 @@ public class Coerce {
 		
 		// 2st, return PythonObject if requested
 		if (clazz.isAssignableFrom(o.getClass()))
-			return clazz.cast(o);
+			if (PythonObject.class.isAssignableFrom(clazz))
+				return clazz.cast(o);
 
 		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {
