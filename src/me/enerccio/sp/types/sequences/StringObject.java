@@ -334,6 +334,12 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	private static Set<Character> formatChars = new HashSet<Character>(Arrays.asList(new Character[]{
 			'd', 'i', 'o', 'u', 'x', 'X', 'e', 'E', 'f', 'F', 'g', 'G', 'c', 'r', 's', '%'
 	}));
+//	private static Set<Character> integral = new HashSet<Character>(Arrays.asList(new Character[]{
+//			'd', 'o', 'x', 'X'
+//	}));
+	private static Set<Character> floatingPoint = new HashSet<Character>(Arrays.asList(new Character[]{
+			'e', 'E', 'f', 'F', 'g', 'G'
+	}));
 	
 	private void simpleFormat(String formatText, StringBuilder result,
 			TupleObject tupleSource, DictObject dictSource) throws CastFailedException {
@@ -399,6 +405,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 					consumed = tupleSource.get(tupleCount++);
 				}
 				
+				if (mode == 'i')
+					mode = 'd';
+				if (mode == 'u')
+					mode = 'd';
+				
 				Object arg = null;
 				if (mode == 'r' || mode == 's'){
 					consumed = Utils.run("str", consumed);
@@ -414,7 +425,10 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 					}
 				} else {
 					NumberObject no = Coerce.toJava(consumed, NumberObject.class);
-					arg = Coerce.toJava(no, Object.class);
+					if (floatingPoint.contains(mode))
+						arg = no.doubleValue();
+					else
+						arg = no.longValue();
 				}
 				
 				result.append(String.format("%" + rest + mode, arg));
