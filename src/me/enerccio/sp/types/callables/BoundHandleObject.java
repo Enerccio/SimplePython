@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types.callables;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
@@ -46,6 +49,16 @@ public class BoundHandleObject extends PythonObject {
 			// will not happen
 		}
 	};
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 	
 	/**
 	 * Calls this function. Will insert onto frame stack and returns None.

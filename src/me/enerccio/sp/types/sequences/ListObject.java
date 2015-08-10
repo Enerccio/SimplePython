@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -94,16 +95,26 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	static {
 		try {
+			sfields.putAll(MutableSequenceObject.getSFields());
 			sfields.put("append", new JavaMethodObject(ListObject.class, "append", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	public synchronized PythonObject append(PythonObject value){

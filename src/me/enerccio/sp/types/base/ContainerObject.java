@@ -19,6 +19,7 @@ package me.enerccio.sp.types.base;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -39,6 +40,7 @@ public abstract class ContainerObject extends PythonObject {
 	
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(__CONTAINS__, 	new JavaMethodObject(ContainerObject.class, __CONTAINS__, PythonObject.class));
 			sfields.put(__DELKEY__, 	new JavaMethodObject(ContainerObject.class, __DELKEY__, PythonObject.class)); 
 			sfields.put( __LEN__, 		JavaMethodObject.noArgMethod(ContainerObject.class, __LEN__));
@@ -47,10 +49,21 @@ public abstract class ContainerObject extends PythonObject {
 		}
 	}
 	
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	
 	@Override
 	public void newObject(){
 		super.newObject();
-		bindMethods(sfields);
+	}
+
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
 	}
 	
 	public PythonObject __contains__(PythonObject o){

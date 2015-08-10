@@ -19,8 +19,11 @@ package me.enerccio.sp.types.properties;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
@@ -81,4 +84,13 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 		return "<" + (readOnly ? "read-only " : " " ) + "property '" + property.getName() + "' at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 }

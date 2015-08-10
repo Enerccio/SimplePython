@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.KwArgs;
@@ -53,7 +55,7 @@ public class JavaMethodObject extends CallableObject {
 		String value();
 	}
 
-	/** Used iternalyy */
+	/** Internal use */
 	private JavaMethodObject(Object caller, Method m, String[] argNames, String pydoc, boolean noTypeConversion){
 		this.caller = caller;
 		this.boundHandle = m;
@@ -294,5 +296,15 @@ public class JavaMethodObject extends CallableObject {
 		return new JavaMethodObject(self, boundHandle, argNames,
 				this.fields.containsKey(__DOC__) ? this.fields.get(__DOC__).object.toString() : null, 
 				noTypeConversion);
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

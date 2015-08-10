@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types.properties;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -71,5 +74,15 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 		if (setter != null)
 			mpo.setter = setter.cloneWithThis(self);
 		return mpo;
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

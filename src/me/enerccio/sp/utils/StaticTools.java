@@ -124,7 +124,7 @@ public class StaticTools {
 		private static List<ClassObject> asListOfClasses(ClassObject clo) {
 			List<ClassObject> cl = new ArrayList<ClassObject>();
 			cl.add(clo);
-			for (PythonObject o : ((TupleObject) clo.fields.get(ClassObject.__BASES__).object).getObjects())
+			for (PythonObject o : ((TupleObject) clo.getEditableFields().get(ClassObject.__BASES__).object).getObjects())
 				cl.add((ClassObject) o);
 			return cl;
 		}

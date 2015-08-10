@@ -20,6 +20,7 @@ package me.enerccio.sp.types.iterators;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -48,6 +49,7 @@ public class GeneratorObject extends PythonObject {
 
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(__ITER__, 	JavaMethodObject.noArgMethod(GeneratorObject.class, "__iter__"));
 			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(GeneratorObject.class, "next"));
 			sfields.put(SEND, 		new JavaMethodObject(GeneratorObject.class, "send", PythonObject.class));
@@ -55,6 +57,17 @@ public class GeneratorObject extends PythonObject {
 		} catch (Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
 	}
 	
 	public GeneratorObject(String name, List<FrameObject> o){
@@ -68,7 +81,6 @@ public class GeneratorObject extends PythonObject {
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 		
 		PythonObject fnc = Utils.getGlobal("close_generator");
 		

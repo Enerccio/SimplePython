@@ -19,6 +19,7 @@ package me.enerccio.sp.types.sequences;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.Arithmetics;
@@ -44,6 +45,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	static {
 		try {
+			sfields.putAll(ImmutableSequenceObject.getSFields());
 			// __ADD__ is defined in SequenceObject
 			sfields.put(Arithmetics.__MUL__, new JavaMethodObject(StringObject.class, "mul", PythonObject.class));
 			sfields.put(Arithmetics.__MOD__, new JavaMethodObject(StringObject.class, "mod", PythonObject.class));
@@ -64,6 +66,16 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 			throw new RuntimeException("Fuck", e);
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	public StringObject(){
 		newObject();
@@ -77,7 +89,6 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	public String value;

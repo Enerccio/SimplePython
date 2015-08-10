@@ -18,6 +18,8 @@
 package me.enerccio.sp.types.callables;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
@@ -52,6 +54,16 @@ public class ClassObject extends CallableObject {
 	
 	public ClassObject(){
 		
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 	
 	@Override
@@ -134,19 +146,19 @@ public class ClassObject extends CallableObject {
 				String kkey = ((StringObject)key).getString();
 				PythonObject value = dict.backingMap.get(key);
 				if (value instanceof ClassMethodObject){
-					PythonObject data = value.fields.get(ClassMethodObject.__FUNC__).object;
+					PythonObject data = value.getEditableFields().get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();
 					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, this);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				} else if (value instanceof StaticMethodObject){
-					value = value.fields.get(StaticMethodObject.__FUNC__).object;
+					value = value.getEditableFields().get(StaticMethodObject.__FUNC__).object;
 				} else if (value instanceof UserFunctionObject || value instanceof BoundHandleObject){
 					PythonObject data;
 					if (value instanceof UserFunctionObject)
 						data = value;
 					else
-						data = value.fields.get(BoundHandleObject.FUNC).object;
+						data = value.getEditableFields().get(BoundHandleObject.FUNC).object;
 					value = new UserMethodObject();
 					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
@@ -164,7 +176,7 @@ public class ClassObject extends CallableObject {
 				if (kkey.startsWith("__") && !kkey.endsWith("__"))
 					ar = AccessRestrictions.PRIVATE;
 				
-				instance.fields.put(kkey, new AugumentedPythonObject(value, ar, clazz));
+				instance.getEditableFields().put(kkey, new AugumentedPythonObject(value, ar, clazz));
 			}
 		}
 	}

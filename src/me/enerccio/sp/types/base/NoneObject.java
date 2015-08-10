@@ -17,8 +17,12 @@
  */
 package me.enerccio.sp.types.base;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -48,6 +52,16 @@ public class NoneObject extends PythonObject {
 					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 		throw Utils.throwException("AttributeError", "'" + 
 				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+	}
+
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 
 	@Override

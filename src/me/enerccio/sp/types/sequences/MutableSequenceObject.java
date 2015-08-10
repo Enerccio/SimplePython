@@ -19,6 +19,7 @@ package me.enerccio.sp.types.sequences;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -37,16 +38,26 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	
 	static {
 		try {
+			sfields.putAll(SequenceObject.getSFields());
 			sfields.put(__SETITEM__, new JavaMethodObject(MutableSequenceObject.class, "set", PythonObject.class, PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	public abstract PythonObject set(PythonObject key, PythonObject value);
