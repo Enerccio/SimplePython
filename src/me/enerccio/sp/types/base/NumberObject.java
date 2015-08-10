@@ -69,12 +69,11 @@ public abstract class NumberObject extends PythonObject {
 	}
 	
 	public static NumberObject valueOf(long n) {
-		if (n >= Integer.MIN_VALUE && n <= Integer.MAX_VALUE) {
-			if (PythonRuntime.USE_INT_ONLY)
-				throw new TypeError("Integer overflow");
-			return new LongObject(n);
-		}
-		return IntObject.getCached((int)n);
+		if (n >= Integer.MIN_VALUE && n <= Integer.MAX_VALUE)
+			return IntObject.getCached((int)n);
+		if (PythonRuntime.USE_INT_ONLY)
+			throw new TypeError("Integer overflow");
+		return new LongObject(n);
 	}
 	
 	public static NumberObject valueOf(double d) {
