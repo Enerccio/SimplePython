@@ -330,6 +330,40 @@ public class PythonCompiler {
 		compilingFunction.pop();
 		return cob;
 	}
+	
+	public CompiledBlockObject doCompileReadline(File_inputContext fcx, final String filename) {
+		ModuleInfo m = module = new ModuleInfo() {
+			@Override public ModuleProvider getIncludeProvider() { return null ; }
+			@Override public String getName() { return filename; };
+			@Override public String getFileName() { return getName(); }
+		};
+		compilingFunction.push(null);
+		
+		stack.push();
+		compilingClass.push(null);
+		List<PythonBytecode> bytecode = new ArrayList<PythonBytecode>();
+		// create new environment
+		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, fcx.start);
+		
+		// context
+		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
+		cb.value = NoneObject.NONE;
+		addBytecode(bytecode, Bytecode.PUSH_LOCAL_CONTEXT, fcx.start);
+		
+		compile(fcx, bytecode, m);
+		
+		if (bytecode.get(bytecode.size()-1).getOpcode() == Bytecode.POP)
+			bytecode.remove(bytecode.size()-1);
+		
+		compilingClass.pop();
+		stack.pop();
+		
+		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
+		cob.newObject();
+		
+		compilingFunction.pop();
+		return cob;
+	}
 
 	private void compile(File_inputContext fcx, List<PythonBytecode> bytecode, ModuleInfo m) {
 		boolean first = true;
@@ -825,17 +859,21 @@ public class PythonCompiler {
 		
 		if (suite instanceof SuiteContext){
 			boolean first = true;
-			for (StmtContext c : ((SuiteContext)suite).stmt()){
-				if (first){
-					first = false;
-					String docString = getDocstring(c);
-					docstring.add(docString);
-					if (docString != null)
-						continue;
+			SuiteContext ss = ((SuiteContext)suite);
+			if (ss.simple_stmt() != null){
+				compileSimpleStatement(ss.simple_stmt(), bytecode, new ControllStack());
+			} else 
+				for (StmtContext c : ss.stmt()){
+					if (first){
+						first = false;
+						String docString = getDocstring(c);
+						docstring.add(docString);
+						if (docString != null)
+							continue;
+					}
+					
+					compileStatement(c, bytecode, null);
 				}
-				
-				compileStatement(c, bytecode, null);
-			}
 		} else
 			for (StmtContext c : ((String_inputContext) suite).stmt())
 				compileStatement(c, bytecode, null);

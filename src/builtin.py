@@ -78,7 +78,7 @@ class iter(object):
         if hasattr(itervalue, "__iter__"):
             return itervalue.__iter__()
         elif callable(itervalue):
-            return sentinel_iter(itervalue, sentinel)
+            return callable_iterator(itervalue, sentinel)
         else:
             self.__data_source = itervalue
             self.__index = 0

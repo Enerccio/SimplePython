@@ -300,4 +300,20 @@ public class SimplePython {
 	public static void unloadModule(String pythonPath){
 		r.unloadModule(pythonPath);
 	}
+
+	public static String mainVersion() {
+		return "0";
+	}
+
+	public static String minorVersion() {
+		return "1";
+	}
+	
+	public static String revisionNumber() {
+		return "r00:00001";
+	}
+
+	public static Object conformingVersion() {
+		return "2.7~";
+	}
 }

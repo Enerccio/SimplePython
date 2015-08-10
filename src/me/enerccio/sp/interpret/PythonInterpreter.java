@@ -116,6 +116,7 @@ public class PythonInterpreter extends PythonObject {
 	/** Represents value returned by a call */
 	private PythonObject returnee;
 	private List<DictObject> currentClosure;
+	public PythonObject lastPushedValue;
 	
 	/**
 	 * whether this interpret can be stopped at safe place or not
@@ -348,9 +349,9 @@ public class PythonInterpreter extends PythonObject {
 		if (o.accepts_return){
 			o.accepts_return = false;
 			if (returnee == null)
-				stack.push(NoneObject.NONE);
+				pushOntoStack(o, NoneObject.NONE);
 			else
-				stack.push(returnee);
+				pushOntoStack(o, returnee);
 		}
 		
 		if (TRACE_ENABLED)
@@ -372,7 +373,7 @@ public class PythonInterpreter extends PythonObject {
 		case PUSH_LOCALS:{
 			// retrieves locals of this call and pushes them onto stack
 				EnvironmentObject env = currentFrame.getLast().environment;
-				stack.push(env.getLocals());
+				pushOntoStack(o, env.getLocals());
 			} break;
 		case PUSH_ENVIRONMENT:
 			// pushes new environment onto environment stack. 
@@ -427,7 +428,7 @@ public class PythonInterpreter extends PythonObject {
 			int jv = o.nextInt();
 			if (value instanceof InternallyIterable) {
 				// TODO: Interface or something like that
-				stack.push(((InternallyIterable)value).__iter__());
+				pushOntoStack(o, ((InternallyIterable)value).__iter__());
 				o.pc = jv;
 			} else {
 				runnable = environment().get(new StringObject("iter"), true, false);				
@@ -450,9 +451,9 @@ public class PythonInterpreter extends PythonObject {
 				throw new PythonExecutionException(frame.exception);
 			}
 			if (returnee == null)
-				stack.push(NoneObject.NONE);
+				pushOntoStack(o, NoneObject.NONE);
 			else
-				stack.push(returnee);
+				pushOntoStack(o, returnee);
 			break;
 		case GET_ITER:
 			jv = o.nextInt();
@@ -463,7 +464,7 @@ public class PythonInterpreter extends PythonObject {
 					// StopIteration is not actually thrown, only emulated
 					o.pc = jv;
 				} else {
-					o.stack.push(value);
+					pushOntoStack(o, value);
 					o.pc += 5; // ACCEPT_ITER _always_ follows GET_ITER and this one will skip it.
 				}
 				break;
@@ -479,12 +480,12 @@ public class PythonInterpreter extends PythonObject {
 				if (frame != o)
 					frame.parentFrame = o;
 				else
-					stack.push(o);
+					pushOntoStack(o, o);
 			} catch (PythonExecutionException e) {
 				frame = new FrameObject();
 				frame.parentFrame = o;
 				frame.exception = e.getException();
-				stack.push(frame);
+				pushOntoStack(o, frame);
 			}
 			break;
 		case KCALL:
@@ -535,7 +536,7 @@ public class PythonInterpreter extends PythonObject {
 			value = environment().get(new StringObject(svl), false, false);
 			if (value == null)
 				throw Utils.throwException("NameError", "name " + svl + " is not defined");
-			stack.push(value);
+			pushOntoStack(o, value);
 			break;
 		case LOADGLOBAL:
 			// pushes global variable onto stack
@@ -543,7 +544,7 @@ public class PythonInterpreter extends PythonObject {
 			value = environment().get(new StringObject(svl), true, false);
 			if (value == null)
 				throw Utils.throwException("NameError", "name " + svl + " is not defined");
-			stack.push(value);
+			pushOntoStack(o, value);
 			break;
 		case POP:
 			// pops value off the stack
@@ -554,9 +555,9 @@ public class PythonInterpreter extends PythonObject {
 			jv = o.nextInt();
 			if (value instanceof NumberObject) {
 				if (jv == 1)
-					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+					pushOntoStack(o, value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
 				else
-					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+					pushOntoStack(o, value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
 				break;
 			} else if (value.fields.containsKey("__nonzero__")) {
 				runnable = value.fields.get("__nonzero__").object;
@@ -573,14 +574,14 @@ public class PythonInterpreter extends PythonObject {
 				break;
 			} else {
 				if (jv == 1)
-					stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+					pushOntoStack(o, value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
 				else
-					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+					pushOntoStack(o, value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
 			}
 			break;
 		case PUSH:
 			// pushes constant onto stack
-			stack.push(o.compiled.getConstant(o.nextInt()));
+			pushOntoStack(o, o.compiled.getConstant(o.nextInt()));
 			break;
 		case RETURN:
 			// removes the frame and returns value
@@ -625,9 +626,9 @@ public class PythonInterpreter extends PythonObject {
 			// duplicates stack x amount of times
 			jv = o.nextInt();
 			if (jv == 0)
-				stack.push(stack.peek());
+				pushOntoStack(o, stack.peek());
 			else
-				stack.push(stack.get(stack.size() - 1 - jv));
+				pushOntoStack(o, stack.get(stack.size() - 1 - jv));
 			break;
 		case IMPORT:
 			// import bytecode
@@ -639,8 +640,8 @@ public class PythonInterpreter extends PythonObject {
 			// swaps head of the stack with value below it
 			PythonObject top = stack.pop();
 			PythonObject bot = stack.pop();
-			stack.push(top);
-			stack.push(bot);
+			pushOntoStack(o, top);
+			pushOntoStack(o, bot);
 			break;
 		}
 		case UNPACK_SEQUENCE:
@@ -657,7 +658,7 @@ public class PythonInterpreter extends PythonObject {
 			
 			Collections.reverse(lo.objects);
 			for (PythonObject obj : lo.objects)
-				stack.push(obj);
+				pushOntoStack(o, obj);
 			
 			break;
 		case UNPACK_KWARG: {
@@ -758,7 +759,7 @@ public class PythonInterpreter extends PythonObject {
 			// something stupid
 			PythonObject type = stack.pop();
 			value = stack.peek();
-			stack.push(BoolObject.fromBoolean(PythonRuntime.doIsInstance(value, type, true)));
+			pushOntoStack(o, BoolObject.fromBoolean(PythonRuntime.doIsInstance(value, type, true)));
 			break;
 		case RAISE: {
 			// raises python exception
@@ -798,9 +799,9 @@ public class PythonInterpreter extends PythonObject {
 			// who has any idea what this shit does call 1-555-1337
 			frame = (FrameObject) stack.peek();
 			if (frame.exception == null)
-				stack.push(NoneObject.NONE);
+				pushOntoStack(o, NoneObject.NONE);
 			else
-				stack.push(frame.exception);
+				pushOntoStack(o, frame.exception);
 			break;
 		case YIELD:
 			String name = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
@@ -831,7 +832,7 @@ public class PythonInterpreter extends PythonObject {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
 				returnee = retVal;	
-				o.stack.push(sentValue);
+				pushOntoStack(o, sentValue);
 				
 				GeneratorObject generator = o.ownedGenerator;
 				List<FrameObject> ol = new ArrayList<FrameObject>();
@@ -858,7 +859,7 @@ public class PythonInterpreter extends PythonObject {
 				FrameObject oo = currentFrame.get(i);
 				DictObject locals = oo.environment.getLocals();
 				if (locals.contains(variable.value)){
-					stack.push(locals.doGet(variable));
+					pushOntoStack(o, locals.doGet(variable));
 					found = true;
 					break;
 				}
@@ -889,7 +890,7 @@ public class PythonInterpreter extends PythonObject {
 			value = environment().getBuiltin(vname);
 			if (value == null)
 				throw Utils.throwException("NameError", "builtin name '" + vname + "' is undefined");
-			stack.push(value);
+			pushOntoStack(o, value);
 		} break;
 		case DEL: {
 			StringObject vname = (StringObject) o.compiled.getConstant(o.nextInt());
@@ -901,6 +902,11 @@ public class PythonInterpreter extends PythonObject {
 		}
 			
 		return ExecutionResult.OK;
+	}
+
+	private void pushOntoStack(FrameObject o, PythonObject value) {
+		o.stack.push(value);
+		lastPushedValue = value;
 	}
 
 	/**
@@ -1028,12 +1034,18 @@ public class PythonInterpreter extends PythonObject {
 	/**
 	 * Executes bytecode until cfc equals the number of frames. Used to fully finish execution of newly pushed stack
 	 * @param cfc
+	 * @param pushStack 
 	 * @return
 	 */
 	public PythonObject executeAll(int cfc) {
+		return executeAll(cfc, false);
+	}
+	
+	public PythonObject executeAll(int cfc, boolean getRemainingStack) {
 		if (cfc == currentFrame.size())
 			return returnee;
 		while (true){
+			FrameObject o = currentFrame.getLast();
 			ExecutionResult res = executeOnce();
 			if (res == ExecutionResult.INTERRUPTED)
 				return null;
@@ -1044,6 +1056,9 @@ public class PythonInterpreter extends PythonObject {
 						currentFrame.peekLast().exception = null;
 						throw new PythonExecutionException(e);
 					}
+					if (getRemainingStack)
+						if (o.stack.size() == 1)
+							return o.stack.pop();
 					return returnee;
 				}
 		}

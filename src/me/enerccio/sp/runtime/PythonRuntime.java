@@ -584,6 +584,11 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject exec_function(PythonObject code, DictObject locals, DictObject globals){
+		doExec(code, locals, globals);
+		return NoneObject.NONE;
+	}
+	
+	public static PythonObject doExec(PythonObject code, DictObject locals, DictObject globals){
 		PythonRuntime.runtime.checkSandboxAction("exec", SecureAction.RUNTIME_EVAL, code);
 		
 		if (locals == null){
