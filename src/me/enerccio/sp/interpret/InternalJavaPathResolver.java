@@ -21,7 +21,7 @@ import java.io.InputStream;
 
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.utils.StaticTools.IOUtils;
 
 /**
  * PathResolver which searches root of the jar/java path for .spy.
@@ -48,7 +48,7 @@ public class InternalJavaPathResolver implements PythonDataSourceResolver {
 
 	private ModuleProvider doResolve(InputStream is, String fname, String mname) throws Exception {
 		if (is == null) return null;
-		return new ModuleProvider(mname, fname, Utils.toByteArray(is), "", false);
+		return new ModuleProvider(mname, fname, IOUtils.toByteArray(is), "", false);
 	}
 
 }

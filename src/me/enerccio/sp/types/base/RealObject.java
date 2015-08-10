@@ -44,7 +44,7 @@ public class RealObject extends NumberObject {
 	private double value;
 	
 	@Override 
-	public Long getJavaInt() {
+	public long getJavaInt() {
 		return (long)value;
 	}
 	

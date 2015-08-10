@@ -19,6 +19,7 @@ package me.enerccio.sp.types.iterators;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
@@ -46,17 +47,27 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(__ITER__,	JavaMethodObject.noArgMethod(XRangeIterator.class, "__iter__"));
 			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(XRangeIterator.class, "next"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	@Override

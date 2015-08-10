@@ -18,10 +18,11 @@
 package me.enerccio.sp.types;
 
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.BoolObject;
@@ -46,7 +47,7 @@ public abstract class PythonObject implements Serializable {
 		
 	}
 	
-	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
+	protected static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	static {
 		try {
 			sfields.put(Arithmetics.__EQ__,  new JavaMethodObject(PythonObject.class, "eq", PythonObject.class));
@@ -58,6 +59,13 @@ public abstract class PythonObject implements Serializable {
 		} 
 	}
 	
+	protected static Map<String, JavaMethodObject> getSFields(){
+		return sfields;
+	}
+	
+	public abstract Set<String> 					 getGenHandleNames();
+	protected abstract Map<String, JavaMethodObject> getGenHandles();
+	
 	protected void bindMethod(String name, JavaMethodObject m) {
 		fields.put(name, new AugumentedPythonObject(m.cloneWithThis(this), AccessRestrictions.PUBLIC));
 	}
@@ -67,13 +75,7 @@ public abstract class PythonObject implements Serializable {
 	 */
 	public void newObject(){
 		registerObject();
-		bindMethods(sfields);
 		Utils.putPublic(this, __CLASS__, getType());
-	}
-
-	protected void bindMethods(Map<String, JavaMethodObject> map) {
-		for (Entry<String, JavaMethodObject> e : map.entrySet())
-			bindMethod(e.getKey(), e.getValue());
 	}
 
 	/**
@@ -116,7 +118,14 @@ public abstract class PythonObject implements Serializable {
 	/**
 	 * Fields of this object are stored here.
 	 */
-	public Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	protected Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	
+	public Map<String, AugumentedPythonObject> getEditableFields(){
+		return fields;
+	}
+	
+	private Map<String, SoftReference<JavaMethodObject>> genFields = 
+			Collections.synchronizedMap(new HashMap<String, SoftReference<JavaMethodObject>>());
 	
 	/**
 	 * Returns the field value for the key and local context
@@ -126,12 +135,26 @@ public abstract class PythonObject implements Serializable {
 	 */
 	public synchronized PythonObject get(String key, PythonObject localContext) {
 		if (!fields.containsKey(key))
-			return null;
+			return possiblyGenHandle(key);
 		AugumentedPythonObject field = fields.get(key);
 		if (field.restrictions == AccessRestrictions.PRIVATE && !isPrivate(localContext, field))
 			throw Utils.throwException("AttributeError", "access to field '" + key + "' is restricted for type '" + 
 					Utils.run("str", Utils.run("typename", this)) + "'");
 		return field.object;
+	}
+
+	protected PythonObject possiblyGenHandle(String key) {
+		SoftReference<JavaMethodObject> ref = genFields.get(key);
+		JavaMethodObject holder = null;
+		holder = ref != null ? ref.get() : null;
+		if (holder == null){
+			if (getGenHandleNames().contains(key)){
+				holder = getGenHandles().get(key).cloneWithThis(this);
+				ref = new SoftReference<JavaMethodObject>(holder);
+				genFields.put(key, ref);
+			}
+		}
+		return ref == null ? null : ref.get();
 	}
 
 	/**
@@ -196,7 +219,7 @@ public abstract class PythonObject implements Serializable {
 	}
 	
 	@Override
-	public final String toString(){
+	public String toString(){
 		return doToString();
 	}
 	

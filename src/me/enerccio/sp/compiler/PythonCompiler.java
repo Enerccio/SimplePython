@@ -412,7 +412,7 @@ public class PythonCompiler {
 		// Stack contains TOP -> return value -> frame -> exception
 		if (tfi.needsBreakBlock) {
 			// Special break block is needed
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, try_stmt.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, try_stmt.start);
 			cb.stringValue = "LoopBreak"; 
 			addBytecode(bytecode, Bytecode.ISINSTANCE, try_stmt.start);
 			PythonBytecode skipOver = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, try_stmt.start, getFunction(), module);
@@ -423,7 +423,7 @@ public class PythonCompiler {
 		}
 		if (tfi.needsContinueBlock) {
 			// Special continue block is needed
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, try_stmt.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, try_stmt.start);
 			cb.stringValue = "LoopContinue"; 
 			addBytecode(bytecode, Bytecode.ISINSTANCE, try_stmt.start);
 			PythonBytecode skipOver = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, try_stmt.start, getFunction(), module);
@@ -645,11 +645,11 @@ public class PythonCompiler {
 		String className = classdef.nname().getText();
 		compilingFunction.push(null);
 		compilingClass.push(className);
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, classdef.start);
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, classdef.start);
 		cb.stringValue = "type";
 		cb = addBytecode(bytecode, Bytecode.PUSH, classdef.start);
 		cb.value = new StringObject(className);
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, classdef.start);
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, classdef.start);
 		cb.stringValue = "tuple";
 		int c = classdef.testlist() != null ? classdef.testlist().test().size() : 0;
 		if (classdef.testlist() != null)
@@ -1184,6 +1184,7 @@ public class PythonCompiler {
 
 	private void compile(Yield_stmtContext ctx, List<PythonBytecode> bytecode) {
 		compile(ctx.yield_expr(), bytecode);
+		addBytecode(bytecode, Bytecode.POP, ctx.start);
 	}
 
 	private void compile(Yield_exprContext ctx, List<PythonBytecode> bytecode) {
@@ -1243,10 +1244,10 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		
 		int st = ctx.push() == null ? 0 : 1;
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start); 
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start); 
 		cb.stringValue = "print_function";
 		
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start);
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 		cb.stringValue = TupleTypeObject.TUPLE_CALL;
 		
 		for (int i=st; i<ctx.test().size(); i++){
@@ -1364,7 +1365,7 @@ public class PythonCompiler {
 	private void compileRightHand(TestlistContext testlist, List<PythonBytecode> bytecode) {
 		int tlc = testlist.test().size();
 		if (tlc > 1){
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, testlist.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, testlist.start);
 			cb.stringValue = TupleTypeObject.TUPLE_CALL;
 		}
 		
@@ -1480,7 +1481,7 @@ public class PythonCompiler {
 				else if (ctx.getChild(i).getText().equals("!="))
 					operation = Arithmetics.__NE__;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
-					cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ((ExprContext) ctx.getChild(i+1)).start);
+					cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ((ExprContext) ctx.getChild(i+1)).start);
 					cb.stringValue = ObjectTypeObject.IS;
 					cb = addBytecode(bytecode, Bytecode.SWAP_STACK, ((ExprContext) ctx.getChild(i+1)).start);
 					compile((ExprContext) ctx.getChild(i+1), bytecode);
@@ -1658,7 +1659,7 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode) {
 		int tlc = sc.subscript().size();
 		if (tlc > 1){
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, sc.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, sc.start);
 			cb.stringValue = TupleTypeObject.TUPLE_CALL;
 		}
 		for (SubscriptContext s : sc.subscript()){
@@ -1682,7 +1683,7 @@ public class PythonCompiler {
 		if (s.stest() != null){
 			compile(s.stest().test(), bytecode);
 		} else {
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, s.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, s.start);
 			cb.stringValue = SliceTypeObject.SLICE_CALL;
 			if (s.test().size() == 0){
 				for (int i=0; i<3; i++){
@@ -1860,7 +1861,7 @@ public class PythonCompiler {
 	private void compile(Bracket_atomContext ctx,
 			List<PythonBytecode> bytecode, Token t) {
 		if (ctx == null){
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, t);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, t);
 			cb.stringValue = TupleTypeObject.TUPLE_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, t);
 			cb.intValue = 0;
@@ -1886,7 +1887,7 @@ public class PythonCompiler {
 			// TODO
 		} else {
 			if ((ctx.test().size() > 1) || ctx.children.get(ctx.children.size() - 1).getText().equals(",")) {
-				cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start);
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 				cb.stringValue = TupleTypeObject.TUPLE_CALL;
 				for (TestContext i : ctx.test())
 					compile(i, bytecode);
@@ -1940,7 +1941,7 @@ public class PythonCompiler {
 	 */
 	private void compileListFor(TestContext expression, List_forContext fCtx, List<PythonBytecode> bytecode) {
 		// Compile somethingiterable & get iterator
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, fCtx.start);
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, fCtx.start);
 		cb.stringValue = "iter";
 		compileRightHand(fCtx.testlist(), bytecode);
 		cb = addBytecode(bytecode, Bytecode.RCALL, fCtx.testlist().start);
@@ -1999,7 +2000,7 @@ public class PythonCompiler {
 	private void compile(DictorsetmakerContext dictorsetmaker, List<PythonBytecode> bytecode, Token t) {
 		if ((dictorsetmaker == null) || ((dictorsetmaker.dictentry(0) != null) && (dictorsetmaker.comp_for() == null))) {
 			// { } or { x:y, a:b, h:i }
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, t);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, t);
 			cb.stringValue = DictTypeObject.DICT_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, t);
 			cb.intValue = 0;
@@ -2022,14 +2023,14 @@ public class PythonCompiler {
 			if (dictorsetmaker.dictentry(0) == null) {
 				// { x for x in somethingiterable }
 				// Generate empty list
-				cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, dictorsetmaker.start);
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, dictorsetmaker.start);
 				cb.stringValue = ListTypeObject.LIST_CALL;
 				cb = addBytecode(bytecode, Bytecode.CALL, dictorsetmaker.stop);
 				cb.intValue = 0;
 			} else {
 				// { x : y for x in somethingiterable }
 				// Generate empty dict
-				cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, dictorsetmaker.start);
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, dictorsetmaker.start);
 				cb.stringValue = DictTypeObject.DICT_CALL;
 				cb = addBytecode(bytecode, Bytecode.CALL, dictorsetmaker.stop);
 				cb.intValue = 0;
@@ -2043,7 +2044,7 @@ public class PythonCompiler {
 				compileListFor(dictorsetmaker.test(0), fCtx, bytecode);
 				/** Stack: TOP -> list -> list.append */
 				addBytecode(bytecode, Bytecode.POP, dictorsetmaker.start);
-				cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, dictorsetmaker.stop);
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, dictorsetmaker.stop);
 				cb.stringValue = "set";
 				addBytecode(bytecode, Bytecode.SWAP_STACK, dictorsetmaker.stop);
 				/** Stack: TOP -> set -> list */
@@ -2068,7 +2069,7 @@ public class PythonCompiler {
 	 */
 	private void compileCompFor(DictentryContext dictentryContext, Comp_forContext cCtx, List<PythonBytecode> bytecode) {
 		// Compile somethingiterable & get iterator
-		cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, cCtx.start);
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, cCtx.start);
 		cb.stringValue = "iter";
 		compile(cCtx.or_test(), bytecode);
 		cb = addBytecode(bytecode, Bytecode.RCALL, cCtx.or_test().start);
@@ -2470,7 +2471,7 @@ public class PythonCompiler {
 		@Override
 		public void outputContinue(Continue_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 			needsContinueBlock = true;
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 			cb.stringValue = "LoopContinue";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;
@@ -2481,7 +2482,7 @@ public class PythonCompiler {
 		@Override
 		public void outputBreak(Break_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 			needsBreakBlock = true;
-			cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 			cb.stringValue = "LoopBreak";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;

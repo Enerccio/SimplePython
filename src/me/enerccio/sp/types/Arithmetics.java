@@ -108,7 +108,7 @@ public final class Arithmetics {
 				if (isFloat)
 					return new RealObject((double)a.intValue() + ((NumberObject) b).getJavaFloat());
 				if (isNumber)
-					return IntObject.valueOf(a.intValue() + ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() + ((NumberObject) b).getJavaInt());
 				if (isComplex)
 					return new ComplexObject((double)a.intValue() + ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				break;
@@ -118,7 +118,7 @@ public final class Arithmetics {
 				if (isFloat)
 					return new RealObject((double)a.intValue() - ((NumberObject) b).getJavaFloat());
 				if (isNumber)
-					return IntObject.valueOf(a.intValue() - ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() - ((NumberObject) b).getJavaInt());
 				if (isComplex)
 					return new ComplexObject((double)a.intValue() - ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				break;
@@ -128,7 +128,7 @@ public final class Arithmetics {
 				if (isFloat)
 					return new RealObject((double)a.intValue() * ((NumberObject) b).getJavaFloat());
 				if (isNumber)
-					return IntObject.valueOf(a.intValue() * ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() * ((NumberObject) b).getJavaInt());
 				if (isComplex)
 					return new ComplexObject((double)a.intValue() * ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				break;
@@ -138,7 +138,7 @@ public final class Arithmetics {
 				if (isFloat)
 					return new RealObject((double)a.intValue() / ((NumberObject) b).getJavaFloat());
 				if (isNumber)
-					return IntObject.valueOf(a.intValue() / ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() / ((NumberObject) b).getJavaInt());
 				if (isComplex)
 					return new ComplexObject((double)a.intValue() / ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				break;
@@ -148,7 +148,7 @@ public final class Arithmetics {
 				if (isFloat)
 					return new RealObject((double)a.intValue() % ((NumberObject) b).getJavaFloat());
 				if (isNumber)
-					return IntObject.valueOf(a.intValue() % ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() % ((NumberObject) b).getJavaInt());
 				if (isComplex)
 					return new ComplexObject((double)a.intValue() % ((ComplexObject) b).getRealPart(), ((ComplexObject) b).getImagPart());
 				break;
@@ -156,19 +156,19 @@ public final class Arithmetics {
 				if (isFloat)
 					break;
 				if (isNumber)	// int and bool
-					return IntObject.valueOf(a.intValue() & ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() & ((NumberObject) b).getJavaInt());
 				break; // Unknown operation
 			case __OR__:
 				if (isFloat)
 					break;
 				if (isNumber)	// int and bool
-					return IntObject.valueOf(a.intValue() | ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() | ((NumberObject) b).getJavaInt());
 				break; // Unknown operation
 			case __XOR__:
 				if (isFloat)
 					break;
 				if (isNumber)	// int and bool
-					return IntObject.valueOf(a.intValue() ^ ((NumberObject) b).getJavaInt().longValue());
+					return IntObject.valueOf(a.intValue() ^ ((NumberObject) b).getJavaInt());
 				break; // Unknown operation
 			case __NOT__:
 				return IntObject.valueOf(~a.intValue());

@@ -147,7 +147,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			
 			return to;
 		} else 
-			return Utils.doGet(this, key);
+			return doGet(this, key);
 	}
 
 	@Override

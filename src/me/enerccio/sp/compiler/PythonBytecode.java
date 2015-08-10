@@ -17,9 +17,14 @@
  */
 package me.enerccio.sp.compiler;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.FieldPropertyObject;
+import me.enerccio.sp.utils.Utils;
 
 /**
  * PythonBytecode is PythonObject representing single instruction of the interpret.
@@ -43,11 +48,34 @@ public class PythonBytecode extends PythonObject {
 	public PythonObject value;
 	public String stringValue;
 	public Object object;
-	public DictObject mapValue;
 	public boolean booleanValue;
 	
 	public PythonBytecode(){
 		
+	}
+	
+	@Override
+	public String toString(){
+		String str = super.toString();
+		return str.replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r");
+	}
+	
+	@Override
+	public void newObject(){
+		super.newObject();
+		
+		try {
+			Utils.putPublic(this, "int_value", new FieldPropertyObject(this, PythonBytecode.class, "intValue", true));
+			Utils.putPublic(this, "value", new FieldPropertyObject(this, PythonBytecode.class, "value", true));
+			Utils.putPublic(this, "string_value", new FieldPropertyObject(this, PythonBytecode.class, "stringValue", true));
+			Utils.putPublic(this, "object", new FieldPropertyObject(this, PythonBytecode.class, "object", true));
+			Utils.putPublic(this, "bool_value", new FieldPropertyObject(this, PythonBytecode.class, "booleanValue", true));
+			Utils.putPublic(this, "_lineno", new FieldPropertyObject(this, PythonBytecode.class, "debugLine", true));
+			Utils.putPublic(this, "_charno", new FieldPropertyObject(this, PythonBytecode.class, "debugCharacter", true));
+			Utils.putPublic(this, "_function", new FieldPropertyObject(this, PythonBytecode.class, "debugFunction", true));
+		} catch (NoSuchFieldException | SecurityException e) {
+			throw new RuntimeException("yellow sky", e);
+		}
 	}
 	
 	protected Bytecode bytecode;
@@ -79,6 +107,11 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DEL;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s) - %s", getOpcode().toString(), stringValue, booleanValue);
+		}
 	}
 	
 	public static class DelAttr extends PythonBytecode {
@@ -89,6 +122,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.DELATTR;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	
@@ -111,6 +149,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode. LOADBUILTIN;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	
@@ -144,6 +187,11 @@ public class PythonBytecode extends PythonObject {
 
 		{
 			bytecode = Bytecode.YIELD;
+		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
 	
@@ -734,4 +782,13 @@ public class PythonBytecode extends PythonObject {
 		return getOpcode().toString();
 	}
 	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 }

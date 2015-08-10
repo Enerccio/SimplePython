@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import sun.net.www.protocol.http.HttpURLConnection.TunnelState;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
@@ -43,6 +42,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.ClassObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
@@ -175,8 +175,16 @@ public class PythonInterpreter extends PythonObject {
 				int cfc = currentFrame.size();
 				((CallableObject)callable).call(new TupleObject(args), kwargs);
 				return executeAll(cfc);
-			} else
+			} else if (internalCall) {
+				int cfc = currentFrame.size();
+				returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
+				if (cfc < currentFrame.size()){
+					returnee = executeAll(cfc);
+				}
+				return returnee;
+			} else {
 				return returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
+			}
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
@@ -287,7 +295,7 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject pe = e.getException();
 		currentFrame.peekLast().exception = pe;
 		PythonObject stack = pe.get("stack", null);
-		if (stack instanceof ListObject){
+		if (stack instanceof ListObject && !e.noStackGeneration){
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
 			if (e.getCause() instanceof PythonException) {
@@ -400,16 +408,15 @@ public class PythonInterpreter extends PythonObject {
 			
 			if (va){
 				PythonObject[] va2 = args;
-				PythonObject tp = va2[va2.length-1];
-				if (!(tp instanceof TupleObject))
-					// TODO: Not really...
-					throw Utils.throwException("TypeError", returnee + ": last argument must be a 'tuple'");
-				PythonObject[] vra = ((TupleObject)tp).getObjects();
-				args = new PythonObject[va2.length - 1 + vra.length];
+				PythonObject iterable = va2[va2.length-1];
+				ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(iterable), null);
+				
+				
+				args = new PythonObject[va2.length - 1 + lo.objects.size()];
 				for (int i=0; i<va2.length - 1; i++)
 					args[i] = va2[i];
-				for (int i=0; i<vra.length; i++)
-					args[i + va2.length - 1] = vra[i];
+				for (int i=0; i<lo.objects.size(); i++)
+					args[i + va2.length - 1] = lo.objects.get(i);
 			}
 			
 			returnee = execute(false, runnable, o.kwargs, args);
@@ -556,15 +563,15 @@ public class PythonInterpreter extends PythonObject {
 				else
 					stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
 				break;
-			} else if (value.fields.containsKey("__nonzero__")) {
-				runnable = value.fields.get("__nonzero__").object;
+			} else if (value.get("__nonzero__", null) != null) {
+				runnable = value.get("__nonzero__", null);
 				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				if (jv == 1)
 					o.pc-=5;
 				break;
-			} else if (value.fields.containsKey("__len__")) {
-				runnable = value.fields.get("__len__").object;
+			} else if (value.get("__len__", null) != null) {
+				runnable = value.get("__len__", null);
 				returnee = execute(true, runnable, null);
 				o.accepts_return = true;
 				o.pc-=5;
@@ -582,8 +589,9 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case RETURN:
 			// removes the frame and returns value
-			if (o.ownedGenerator != null && !o.yielding)
-				throw Utils.throwException("StopIteration");
+			if (o.ownedGenerator != null)
+				if (!o.yielding)
+					throw Utils.throwException("StopIteration");
 			if (o.nextInt() == 1) {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
@@ -644,38 +652,16 @@ public class PythonInterpreter extends PythonObject {
 			// unpacks sequence onto stack
 			int cfc = currentFrame.size();
 			PythonObject seq = stack.pop();
-			PythonObject iterator;
-			PythonObject[] ss = new PythonObject[o.nextInt()];
+			int count = o.nextInt();
 			
-			try {
-				Utils.run("iter", seq);
-				iterator = returnee;
-				
-				for (int i=ss.length-1; i>=0; i--){
-					returnee = execute(true, Utils.get(iterator, GeneratorObject.NEXT), null);
-					if (currentFrame.size() != cfc)
-						executeAll(cfc);
-					ss[i] = returnee;
-				}
-			} catch (PythonExecutionException e){
-				if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue()){
-					throw Utils.throwException("ValueError", "too few values to unpack");
-				} else
-					throw e;
-			}
+			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(seq), null);
+			if (lo.objects.size() > count)
+				throw Utils.throwException("TypeError", "too many values to unpack");
+			if (lo.objects.size() < count)
+				throw Utils.throwException("TypeError", "too few values to unpack");
 			
-			try {
-				execute(true, Utils.get(iterator, GeneratorObject.NEXT), null);
-				if (currentFrame.size() != cfc)
-					executeAll(cfc);
-				throw Utils.throwException("ValueError", "too many values to unpack");
-			} catch (PythonExecutionException e){
-				if (!Utils.run("isinstance", e.getException(), PythonRuntime.STOP_ITERATION).truthValue()){
-					throw e;
-				}
-			}
-			
-			for (PythonObject obj : ss)
+			Collections.reverse(lo.objects);
+			for (PythonObject obj : lo.objects)
 				stack.push(obj);
 			
 			break;
@@ -685,7 +671,7 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject getItemFn = value.get("__getitem__", null);
 			if ((keysFn == null) || (getItemFn == null))
 				Utils.throwException("TypeError", "argument after ** must be a mapping, not " + value.toString());
-			iterator = Utils.run("iter", execute(true, keysFn, null)).get(GeneratorObject.NEXT, null);
+			PythonObject iterator = Utils.run("iter", execute(true, keysFn, null)).get(GeneratorObject.NEXT, null);
 			if (o.kwargs == null)
 				o.kwargs = new KwArgs.HashMapKWArgs();
 			try {
@@ -796,8 +782,11 @@ public class PythonInterpreter extends PythonObject {
 		}
 		case RERAISE: {
 			PythonObject s = stack.pop();
-			if (s != NoneObject.NONE)
-				throw new PythonExecutionException(s);
+			if (s != NoneObject.NONE) {
+				PythonExecutionException pee = new PythonExecutionException(s);
+				pee.noStackGeneration(true);
+				throw pee;
+			}
 			break;
 		}
 		case PUSH_FRAME:
@@ -833,13 +822,13 @@ public class PythonInterpreter extends PythonObject {
 				for (int i=0; i<ol.size(); i++)
 					if (i != ol.size()-1)
 						ol.get(i).parentFrame = ol.get(i+1);
+				ol.get(0).pc -= 5;
 				Collections.reverse(ol);
 				GeneratorObject generator = new GeneratorObject(name, ol);
 				generator.newObject();
 				for (FrameObject fr : ol)
 					fr.ownedGenerator = generator;
 				returnee = generator;
-				o.pc -= 5;
 				o.returnHappened = true;
 				o.yielding = true;
 				removeLastFrame();
@@ -856,7 +845,7 @@ public class PythonInterpreter extends PythonObject {
 				List<FrameObject> ol = new ArrayList<FrameObject>();
 				FrameObject oo = o;
 				while (oo != null){
-					ol.add(oo);
+					ol.add(oo.cloneFrame());
 					oo = oo.parentFrame;
 				}
 				Collections.reverse(ol);
@@ -975,7 +964,7 @@ public class PythonInterpreter extends PythonObject {
 						target,
 						true, false);
 			} else {
-				DictObject dict = (DictObject) target.fields.get(ModuleObject.__DICT__).object;
+				DictObject dict = (DictObject) target.getEditableFields().get(ModuleObject.__DICT__).object;
 				synchronized (dict){
 					synchronized (dict.backingMap){
 						for (PythonProxy key : dict.backingMap.keySet()){
@@ -1012,14 +1001,14 @@ public class PythonInterpreter extends PythonObject {
 			} else {
 				if (target instanceof ModuleObject){
 					ModuleObject mod = (ModuleObject)target;
-					PythonObject target2 = ((DictObject)mod.fields.get(ModuleObject.__DICT__).object).doGet(mm);
+					PythonObject target2 = ((DictObject)mod.getEditableFields().get(ModuleObject.__DICT__).object).doGet(mm);
 					if (target2 != null){
 						pythonImport(environment, variable, modulePath, target2);
 						return;
 					}
 				} 
-				if (target.fields.containsKey(mm)) {
-					pythonImport(environment, variable, modulePath, target.fields.get(mm).object);
+				if (target.get(mm, null) != null) {
+					pythonImport(environment, variable, modulePath, target.get(mm, null));
 					return;
 				} else {
 					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve()));
@@ -1085,5 +1074,14 @@ public class PythonInterpreter extends PythonObject {
 
 	public void setClosure(List<DictObject> closure) {
 		this.currentClosure = closure;
+	}
+	@Override
+	public Set<String> getGenHandleNames() {
+		return new HashSet<String>();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return new HashMap<String, JavaMethodObject>();
 	}
 }

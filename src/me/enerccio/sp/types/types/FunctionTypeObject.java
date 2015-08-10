@@ -20,21 +20,18 @@ package me.enerccio.sp.types.types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.parser.pythonLexer;
-import me.enerccio.sp.parser.pythonParser;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
-import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
 
 /**
  * function()
@@ -57,6 +54,8 @@ public class FunctionTypeObject extends TypeObject {
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 7)
 			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 7, got " + args.len());
+		
+		PythonRuntime.runtime.checkSandboxAction("function", SecureAction.RUNTIME_COMPILE);
 		
 		String src = null;
 		DictObject dict = null;
@@ -100,17 +99,7 @@ public class FunctionTypeObject extends TypeObject {
 		
 		PythonCompiler c = new PythonCompiler();
 		
-		ANTLRInputStream is = new ANTLRInputStream(src);
-		pythonLexer lexer = new pythonLexer(is);
-		lexer.removeErrorListeners();
-		lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
-		CommonTokenStream stream = new CommonTokenStream(lexer);
-		pythonParser parser = new pythonParser(stream);
-		
-		parser.removeErrorListeners();
-		parser.addErrorListener(new ThrowingErrorListener("<generated>"));
-		
-		return c.doCompile(parser.string_input(), maps, aas, vararg, kwararg, defaults, dict);
+		return c.doCompile(ParserGenerator.parseStringInput(src).string_input(), maps, aas, vararg, kwararg, defaults, dict);
 	}
 
 }

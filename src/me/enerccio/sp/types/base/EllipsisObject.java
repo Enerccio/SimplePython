@@ -17,7 +17,11 @@
  */
 package me.enerccio.sp.types.base;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Ellipsis object
@@ -42,9 +46,14 @@ public class EllipsisObject extends PythonObject {
 	protected String doToString() {
 		return "...";
 	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
 
 	@Override
-	protected void registerObject(){
-		
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

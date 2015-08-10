@@ -17,18 +17,24 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -36,6 +42,7 @@ public class CompiledBlockObject extends PythonObject {
 	private static final long serialVersionUID = -3047853375265834154L;
 	public static final String CO_CODE = "co_code";
 	public static final String CO_CONSTS = "co_consts";
+	public static final String CO_DEBUG = "co_debug";
 
 	private List<PythonBytecode> bytecode;
 	public CompiledBlockObject(List<PythonBytecode> bytecode){
@@ -104,7 +111,7 @@ public class CompiledBlockObject extends PythonObject {
 		mmap = new HashMap<Integer, PythonObject>();
 		try {
 			if (compiled == null) {
-				compiled = Utils.compile(bytecode, mmap, dmap);
+				compiled = compile(bytecode, mmap, dmap);
 				bytecode = null;
 			}
 		} catch (Exception e) {
@@ -112,12 +119,13 @@ public class CompiledBlockObject extends PythonObject {
 		}
 		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
 		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
+		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
 
 	@Override
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		if (key.equals(CO_CODE) || key.equals(CO_CONSTS))
+		if (key.equals(CO_CODE) || key.equals(CO_CONSTS) || key.equals(CO_DEBUG))
 			throw Utils.throwException("AttributeError", "'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
@@ -273,5 +281,225 @@ public class CompiledBlockObject extends PythonObject {
 		}
 		
 		return bdd.toString();
+	}
+	
+
+	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>();
+	public static byte[] compile(List<PythonBytecode> bytecode,
+			Map<Integer, PythonObject> mmap, NavigableMap<Integer, DebugInformation> dmap) throws Exception {
+		Map<PythonObject, Integer> rmap = new HashMap<PythonObject, Integer>();
+		Map<Integer, Integer> rmapMap = new TreeMap<Integer, Integer>();
+		Map<Integer, Integer> jumpMap = new TreeMap<Integer, Integer>();
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream w = new DataOutputStream(baos);
+		
+		DebugInformation d = null;
+		kkey.set(0);
+		PythonBytecode last = bytecode.get(bytecode.size() - 1);
+		if (last.getOpcode() != Bytecode.NOP)
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, null, null, last.debugModule));
+		
+		int itc = 0;
+		for (PythonBytecode b : bytecode){
+			int ii = baos.size();
+			rmapMap.put(itc, ii);
+			
+			if (d == null || notEqual(d, b)){
+				d = new DebugInformation();
+				d.charno = b.debugCharacter;
+				d.lineno = b.debugLine;
+				d.function = b.debugFunction;
+				d.module = b.debugModule;
+				dmap.put(ii, d);
+			}
+			
+			w.writeByte(b.getOpcode().id);
+			
+			switch(b.getOpcode()){
+			case ACCEPT_ITER:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(b.intValue);
+				break;
+			case CALL:
+				w.writeInt(b.intValue);
+				break;
+			case DUP:
+				w.writeInt(b.intValue);
+				break;
+			case YIELD:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(b.intValue);
+				break;
+			case ECALL:
+				w.writeInt(b.intValue);
+				break;
+			case GET_ITER:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case GETATTR:
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case GOTO:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case IMPORT:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject((String)b.object), mmap, rmap));
+				break;
+			case ISINSTANCE:
+				break;
+			case JUMPIFFALSE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFNONE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFNORETURN:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case JUMPIFTRUE:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case KCALL:
+				w.writeInt(b.intValue);
+				break;
+			case LOAD:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case LOADGLOBAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case LOADDYNAMIC:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case LOADBUILTIN:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case NOP:
+				break;
+			case POP:
+				break;
+			case OPEN_LOCALS:
+				break;
+			case PUSH_LOCALS:
+				break;
+			case PUSH:
+				w.writeInt(insertValue(b.value, mmap, rmap));
+				break;
+			case KWARG:
+				String[] ss = (String[]) b.object;
+				w.writeInt(ss.length);
+				for (String s : ss)
+					w.writeInt(insertValue(new StringObject(s), mmap, rmap));
+				break;
+			case RESOLVE_CLOSURE:
+				break;
+			case PUSH_ENVIRONMENT:
+				break;
+			case PUSH_EXCEPTION:
+				break;
+			case PUSH_FRAME:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(b.intValue);
+				break;
+			case PUSH_LOCAL_CONTEXT:
+				break;
+			case RAISE:
+				break;
+			case RCALL:
+				w.writeInt(b.intValue);
+				break;
+			case RERAISE:
+				break;
+			case RESOLVE_ARGS:
+				break;
+			case RETURN:
+				w.writeInt(b.intValue);
+				break;
+			case DEL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(b.booleanValue ? 1 : 0);
+				break;
+			case DELATTR:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVE:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVEGLOBAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVEDYNAMIC:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SAVE_LOCAL:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SETATTR:
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case SETUP_LOOP:
+				jumpMap.put(itc, b.intValue);
+				w.writeInt(0);
+				break;
+			case SWAP_STACK:
+				break;
+			case TRUTH_VALUE:
+				w.writeInt(b.intValue);
+				break;
+			case UNPACK_KWARG:
+				break;
+			case UNPACK_SEQUENCE:
+				w.writeInt(b.intValue);
+				break;
+			}
+			
+			++itc;
+		}
+		
+		byte[] data = baos.toByteArray();
+		ByteBuffer b = ByteBuffer.wrap(data);
+		
+		for (Integer ppos : jumpMap.keySet()){
+			Integer jumpval = jumpMap.get(ppos);
+			Integer location = rmapMap.get(jumpval);
+			Integer wloc = rmapMap.get(ppos) + 1;
+			b.position(wloc);
+			b.putInt(location);
+		}
+		
+		return data;
+	}
+
+	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
+		return d.charno != b.debugCharacter || d.lineno != b.debugLine
+				 || !d.module.equals(b.debugModule)  || !d.function.equals(b.debugFunction) ;
+	}
+
+	private static int insertValue(PythonObject v, Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {
+		if (rmap.containsKey(v))
+			return rmap.get(v);
+		int key = kkey.get();
+		kkey.set(key+1);
+		rmap.put(v, key);
+		mmap.put(key, v);
+		return key;
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

@@ -17,9 +17,13 @@
  */
 package me.enerccio.sp.types.base;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Represents slice object. Can be created via slice() function
@@ -49,4 +53,13 @@ public class SliceObject extends PythonObject {
 		return "<slice at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
+	}
 }

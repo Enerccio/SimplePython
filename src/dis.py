@@ -18,26 +18,28 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
-def get_bytecode_types():
-    bytecode_names = bytecode.names
-    bytecode_numbers = bytecode.numbers
-    g = globals()
-    for name in bytecode_names.keys():
-        g[name] = bytecode_names[name]
-    return bytecode_names, bytecode_numbers
+def dis(object):
+    """
+    Disassembles the object, if is a object that can be disassembled into standard stream
+    """
+    
+    if type(object) == compiled_block:
+        dis_compiled_block(object)
+        
 
-BYTECODE_NAMES, BYTECODE_NUMBERS = get_bytecode_types()
-
-class AST(object):
-    def __init__(self):
-        super(AST, self).__init__()
+def dis_compiled_block(cb):
+    dass = javainstance("disassembler", cb.co_code, cb.co_consts, cb.co_debug)
+    last_lineno = -1
+    for bytecode in dass:
+        s = ""
+        if last_lineno == -1:
+           print "function " + bytecode._function + ": "
+        if bytecode._lineno > last_lineno:
+            s += str(bytecode._lineno) + "\t"
+            last_lineno = bytecode._lineno 
+        else:
+            s += "\t"
         
-        self.__ast = []
-        
-    def add_bytecode(self, bytecode):
-        if not type(bytecode) == bytecode:
-            raise TypeError, "bytecode must be type 'bytecode'"
-        self.__ast.append(bytecode)
-        
-    def get_bytecode(self):
-        return list(self.__ast)
+        s += str(dass.last_bytecode_pos) + "\t"
+        s += str(bytecode)
+        print s

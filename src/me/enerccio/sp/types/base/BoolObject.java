@@ -45,7 +45,7 @@ public class BoolObject extends NumberObject {
 	}
 	
 	@Override 
-	public Long getJavaInt() {
+	public long getJavaInt() {
 		return value ? 1L : 0L;
 	}
 	
@@ -72,5 +72,4 @@ public class BoolObject extends NumberObject {
 	protected String doToString() {
 		return value ? "True" : "False";
 	}
-
 }

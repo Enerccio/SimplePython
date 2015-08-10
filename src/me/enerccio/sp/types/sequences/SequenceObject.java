@@ -19,6 +19,7 @@ package me.enerccio.sp.types.sequences;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.Arithmetics;
@@ -46,6 +47,7 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	static {
 		try {
+			sfields.putAll(ContainerObject.getSFields());
 			sfields.put(__ITER__, 		JavaMethodObject.noArgMethod(SequenceObject.class, "__iter__"));
 			sfields.put(__GETITEM__,	new JavaMethodObject(SequenceObject.class, "get", PythonObject.class));
 			sfields.put(__ADD__,		new JavaMethodObject(SequenceObject.class, "add", PythonObject.class));
@@ -53,11 +55,20 @@ public abstract class SequenceObject extends ContainerObject {
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	public PythonObject add(PythonObject other){
@@ -96,9 +107,9 @@ public abstract class SequenceObject extends ContainerObject {
 	 * @return
 	 */
 	protected int[] getSliceData(int size, PythonObject key){
-		PythonObject sa = key.fields.get(SliceObject.START_ACCESSOR).object;
-		PythonObject so = key.fields.get(SliceObject.STOP_ACCESSOR).object;
-		PythonObject st = key.fields.get(SliceObject.STEP_ACCESSOR).object;
+		PythonObject sa = key.getEditableFields().get(SliceObject.START_ACCESSOR).object;
+		PythonObject so = key.getEditableFields().get(SliceObject.STOP_ACCESSOR).object;
+		PythonObject st = key.getEditableFields().get(SliceObject.STEP_ACCESSOR).object;
 		
 		boolean saex = sa != NoneObject.NONE;
 		boolean soex = so != NoneObject.NONE;
@@ -130,5 +141,20 @@ public abstract class SequenceObject extends ContainerObject {
 		sov = Math.min(size, sov);
 		
 		return new int[]{sav, sov, stv, reverse ? 1 : 0};
+	}
+	
+	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
+		if (!(idx instanceof IntObject))
+			throw Utils.throwException("TypeError", "Index must be int");
+		int i = (int) ((IntObject)idx).intValue();
+		if (i >= o.len() || i<-(o.len()))
+			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
+		return o.valueAt(morphAround(i, o.len()));
+	}
+
+	public static int morphAround(int i, int len) {
+		if (i<0)
+			return len-(Math.abs(i));
+		return i;
 	}
 }

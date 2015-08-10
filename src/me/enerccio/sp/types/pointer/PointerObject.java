@@ -17,8 +17,12 @@
  */
 package me.enerccio.sp.types.pointer;
 
+import java.util.Map;
+import java.util.Set;
+
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -69,5 +73,15 @@ public class PointerObject extends PythonObject {
 	@Override
 	protected String doToString() {
 		return "<pointer object to " + pointed.toString() + ">";
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

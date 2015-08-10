@@ -18,11 +18,14 @@
 package me.enerccio.sp.interpret;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
 
 /**
@@ -107,7 +110,18 @@ public class FrameObject extends PythonObject {
 		f.returnHappened = returnHappened;
 		f.yielding = yielding;
 		f.sendValue = sendValue;
+		f.stack = stack;
 		
 		return f;
+	}
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return PythonObject.sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return PythonObject.sfields;
 	}
 }

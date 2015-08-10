@@ -106,7 +106,7 @@ public class IntObject extends NumberObject {
 	}
 
 	@Override
-	public Long getJavaInt() {
+	public long getJavaInt() {
 		return new Long(value);
 	}
 }

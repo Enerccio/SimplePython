@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
 import me.enerccio.sp.external.PrintOutputStream;
@@ -50,7 +51,6 @@ import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -109,11 +109,10 @@ import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Pair;
+import me.enerccio.sp.utils.StaticTools.DiamondResolver;
+import me.enerccio.sp.utils.StaticTools.IOUtils;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
-import me.enerccio.sp.utils.Utils.ThrowingErrorListener;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 
 /**
  * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
@@ -146,6 +145,7 @@ public class PythonRuntime {
 		addAlias(PythonThread.class.getName(), "jthread");
 		addAlias(FormatterAccessor.class.getName(), "formatter");
 		addAlias(PythonTerminator.class.getName(), "terminator");
+		addAlias(Disassembler.class.getName(), "disassembler");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
@@ -507,7 +507,11 @@ public class PythonRuntime {
 					
 					pythonParser p;
 					try {
-						p = Utils.parse(new ModuleProvider("builtin", "builtin", Utils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), null, false));
+						p = ParserGenerator.parse(new ModuleProvider("builtin", 
+																	 "builtin", 
+																	 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), 
+																	 null, 
+																	 false));
 					} catch (Exception e1) {
 						throw new RuntimeException("Failed to initialize python!");
 					}
@@ -555,22 +559,15 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject compile(PythonObject source, StringObject filename){
+		PythonRuntime.runtime.checkSandboxAction("compile", SecureAction.RUNTIME_COMPILE, source, filename);
+		
 		CompiledBlockObject block;
 		
 		if (source instanceof StringObject){
 			PythonCompiler c = new PythonCompiler();
 			String src = ((StringObject)source).value;
 
-			ANTLRInputStream is = new ANTLRInputStream(src);
-			pythonLexer lexer = new pythonLexer(is);
-			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener(filename.value));
-			CommonTokenStream stream = new CommonTokenStream(lexer);
-			pythonParser parser = new pythonParser(stream);
-			
-			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener(filename.value));
-			block = c.doCompile(parser.file_input(), filename.value);
+			block = c.doCompile(ParserGenerator.parseCompileFunction(src, filename.value).file_input(), filename.value);
 		} else if (isderived(source, AST)){
 			ListObject lo = (ListObject)PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("get_bytecode")), null);
 			// mundane check
@@ -590,6 +587,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject exec_function(PythonObject code, DictObject locals, DictObject globals){
+		PythonRuntime.runtime.checkSandboxAction("exec", SecureAction.RUNTIME_EVAL, code);
+		
 		if (locals == null){
 			locals = (DictObject) Utils.run("locals");
 		}
@@ -643,6 +642,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject eval_function(String code, DictObject locals, DictObject globals){
+		PythonRuntime.runtime.checkSandboxAction("eval", SecureAction.RUNTIME_EVAL, code);
+		
 		if (locals == null){
 			locals = (DictObject) Utils.run("locals");
 		}
@@ -653,17 +654,7 @@ public class PythonRuntime {
 		CompiledBlockObject block;
 		
 		PythonCompiler c = new PythonCompiler();
-
-		ANTLRInputStream is = new ANTLRInputStream(code);
-		pythonLexer lexer = new pythonLexer(is);
-		lexer.removeErrorListeners();
-		lexer.addErrorListener(new ThrowingErrorListener("<eval>"));
-		CommonTokenStream stream = new CommonTokenStream(lexer);
-		pythonParser parser = new pythonParser(stream);
-		
-		parser.removeErrorListeners();
-		parser.addErrorListener(new ThrowingErrorListener("<eval>"));
-		block = c.doCompileEval(parser.eval_input());
+		block = c.doCompileEval(ParserGenerator.parseEval(code).eval_input());
 		
 		UserFunctionObject fnc = new UserFunctionObject();
 		fnc.newObject();
@@ -684,11 +675,12 @@ public class PythonRuntime {
 		Set<String> fields = new TreeSet<String>();
 		
 		synchronized (o){
-			synchronized (o.fields){
-				fields.addAll(o.fields.keySet());
+			synchronized (o.getEditableFields()){
+				fields.addAll(o.getEditableFields().keySet());
+				fields.addAll(o.getGenHandleNames());
 				
-				if (o.fields.containsKey("__dict__")){
-					PythonObject dd = o.fields.get("__dict__").object;
+				if (o.getEditableFields().containsKey("__dict__")){
+					PythonObject dd = o.getEditableFields().get("__dict__").object;
 					if (dd instanceof DictObject){
 						synchronized (dd){
 							DictObject d = (DictObject)dd;
@@ -704,8 +696,8 @@ public class PythonRuntime {
 			}
 		}
 		
-		if (o.fields.containsKey("__dir__")){
-			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.fields.get("__dir__").object, null);
+		if (o.get("__dir__", null) != null){
+			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.get("__dir__", null), null);
 			if (!(dirCall instanceof ListObject))
 				throw Utils.throwException("TypeError", "dir(): __dir__ must return list");
 			ListObject lo = (ListObject) dirCall;
@@ -755,7 +747,7 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject mro(ClassObject clazz){
-		List<ClassObject> ll = Utils.resolveDiamonds(clazz);
+		List<ClassObject> ll = DiamondResolver.resolveDiamonds(clazz);
 		Collections.reverse(ll);
 		TupleObject to = (TupleObject) Utils.list2tuple(ll);
 		to.newObject();
@@ -919,7 +911,7 @@ public class PythonRuntime {
 		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null && v != null)
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
 		if (field != null && field instanceof PropertyObject){
-			if (v != null)
+			if (v == null)
 				throw Utils.throwException("AttributeError", "attribute '" + attribute + "' is a property and can't be deleted");
 			
 			((PropertyObject)field).set(v);

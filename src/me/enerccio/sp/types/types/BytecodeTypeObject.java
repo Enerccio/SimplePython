@@ -17,6 +17,23 @@
  */
 package me.enerccio.sp.types.types;
 
+import java.util.Map;
+import java.util.TreeMap;
+
+import me.enerccio.sp.compiler.Bytecode;
+import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.runtime.ModuleInfo;
+import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.properties.MethodPropertyObject;
+import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.Utils;
+
 
 /**
  * bytecode()
@@ -31,11 +48,54 @@ public class BytecodeTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "bytecode";
 	}
+	
 
-	/*
-	@SuppressWarnings("unused")
 	@Override
-	public PythonObject call(TupleObject args) {
+	public void newObject(){
+		super.newObject();
+		
+		try {
+			Utils.putPublic(this, "names", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "names")));
+			Utils.putPublic(this, "numbers", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "numbers")));
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException("kurva", e);
+		}
+	}
+	
+	public Map<String, Integer> names(){
+		Map<String, Integer> tMap = new TreeMap<String, Integer>();
+		for (Bytecode b : Bytecode.values())
+			tMap.put(b.name(), b.id);
+		return tMap;
+	}
+	
+	public Map<Integer, String> numbers(){
+		Map<Integer, String> tMap = new TreeMap<Integer, String>();
+		for (Bytecode b : Bytecode.values())
+			tMap.put(b.id, b.name());
+		return tMap;
+	}
+	
+	private static ModuleInfo mook = new ModuleInfo() {
+		
+		@Override
+		public String getName() {
+			return "<generated-module>";
+		}
+		
+		@Override
+		public ModuleProvider getIncludeProvider() {
+			return null;
+		}
+		
+		@Override
+		public String getFileName() {
+			return "<generated-module>";
+		}
+	};
+
+	@Override
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (args.len() == 0)
 			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
 		
@@ -44,118 +104,148 @@ public class BytecodeTypeObject extends TypeObject {
 			
 			Bytecode b = Bytecode.fromNumber((int) byteNum.intValue());
 			if (b == null)
-				throw Utils.throwException("TypeError", "unknown bytecode number");
-			PythonBytecode bytecode = null;
+				throw Utils.throwException("TypeError", "bytecode(): unknown bytecode number " + byteNum);
+			PythonBytecode bytecode = Bytecode.makeBytecode(b, null, null, mook);
 			
 			switch (b) {
+			case ACCEPT_ITER:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
 			case CALL:
-				bytecode = new Call();
-				bytecode.newObject();
-				bytecode.value = args.getObjects()[1];
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case DEL:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				bytecode.booleanValue = Coerce.toJava(args.get(2), boolean.class);
+				break;
+			case DELATTR:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
 				break;
 			case DUP:
-				bytecode = new Dup();
-				bytecode.newObject();
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case ECALL:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case GETATTR:
+				break;
+			case GET_ITER:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
 				break;
 			case GOTO:
-				bytecode = new Goto();
-				bytecode.newObject();
-				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
-				break;
-			case JUMPIFFALSE:
-				bytecode = new JumpIfFalse();
-				bytecode.newObject();
-				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
-				break;
-			case JUMPIFTRUE:
-				bytecode = new JumpIfTrue();
-				bytecode.newObject();
-				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
-				break;
-			case LOAD:
-				bytecode = new Load();
-				bytecode.newObject();
-				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
-				break;
-			case LOADGLOBAL:
-				bytecode = new LoadGlobal();
-				bytecode.newObject();
-				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
-				break;
-			case NOP:
-				bytecode = new Nop();
-				bytecode.newObject();
-				break;
-			case POP:
-				bytecode = new Pop();
-				bytecode.newObject();
-				break;
-			case PUSH:
-				bytecode = new Push();
-				bytecode.newObject();
-				bytecode.value = args.getObjects()[1];
-				break;
-			case PUSH_DICT:
-				bytecode = new PushDict();
-				bytecode.newObject();
-				bytecode.mapValue = (DictObject) args.getObjects()[1];
-				break;
-			case PUSH_ENVIRONMENT:
-				bytecode = new PushEnvironment();
-				bytecode.newObject();
-				break;
-//				bytecode.ast = new ArrayList<PythonBytecode>(Utils.asList(args.getObjects()[1]));
-//				for (PythonBytecode pb : bytecode.ast)
-//					; // just check that it is all inded python bytecode not some other crap data
-//				break;
-			case RETURN:
-				bytecode = new Return();
-				bytecode.newObject();
-				bytecode.value = args.getObjects()[1];
-				break;
-			case SAVE:
-				bytecode = new Save();
-				bytecode.newObject();
-				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
-				break;
-			case SAVEGLOBAL:
-				bytecode = new SaveGlobal();
-				bytecode.newObject();
-				bytecode.stringValue = ((StringObject) args.getObjects()[1]).value;
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
 				break;
 			case IMPORT:
-				bytecode = new Import();
-				bytecode.stringValue2 = ((StringObject) args.getObjects()[1]).value;
-				bytecode.stringValue = ((StringObject) args.getObjects()[2]).value;
-				bytecode.newObject();
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				bytecode.object = Coerce.toJava(args.get(2), String.class);
 				break;
-			case SWAP_STACK:
-				bytecode = new SwapStack();
-				bytecode.newObject();
+			case ISINSTANCE:
 				break;
-			case UNPACK_SEQUENCE:
-				bytecode = new UnpackSequence();
-				bytecode.newObject();
-				bytecode.intValue = (int) ((IntObject) args.getObjects()[1]).intValue();
+			case JUMPIFFALSE:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case JUMPIFNONE:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case JUMPIFNORETURN:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case JUMPIFTRUE:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case KWARG:
+				bytecode.object = Coerce.toJava(args.get(1), String[].class);
+				break;
+			case LOAD:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case LOADBUILTIN:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case LOADDYNAMIC:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case LOADGLOBAL:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case NOP:
+				break;
+			case OPEN_LOCALS:
+				break;
+			case POP:
+				break;
+			case PUSH:
+				bytecode.value = args.get(1);
+				break;
+			case PUSH_ENVIRONMENT:
+				break;
+			case PUSH_EXCEPTION:
+				break;
+			case PUSH_FRAME:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case PUSH_LOCALS:
 				break;
 			case PUSH_LOCAL_CONTEXT:
-				bytecode = new PushLocalContext();
-				bytecode.newObject();
-				bytecode.value = args.getObjects()[1];
+				break;
+			case RAISE:
+				break;
+			case RCALL:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case RERAISE:
 				break;
 			case RESOLVE_ARGS:
-				bytecode = new ResolveArgs();
-				bytecode.newObject();
+				break;
+			case RESOLVE_CLOSURE:
+				break;
+			case RETURN:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case SAVE:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case SAVEDYNAMIC:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case SAVEGLOBAL:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case SAVE_LOCAL:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case SETATTR:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				break;
+			case SETUP_LOOP:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case SWAP_STACK:
+				break;
+			case TRUTH_VALUE:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case UNPACK_KWARG:
+				break;
+			case UNPACK_SEQUENCE:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
+			case YIELD:
+				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
+				bytecode.intValue = Coerce.toJava(args.get(2), int.class);
+				break;
+			case KCALL:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
 				break;
 			}
 			
+			bytecode.newObject();
 			return bytecode;
-		} catch (ClassCastException e){
+		} catch (CastFailedException e){
 			throw Utils.throwException("TypeError", "bytecode(): incorrect type of arguments");
 		} catch (ArrayIndexOutOfBoundsException e){
 			throw Utils.throwException("TypeError", "bytecode(): incorrect number of arguments");
 		}
 		
 	}
-	*/
 }

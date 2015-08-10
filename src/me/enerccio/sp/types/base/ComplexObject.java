@@ -52,7 +52,7 @@ public class ComplexObject extends NumberObject {
 	}
 	
 	@Override 
-	public Long getJavaInt() {
+	public long getJavaInt() {
 		throw Utils.throwException("TypeError", "can't convert complex to int");
 	}
 	

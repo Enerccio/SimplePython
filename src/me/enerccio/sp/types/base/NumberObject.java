@@ -19,6 +19,7 @@ package me.enerccio.sp.types.base;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -50,6 +51,7 @@ public abstract class NumberObject extends PythonObject {
 	
 	static {
 		try {
+			sfields.putAll(PythonObject.getSFields());
 			sfields.put(__INT__, 			new JavaMethodObject(NumberObject.class, "intValue"));
 			sfields.put(Arithmetics.__ADD__, new JavaMethodObject(NumberObject.class, "add", PythonObject.class));
 			sfields.put(Arithmetics.__SUB__, new JavaMethodObject(NumberObject.class, "sub", PythonObject.class));
@@ -73,17 +75,27 @@ public abstract class NumberObject extends PythonObject {
 			throw new RuntimeException("Fuck", e);
 		}
 	}
+	
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
 
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
+	
 	@Override
 	public void newObject() {	
 		super.newObject();
-		bindMethods(sfields);
 	};
 	
 	protected abstract PythonObject getIntValue();
 	
 	/** Converts number to BigInteger */ 
-	public abstract Long getJavaInt();
+	public abstract long getJavaInt();
 	/** Converts number to float */
 	public abstract double getJavaFloat();
 	

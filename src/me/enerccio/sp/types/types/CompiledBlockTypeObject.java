@@ -22,6 +22,8 @@ import java.util.Map;
 
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -52,8 +54,9 @@ public class CompiledBlockTypeObject extends TypeObject {
 			for (PythonObject key : mm.keySet()){
 				if (!(key instanceof IntObject))
 					throw new CastFailedException("blah");
-				consts.put(((IntObject)key).getJavaInt().intValue(), mm.get(key));
+				consts.put((int) ((IntObject)key).getJavaInt(), mm.get(key));
 			}
+			PythonRuntime.runtime.checkSandboxAction("compiled_block", SecureAction.RUNTIME_COMPILE, s, consts);
 			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(), consts);
 			co.newObject();
 			return co;

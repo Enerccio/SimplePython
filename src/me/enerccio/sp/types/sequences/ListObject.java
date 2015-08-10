@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -94,16 +95,26 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	
 	static {
 		try {
+			sfields.putAll(MutableSequenceObject.getSFields());
 			sfields.put("append", new JavaMethodObject(ListObject.class, "append", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
 	
 	@Override
 	public void newObject() {
 		super.newObject();
-		bindMethods(sfields);
 	}
 	
 	public synchronized PythonObject append(PythonObject value){
@@ -132,7 +143,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	public PythonObject get(int i) {
 		if (i >= objects.size() || i<-(objects.size()))
 			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
-		return objects.get(Utils.morphAround(i, objects.size()));
+		return objects.get(morphAround(i, objects.size()));
 	}
 	
 	@Override
@@ -162,7 +173,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 			
 			return lo;
 		} else 
-		return Utils.doGet(this, key);
+		return doGet(this, key);
 	}
 
 	@Override
@@ -184,7 +195,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 			int i = (int) ((IntObject)key).intValue();
 			if (i >= len() || i<-(len()))
 				throw Utils.throwException("IndexError", "incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
-			int idx = Utils.morphAround(i, len());
+			int idx = morphAround(i, len());
 			objects.set(idx, value);
 		} else if (key instanceof SliceObject){
 			
@@ -211,6 +222,6 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		int i = (int) ((IntObject)idx).intValue();
 		if (i >= len() || i<-(len()))
 			throw  Utils.throwException("IndexError", "Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
-		objects.remove((Utils.morphAround(i, len())));
+		objects.remove((morphAround(i, len())));
 	}
 }
