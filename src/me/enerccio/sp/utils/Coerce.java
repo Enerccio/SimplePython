@@ -6,14 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import me.enerccio.sp.interpret.PythonException;
+import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
-import me.enerccio.sp.types.base.RealObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -107,15 +105,15 @@ public class Coerce {
 	 */
 	public static PythonObject toPython(Object o, Class<?> cls) {
 		if (cls == Byte.class || cls == byte.class)
-			return IntObject.valueOf(((Byte) o).byteValue());
+			return NumberObject.valueOf(((Byte) o).byteValue());
 		if (cls == Integer.class || cls == int.class)
-			return IntObject.valueOf(((Integer) o).longValue());
+			return NumberObject.valueOf(((Integer) o).longValue());
 		if (cls == Long.class || cls == long.class)
-			return IntObject.valueOf(((Long) o).longValue());
+			return NumberObject.valueOf(((Long) o).longValue());
 		if (cls == Float.class || cls == float.class)
-			return new RealObject(((Float) o).floatValue());
+			return NumberObject.valueOf(((Float) o).floatValue());
 		if (cls == Double.class || cls == double.class)
-			return new RealObject(((Double) o).doubleValue());
+			return NumberObject.valueOf(((Double) o).doubleValue());
 		if (cls == String.class)
 			return new StringObject((String) o);
 		if (cls == Void.class)
@@ -153,7 +151,7 @@ public class Coerce {
 	
 	/** Coerces object to nearest applicable python type */
 	public static PythonObject toPython(int i) {
-		return IntObject.valueOf(i);
+		return NumberObject.valueOf(i);
 	}
 	
 	static {
@@ -163,7 +161,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return Integer.valueOf((int)((NumberObject)o).getJavaInt());
+					return ((NumberObject)o).intValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to Integer");
 			}
@@ -174,7 +172,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return (int)((NumberObject)o).getJavaInt();
+					return ((NumberObject)o).intValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to int");
 			}
@@ -185,7 +183,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return ((NumberObject)o).getJavaInt();
+					return ((NumberObject)o).longValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to Long");
 			}
@@ -197,7 +195,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return ((NumberObject)o).getJavaInt();
+					return ((NumberObject)o).longValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to long");
 			}
@@ -208,7 +206,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return Float.valueOf((float)((NumberObject)o).getJavaFloat());
+					return ((NumberObject)o).floatValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to Float");
 			}
@@ -219,7 +217,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return (float)((NumberObject)o).getJavaFloat();
+					return ((NumberObject)o).floatValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to float");
 			}
@@ -230,7 +228,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return Double.valueOf(((NumberObject)o).getJavaFloat());
+					return ((NumberObject)o).doubleValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to Double");
 			}
@@ -242,7 +240,7 @@ public class Coerce {
 			@Override
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof NumberObject)
-					return ((NumberObject)o).getJavaFloat();
+					return ((NumberObject)o).doubleValue();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to double");
 			}

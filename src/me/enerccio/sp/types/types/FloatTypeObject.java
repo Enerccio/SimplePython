@@ -17,14 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.ClassInstanceObject;
-import me.enerccio.sp.types.base.ComplexObject;
-import me.enerccio.sp.types.base.IntObject;
-import me.enerccio.sp.types.base.RealObject;
-import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -33,9 +30,9 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class RealTypeObject extends TypeObject {
+public class FloatTypeObject extends TypeObject {
 	private static final long serialVersionUID = -8799583211649909780L;
-	public static final String REAL_CALL = "float";
+	public static final String FLOAT_CALL = "float";
 	
 	@Override
 	public String getTypeIdentificator() {
@@ -47,29 +44,32 @@ public class RealTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 1)
-			throw Utils.throwException("TypeError", "real(): Incorrect number of parameters");
+			throw Utils.throwException("TypeError", "foat(): Incorrect number of parameters");
 		
 		PythonObject a = args.valueAt(0);
 		
-		if (a instanceof IntObject)
-			return new RealObject(((IntObject) a).getJavaFloat());
-		if (a instanceof RealObject)
-			return a;
-		if (a instanceof ComplexObject)
-			return new RealObject(((ComplexObject)a).getJavaFloat());
-		if (a instanceof ClassInstanceObject){
-			ClassInstanceObject c = (ClassInstanceObject)a;
+		if (a instanceof NumberObject) {
+			if (PythonRuntime.USE_DOUBLE_FLOAT)
+				return NumberObject.valueOf(((NumberObject)a).doubleValue());
+			else
+				return NumberObject.valueOf(((NumberObject)a).floatValue());
+		}
+
+		PythonObject __int__ = a.get(NumberObject.__INT__, null);
+		if (__int__ != null) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
-			Utils.run("getattr", c, new StringObject("__int__"));
-			PythonObject attr = PythonInterpreter.interpreter.get().executeAll(cfc);
-			PythonInterpreter.interpreter.get().execute(false, attr, null);
-			try {
-				return new RealObject(((IntObject)PythonInterpreter.interpreter.get().executeAll(cfc)).intValue());
-			} catch (ClassCastException e){
-				throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
+			PythonInterpreter.interpreter.get().execute(false, __int__, null);
+			PythonObject o = PythonInterpreter.interpreter.get().executeAll(cfc);
+			if (o instanceof NumberObject) {
+				if (PythonRuntime.USE_DOUBLE_FLOAT)
+					return NumberObject.valueOf(((NumberObject)o).doubleValue());
+				else
+					return NumberObject.valueOf(((NumberObject)o).floatValue());
+			} else {
+				throw Utils.throwException("TypeError", "float(): __int__ did not returned number");
 			}
 		}
-		
-		throw Utils.throwException("TypeError", "real(): Incorrect type of parameter");
+
+		throw Utils.throwException("TypeError", "float(): Incorrect type of parameter");
 	}
 }

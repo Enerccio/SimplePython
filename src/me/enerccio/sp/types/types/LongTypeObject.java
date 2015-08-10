@@ -30,46 +30,45 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class IntTypeObject extends TypeObject {
+public class LongTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4178003762513900453L;
-	public static final String INT_CALL = "int";
+	public static final String LONG_CALL = "long";
 
-	public IntTypeObject(){
+	public LongTypeObject(){
 		
 	}
 
 	@Override
 	public String getTypeIdentificator() {
-		return "int";
+		return "long";
 	}
-
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
 		PythonObject base = kwargs.consume("base");
-		kwargs.checkEmpty("int");
+		kwargs.checkEmpty("long");
 		if (args.len() < 1)
 			return NumberObject.valueOf(0l);
 		if (args.len() > 2)
-			throw Utils.throwException("TypeError", "int() takes at most 2 arguments");
+			throw Utils.throwException("TypeError", "long() takes at most 2 arguments");
 		PythonObject obj = args.get(0);
 		if (args.len() == 2) {
 			if (base != null)
-				throw Utils.throwException("TypeError", "int() got duplicate value for argument 'base'");
+				throw Utils.throwException("TypeError", "long() got duplicate value for argument 'base'");
 			base = args.get(1);
 		}
 		if (base != null) {
 			if (!NumberObject.isInteger(base))
-				throw Utils.throwException("TypeError", "int() base argument must be integer");
+				throw Utils.throwException("TypeError", "long() base argument must be integer");
 			if (!(obj instanceof StringObject))
-				throw Utils.throwException("TypeError", "int() can't convert non-string with explicit base");
-			return NumberObject.valueOf(Integer.valueOf(obj.toString(), ((NumberObject)base).intValue()));
+				throw Utils.throwException("TypeError", "long() can't convert non-string with explicit base");
+			return NumberObject.valueOf(Long.valueOf(obj.toString(), ((NumberObject)base).intValue()));
 		}
 		
 		if (obj instanceof StringObject)
-			return NumberObject.valueOf(Integer.valueOf(obj.toString()));
+			return NumberObject.valueOf(Long.valueOf(obj.toString()));
 		if (obj instanceof NumberObject)
-			return NumberObject.valueOf(((NumberObject)obj).intValue());
+			return NumberObject.valueOf(((NumberObject)obj).longValue());
 		PythonObject __int__ = obj.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
@@ -77,6 +76,6 @@ public class IntTypeObject extends TypeObject {
 			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
 		
-		throw Utils.throwException("TypeError", "int() can't convert " + obj.toString() + " to int");
+		throw Utils.throwException("TypeError", "long() can't convert " + obj.toString() + " to long");
 	}
 }

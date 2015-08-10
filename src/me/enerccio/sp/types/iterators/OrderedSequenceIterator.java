@@ -23,7 +23,7 @@ import java.util.Set;
 
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.utils.Utils;
@@ -80,7 +80,7 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	public PythonObject next() {
 		if (cp >= len)
 			throw Utils.throwException("StopIteration");
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, NumberObject.valueOf(cp++));
 		return value;
 	}
 	
@@ -88,7 +88,7 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	public PythonObject nextInternal() {
 		if (cp >= len)
 			return null;
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, IntObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, NumberObject.valueOf(cp++));
 		return value;
 	}
 

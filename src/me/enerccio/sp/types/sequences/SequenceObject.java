@@ -22,11 +22,10 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.types.AccessRestrictions;
-import me.enerccio.sp.types.Arithmetics;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NoneObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
@@ -71,12 +70,9 @@ public abstract class SequenceObject extends ContainerObject {
 		super.newObject();
 	}
 	
-	public PythonObject add(PythonObject other){
-		return Arithmetics.doOperator(this, other, __ADD__);
-	}
-	
 	public abstract PythonObject get(PythonObject key);
 	public abstract PythonObject get(int i);
+	public abstract PythonObject add(PythonObject b);
 	
 	public abstract PythonObject __iter__(); 
 
@@ -118,11 +114,11 @@ public abstract class SequenceObject extends ContainerObject {
 		int sov = size;
 		int stv = 1;
 		if (saex)
-			sav = (int) ((IntObject)sa).intValue();
+			sav = ((NumberObject)sa).intValue();
 		if (soex)
-			sov = (int) ((IntObject)so).intValue();
+			sov = ((NumberObject)so).intValue();
 		if (stex)
-			stv = (int) ((IntObject)st).intValue();
+			stv = ((NumberObject)st).intValue();
 		
 		boolean reverse = false;
 		
@@ -144,9 +140,9 @@ public abstract class SequenceObject extends ContainerObject {
 	}
 	
 	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
-		if (!(idx instanceof IntObject))
+		if (!NumberObject.isInteger(idx))
 			throw Utils.throwException("TypeError", "Index must be int");
-		int i = (int) ((IntObject)idx).intValue();
+		int i = ((NumberObject)idx).intValue();
 		if (i >= o.len() || i<-(o.len()))
 			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
 		return o.valueAt(morphAround(i, o.len()));

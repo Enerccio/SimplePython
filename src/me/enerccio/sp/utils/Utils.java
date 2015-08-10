@@ -26,12 +26,14 @@ import java.util.List;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -80,7 +82,17 @@ public class Utils {
 	public static RuntimeException throwException(String type, String text, Throwable cause) {
 		return new PythonExecutionException(run(type, new StringObject(text)), cause);
 	}
-	
+
+	/**
+	 * throws exception of that type, that text and that cause
+	 * @param type
+	 * @param text
+	 * @return
+	 */
+	public static RuntimeException throwException(ClassObject type, String text, Throwable cause) {
+		return new PythonExecutionException(type.call(new TupleObject(new StringObject(text)), KwArgs.EMPTY), cause);
+	}
+
 	/**
 	 * throws exception of that type and that text
 	 * @param type

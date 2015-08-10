@@ -61,10 +61,10 @@ public class PythonExecutionException extends RuntimeException {
 				List<PythonObject> pstack = new ArrayList<PythonObject>(((ListObject)stack).objects);
 				Collections.reverse(pstack);
 				for (PythonObject o : pstack) {
-					if (!(o instanceof PythonException.StackElement))
+					if (!(o instanceof StackElement))
 						// Shouldn't actually happen
 						continue;
-					PythonException.StackElement se = (PythonException.StackElement)o;
+					StackElement se = (StackElement)o;
 					stl.add(0, new StackTraceElement(se.module.getName(), se.function, se.module.getFileName(), se.line));
 				}
 			}

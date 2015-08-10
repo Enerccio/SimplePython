@@ -27,7 +27,7 @@ import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
@@ -120,24 +120,24 @@ public class Disassembler {
 			case SAVEGLOBAL:
 			case SAVE_LOCAL:
 			case SETATTR:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				break;
 			case KWARG:
-				bytecode.object = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String[].class);
+				bytecode.object = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String[].class);
 				break;
 			case YIELD:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String.class);
-				bytecode.intValue = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), int.class);
+				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.intValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), int.class);
 				break;
 			case IMPORT:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String.class);
-				bytecode.object = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.object = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				break;
 			case PUSH:
-				bytecode.value = mappings.doGet(IntObject.valueOf(readBuff.getInt()));
+				bytecode.value = mappings.doGet(NumberObject.valueOf(readBuff.getInt()));
 				break;
 			case DEL:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(IntObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				bytecode.booleanValue = readBuff.getInt() == 1;
 				break;
 			case GETATTR:

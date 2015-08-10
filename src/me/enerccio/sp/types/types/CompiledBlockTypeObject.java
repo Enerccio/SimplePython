@@ -25,7 +25,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
+import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
@@ -52,9 +52,9 @@ public class CompiledBlockTypeObject extends TypeObject {
 			Map<PythonObject, PythonObject> mm = (Map<PythonObject, PythonObject>) Coerce.toJava(o.get(1), Map.class);
 			Map<Integer, PythonObject> consts = new HashMap<Integer, PythonObject>();
 			for (PythonObject key : mm.keySet()){
-				if (!(key instanceof IntObject))
+				if (!NumberObject.isInteger(key))
 					throw new CastFailedException("blah");
-				consts.put((int) ((IntObject)key).getJavaInt(), mm.get(key));
+				consts.put(((NumberObject)key).intValue(), mm.get(key));
 			}
 			PythonRuntime.runtime.checkSandboxAction("compiled_block", SecureAction.RUNTIME_COMPILE, s, consts);
 			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(), consts);

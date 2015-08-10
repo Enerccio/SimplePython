@@ -50,10 +50,10 @@ public class ComplexTypeObject extends TypeObject {
 		
 		try {
 			if (o.len() == 2){
-				real = ((NumberObject)o.valueAt(0)).getJavaFloat();
-				imag = ((NumberObject)o.valueAt(0)).getJavaFloat();
+				real = ((NumberObject)o.valueAt(0)).doubleValue();
+				imag = ((NumberObject)o.valueAt(0)).doubleValue();
 			} else if (o.len() == 1){
-				real = ((NumberObject)o.valueAt(0)).getJavaFloat();
+				real = ((NumberObject)o.valueAt(0)).doubleValue();
 			}
 		} catch (ClassCastException e){
 			throw Utils.throwException("TypeError", "complex(): parameters must be numbers");

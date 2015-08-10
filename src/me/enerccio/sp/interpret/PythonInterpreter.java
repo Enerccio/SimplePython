@@ -31,6 +31,7 @@ import java.util.Stack;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -289,6 +290,7 @@ public class PythonInterpreter extends PythonObject {
 	 * Handles the exception chain.
 	 * @param e
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void handleException(PythonExecutionException e) {
 		PythonObject pe = e.getException();
 		currentFrame.peekLast().exception = pe;
@@ -296,6 +298,9 @@ public class PythonInterpreter extends PythonObject {
 		if (stack instanceof ListObject && !e.noStackGeneration){
 			ListObject s = (ListObject)stack;
 			s.objects.add(makeStack());
+			if (e.getCause() instanceof PythonException) {
+				((PythonException)e.getCause()).addPythonStack((List)s.objects);
+			}
 		}
 		removeLastFrame();
 	}
@@ -304,13 +309,13 @@ public class PythonInterpreter extends PythonObject {
 	 * Inserts current instruction into stack
 	 * @return
 	 */
-	private PythonException.StackElement makeStack() {
+	private StackElement makeStack() {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
-			return PythonException.LAST_FRAME; 
+			return StackElement.LAST_FRAME; 
 		if (o.debugLine < 0)
-			return PythonException.SYSTEM_FRAME;
-		return new PythonException.StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
+			return StackElement.SYSTEM_FRAME;
+		return new StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
 	}
 
 	/**
@@ -919,10 +924,21 @@ public class PythonInterpreter extends PythonObject {
 			o.parentFrame.stack.add(o);
 		} else {
 			if (currentFrame.size() == 0) {
-				if (o.exception != null) {
-					if (o.exception.get("__exception__", null) != null)
-						throw new PythonExecutionException(o.exception, (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject());
-					throw new PythonExecutionException(o.exception);
+				PythonObject e = o.exception;
+				if (e != null) {
+					if (e.get("__exception__", null) != null) {
+						Throwable t = (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject();
+						if (t instanceof PythonException)
+							throw (PythonException)t;
+						throw new PythonExecutionException(e, t);
+					} else {
+						PythonException pe = PythonException.translate(e);
+						if (pe != null) {
+							
+							throw pe;
+						}
+						throw new PythonExecutionException(e);
+					}
 				}
 			} else
 				currentFrame.peekLast().exception = o.exception;

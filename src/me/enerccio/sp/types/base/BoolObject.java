@@ -33,9 +33,13 @@ public class BoolObject extends NumberObject {
 	public static final BoolObject FALSE = new BoolObject(false);
 	
 	private final boolean value;
+	private final NumberObject intRepresentation;
+	
+	@Override public NumberType getNumberType() { return NumberType.BOOL; }
 	
 	private BoolObject(boolean v){
 		this.value = v;
+		intRepresentation = NumberObject.valueOf(this.intValue());
 		newObject();
 	}
 	
@@ -44,32 +48,126 @@ public class BoolObject extends NumberObject {
 		
 	}
 	
-	@Override 
-	public long getJavaInt() {
-		return value ? 1L : 0L;
-	}
-	
-	@Override
-	public double getJavaFloat() {
-		return value ? 1.0 : 0.0;
-	}
-	
 	@Override
 	public boolean truthValue() {
 		return value;
 	}
+	
+
+	@Override public int intValue() { return value ? 1 : 0; }
+	@Override public long longValue() { return value ? 1l : 0l; }
+	@Override public float floatValue() { return value ? 1.f : 0.f; }
+	@Override public double doubleValue() { return value ? 1.0 : 0.0; }
 
 	public static PythonObject fromBoolean(Boolean ret) {
 		return ret ? TRUE : FALSE;
 	}
 
 	@Override
-	protected PythonObject getIntValue() {
-		return value ? IntObject.valueOf(1) : IntObject.valueOf(0);
+	protected String doToString() {
+		return value ? "True" : "False";
+	}
+
+	public PythonObject not() {
+		return value ? FALSE : TRUE;
+	}
+	
+	@Override
+	public PythonObject add(PythonObject b){
+		return intRepresentation.add(b);
+	}
+	
+	@Override
+	public PythonObject sub(PythonObject b){
+		return intRepresentation.sub(b);
+	}
+	
+	@Override
+	public PythonObject mul(PythonObject b){
+		return intRepresentation.mul(b);
+
+	}
+	
+	@Override
+	public PythonObject div(PythonObject b){
+		return intRepresentation.div(b);
+
+	}
+	
+	@Override
+	public PythonObject mod(PythonObject b){
+		return intRepresentation.mod(b);
+
+	}
+	
+	@Override
+	public PythonObject and(PythonObject b){
+		return intRepresentation.and(b);
+
+	}
+	
+	@Override
+	public PythonObject or(PythonObject b){
+		return intRepresentation.or(b);
+
+	}
+	
+	@Override
+	public PythonObject xor(PythonObject b){
+		return intRepresentation.xor(b);
+
+	}
+	
+	@Override
+	public PythonObject neg(){
+		return intRepresentation.neg();
+	}
+	
+	@Override
+	public PythonObject pow(PythonObject b){
+		return intRepresentation.add(b);
+	}
+	
+	@Override
+	public PythonObject ls(PythonObject b){
+		return intRepresentation.ls(b);
+	}
+	
+	@Override
+	public PythonObject rs(PythonObject b){
+		return intRepresentation.rs(b);
+	}
+	
+	@Override
+	public PythonObject lt(PythonObject b) {
+		return intRepresentation.lt(b);
 	}
 
 	@Override
-	protected String doToString() {
-		return value ? "True" : "False";
+	public PythonObject le(PythonObject b) {
+		return intRepresentation.le(b);
+	}
+
+	@Override
+	public PythonObject eq(PythonObject b) {
+		if (b == this) return BoolObject.TRUE;
+		return intRepresentation.eq(b);
+	}
+
+	@Override
+	public PythonObject ne(PythonObject b) {
+		if (b == this) return BoolObject.FALSE;
+		return intRepresentation.ne(b);
+
+	}
+
+	@Override
+	public PythonObject gt(PythonObject b) {
+		return intRepresentation.gt(b);
+	}
+
+	@Override
+	public PythonObject ge(PythonObject b) {
+		return intRepresentation.ge(b);
 	}
 }
