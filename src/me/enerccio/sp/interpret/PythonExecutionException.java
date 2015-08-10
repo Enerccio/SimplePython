@@ -88,5 +88,10 @@ public class PythonExecutionException extends RuntimeException {
 
 	public void setException(PythonObject exception) {
 		this.exception = exception; // exception.fields.get("stack").object.toString().replace(">,", ">,\n")
+	}
+
+	public boolean noStackGeneration;
+	public void noStackGeneration(boolean b) {
+		this.noStackGeneration = b;
 	}	
 }

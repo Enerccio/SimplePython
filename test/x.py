@@ -1,5 +1,12 @@
+def failure():
+	raise ValueError
+
 def test():
-	W().test()
+	# W().test()
+	try:
+		failure()
+	except TypeError, e:
+		pass
 
 import dis
 import ast
