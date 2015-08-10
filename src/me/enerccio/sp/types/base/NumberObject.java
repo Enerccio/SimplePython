@@ -26,6 +26,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -87,7 +88,8 @@ public abstract class NumberObject extends PythonObject {
 			return new DoubleObject(f);
 		return new FloatObject(f);
 	}
-	
+
+	/** Returns True if specified PythonObject is NumberObject and int */ 
 	public static boolean isInteger(PythonObject o) {
 		if (o instanceof NumberObject)
 			if (((NumberObject)o).getNumberType() == NumberType.INT)
@@ -95,6 +97,43 @@ public abstract class NumberObject extends PythonObject {
 		return false;
 	}
 	
+	/** 
+	 * Returns True if specified PythonObject is NumberObject and long.
+	 * If PythonRuntime.USE_INT_ONLY is set to true, returns true for ints as well. 
+	 */ 
+	public static boolean isLong(PythonObject o) {
+		if (o instanceof NumberObject) {
+			if (((NumberObject)o).getNumberType() == NumberType.LONG)
+				return true;
+			if (PythonRuntime.USE_INT_ONLY && ((NumberObject)o).getNumberType() == NumberType.INT)
+				return true;
+		}
+		return false;
+	}
+
+	/** 
+	 * Returns True if specified PythonObject is NumberObject and either int or long.
+	 * If PythonRuntime.USE_INT_ONLY is set to true, returns true for ints as well. 
+	 */ 
+	public static boolean isFixed(PythonObject o) {
+		if (o instanceof NumberObject) {
+			if (((NumberObject)o).getNumberType() == NumberType.LONG)
+				return true;
+			if (((NumberObject)o).getNumberType() == NumberType.INT)
+				return true;
+		}
+		return false;
+	}
+	/** 
+	 * Returns True if specified PythonObject is NumberObject and float.
+	 */ 
+	public static boolean isFloat(PythonObject o) {
+		if (o instanceof NumberObject)
+			if (((NumberObject)o).getNumberType() == NumberType.FLOAT)
+				return true;
+		return false;
+	}
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
 	static {
@@ -228,4 +267,1287 @@ public abstract class NumberObject extends PythonObject {
 	public abstract PythonObject gt(PythonObject arg);
 	
 	public abstract PythonObject ge(PythonObject arg);
+
+	private static class IntObject extends NumberObject {
+		private static final long serialVersionUID = 6L;
+		private final int value;
+
+		@Override public NumberType getNumberType() { return NumberType.INT; }
+
+		@Override
+		public void newObject(){
+			super.newObject();
+		}
+		
+		private static IntObject[] baseMap = new IntObject[1 + 2 * PythonRuntime.PREALOCATED_INTEGERS];
+		static {
+			for (int i=-PythonRuntime.PREALOCATED_INTEGERS; i<PythonRuntime.PREALOCATED_INTEGERS; i++){
+				baseMap[i + PythonRuntime.PREALOCATED_INTEGERS] = new IntObject(i);
+				baseMap[i + PythonRuntime.PREALOCATED_INTEGERS].newObject();
+			}
+		}
+		
+		static IntObject getCached(int v){
+			if (v > -PythonRuntime.PREALOCATED_INTEGERS &&  v < PythonRuntime.PREALOCATED_INTEGERS)
+				return baseMap[v+PythonRuntime.PREALOCATED_INTEGERS];
+			return new IntObject(v);
+		}
+		
+		private IntObject(int v){
+			value = v;
+			newObject();
+		}
+
+		@Override
+		public boolean truthValue() {
+			return !(value == 0);
+		}
+		
+		@Override
+		public int getId(){
+			return hashCode();
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (value ^ (value >>> 32));
+			return result;
+		}
+
+		@Override
+		protected String doToString() {
+			return ""+value;
+		}
+
+		@Override public int intValue() { return value; }
+		@Override public long longValue() { return value; }
+		@Override public float floatValue() { return value; }
+		@Override public double doubleValue() { return value; }
+		
+		public IntObject negative() {
+			return IntObject.getCached(-value);
+		}
+
+		@Override
+		public PythonObject add(PythonObject b){
+			if (b instanceof StringObject)
+				return new StringObject(((StringObject)b).value + value);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return n.add(this);
+					case BOOL:
+					case INT:
+						if (PythonRuntime.USE_INT_ONLY) {
+							int r = value + n.intValue();
+							if (((value ^ r) & (n.intValue() ^ r)) < 0) {
+								throw new TypeError("int overflow");
+							}
+							return IntObject.getCached(r);
+						} else {
+							return NumberObject.valueOf(value + n.longValue());
+						}
+				}
+			}
+			return invalidOperation("+", b);
+		}
+		
+		@Override
+		public PythonObject sub(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case LONG:
+					case FLOAT:
+						return n.add(negative());
+					case BOOL:
+					case INT:
+						if (PythonRuntime.USE_INT_ONLY) {
+							int r = value - n.intValue();
+							if (((value ^ n.intValue()) & (value ^ r)) < 0) {
+								throw new TypeError("int overflow");
+							}
+							return IntObject.getCached(r);
+						} else {
+							return NumberObject.valueOf(value + n.longValue());
+						}
+				}
+			}
+			return invalidOperation("-", b);
+		}
+		
+		@Override
+		public PythonObject mul(PythonObject b){
+			if (b instanceof StringObject)
+				return ((StringObject)b).mul(this);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return n.mul(this);
+					case BOOL:
+					case INT:
+						if (PythonRuntime.USE_INT_ONLY) {
+							long r = value + n.intValue();
+							int ir = (int)r;
+							if (ir != r)
+								throw new TypeError("int overflow");
+	    					return IntObject.getCached(ir);
+						} else {
+							return NumberObject.valueOf(value + n.longValue());
+						}
+				}
+			}
+			return invalidOperation("*", b);
+		}
+		
+		@Override
+		public PythonObject div(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("/", b);
+					case FLOAT:
+						if (PythonRuntime.USE_DOUBLE_FLOAT)
+							return NumberObject.valueOf(value / n.doubleValue());
+						else
+							return NumberObject.valueOf(value / n.floatValue());
+					case LONG:
+						return NumberObject.valueOf(value / n.longValue());
+					case BOOL:
+					case INT:
+	    				return IntObject.getCached(value / n.intValue());
+				}
+			}
+			return invalidOperation("/", b);
+		}
+		
+		@Override
+		public PythonObject mod(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("%", b);
+					case FLOAT:
+						if (PythonRuntime.USE_DOUBLE_FLOAT)
+							return NumberObject.valueOf(value % n.doubleValue());
+						else
+							return NumberObject.valueOf(value % n.floatValue());
+					case LONG:
+						return NumberObject.valueOf(value % n.longValue());
+					case BOOL:
+					case INT:
+	    				return IntObject.valueOf(value % n.intValue());
+				}
+			}
+			return invalidOperation("%", b);
+		}
+		
+		@Override
+		public PythonObject and(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("&", b);
+					case LONG:
+						return NumberObject.valueOf(value & n.longValue());
+					case BOOL:
+					case INT:
+	    				return IntObject.getCached(value & n.intValue());
+				}
+			}
+			return invalidOperation("&", b);
+		}
+		
+		@Override
+		public PythonObject or(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("|", b);
+					case LONG:
+						return NumberObject.valueOf(value | n.longValue());
+					case BOOL:
+					case INT:
+	    				return IntObject.getCached(value | n.intValue());
+				}
+			}
+			return invalidOperation("|", b);
+		}
+		
+		@Override
+		public PythonObject xor(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("^", b);
+					case LONG:
+						return NumberObject.valueOf(value ^ n.longValue());
+					case BOOL:
+					case INT:
+	    				return IntObject.getCached(value ^ n.intValue());
+				}
+			}
+			return invalidOperation("^", b);
+		}
+		
+		@Override
+		public PythonObject neg(){
+			return IntObject.getCached(~value);
+		}
+		
+		@Override
+		public PythonObject pow(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("** or pow()", b);
+					case FLOAT:
+						return NumberObject.valueOf(Math.pow(value, n.doubleValue()));
+					case LONG:
+						return NumberObject.valueOf((long)Math.pow(value, n.doubleValue()));
+					case BOOL:
+					case INT:
+						long r = (long)Math.pow(value, n.doubleValue());
+						if (PythonRuntime.USE_INT_ONLY) {
+							int ir = (int)r;
+							if (ir != r)
+								throw new TypeError("int overflow");
+							return IntObject.getCached(ir);
+						}						
+						return NumberObject.valueOf(r);
+				}
+			}
+
+			return invalidOperation("** or pow()", b);
+		}
+		
+		@Override
+		public PythonObject ls(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("<<", b);
+					case LONG:
+						return NumberObject.valueOf(value << n.longValue());
+					case BOOL:
+					case INT:
+						long r = (long)value << n.longValue();
+						if (PythonRuntime.USE_INT_ONLY) {
+							int ir = (int)r;
+							if (ir != r)
+								throw new TypeError("int overflow");
+							return IntObject.getCached(ir);
+						}						
+						return NumberObject.valueOf(r);
+				}
+			}
+			return invalidOperation("<<", b);
+		}
+		
+		@Override
+		public PythonObject rs(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation(">>", b);
+					case LONG:
+						return NumberObject.valueOf(value >> n.longValue());
+					case BOOL:
+					case INT:
+						long r = (long)value >> n.longValue();
+						if (PythonRuntime.USE_INT_ONLY) {
+							int ir = (int)r;
+							if (ir != r)
+								throw new TypeError("int overflow");
+							return IntObject.getCached(ir);
+						}						
+						return NumberObject.valueOf(r);
+				}
+			}
+			return invalidOperation(">>", b);
+		}
+		
+		@Override
+		public PythonObject lt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return ((BoolObject)n.ge(this)).not();
+					case BOOL:
+					case INT:
+						return value < n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject le(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return ((BoolObject)n.gt(this)).not();
+					case BOOL:
+					case INT:
+						return value <= n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject eq(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return n.eq(this);
+					case BOOL:
+					case INT:
+						return value == n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ne(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return n.ne(this);
+					case BOOL:
+					case INT:
+						return value != n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject gt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return ((BoolObject)n.le(this)).not();
+					case BOOL:
+					case INT:
+						return value > n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ge(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+					case LONG:
+						return ((BoolObject)n.lt(this)).not();
+					case BOOL:
+					case INT:
+						return value >= n.intValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+	}
+
+	private static class LongObject extends NumberObject {
+		private static final long serialVersionUID = 35L;
+		private final long value;
+		
+		@Override public NumberType getNumberType() { return NumberType.LONG; }
+
+		@Override
+		public void newObject(){
+			super.newObject();
+		}
+		
+		LongObject(long v){
+			value = v;
+			newObject();
+		}
+		
+		@Override
+		public boolean truthValue() {
+			return !(value == 0);
+		}
+		
+		@Override
+		public int getId(){
+			return hashCode();
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (value ^ (value >>> 32));
+			return result;
+		}
+
+		@Override
+		protected String doToString() {
+			return ""+value;
+		}
+
+		@Override public int intValue() { return (int)value; }
+		@Override public long longValue() { return value; }
+		@Override public float floatValue() { return value; }
+		@Override public double doubleValue() { return value; }
+
+		@Override
+		public PythonObject add(PythonObject b){
+			if (b instanceof StringObject)
+				return new StringObject(((StringObject)b).value + value);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return n.add(this);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value + n.longValue());
+				}
+			}
+			return invalidOperation("+", b);
+		}
+		
+		@Override
+		public PythonObject sub(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return n.add(new LongObject(-value));
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value - n.longValue());
+				}
+			}
+			return invalidOperation("-", b);
+		}
+		
+		@Override
+		public PythonObject mul(PythonObject b){
+			if (b instanceof StringObject)
+				return ((StringObject)b).mul(this);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return n.mul(this);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value * n.longValue());
+				}
+			}
+			return invalidOperation("*", b);
+		}
+		
+		@Override
+		public PythonObject div(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("/", b);
+					case FLOAT:
+						if (PythonRuntime.USE_DOUBLE_FLOAT)
+							return NumberObject.valueOf(value / n.doubleValue());
+						else
+							return NumberObject.valueOf(value / n.floatValue());
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value / n.longValue());
+				}
+			}
+			return invalidOperation("/", b);
+		}
+		
+		@Override
+		public PythonObject mod(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("%", b);
+					case FLOAT:
+						if (PythonRuntime.USE_DOUBLE_FLOAT)
+							return NumberObject.valueOf(value % n.doubleValue());
+						else
+							return NumberObject.valueOf(value % n.floatValue());
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value % n.longValue());
+				}
+			}
+			return invalidOperation("%", b);
+		}
+		
+		@Override
+		public PythonObject and(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("&", b);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value & n.longValue());
+				}
+			}
+			return invalidOperation("&", b);
+		}
+		
+		@Override
+		public PythonObject or(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("|", b);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value | n.longValue());
+				}
+			}
+			return invalidOperation("|", b);
+		}
+		
+		@Override
+		public PythonObject xor(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("^", b);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value ^ n.longValue());
+				}
+			}
+			return invalidOperation("^", b);
+		}
+		
+		@Override
+		public PythonObject neg(){
+			return new LongObject(~value);
+		}
+		
+		@Override
+		public PythonObject pow(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("** or pow()", b);
+					case FLOAT:
+						return NumberObject.valueOf(Math.pow(value, n.doubleValue()));
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf((long)Math.pow(value, n.doubleValue()));
+				}
+			}
+			return invalidOperation("** or pow()", b);
+		}
+		
+		@Override
+		public PythonObject ls(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation("<<", b);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value << n.longValue());
+				}
+			}
+			return invalidOperation("<<", b);
+		}
+		
+		@Override
+		public PythonObject rs(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return invalidOperation(">>", b);
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value >> n.longValue());
+				}
+			}
+			return invalidOperation(">>", b);
+		}
+		
+		@Override
+		public PythonObject lt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return ((BoolObject)n.ge(this)).not();
+					case LONG:
+					case INT:
+					case BOOL:
+						return value < n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject le(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return ((BoolObject)n.gt(this)).not();
+					case LONG:
+					case INT:
+					case BOOL:
+						return value <= n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject eq(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return n.eq(this);
+					case LONG:
+					case INT:
+					case BOOL:
+						return value == n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ne(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return n.ne(this);
+					case LONG:
+					case INT:
+					case BOOL:
+						return value != n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject gt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return ((BoolObject)n.le(this)).not();
+					case LONG:
+					case INT:
+					case BOOL:
+						return value > n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ge(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+					case FLOAT:
+						return ((BoolObject)n.lt(this)).not();
+					case LONG:
+					case INT:
+					case BOOL:
+						return value >= n.longValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+	}
+
+	private static class FloatObject extends NumberObject {
+		private static final long serialVersionUID = 8L;
+		private final float value;
+		
+		@Override public NumberType getNumberType() { return NumberType.FLOAT; }
+
+		FloatObject(float v){
+			value = v;
+			newObject();
+		}
+		
+		@Override
+		public boolean truthValue() {
+			return value != 0.0f;
+		}
+
+		@Override
+		public int getId(){
+			return Float.valueOf(value).hashCode();
+		}
+
+		@Override
+		public int hashCode(){
+			return new Float(value).hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object o){
+			if (o instanceof FloatObject)
+				return value == ((FloatObject)o).value;
+			return false;
+		}
+
+		@Override
+		protected String doToString() {
+			return new Float(value).toString();
+		}
+
+		@Override public int intValue() { return (int)value; }
+		@Override public long longValue() { return (long)value; }
+		@Override public float floatValue() { return value; }
+		@Override public double doubleValue() { return value; }
+		
+		@Override
+		public PythonObject add(PythonObject b){
+			if (b instanceof StringObject)
+				return new StringObject(((StringObject)b).value + value);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.add(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value + n.floatValue());
+				}
+			}
+			return invalidOperation("+", b);
+		}
+		
+		@Override
+		public PythonObject sub(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.add(new FloatObject(-value));
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value - n.floatValue());
+				}
+			}
+			return invalidOperation("-", b);
+		}
+		
+		@Override
+		public PythonObject mul(PythonObject b){
+			if (b instanceof StringObject)
+				return ((StringObject)b).mul(this);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.mul(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value * n.floatValue());
+				}
+			}
+			return invalidOperation("*", b);
+		}
+		
+		@Override
+		public PythonObject div(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("/", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value / n.floatValue());
+				}
+			}
+			return invalidOperation("/", b);
+		}
+		
+		@Override
+		public PythonObject mod(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("%", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value % n.floatValue());
+				}
+			}
+			return invalidOperation("%", b);
+		}
+		
+		@Override
+		public PythonObject pow(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("** or pow()", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(Math.pow(value, n.floatValue()));
+				}
+			}
+			return invalidOperation("** or pow()", b);
+		}
+		
+		@Override
+		public PythonObject lt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.ge(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value < n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject le(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.gt(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value <= n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject eq(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.eq(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value == n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ne(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.ne(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value != n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject gt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.le(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value > n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ge(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.lt(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value >= n.floatValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+	}
+
+	
+	private static class DoubleObject extends NumberObject {
+		private static final long serialVersionUID = 8L;
+		private final double value;
+		
+		@Override public NumberType getNumberType() { return NumberType.FLOAT; }
+
+		public DoubleObject(double v){
+			value = v;
+			newObject();
+		}
+		
+		@Override
+		public boolean truthValue() {
+			return value != 0.0;
+		}
+
+		@Override
+		public int getId(){
+			return Double.valueOf(value).hashCode();
+		}
+
+		@Override
+		public int hashCode(){
+			return new Double(value).hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object o){
+			if (o instanceof DoubleObject)
+				return value == ((DoubleObject)o).value;
+			return false;
+		}
+
+		@Override
+		protected String doToString() {
+			return new Double(value).toString();
+		}
+
+		@Override public int intValue() { return (int)value; }
+		@Override public long longValue() { return (long)value; }
+		@Override public float floatValue() { return (float)value; }
+		@Override public double doubleValue() { return value; }
+		
+		@Override
+		public PythonObject add(PythonObject b){
+			if (b instanceof StringObject)
+				return new StringObject(((StringObject)b).value + value);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.add(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value + n.doubleValue());
+				}
+			}
+			return invalidOperation("+", b);
+		}
+		
+		@Override
+		public PythonObject sub(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.add(new DoubleObject(-value));
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value - n.doubleValue());
+				}
+			}
+			return invalidOperation("-", b);
+		}
+		
+		@Override
+		public PythonObject mul(PythonObject b){
+			if (b instanceof StringObject)
+				return ((StringObject)b).mul(this);
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.mul(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value * n.doubleValue());
+				}
+			}
+			return invalidOperation("*", b);
+		}
+		
+		@Override
+		public PythonObject div(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("/", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value / n.doubleValue());
+				}
+			}
+			return invalidOperation("/", b);
+		}
+		
+		@Override
+		public PythonObject mod(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("%", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(value % n.doubleValue());
+				}
+			}
+			return invalidOperation("%", b);
+		}
+		
+		@Override
+		public PythonObject pow(PythonObject b){
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return invalidOperation("** or pow()", b);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return NumberObject.valueOf(Math.pow(value, n.doubleValue()));
+				}
+			}
+			return invalidOperation("** or pow()", b);
+		}
+		
+		@Override
+		public PythonObject lt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.ge(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value < n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject le(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.gt(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value <= n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject eq(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.eq(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value == n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ne(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return n.ne(this);
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value != n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject gt(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.le(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value > n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+
+		@Override
+		public PythonObject ge(PythonObject b) {
+			if (b instanceof NumberObject) {
+				NumberObject n = (NumberObject)b;
+				switch (n.getNumberType()) {
+					case COMPLEX:
+						return ((BoolObject)n.lt(this)).not();
+					case FLOAT:
+					case LONG:
+					case INT:
+					case BOOL:
+						return value >= n.doubleValue() ? BoolObject.TRUE : BoolObject.FALSE;
+				}
+			}
+			return BoolObject.FALSE;
+		}
+	}
+
+	
 }

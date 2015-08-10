@@ -12,7 +12,6 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
-import me.enerccio.sp.types.base.DoubleObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -112,9 +111,9 @@ public class Coerce {
 		if (cls == Long.class || cls == long.class)
 			return NumberObject.valueOf(((Long) o).longValue());
 		if (cls == Float.class || cls == float.class)
-			return new DoubleObject(((Float) o).floatValue());
+			return NumberObject.valueOf(((Float) o).floatValue());
 		if (cls == Double.class || cls == double.class)
-			return new DoubleObject(((Double) o).doubleValue());
+			return NumberObject.valueOf(((Double) o).doubleValue());
 		if (cls == String.class)
 			return new StringObject((String) o);
 		if (cls == Void.class)

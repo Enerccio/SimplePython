@@ -24,7 +24,6 @@ import me.enerccio.sp.parser.formatParser;
 import me.enerccio.sp.parser.formatParser.FintegerContext;
 import me.enerccio.sp.parser.formatParser.Format_specificationContext;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.IntObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.NumberObject.NumberType;
 import me.enerccio.sp.types.sequences.StringObject;

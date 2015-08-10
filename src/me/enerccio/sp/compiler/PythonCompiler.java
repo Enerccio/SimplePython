@@ -116,7 +116,6 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.EllipsisObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.base.DoubleObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -1795,7 +1794,7 @@ public class PythonCompiler {
 				cb.value = o;
 			} else if (nb.FLOAT_NUMBER() != null){
 				String numberValue = nb.FLOAT_NUMBER().getText();
-				DoubleObject r = new DoubleObject(Double.parseDouble(numberValue));
+				NumberObject r = NumberObject.valueOf(Double.parseDouble(numberValue));
 				cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
 				cb.value = r;
 			} else {
