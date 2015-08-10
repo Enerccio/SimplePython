@@ -45,7 +45,8 @@ public class Coerce {
 		
 		// 2st, return PythonObject if requested
 		if (clazz.isAssignableFrom(o.getClass()))
-			return clazz.cast(o);
+			if (PythonObject.class.isAssignableFrom(clazz))
+				return clazz.cast(o);
 
 		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {
@@ -285,8 +286,40 @@ public class Coerce {
 				throw new CastFailedException("Can't convert " + o.toString() + " to Map");
 			}
 		});
-
-}
+	
+		COERCIONS.put(Object.class, new Coercion() {
+			/** Coerces to object. Everything is an object, but PointerObject is dereferenced first */
+			@Override
+			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
+				if (o instanceof PointerObject)
+					return ((PointerObject) o).getObject();
+				else if (o instanceof NumberObject) {
+					NumberObject n = (NumberObject)o;
+					switch (n.getNumberType()) {
+					case BOOL:
+						return n.truthValue() ? Boolean.TRUE : Boolean.FALSE;
+					case COMPLEX:
+						return n;
+					case FLOAT:
+						if (PythonRuntime.USE_DOUBLE_FLOAT)
+							return n.doubleValue();
+						else
+							return n.floatValue();
+					case INT:
+						return n.intValue();
+					case LONG:
+						if (PythonRuntime.USE_INT_ONLY)
+							return n.intValue();
+						else
+							return n.longValue();
+					}
+				} else if (o instanceof StringObject) {
+					return o.toString();
+				}
+				return o;
+			}
+		});
+	}
 	
 	public static class CannotCoerceException extends RuntimeException {
 		private static final long serialVersionUID = 8306084748185702275L;

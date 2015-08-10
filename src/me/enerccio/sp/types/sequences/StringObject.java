@@ -17,10 +17,14 @@
  */
 package me.enerccio.sp.types.sequences;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.IndexError;
+import me.enerccio.sp.errors.KeyError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
@@ -28,7 +32,9 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
+import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.utils.ArgumentConsumer;
+import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Formatter;
 import me.enerccio.sp.utils.Utils;
@@ -294,7 +300,146 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	}
 	
 	public PythonObject mod(PythonObject b){
-		throw new TypeError("string format not yet supported"); // :(
+		String formatText = value;
+		StringBuilder result = new StringBuilder();
+		
+		DictObject dictSource = null;
+		TupleObject tupleSource = null;
+
+		if (b instanceof DictObject) {
+			dictSource = (DictObject)b;
+			tupleSource = new TupleObject(b);
+		} else {
+			if (b instanceof TupleObject)
+				tupleSource = (TupleObject)b;
+			else {
+				tupleSource = new TupleObject(b);
+			}
+		}
+		
+		try {
+			simpleFormat(formatText, result, tupleSource, dictSource);
+		} catch (ArrayIndexOutOfBoundsException e){
+			throw new TypeError("__mod__(): failed to parse format string");
+		} catch (CastFailedException e) {
+			throw new TypeError("__mod__(): failed to convert object to correct type");
+		}
+		return new StringObject(result.toString());
+	}
+	
+	private enum FormatStep {
+		TEXT, SPEC, MODS
+	}
+	
+	private static Set<Character> formatChars = new HashSet<Character>(Arrays.asList(new Character[]{
+			'd', 'i', 'o', 'u', 'x', 'X', 'e', 'E', 'f', 'F', 'g', 'G', 'c', 'r', 's', '%'
+	}));
+//	private static Set<Character> integral = new HashSet<Character>(Arrays.asList(new Character[]{
+//			'd', 'o', 'x', 'X'
+//	}));
+	private static Set<Character> floatingPoint = new HashSet<Character>(Arrays.asList(new Character[]{
+			'e', 'E', 'f', 'F', 'g', 'G'
+	}));
+	
+	private void simpleFormat(String formatText, StringBuilder result,
+			TupleObject tupleSource, DictObject dictSource) throws CastFailedException {
+		FormatStep cstep = FormatStep.TEXT;
+		char c;
+		int tupleCount = 0;
+		PythonObject consumed = null;
+		char mode;
+		
+		for (int i=0; i<formatText.length(); i++){
+			c = formatText.charAt(i);
+			
+			if (cstep == FormatStep.TEXT && c == '%'){
+				cstep = FormatStep.SPEC;
+			} else if (cstep == FormatStep.SPEC && c == '('){
+				if (dictSource == null)
+					throw new TypeError("__mod__(): format text requiring dict, but dict was not passed");
+				tupleSource = null;
+				String keyname = "";
+				while (true){
+					c = formatText.charAt(i++);
+					if (c == ')')
+						break;
+					keyname += c;
+				}
+				consumed = dictSource.getItem(keyname);
+				if (consumed == null)
+					throw new KeyError("__mod__(): format key '" + keyname + "' not found");
+				cstep = FormatStep.MODS;
+			} else if (cstep == FormatStep.SPEC){
+				cstep = FormatStep.MODS;
+				if (tupleSource == null)
+					throw new TypeError("__mod__(): can't mix tuple and dict sources");
+				--i;
+			} else if (cstep == FormatStep.MODS){
+				String rest = "";
+				while (true){
+					c = formatText.charAt(i++);
+					
+					if (formatChars.contains(c)){
+						mode = c;
+						break;
+					} else {
+						rest += c;
+					}
+				}
+				
+				if (mode == '%'){
+					result.append("%");
+					continue;
+				}
+				
+				while (rest.contains("*")){
+					if (tupleCount >= tupleSource.len())
+						throw new IndexError("__mod__(): tuple index out of range");
+					PythonObject replacedBy = tupleSource.get(tupleCount++);
+					rest = rest.replaceFirst("\\*", replacedBy.toString());
+				}
+				
+				if (consumed == null){
+					if (tupleCount >= tupleSource.len())
+						throw new IndexError("__mod__(): tuple index out of range");
+					consumed = tupleSource.get(tupleCount++);
+				}
+				
+				if (mode == 'i')
+					mode = 'd';
+				if (mode == 'u')
+					mode = 'd';
+				
+				Object arg = null;
+				if (mode == 'r' || mode == 's'){
+					consumed = Utils.run("str", consumed);
+					arg = Coerce.toJava(consumed, String.class); 
+				} else if (mode == 'c'){
+					if (consumed instanceof StringObject){
+						StringObject s = (StringObject)consumed;
+						if (s.len() != 1)
+							throw new IndexError("__mod__(): string argument for 'c' must be 1 character long"); 
+						arg = s.value;
+					} else if (consumed instanceof NumberObject) {
+						arg = ((NumberObject)consumed).intValue();
+					}
+				} else {
+					NumberObject no = Coerce.toJava(consumed, NumberObject.class);
+					if (floatingPoint.contains(mode))
+						arg = no.doubleValue();
+					else
+						arg = no.longValue();
+				}
+				
+				result.append(String.format("%" + rest + mode, arg));
+				cstep = FormatStep.TEXT;
+			} else if (cstep == FormatStep.TEXT) {
+				result.append(c);
+			} else {
+				throw new TypeError("__mod__(): wrong format syntax near '" + c + "'");
+			}
+			
+		}
 	}
 	
 	public PythonObject add(PythonObject b) {

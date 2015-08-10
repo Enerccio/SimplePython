@@ -169,6 +169,7 @@ public class PythonRuntime {
 	public static ClassObject INDEX_ERROR;
 	public static ClassObject TYPE_ERROR;
 	public static ClassObject VALUE_ERROR;
+	public static ClassObject KEY_ERROR;
 	public static ClassObject AST;
 	
 	/**
@@ -547,6 +548,7 @@ public class PythonRuntime {
 					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
 					TYPE_ERROR		= (ClassObject)globals.getItem("TypeError");
 					VALUE_ERROR		= (ClassObject)globals.getItem("ValueError");
+					KEY_ERROR		= (ClassObject)globals.getItem("KeyError");
 					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);
