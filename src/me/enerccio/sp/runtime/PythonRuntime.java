@@ -417,6 +417,8 @@ public class PythonRuntime {
 	public static final TypeObject NONE_TYPE = new NoneTypeObject();
 	public static final TypeObject STRING_TYPE = new StringTypeObject();
 	public static final TypeObject INT_TYPE = new IntTypeObject();
+	public static final TypeObject LONG_TYPE = new LongTypeObject();
+	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject TUPLE_TYPE = new TupleTypeObject();
 	public static final TypeObject LIST_TYPE = new ListTypeObject();
 	public static final TypeObject DICT_TYPE = new DictTypeObject();
@@ -428,6 +430,8 @@ public class PythonRuntime {
 		NONE_TYPE.newObject();
 		STRING_TYPE.newObject();
 		INT_TYPE.newObject();
+		LONG_TYPE.newObject();
+		FLOAT_TYPE.newObject();
 		TUPLE_TYPE.newObject();
 		LIST_TYPE.newObject();
 		DICT_TYPE.newObject();
@@ -816,11 +820,11 @@ public class PythonRuntime {
 				case COMPLEX:
 					return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
 				case FLOAT:
-					return (ClassObject)Utils.getGlobal(FloatTypeObject.FLOAT_CALL);
+					return PythonRuntime.FLOAT_TYPE;
 				case INT:
-					return (ClassObject)Utils.getGlobal(IntTypeObject.INT_CALL);
+					return PythonRuntime.INT_TYPE;
 				case LONG:
-					return (ClassObject)Utils.getGlobal(LongTypeObject.LONG_CALL);
+					return PythonRuntime.LONG_TYPE;
 				}
 		}
 		if (py instanceof ListObject)

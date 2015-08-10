@@ -328,7 +328,7 @@ public abstract class NumberObject extends PythonObject {
 		@Override
 		public PythonObject add(PythonObject b){
 			if (b instanceof StringObject)
-				return new StringObject(((StringObject)b).value + value);
+				return new StringObject("" + value + ((StringObject)b).value);
 			if (b instanceof NumberObject) {
 				NumberObject n = (NumberObject)b;
 				switch (n.getNumberType()) {
@@ -729,7 +729,7 @@ public abstract class NumberObject extends PythonObject {
 		@Override
 		public PythonObject add(PythonObject b){
 			if (b instanceof StringObject)
-				return new StringObject(((StringObject)b).value + value);
+				return new StringObject("" + value + ((StringObject)b).value);
 			if (b instanceof NumberObject) {
 				NumberObject n = (NumberObject)b;
 				switch (n.getNumberType()) {
@@ -1080,7 +1080,7 @@ public abstract class NumberObject extends PythonObject {
 		@Override
 		public PythonObject add(PythonObject b){
 			if (b instanceof StringObject)
-				return new StringObject(((StringObject)b).value + value);
+				return new StringObject("" + value + ((StringObject)b).value);
 			if (b instanceof NumberObject) {
 				NumberObject n = (NumberObject)b;
 				switch (n.getNumberType()) {
@@ -1333,7 +1333,7 @@ public abstract class NumberObject extends PythonObject {
 		@Override
 		public PythonObject add(PythonObject b){
 			if (b instanceof StringObject)
-				return new StringObject(((StringObject)b).value + value);
+				return new StringObject("" + value + ((StringObject)b).value);
 			if (b instanceof NumberObject) {
 				NumberObject n = (NumberObject)b;
 				switch (n.getNumberType()) {

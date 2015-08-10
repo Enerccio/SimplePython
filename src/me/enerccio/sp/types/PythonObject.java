@@ -76,6 +76,8 @@ public abstract class PythonObject implements Serializable {
 	 */
 	public void newObject(){
 		registerObject();
+		if (getType() == null)
+			throw new NullPointerException("Type is NULL");
 		Utils.putPublic(this, __CLASS__, getType());
 	}
 
