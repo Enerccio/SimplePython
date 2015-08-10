@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -123,6 +124,19 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	}
 	
 	public List<PythonObject> objects = Collections.synchronizedList(new ArrayList<PythonObject>());
+	
+	public PythonObject add(PythonObject b) {
+		if (b instanceof ListObject) {
+			ListObject l = new ListObject();
+			l.newObject();
+			for (PythonObject o : objects)
+				l.objects.add(o);
+			for (PythonObject o : ((ListObject)b).objects)
+				l.objects.add(o);
+			return l;
+		}
+		throw new TypeError("can only concatenate list (not '" + b.toString() + "') to list");
+	}
 	
 	@Override
 	public int len() {

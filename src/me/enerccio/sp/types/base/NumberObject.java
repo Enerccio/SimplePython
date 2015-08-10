@@ -173,11 +173,6 @@ public abstract class NumberObject extends PythonObject {
 		return sfields;
 	}
 	
-	@Override
-	public void newObject() {	
-		super.newObject();
-	};
-	
 	/** Throws TypeError if number is not fixed or is too big to be converted to int */ 
 	public abstract int intValue();
 	/** Throws TypeError if number is not fixed */ 
@@ -698,11 +693,6 @@ public abstract class NumberObject extends PythonObject {
 		
 		@Override public NumberType getNumberType() { return NumberType.LONG; }
 
-		@Override
-		public void newObject(){
-			super.newObject();
-		}
-		
 		LongObject(long v){
 			value = v;
 			newObject();

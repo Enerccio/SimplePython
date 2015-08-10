@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -104,6 +105,21 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	 */
 	public PythonObject[] getObjects() {
 		return array;
+	}
+	
+	public PythonObject add(PythonObject b) {
+		if (b instanceof TupleObject) {
+			PythonObject[] ar = new PythonObject[len() + ((TupleObject)b).len()];
+			int i = 0;
+			for (PythonObject o : array)
+				ar[i++] = o;
+			for (PythonObject o : ((TupleObject)b).array)
+				ar[i++] = o;
+			TupleObject t = new TupleObject(ar);
+			t.newObject();
+			return t;
+		}
+		throw new TypeError("can only concatenate tuple (not '" + b.toString() + "') to tuple");
 	}
 
 	@Override
