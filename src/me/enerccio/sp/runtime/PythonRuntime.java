@@ -356,7 +356,6 @@ public class PythonRuntime {
 		ModuleObject mo = data.getFirst();
 		if (mo == null)
 			throw new ImportError("unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
-		mo.newObject();
 		
 		if (!modulePath.equals("")){
 			String[] submodules = modulePath.split("\\.");
@@ -464,10 +463,7 @@ public class PythonRuntime {
 					buildingGlobals.set(false);
 					
 					EnvironmentObject e = new EnvironmentObject();
-					e.newObject();
 					e.add(globals);
-					
-					PythonObject o;
 					
 					globals.put("None", NoneObject.NONE);
 					globals.put("True", BoolObject.TRUE);
@@ -500,29 +496,18 @@ public class PythonRuntime {
 					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
 					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
-					globals.put(FloatTypeObject.FLOAT_CALL, o = new FloatTypeObject());
-					globals.put(FunctionTypeObject.FUNCTION_CALL, o = new FunctionTypeObject());
-					o.newObject();
-					globals.put(BytecodeTypeObject.BYTECODE_CALL, o = new BytecodeTypeObject());
-					o.newObject();
-					globals.put(SliceTypeObject.SLICE_CALL, o = new SliceTypeObject());
-					o.newObject();
-					globals.put(JavaInstanceTypeObject.JAVA_CALL, o = new JavaInstanceTypeObject());
-					o.newObject();
-					globals.put(MethodTypeObject.METHOD_CALL, o = new MethodTypeObject());
-					o.newObject();
-					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, o = new JavaCallableTypeObject());
-					o.newObject();
-					globals.put(ComplexTypeObject.COMPLEX_CALL, o = new ComplexTypeObject());
-					o.newObject();
-					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, o = new BoundFunctionTypeObject());
-					o.newObject();
-					globals.put(XRangeTypeObject.XRANGE_CALL, o = new XRangeTypeObject());
-					o.newObject();
-					globals.put(NoneTypeObject.NONE_TYPE_CALL, o = new NoneTypeObject());
-					o.newObject();
-					globals.put(CompiledBlockTypeObject.COMPILED_CALL, o = new CompiledBlockTypeObject());
-					o.newObject();
+					globals.put(FloatTypeObject.FLOAT_CALL, new FloatTypeObject());
+					globals.put(FunctionTypeObject.FUNCTION_CALL, new FunctionTypeObject());
+					globals.put(BytecodeTypeObject.BYTECODE_CALL, new BytecodeTypeObject());
+					globals.put(SliceTypeObject.SLICE_CALL, new SliceTypeObject());
+					globals.put(JavaInstanceTypeObject.JAVA_CALL, new JavaInstanceTypeObject());
+					globals.put(MethodTypeObject.METHOD_CALL, new MethodTypeObject());
+					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, new JavaCallableTypeObject());
+					globals.put(ComplexTypeObject.COMPLEX_CALL, new ComplexTypeObject());
+					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, new BoundFunctionTypeObject());
+					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
+					globals.put(NoneTypeObject.NONE_TYPE_CALL, new NoneTypeObject());
+					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
 					
 					pythonParser p;
 					try {

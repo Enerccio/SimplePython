@@ -149,7 +149,6 @@ public class ClassObject extends CallableObject {
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.getEditableFields().get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();
-					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, this);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				} else if (value instanceof StaticMethodObject){
@@ -161,14 +160,12 @@ public class ClassObject extends CallableObject {
 					else
 						data = value.getEditableFields().get(BoundHandleObject.FUNC).object;
 					value = new UserMethodObject();
-					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 					Utils.putPublic(value, UserMethodObject.ACCESSOR, clazz);
 				} else if ((value instanceof JavaFunctionObject) && ((JavaFunctionObject)value).isWrappedMethod()){
 					PythonObject data = value;
 					value = new UserMethodObject();
-					value.newObject();
 					Utils.putPublic(value, UserMethodObject.SELF, instance);
 					Utils.putPublic(value, UserMethodObject.FUNC, data);
 				}

@@ -791,7 +791,6 @@ public class PythonInterpreter extends PythonObject {
 			// inserts new subframe onto frame stack
 			o.accepts_return = true;
 			FrameObject nf = new FrameObject();
-			nf.newObject();
 			nf.parentFrame = o;
 			nf.compiled = o.compiled;
 			nf.localContext = o.localContext;
