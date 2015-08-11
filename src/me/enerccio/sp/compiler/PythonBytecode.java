@@ -713,6 +713,31 @@ public class PythonBytecode extends PythonObject {
 				sb.delete(sb.length() - 2, sb.length());
 			return String.format("%s(%s)", getOpcode().toString(), sb);
 		}
+	}
+	
+	public static class MakeFuture extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7862981632281325840L;
+
+		{
+			bytecode = Bytecode.MAKE_FUTURE;
+		}
+		
+		@Override
+		protected String doToString() {
+			if (object == null)
+				return String.format("%s(%s)", getOpcode().toString(), null);
+			StringBuilder sb = new StringBuilder();
+			for (String s : (String[])object) {
+				sb.append(s);
+				sb.append(", ");
+			}
+			if (sb.length() > 3)
+				sb.delete(sb.length() - 2, sb.length());
+			return String.format("%s(%s)", getOpcode().toString(), sb);
+		}
 	}	
 	
 	public static class UnpackKwArg extends PythonBytecode {
