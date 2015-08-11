@@ -1421,6 +1421,9 @@ public class PythonCompiler {
 		doCompileFunction(ctx, fncb, ctx.start, null);
 		compilingClass.pop();
 		
+		cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
+		cb.intValue = 1;	
+		
 		fnc.block = new CompiledBlockObject(fncb);
 		Utils.putPublic(fnc, "function_defaults", new DictObject());
 		fnc.args = new ArrayList<String>();

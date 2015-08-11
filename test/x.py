@@ -5,7 +5,7 @@ def anca():
     for i in xrange(0, 100):
         if i == 99:
             print "anca konci"
-            raise ValueError, "fail"
+            return i
 
 
 x = 1 + x + (future : anca())
