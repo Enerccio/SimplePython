@@ -58,7 +58,6 @@ public class CompiledBlockTypeObject extends TypeObject {
 			}
 			PythonRuntime.runtime.checkSandboxAction("compiled_block", SecureAction.RUNTIME_COMPILE, s, consts);
 			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(), consts);
-			co.newObject();
 			return co;
 		} catch (CastFailedException e){
 			throw new TypeError("compiled_block(): first argument must be 'str' object and second argument must be 'dict' object containing 'str'->object pairs");

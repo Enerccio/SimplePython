@@ -424,31 +424,41 @@ public class PythonRuntime {
 	public static final String EVAL = "eval";
 	
 	/** Some basic types */
-	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
-	public static final TypeObject NONE_TYPE = new NoneTypeObject();
+	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject.get();
 	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
+	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
+	public static final TypeObject NONE_TYPE = NoneObject.TYPE;
 	public static final TypeObject STRING_TYPE = new StringTypeObject();
-	public static final TypeObject INT_TYPE = new IntTypeObject();
-	public static final TypeObject LONG_TYPE = new LongTypeObject();
-	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject TUPLE_TYPE = new TupleTypeObject();
-	public static final TypeObject LIST_TYPE = new ListTypeObject();
 	public static final TypeObject DICT_TYPE = new DictTypeObject();
 	public static final TypeObject BOOL_TYPE = new BoolTypeObject();
+	public static final TypeObject INT_TYPE = new IntTypeObject();
+	public static final TypeObject FUNCTION_TYPE = new FunctionTypeObject();
+	public static final TypeObject BYTECODE_TYPE = new BytecodeTypeObject();
+	public static final TypeObject COMPILED_BLOCK_TYPE = new CompiledBlockTypeObject();
+	public static final TypeObject BOUND_FUNCTION_TYPE = new BoundFunctionTypeObject();
+	public static final TypeObject METHOD_TYPE = new MethodTypeObject();
 	
 	static {
+		NoneObject.TYPE.newObject();
+		NoneObject.NONE.newObject();
+		BYTECODE_TYPE.newObject();
+		FUNCTION_TYPE.newObject();
+		COMPILED_BLOCK_TYPE.newObject();
+		BOUND_FUNCTION_TYPE.newObject();
+		METHOD_TYPE.newObject();
 		OBJECT_TYPE.newObject();
-		TYPE_TYPE.newObject();
-		NONE_TYPE.newObject();
 		STRING_TYPE.newObject();
-		INT_TYPE.newObject();
-		LONG_TYPE.newObject();
-		FLOAT_TYPE.newObject();
-		TUPLE_TYPE.newObject();
-		LIST_TYPE.newObject();
-		DICT_TYPE.newObject();
 		BOOL_TYPE.newObject();
+		INT_TYPE.newObject();
+		TYPE_TYPE.newObject();
+		DICT_TYPE.newObject();
+		TUPLE_TYPE.newObject();
+		JAVA_CALLABLE_TYPE.newObject();
 	}
+	public static final TypeObject LONG_TYPE = new LongTypeObject();
+	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
+	public static final TypeObject LIST_TYPE = new ListTypeObject();
 	
 	/**
 	 * Generates globals. This is only done once but then cloned
@@ -498,12 +508,12 @@ public class PythonRuntime {
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
 					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
 					globals.put(FloatTypeObject.FLOAT_CALL, new FloatTypeObject());
-					globals.put(FunctionTypeObject.FUNCTION_CALL, new FunctionTypeObject());
-					globals.put(BytecodeTypeObject.BYTECODE_CALL, new BytecodeTypeObject());
+					globals.put(FunctionTypeObject.FUNCTION_CALL, FUNCTION_TYPE);
+					globals.put(BytecodeTypeObject.BYTECODE_CALL, BYTECODE_TYPE);
 					globals.put(SliceTypeObject.SLICE_CALL, new SliceTypeObject());
 					globals.put(JavaInstanceTypeObject.JAVA_CALL, new JavaInstanceTypeObject());
 					globals.put(MethodTypeObject.METHOD_CALL, new MethodTypeObject());
-					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, new JavaCallableTypeObject());
+					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, JAVA_CALLABLE_TYPE);
 					globals.put(ComplexTypeObject.COMPLEX_CALL, new ComplexTypeObject());
 					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, new BoundFunctionTypeObject());
 					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
@@ -830,7 +840,7 @@ public class PythonRuntime {
 	
 	public static ClassObject getType(PythonObject py) {
 		if (py instanceof PythonBytecode)
-			return (ClassObject)Utils.getGlobal(BytecodeTypeObject.BYTECODE_CALL);
+			return BYTECODE_TYPE;
 		if (py instanceof NumberObject) {
 			switch (((NumberObject)py).getNumberType()) {
 				case BOOL:
@@ -847,12 +857,15 @@ public class PythonRuntime {
 		}
 		if (py instanceof ListObject)
 			return PythonRuntime.LIST_TYPE;
-		if (py instanceof ClassInstanceObject)
-			return (ClassObject)((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
+		if (py instanceof ClassInstanceObject) {
+			PythonObject o = (ClassObject)((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
+			if (o == null)
+				return OBJECT_TYPE;
+		}
 		if (py instanceof ClassObject)
 			return PythonRuntime.TYPE_TYPE;
 		if (py == NoneObject.NONE)
-			return PythonRuntime.NONE_TYPE;
+			return NoneObject.TYPE;
 		if (py instanceof SliceObject)
 			return (ClassObject)Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
@@ -864,19 +877,19 @@ public class PythonRuntime {
 		if (py instanceof PointerObject)
 			return (ClassObject)Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
 		if (py instanceof UserFunctionObject)
-			return (ClassObject)Utils.getGlobal(FunctionTypeObject.FUNCTION_CALL);
+			return FUNCTION_TYPE;
 		if (py instanceof UserMethodObject)
-			return (ClassObject)Utils.getGlobal(MethodTypeObject.METHOD_CALL);
+			return METHOD_TYPE;
 		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
-			return (ClassObject)Utils.getGlobal(JavaCallableTypeObject.JAVACALLABLE_CALL);
+			return JAVA_CALLABLE_TYPE;
 		if (py instanceof BoundHandleObject)
-			return (ClassObject)Utils.getGlobal(BoundFunctionTypeObject.BOUND_FUNCTION_CALL);
+			return BOUND_FUNCTION_TYPE;
 		if (py instanceof CompiledBlockObject)
-			return (ClassObject)Utils.getGlobal(CompiledBlockTypeObject.COMPILED_CALL);
+			return COMPILED_BLOCK_TYPE;
 		
 		return OBJECT_TYPE;
 	}
-
+	
 	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>(){
 
 		@Override

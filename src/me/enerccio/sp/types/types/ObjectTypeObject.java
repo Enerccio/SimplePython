@@ -27,6 +27,7 @@ import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -58,47 +59,48 @@ public class ObjectTypeObject extends TypeObject {
 	
 	@Override
 	public void newObject() {
-		super.newObject();
-		Utils.putPublic(this, "__name__", new StringObject("object"));
-		Utils.putPublic(this, "__bases__", new TupleObject());
-		DictObject md = null;
-		Utils.putPublic(this, "__dict__", md = new DictObject());
-		
-		UserFunctionObject usf = new UserFunctionObject();
-		usf.newObject();
-		Utils.putPublic(usf, "__name__", new StringObject("object.__init__"));
-		usf.args = new ArrayList<String>();
-		usf.args.add("self");
-		Utils.putPublic(usf, "function_defaults", new DictObject());
-		PythonBytecode cb;
-		List<PythonBytecode> usfb = new ArrayList<PythonBytecode>();
-		usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, null, null, OBJECT_MODULE_INFO));
-		usfb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, null, null, OBJECT_MODULE_INFO));
-		cb.value = NoneObject.NONE;
-		usfb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, null, null, OBJECT_MODULE_INFO));
-		cb.intValue = 1;
-		
-		usf.block = new CompiledBlockObject(usfb);
-		usf.block.newObject();
-		
-		BoundHandleObject bh = new BoundHandleObject();
-		bh.newObject();
-		Utils.putPublic(bh, BoundHandleObject.ACCESSOR, this);
-		Utils.putPublic(bh, BoundHandleObject.FUNC, usf);
-		md.put(ClassInstanceObject.__INIT__, bh);
-		
-		try {
-			JavaFunctionObject func = null;
-			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("getattribute", new Class<?>[]{PythonObject.class, String.class}), false);
-			func.setWrappedMethod(true);
-			md.put("__getattribute__", func);
-			func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("str", new Class<?>[]{PythonObject.class}), false);
-			func.setWrappedMethod(true);
-			md.put("__str__", func);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
+		if (PythonRuntime.NONE_TYPE != null) {
+			super.newObject();
+			Utils.putPublic(this, "__name__", new StringObject("object"));
+			Utils.putPublic(this, "__bases__", new TupleObject());
+			DictObject md = null;
+			Utils.putPublic(this, "__dict__", md = new DictObject());
+			
+			UserFunctionObject usf = new UserFunctionObject();
+			usf.newObject();
+			Utils.putPublic(usf, "__name__", new StringObject("object.__init__"));
+			usf.args = new ArrayList<String>();
+			usf.args.add("self");
+			Utils.putPublic(usf, "function_defaults", new DictObject());
+			PythonBytecode cb;
+			List<PythonBytecode> usfb = new ArrayList<PythonBytecode>();
+			usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, null, null, OBJECT_MODULE_INFO));
+			usfb.add(cb = Bytecode.makeBytecode(Bytecode.PUSH, null, null, OBJECT_MODULE_INFO));
+			cb.value = NoneObject.NONE;
+			usfb.add(cb = Bytecode.makeBytecode(Bytecode.RETURN, null, null, OBJECT_MODULE_INFO));
+			cb.intValue = 1;
+			
+			usf.block = new CompiledBlockObject(usfb);
+			
+			BoundHandleObject bh = new BoundHandleObject();
+			bh.newObject();
+			Utils.putPublic(bh, BoundHandleObject.ACCESSOR, this);
+			Utils.putPublic(bh, BoundHandleObject.FUNC, usf);
+			md.put(ClassInstanceObject.__INIT__, bh);
+			
+			try {
+				JavaFunctionObject func = null;
+				func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("getattribute", new Class<?>[]{PythonObject.class, String.class}), false);
+				func.setWrappedMethod(true);
+				md.put("__getattribute__", func);
+				func = new JavaFunctionObject(ObjectTypeObject.class.getMethod("str", new Class<?>[]{PythonObject.class}), false);
+				func.setWrappedMethod(true);
+				md.put("__str__", func);
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -26,6 +26,8 @@ import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.types.NoneTypeObject;
+import me.enerccio.sp.types.types.TypeObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -37,9 +39,12 @@ public class NoneObject extends PythonObject {
 	private static final long serialVersionUID = 2L;
 
 	public static final NoneObject NONE = new NoneObject();
+	public static final TypeObject TYPE = new NoneTypeObject();
 	
-	private NoneObject(){
-		newObject();
+	@Override
+	public void newObject() {
+		if (PythonRuntime.NONE_TYPE != null)
+			super.newObject();
 	}
 	
 	@Override
@@ -49,7 +54,7 @@ public class NoneObject extends PythonObject {
 	
 	@Override
 	public ClassObject getType(){
-		return PythonRuntime.NONE_TYPE;
+		return TYPE;
 	}
 
 	@Override
