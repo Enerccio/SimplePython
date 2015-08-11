@@ -20,6 +20,7 @@ package me.enerccio.sp.types.system;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -45,12 +46,11 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 			synchronized (this) {
 				if (status != FutureStatus.RUNNING)
 					break;
-				monitor.tryAcquire();
 			}
 			try {
-				Thread.sleep(1);
+				monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
+				e.printStackTrace();
 				return null;
 			}
 		}

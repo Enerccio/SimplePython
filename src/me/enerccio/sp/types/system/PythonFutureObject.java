@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.interpret.EnvironmentObject;
@@ -63,9 +64,8 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		while (true){
 			if (status != FutureStatus.RUNNING)
 				break;
-			monitor.tryAcquire();
 			try {
-				Thread.sleep(1);
+				monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				return null;
