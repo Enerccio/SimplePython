@@ -46,13 +46,23 @@ public class CompiledBlockObject extends PythonObject {
 	public static final String CO_CONSTS = "co_consts";
 	public static final String CO_DEBUG = "co_debug";
 
-	private List<PythonBytecode> bytecode;
 	public CompiledBlockObject(List<PythonBytecode> bytecode){
-		this.bytecode = bytecode;
+		mmap = new HashMap<Integer, PythonObject>();
+		try {
+			if (compiled == null) {
+				compiled = compile(bytecode, mmap, dmap);
+				bytecode = null;
+			}
+		} catch (Exception e) {
+			throw new TypeError("invalid bytecode", e);
+		}
+		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
+		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
+		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
 	
-	public CompiledBlockObject(byte[] bytecode, Map<Integer, PythonObject> mmap) {
-		this.compiled = bytecode;
+	public CompiledBlockObject(byte[] compiled, Map<Integer, PythonObject> mmap) {
+		this.compiled = compiled;
 		this.mmap = mmap;
 	}
 
@@ -107,23 +117,6 @@ public class CompiledBlockObject extends PythonObject {
 		return dmap.get(dmap.floorKey(c));
 	}
 	
-	@Override
-	public void newObject() {
-		super.newObject();
-		mmap = new HashMap<Integer, PythonObject>();
-		try {
-			if (compiled == null) {
-				compiled = compile(bytecode, mmap, dmap);
-				bytecode = null;
-			}
-		} catch (Exception e) {
-			throw new TypeError("invalid bytecode", e);
-		}
-		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
-		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
-		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
-	}
-
 	@Override
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {

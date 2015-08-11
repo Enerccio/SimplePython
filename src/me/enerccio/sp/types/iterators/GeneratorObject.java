@@ -86,7 +86,6 @@ public class GeneratorObject extends PythonObject {
 		PythonObject fnc = Utils.getGlobal("close_generator");
 		
 		PythonObject value = new UserMethodObject();
-		value.newObject();
 		Utils.putPublic(value, UserMethodObject.SELF, this);
 		Utils.putPublic(value, UserMethodObject.FUNC, fnc);
 		Utils.putPublic(value, UserMethodObject.ACCESSOR, NoneObject.NONE);

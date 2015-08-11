@@ -201,7 +201,6 @@ public class PythonCompiler {
 		cb.intValue = 1;
 		
 		fnc.block = new CompiledBlockObject(fncb);
-		fnc.block.newObject();
 		
 		globals.add(locals);
 		Utils.putPublic(fnc, "function_defaults", defaults);
@@ -237,7 +236,6 @@ public class PythonCompiler {
 		compilingClass.pop();
 		
 		CompiledBlockObject block = new CompiledBlockObject(bytecode);
-		block.newObject();
 		
 		stack.pop();
 		compilingClass.pop();
@@ -273,7 +271,6 @@ public class PythonCompiler {
 		compilingClass.pop();
 		
 		CompiledBlockObject block = new CompiledBlockObject(bytecode);
-		block.newObject();
 		
 		stack.pop();
 		compilingClass.pop();
@@ -319,7 +316,6 @@ public class PythonCompiler {
 		stack.pop();
 		
 		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
-		cob.newObject();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
 		cb.value = getDocstring();
@@ -676,7 +672,6 @@ public class PythonCompiler {
 		cb.intValue = 1;
 		
 		fnc.block = new CompiledBlockObject(fncb);
-		fnc.block.newObject();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, classdef.stop);
 		cb.value = fnc;
@@ -755,7 +750,6 @@ public class PythonCompiler {
 		cb.intValue = 1;
 		
 		fnc.block = new CompiledBlockObject(fncb);
-		fnc.block.newObject();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, funcdef.stop);
 		cb.value = fnc;
@@ -2173,7 +2167,6 @@ public class PythonCompiler {
 		}
 		
 		fnc.block = new CompiledBlockObject(fncb);
-		fnc.block.newObject();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
 		cb.value = fnc;

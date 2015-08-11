@@ -35,6 +35,7 @@ import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
@@ -57,6 +58,11 @@ public class JavaMethodObject extends CallableObject {
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface SpyDoc {
 		String value();
+	}
+	
+	@Override
+	public ClassObject getType() {
+		return JavaCallableTypeObject.get();
 	}
 
 	/** Internal use */
