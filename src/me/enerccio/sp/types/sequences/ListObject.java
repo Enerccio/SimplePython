@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -37,6 +37,7 @@ import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.utils.Utils;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Python list representation.
@@ -77,7 +78,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 			}
 			PythonObject next = iterator.get("next", null);
 			if (next == null)
-				throw Utils.throwException("TypeError", "iterator of " + o.toString() + " has no next() method");
+				throw new TypeError("iterator of " + o.toString() + " has no next() method");
 			while (true) {
 				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
 				append(item);
@@ -156,7 +157,7 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	@Override
 	public PythonObject get(int i) {
 		if (i >= objects.size() || i<-(objects.size()))
-			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
+			throw new IndexError("Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
 		return objects.get(morphAround(i, objects.size()));
 	}
 	
@@ -208,13 +209,13 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		if (NumberObject.isInteger(key)) {
 			int i = ((NumberObject)key).intValue();
 			if (i >= len() || i<-(len()))
-				throw Utils.throwException("IndexError", "incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+				throw new IndexError("incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 			int idx = morphAround(i, len());
 			objects.set(idx, value);
 		} else if (key instanceof SliceObject){
 			
 		} else {
-			throw Utils.throwException("TypeError", "key must be int or slice");
+			throw new TypeError("key must be int or slice");
 		}
 		
 		return this;
@@ -232,10 +233,10 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		}
 		PythonObject idx = key;
 		if (!NumberObject.isInteger(idx))
-			throw Utils.throwException("TypeError", "Index must be int");
+			throw new TypeError("Index must be int");
 		int i = ((NumberObject)idx).intValue();
 		if (i >= len() || i<-(len()))
-			throw  Utils.throwException("IndexError", "Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+			throw new IndexError("Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 		objects.remove((morphAround(i, len())));
 	}
 }

@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.sequences.StringObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * Environment object represents environment. Environment is responsible for fetching variable values
@@ -156,7 +156,7 @@ public class EnvironmentObject extends PythonObject {
 				} 
 			}
 		}
-		throw Utils.throwException("NameError", "name '" + vname.toString() + "' is not defined");
+		throw new NameError("name '" + vname.toString() + "' is not defined");
 	}
 
 	public DictObject getGlobals() {

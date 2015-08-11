@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -31,7 +32,6 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * function()
@@ -53,7 +53,7 @@ public class FunctionTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 7)
-			throw Utils.throwException("TypeError", " function(): incorrect number of parameters, requires 7, got " + args.len());
+			throw new TypeError(" function(): incorrect number of parameters, requires 7, got " + args.len());
 		
 		PythonRuntime.runtime.checkSandboxAction("function", SecureAction.RUNTIME_COMPILE);
 		
@@ -94,7 +94,7 @@ public class FunctionTypeObject extends TypeObject {
 				defaults = new DictObject();
 			
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", " function(): wrong types of arguments");
+			throw new TypeError(" function(): wrong types of arguments");
 		}
 		
 		PythonCompiler c = new PythonCompiler();

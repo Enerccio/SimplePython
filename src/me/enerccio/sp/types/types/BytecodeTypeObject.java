@@ -22,6 +22,7 @@ import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.runtime.ModuleProvider;
@@ -97,14 +98,14 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (args.len() == 0)
-			throw Utils.throwException("TypeError", "bytecode(): incorrect number of parameters, must be >0");
+			throw new TypeError("bytecode(): incorrect number of parameters, must be >0");
 		
 		try {
 			NumberObject byteNum = (NumberObject) args.getObjects()[0];
 			
 			Bytecode b = Bytecode.fromNumber((int) byteNum.intValue());
 			if (b == null)
-				throw Utils.throwException("TypeError", "bytecode(): unknown bytecode number " + byteNum);
+				throw new TypeError("bytecode(): unknown bytecode number " + byteNum);
 			PythonBytecode bytecode = Bytecode.makeBytecode(b, null, null, mook);
 			
 			switch (b) {
@@ -276,9 +277,9 @@ public class BytecodeTypeObject extends TypeObject {
 			bytecode.newObject();
 			return bytecode;
 		} catch (CastFailedException e){
-			throw Utils.throwException("TypeError", "bytecode(): incorrect type of arguments");
+			throw new TypeError("bytecode(): incorrect type of arguments");
 		} catch (ArrayIndexOutOfBoundsException e){
-			throw Utils.throwException("TypeError", "bytecode(): incorrect number of arguments");
+			throw new TypeError("bytecode(): incorrect number of arguments");
 		}
 		
 	}

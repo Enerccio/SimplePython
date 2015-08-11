@@ -19,10 +19,14 @@ package me.enerccio.sp.errors;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 
-public class KeyError extends PythonException {
-	private static final long serialVersionUID = 54215546315414L;
+public class IOError extends PythonException {
+	private static final long serialVersionUID = 9845123L;
 	
-	public KeyError(String message) {
-		super(PythonRuntime.KEY_ERROR, message);
+	public IOError(String message) {
+		super(PythonRuntime.IO_ERROR, message);
+	}
+
+	public IOError(String message, Exception e) {
+		super(PythonRuntime.IO_ERROR, message, e);
 	}
 }

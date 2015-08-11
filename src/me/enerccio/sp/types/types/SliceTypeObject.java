@@ -17,11 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * slice()
@@ -42,7 +42,7 @@ public class SliceTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 3)
-			throw Utils.throwException("TypeError", "slice(): incorrect number of parameters, must be 3");
+			throw new TypeError("slice(): incorrect number of parameters, must be 3");
 		
 		return new SliceObject(args.valueAt(0), args.valueAt(1), args.valueAt(2));
 	}

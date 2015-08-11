@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import me.enerccio.sp.errors.PythonException;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -94,9 +95,9 @@ public class Coerce {
 		try {
 			return Coerce.toJava(t.get(argNumber), clazz);
 		} catch (CastFailedException e) {
-			throw Utils.throwException("TypeError", function + ": cannot convert value for argument " + argNumber, e);
+			throw new TypeError(function + ": cannot convert value for argument " + argNumber, e);
 		} catch (ArrayIndexOutOfBoundsException e) {
-			throw Utils.throwException("TypeError", function + ": value for argument " + argNumber + " missing", e);
+			throw new TypeError(function + ": value for argument " + argNumber + " missing", e);
 		}
 	}
 

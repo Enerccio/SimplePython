@@ -36,6 +36,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.ImportError;
+import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
@@ -164,12 +168,20 @@ public class PythonRuntime {
 	private OutputStream out = System.out;
 	private OutputStream err = System.err;
 	public static ClassObject ERROR;
+	public static ClassObject ATTRIBUTE_ERROR;
+	public static ClassObject NAME_ERROR;
 	public static ClassObject STOP_ITERATION;
 	public static ClassObject GENERATOR_EXIT;
 	public static ClassObject INDEX_ERROR;
 	public static ClassObject TYPE_ERROR;
+	public static ClassObject IO_ERROR;
+	public static ClassObject SYNTAX_ERROR;
 	public static ClassObject VALUE_ERROR;
 	public static ClassObject KEY_ERROR;
+	public static ClassObject NATIVE_ERROR;
+	public static ClassObject INTERPRETER_ERROR;
+	public static ClassObject IMPORT_ERROR;
+	public static ClassObject SANDBOX_ERROR;
 	public static ClassObject AST;
 	
 	/**
@@ -290,7 +302,7 @@ public class PythonRuntime {
 		}
 		
 		if (r == null)
-			throw Utils.throwException("ImportError", "unknown module with path '" + key + "'");
+			throw new ImportError("unknown module with path '" + key + "'");
 		return r;
 	}
 	
@@ -343,7 +355,7 @@ public class PythonRuntime {
 		Pair<ModuleObject, Boolean> data = resolveModule(name, moduleResolvePath);
 		ModuleObject mo = data.getFirst();
 		if (mo == null)
-			throw Utils.throwException("ImportError", "unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
+			throw new ImportError("unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
 		mo.newObject();
 		
 		if (!modulePath.equals("")){
@@ -543,12 +555,20 @@ public class PythonRuntime {
 					}
 					
 					ERROR			= (ClassObject)globals.getItem("Error");
+					ATTRIBUTE_ERROR	= (ClassObject)globals.getItem("AttributeError");
+					NAME_ERROR		= (ClassObject)globals.getItem("NameError");
 					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
 					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
 					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
 					TYPE_ERROR		= (ClassObject)globals.getItem("TypeError");
+					IO_ERROR		= (ClassObject)globals.getItem("IOError");
+					SYNTAX_ERROR	= (ClassObject)globals.getItem("SyntaxError");
 					VALUE_ERROR		= (ClassObject)globals.getItem("ValueError");
 					KEY_ERROR		= (ClassObject)globals.getItem("KeyError");
+					NATIVE_ERROR	= (ClassObject)globals.getItem("NativeError");
+					INTERPRETER_ERROR = (ClassObject)globals.getItem("InterpreterError");
+					IMPORT_ERROR	= (ClassObject)globals.getItem("ImportError");
+					SANDBOX_ERROR	= (ClassObject)globals.getItem("SandboxViolationError");
 					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);
@@ -582,7 +602,7 @@ public class PythonRuntime {
 			List<PythonBytecode> pbl = new ArrayList<PythonBytecode>();
 			for (PythonObject o : lo.objects){
 				if (!(o instanceof PythonBytecode))
-					throw Utils.throwException("TypeError", "compile(): returned bytecode from ast was not of type 'bytecode', but instead of type '" + Utils.run("typename", o) + "'");
+					throw new TypeError("compile(): returned bytecode from ast was not of type 'bytecode', but instead of type '" + Utils.run("typename", o) + "'");
 				pbl.add((PythonBytecode)o);
 			}
 			block = new CompiledBlockObject(pbl);
@@ -638,7 +658,7 @@ public class PythonRuntime {
 		if (kwargs != null)
 			kwargs.checkEmpty("eval");
 		if (to.len() < 1 || to.len() > 3)
-			throw Utils.throwException("TypeObject", "eval(): requires 1 to 3 arguments, got " + to.len());
+			throw new TypeError("eval(): requires 1 to 3 arguments, got " + to.len());
 		try {
 			String s = Coerce.toJava(to.get(0), String.class);
 			DictObject d1 = null;
@@ -650,7 +670,7 @@ public class PythonRuntime {
 			
 			return eval_function(s, d1, d2);
 		} catch (CastFailedException e){
-			throw Utils.throwException("TypeObject", "eval(): wrong types of arguments to eval, first argument must be 'str', remaining two arguments must be 'dict' objects");
+			throw new TypeError("eval(): wrong types of arguments to eval, first argument must be 'str', remaining two arguments must be 'dict' objects");
 		}
 	}
 	
@@ -712,12 +732,12 @@ public class PythonRuntime {
 		if (o.get("__dir__", null) != null){
 			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.get("__dir__", null), null);
 			if (!(dirCall instanceof ListObject))
-				throw Utils.throwException("TypeError", "dir(): __dir__ must return list");
+				throw new TypeError("dir(): __dir__ must return list");
 			ListObject lo = (ListObject) dirCall;
 			synchronized (lo.objects){
 				for (PythonObject po : lo.objects){
 					if (!(po instanceof StringObject))
-						throw Utils.throwException("TypeError", "dir(): __dir__ returned other elements in a list than str");
+						throw new TypeError("dir(): __dir__ returned other elements in a list than str");
 					fields.add(((StringObject)po).value);
 				}
 			}
@@ -735,14 +755,14 @@ public class PythonRuntime {
 	
 	protected static PythonObject chr(int v){
 		if (v < 0 || v > 255)
-			throw Utils.throwException("ValueError", "chr(): value outside range");
+			throw new ValueError("chr(): value outside range");
 		return new StringObject(Character.toString((char)v));
 	}
 	
 	protected static PythonObject ord(StringObject i){
 		String s = i.value;
 		if (s.length() != 1)
-			throw Utils.throwException("ValueError", "ord(): string must be single character length");
+			throw new ValueError("ord(): string must be single character length");
 		return NumberObject.valueOf(s.charAt(0));
 	}
 	
@@ -814,7 +834,7 @@ public class PythonRuntime {
 			clazz.equals(getType(testee));
 		}
 		
-		throw Utils.throwException("TypeError", "isinstance() arg 2 must be a class, type, or tuple of classes and types");
+		throw new TypeError("isinstance() arg 2 must be a class, type, or tuple of classes and types");
 	}
 	
 	public static ClassObject getType(PythonObject py) {
@@ -899,7 +919,7 @@ public class PythonRuntime {
 				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
 				value = PythonInterpreter.interpreter.get().execute(false, getattr, null, new StringObject(attribute));
 			} catch (NoGetattrException e) {
-				throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", o, attribute));
+				throw new AttributeError(String.format("%s object has no attribute '%s'", o, attribute));
 			} finally {
 
 				accessorGetattr.get().pop();
@@ -930,7 +950,7 @@ public class PythonRuntime {
 			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
 		if (field != null && field instanceof PropertyObject){
 			if (v == null)
-				throw Utils.throwException("AttributeError", "attribute '" + attribute + "' is a property and can't be deleted");
+				throw new AttributeError("attribute '" + attribute + "' is a property and can't be deleted");
 			
 			((PropertyObject)field).set(v);
 			return NoneObject.NONE;
@@ -1012,7 +1032,7 @@ public class PythonRuntime {
 		try {
 			doAddFactory(packagePath, clazz.newInstance());
 		} catch (Exception e) {
-			throw Utils.throwException("TypeError", "failed to instantiate pointer factory");
+			throw new TypeError("failed to instantiate pointer factory");
 		}
 	}
 
@@ -1029,12 +1049,12 @@ public class PythonRuntime {
 	 */
 	public PythonObject getJavaClass(String cls, Object pointedObject, KwArgs kwargs, PythonObject... args) {
 		if (!aliases.containsKey(cls) && !allowAutowraps)
-			throw Utils.throwException("TypeError", "javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
+			throw new TypeError("javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
 		if (!aliases.containsKey(cls))
 				synchronized (aliases){
 					for (String s : excludedPackages)
 						if (cls.startsWith(s))
-							throw Utils.throwException("TypeError", "package '" + s + "' is not allowed for automatic wrapping");
+							throw new TypeError("package '" + s + "' is not allowed for automatic wrapping");
 					aliases.put(cls, cls);
 				}
 		
@@ -1048,7 +1068,7 @@ public class PythonRuntime {
 			try {
 				clazz = Class.forName(cls);
 			} catch (ClassNotFoundException e1) {
-				throw Utils.throwException("TypeError", "javainstance(): unknown java type " + cls);
+				throw new TypeError("javainstance(): unknown java type " + cls);
 			}
 			
 			Object[] jargs = new Object[args.length + (kwargs != null ? 1 : 0)];
@@ -1081,7 +1101,7 @@ public class PythonRuntime {
 			}
 			
 			if (selected == null)
-				throw Utils.throwException("TypeError", "javainstance(): no compatibile constructor for type " + cls + " found ");
+				throw new TypeError("javainstance(): no compatibile constructor for type " + cls + " found ");
 			
 			try {
 				o = selected.newInstance(jargs);
@@ -1090,15 +1110,15 @@ public class PythonRuntime {
 			} catch (InvocationTargetException e){
 				if (e.getTargetException() instanceof PythonExecutionException)
 					throw (RuntimeException)e.getTargetException();
-				throw Utils.throwException("TypeError", "javainstance(): failed java constructor call");
+				throw new TypeError("javainstance(): failed java constructor call");
 			} catch (Exception e) {
-				throw Utils.throwException("TypeError", "javainstance(): failed java constructor call");
+				throw new TypeError("javainstance(): failed java constructor call");
 			}
 		}
 		
 		PointerFactory factory = getFactory(cls);
 		if (factory == null){
-			throw Utils.throwException("TypeError", "javainstance(): no available factory for class " + cls);
+			throw new TypeError("javainstance(): no available factory for class " + cls);
 		}
 		PointerObject ptr = factory.doInitialize(o);
 		if (augumentors.containsKey(o.getClass().getName())){

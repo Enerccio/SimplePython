@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
-import me.enerccio.sp.utils.Utils;
 
 public interface KwArgs {
 	public static final KwArgs EMPTY = new KwArgs.HashMapKWArgs();
@@ -82,7 +82,7 @@ public interface KwArgs {
 				try {
 					return Coerce.toJava(remove(arg), cls);
 				} catch (CastFailedException e) {
-					throw Utils.throwException("TypeError", "cannot convert value for argument '" + arg + "'", e);
+					throw new TypeError("cannot convert value for argument '" + arg + "'", e);
 				}
 			}
 			return null;
@@ -100,7 +100,7 @@ public interface KwArgs {
 			if (size() == 0)
 				return;
 			String key = keySet().iterator().next();
-			throw Utils.throwException("TypeError", name + " got an unexpected keyword argument '" + key + "'");
+			throw new TypeError(name + " got an unexpected keyword argument '" + key + "'");
 		}
 
 		@Override

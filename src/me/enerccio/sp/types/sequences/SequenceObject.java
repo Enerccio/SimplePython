@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.IndexError;
+import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -85,9 +89,9 @@ public abstract class SequenceObject extends ContainerObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw Utils.throwException("AttributeError", "'" + 
+		throw new AttributeError("'" + 
 				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
@@ -129,7 +133,7 @@ public abstract class SequenceObject extends ContainerObject {
 			stv = Math.abs(stv);
 		}
 		if (stv == 0)
-			throw Utils.throwException("ValueError", "slice step cannot be zero");
+			throw new ValueError("slice step cannot be zero");
 		if (sov < 0)
 			sov = Math.max(0, size-(-(sov+1)));
 		
@@ -141,10 +145,10 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
 		if (!NumberObject.isInteger(idx))
-			throw Utils.throwException("TypeError", "Index must be int");
+			throw new TypeError("Index must be int");
 		int i = ((NumberObject)idx).intValue();
 		if (i >= o.len() || i<-(o.len()))
-			throw Utils.throwException("IndexError", "Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
+			throw new IndexError("Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
 		return o.valueAt(morphAround(i, o.len()));
 	}
 

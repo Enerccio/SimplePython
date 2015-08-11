@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
@@ -44,7 +45,7 @@ public class BoundFunctionTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 3)
-			throw Utils.throwException("TypeError", "boundfunction(): wrong mumber of parameters, requires 2, got " + args.len());
+			throw new TypeError("boundfunction(): wrong mumber of parameters, requires 2, got " + args.len());
 		
 		UserFunctionObject fnc;
 		ClassObject accessor;
@@ -52,7 +53,7 @@ public class BoundFunctionTypeObject extends TypeObject {
 			fnc = (UserFunctionObject) args.valueAt(0);
 			accessor = (ClassObject) args.valueAt(1);
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", "boundfunction(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be a type");
+			throw new TypeError("boundfunction(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be a type");
 		}
 		
 		BoundHandleObject bh = new BoundHandleObject();

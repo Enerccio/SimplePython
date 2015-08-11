@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -187,9 +188,9 @@ public abstract class NumberObject extends PythonObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw Utils.throwException("AttributeError", "'" + 
+		throw new AttributeError("'" + 
 				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
@@ -235,7 +236,7 @@ public abstract class NumberObject extends PythonObject {
 	}
 	
 	public PythonObject neg(){
-		throw Utils.throwException("TypeError", "bad operand type for unary ~: '" + this + "'");
+		throw new TypeError("bad operand type for unary ~: '" + this + "'");
 	}
 	
 	public PythonObject pow(PythonObject b){

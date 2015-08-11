@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -108,7 +109,7 @@ public class GeneratorObject extends PythonObject {
 	
 	public synchronized  PythonObject send(PythonObject v) {
 		if (!nextCalled && v != NoneObject.NONE)
-			throw Utils.throwException("TypeError", "send(): send called before first next called"); 
+			throw new TypeError("send(): send called before first next called"); 
 		for (FrameObject o : this.storedFrames)
 			PythonInterpreter.interpreter.get().currentFrame.add(o);
 		this.storedFrames.get(this.storedFrames.size()-1).sendValue = v;

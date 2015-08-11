@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -44,12 +45,12 @@ public class JavaInstanceTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() < 1)
-			throw Utils.throwException("TypeError", "javainstance(): requires at least 1 parameter");
+			throw new TypeError("javainstance(): requires at least 1 parameter");
 		
 		PythonObject clsName = args.valueAt(0);
 		
 		if (!(clsName instanceof StringObject))
-			throw Utils.throwException("TypeError", "javainstance():  first argument must be str");
+			throw new TypeError("javainstance():  first argument must be str");
 		
 		String cls = ((StringObject)clsName).value;
 		

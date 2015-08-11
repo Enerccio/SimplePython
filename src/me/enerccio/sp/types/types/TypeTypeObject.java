@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
@@ -57,17 +58,17 @@ public class TypeTypeObject extends TypeObject {
 		else if (args.len() == 3)
 			return newClassType(args.getObjects()[0], args.getObjects()[1], args.getObjects()[2]);
 		
-		throw Utils.throwException("TypeError", " type(): incorrect number of parameters");
+		throw new TypeError(" type(): incorrect number of parameters");
 	}
 
 	private PythonObject newClassType(PythonObject name,
 			PythonObject bases, PythonObject dict) {
 		if (!(name instanceof StringObject))
-			throw Utils.throwException("TypeError", "type(): name must be a string");
+			throw new TypeError("type(): name must be a string");
 		if (!(bases instanceof TupleObject))
-			throw Utils.throwException("TypeError", "type(): bases must be a tuple");
+			throw new TypeError("type(): bases must be a tuple");
 		if (!(dict instanceof DictObject))
-			throw Utils.throwException("TypeError", "type(): dict must be a dict");
+			throw new TypeError("type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
 		type.newObject();

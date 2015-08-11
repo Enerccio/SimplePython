@@ -19,10 +19,57 @@ package me.enerccio.sp.compiler;
 
 import java.util.List;
 
-import org.antlr.v4.runtime.Token;
-
-import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.compiler.PythonBytecode.AcceptIter;
+import me.enerccio.sp.compiler.PythonBytecode.BinaryOperator;
+import me.enerccio.sp.compiler.PythonBytecode.Call;
+import me.enerccio.sp.compiler.PythonBytecode.Del;
+import me.enerccio.sp.compiler.PythonBytecode.DelAttr;
+import me.enerccio.sp.compiler.PythonBytecode.Dup;
+import me.enerccio.sp.compiler.PythonBytecode.ECall;
+import me.enerccio.sp.compiler.PythonBytecode.GetAttr;
+import me.enerccio.sp.compiler.PythonBytecode.GetIter;
+import me.enerccio.sp.compiler.PythonBytecode.Goto;
+import me.enerccio.sp.compiler.PythonBytecode.Import;
+import me.enerccio.sp.compiler.PythonBytecode.IsInstance;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfFalse;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfNoReturn;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfNone;
+import me.enerccio.sp.compiler.PythonBytecode.JumpIfTrue;
+import me.enerccio.sp.compiler.PythonBytecode.KCall;
+import me.enerccio.sp.compiler.PythonBytecode.KwArg;
+import me.enerccio.sp.compiler.PythonBytecode.Load;
+import me.enerccio.sp.compiler.PythonBytecode.LoadBuiltin;
+import me.enerccio.sp.compiler.PythonBytecode.LoadDynamic;
+import me.enerccio.sp.compiler.PythonBytecode.LoadGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.Nop;
+import me.enerccio.sp.compiler.PythonBytecode.OpenLocals;
+import me.enerccio.sp.compiler.PythonBytecode.Pop;
+import me.enerccio.sp.compiler.PythonBytecode.Push;
+import me.enerccio.sp.compiler.PythonBytecode.PushEnvironment;
+import me.enerccio.sp.compiler.PythonBytecode.PushException;
+import me.enerccio.sp.compiler.PythonBytecode.PushFrame;
+import me.enerccio.sp.compiler.PythonBytecode.PushLocalContext;
+import me.enerccio.sp.compiler.PythonBytecode.PushLocals;
+import me.enerccio.sp.compiler.PythonBytecode.RCall;
+import me.enerccio.sp.compiler.PythonBytecode.Raise;
+import me.enerccio.sp.compiler.PythonBytecode.Reraise;
+import me.enerccio.sp.compiler.PythonBytecode.ResolveArgs;
+import me.enerccio.sp.compiler.PythonBytecode.ResolveClosure;
+import me.enerccio.sp.compiler.PythonBytecode.Return;
+import me.enerccio.sp.compiler.PythonBytecode.Save;
+import me.enerccio.sp.compiler.PythonBytecode.SaveDynamic;
+import me.enerccio.sp.compiler.PythonBytecode.SaveGlobal;
+import me.enerccio.sp.compiler.PythonBytecode.SaveLocal;
+import me.enerccio.sp.compiler.PythonBytecode.SetAttr;
+import me.enerccio.sp.compiler.PythonBytecode.SetupLoop;
+import me.enerccio.sp.compiler.PythonBytecode.SwapStack;
+import me.enerccio.sp.compiler.PythonBytecode.TruthValue;
+import me.enerccio.sp.compiler.PythonBytecode.UnpackKwArg;
+import me.enerccio.sp.compiler.PythonBytecode.UnpackSequence;
+import me.enerccio.sp.compiler.PythonBytecode.Yield;
 import me.enerccio.sp.runtime.ModuleInfo;
+
+import org.antlr.v4.runtime.Token;
 
 /**
  * Bytecode enum, containing types of bytecodes and their numerical value. 

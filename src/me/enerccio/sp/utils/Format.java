@@ -19,6 +19,9 @@ package me.enerccio.sp.utils;
 
 import java.math.BigInteger;
 
+import me.enerccio.sp.errors.SyntaxError;
+import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.parser.formatParser;
 import me.enerccio.sp.parser.formatParser.FintegerContext;
@@ -41,7 +44,7 @@ public class Format {
 		try {
 			p = ParserGenerator.parseFormat(value);
 		} catch (Exception e){
-			throw Utils.throwException("RuntimeError", "__format__(): internal error", e);
+			throw new SyntaxError("__format__(): failed to parse input string", e);
 		}
 		return this;
 	}
@@ -59,7 +62,7 @@ public class Format {
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (Exception e){
-			throw Utils.throwException("ValueError", "__format__(): failed parsing format string", e);
+			throw new ValueError("__format__(): failed parsing format string", e);
 		}
 	}
 
@@ -134,14 +137,14 @@ public class Format {
 		
 		if (!(dataSegment instanceof NumberObject)){
 			if (align == Align.EQ)
-				throw Utils.throwException("TypeError", "__format__(): align = only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
+				throw new TypeError("__format__(): align = only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
 			if (signSpecified)
-				throw Utils.throwException("TypeError", "__format__(): sign only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
+				throw new TypeError("__format__(): sign only available for numeric types, not type '" + Utils.run("typename", dataSegment) + "'");
 		}
 	}
 
 	private void unsupportedMode(String mode, PythonObject dataSegment) {
-		throw Utils.throwException("TypeError", "__format__(): unsupported mode '" + mode + "' for type '" + Utils.run("typename", dataSegment) + "'");
+		throw new TypeError("__format__(): unsupported mode '" + mode + "' for type '" + Utils.run("typename", dataSegment) + "'");
 	}
 
 	private Integer getIntValue(FintegerContext ic) {

@@ -17,10 +17,10 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * dict()
@@ -39,7 +39,7 @@ public class DictTypeObject extends TypeObject {
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
 		if (args.len() > 0)
-			throw Utils.throwException("TypeError", "dict(): requiring 0 arguments, got " + args.len());
+			throw new TypeError("dict(): requiring 0 arguments, got " + args.len());
 		return args.convertKwargs(kwargs);
 	}
 

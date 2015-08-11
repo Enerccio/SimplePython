@@ -17,8 +17,9 @@
  */
 package me.enerccio.sp.types.types;
 
-import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -44,7 +45,7 @@ public class StringTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 1)
-			throw Utils.throwException("TypeError", "str(): incorrect number of parameters");
+			throw new TypeError("str(): incorrect number of parameters");
 		
 		PythonObject o = args.getObjects()[0];
 		if (o instanceof ClassInstanceObject){

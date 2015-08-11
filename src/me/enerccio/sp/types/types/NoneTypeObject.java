@@ -17,11 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 public class NoneTypeObject extends TypeObject {
 	private static final long serialVersionUID = 3817336724216604451L;
@@ -37,7 +37,7 @@ public class NoneTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();
 		if (args.len() != 0)
-			throw Utils.throwException("TypeError", "none(): requires zero arguments");
+			throw new TypeError("none(): requires zero arguments");
 		return NoneObject.NONE;
 	}
 }

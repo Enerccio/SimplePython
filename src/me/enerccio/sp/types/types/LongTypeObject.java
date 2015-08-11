@@ -17,13 +17,13 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * int()
@@ -50,18 +50,18 @@ public class LongTypeObject extends TypeObject {
 		if (args.len() < 1)
 			return NumberObject.valueOf(0l);
 		if (args.len() > 2)
-			throw Utils.throwException("TypeError", "long() takes at most 2 arguments");
+			throw new TypeError("long() takes at most 2 arguments");
 		PythonObject obj = args.get(0);
 		if (args.len() == 2) {
 			if (base != null)
-				throw Utils.throwException("TypeError", "long() got duplicate value for argument 'base'");
+				throw new TypeError("long() got duplicate value for argument 'base'");
 			base = args.get(1);
 		}
 		if (base != null) {
 			if (!NumberObject.isInteger(base))
-				throw Utils.throwException("TypeError", "long() base argument must be integer");
+				throw new TypeError("long() base argument must be integer");
 			if (!(obj instanceof StringObject))
-				throw Utils.throwException("TypeError", "long() can't convert non-string with explicit base");
+				throw new TypeError("long() can't convert non-string with explicit base");
 			return NumberObject.valueOf(Long.valueOf(obj.toString(), ((NumberObject)base).intValue()));
 		}
 		
@@ -76,6 +76,6 @@ public class LongTypeObject extends TypeObject {
 			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
 		
-		throw Utils.throwException("TypeError", "long() can't convert " + obj.toString() + " to long");
+		throw new TypeError("long() can't convert " + obj.toString() + " to long");
 	}
 }

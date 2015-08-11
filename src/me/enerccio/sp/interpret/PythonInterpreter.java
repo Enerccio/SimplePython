@@ -29,12 +29,14 @@ import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.compiler.PythonBytecode.*;
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.InterpreterError;
+import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.errors.PythonException;
+import me.enerccio.sp.errors.StopIteration;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -48,17 +50,13 @@ import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
 import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.InternallyIterable;
-import me.enerccio.sp.types.iterators.XRangeIterator;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
-import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.types.sequences.XRangeObject;
-import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -189,7 +187,7 @@ public class PythonInterpreter extends PythonObject {
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
-				throw Utils.throwException("TypeError", callable.toString() + " is not callable");
+				throw new TypeError(callable.toString() + " is not callable");
 			return returnee = execute(false, callableArg, kwargs, args);
 		}
 	}
@@ -540,16 +538,16 @@ public class PythonInterpreter extends PythonObject {
 			String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
 			value = environment().get(new StringObject(svl), false, false);
 			if (value == null)
-				throw Utils.throwException("NameError", "name " + svl + " is not defined");
-			pushOntoStack(o, value);
+				throw new NameError("name " + svl + " is not defined");
+			stack.push(value);
 			break;
 		case LOADGLOBAL:
 			// pushes global variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
 			value = environment().get(new StringObject(svl), true, false);
 			if (value == null)
-				throw Utils.throwException("NameError", "name " + svl + " is not defined");
-			pushOntoStack(o, value);
+				throw new NameError("name " + svl + " is not defined");
+			stack.push(value);
 			break;
 		case POP:
 			// pops value off the stack
@@ -592,7 +590,7 @@ public class PythonInterpreter extends PythonObject {
 			// removes the frame and returns value
 			if (o.ownedGenerator != null)
 				if (!o.yielding)
-					throw Utils.throwException("StopIteration");
+					throw new StopIteration();
 			if (o.nextInt() == 1) {
 				o.returnHappened = true;
 				PythonObject retVal = stack.pop();
@@ -615,7 +613,7 @@ public class PythonInterpreter extends PythonObject {
 				String key = o.compiled.getConstant(o.nextInt()).toString();
 				if (!doingNew)
 					if (o.kwargs.contains(key))
-						throw Utils.throwException("TypeError", "got multiple values for keyword argument '" + key + "'");
+						throw new TypeError("got multiple values for keyword argument '" + key + "'");
 				o.kwargs.put(key, stack.pop());
 			}
 			break;
@@ -657,9 +655,9 @@ public class PythonInterpreter extends PythonObject {
 			
 			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(seq), null);
 			if (lo.objects.size() > count)
-				throw Utils.throwException("TypeError", "too many values to unpack");
+				throw new TypeError("too many values to unpack");
 			if (lo.objects.size() < count)
-				throw Utils.throwException("TypeError", "too few values to unpack");
+				throw new TypeError("too few values to unpack");
 			
 			Collections.reverse(lo.objects);
 			for (PythonObject obj : lo.objects)
@@ -671,7 +669,7 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject keysFn = value.get("keys", null);
 			PythonObject getItemFn = value.get("__getitem__", null);
 			if ((keysFn == null) || (getItemFn == null))
-				Utils.throwException("TypeError", "argument after ** must be a mapping, not " + value.toString());
+				new TypeError("argument after ** must be a mapping, not " + value.toString());
 			PythonObject iterator = Utils.run("iter", execute(true, keysFn, null)).get(GeneratorObject.NEXT, null);
 			if (o.kwargs == null)
 				o.kwargs = new KwArgs.HashMapKWArgs();
@@ -728,7 +726,7 @@ public class PythonInterpreter extends PythonObject {
 						o.accepts_return = true;
 						break;
 					}
-					throw Utils.throwException("AttributeError", "" + value.getType() + " object has no attribute '" + field + "'");
+					throw new AttributeError("" + value.getType() + " object has no attribute '" + field + "'");
 				}
 			} finally {
 				if (returnee instanceof PropertyObject){
@@ -770,7 +768,7 @@ public class PythonInterpreter extends PythonObject {
 			// raises python exception
 			PythonObject s = Utils.peek(stack);
 			if (s == null)
-				throw Utils.throwException("TypeError", "no exception is being handled but raise called");
+				throw new TypeError("no exception is being handled but raise called");
 			else if (PythonRuntime.isinstance(s, PythonRuntime.ERROR).truthValue()) {
 				// Throw exception normally
 				throw new PythonExecutionException(s);
@@ -779,7 +777,7 @@ public class PythonInterpreter extends PythonObject {
 				s = ((ClassObject)s).call(TupleObject.EMPTY, KwArgs.EMPTY);
 				throw new PythonExecutionException(s);
 			} else
-				throw Utils.throwException("TypeError", "exceptions must be Error instance or class derived from Error, not " + s.toString());
+				throw new TypeError("exceptions must be Error instance or class derived from Error, not " + s.toString());
 		}
 		case RERAISE: {
 			PythonObject s = stack.pop();
@@ -873,7 +871,7 @@ public class PythonInterpreter extends PythonObject {
 				}
 			}
 			if (!found)
-				throw Utils.throwException("NameError", "dynamic variable '" + variable.value + "' is undefined");
+				throw new NameError("dynamic variable '" + variable.value + "' is undefined");
 		} break;
 		case SAVEDYNAMIC: {
 			value = stack.pop();
@@ -897,8 +895,8 @@ public class PythonInterpreter extends PythonObject {
 			String vname = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 			value = environment().getBuiltin(vname);
 			if (value == null)
-				throw Utils.throwException("NameError", "builtin name '" + vname + "' is undefined");
-			pushOntoStack(o, value);
+				throw new NameError("builtin name '" + vname + "' is undefined");
+			stack.push(value);
 		} break;
 		case DEL: {
 			StringObject vname = (StringObject) o.compiled.getConstant(o.nextInt());
@@ -906,7 +904,7 @@ public class PythonInterpreter extends PythonObject {
 			environment().delete(vname, isGlobal);
 		} break;
 		default:
-			Utils.throwException("InterpretError", "unhandled bytecode " + opcode.toString());
+			throw new InterpreterError("unhandled bytecode " + opcode.toString());
 		}
 			
 		return ExecutionResult.OK;

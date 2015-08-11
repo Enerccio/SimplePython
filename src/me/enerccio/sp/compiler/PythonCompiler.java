@@ -24,12 +24,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.compiler.VariableStack.VariableType;
+import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
@@ -128,6 +125,10 @@ import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.utils.Utils;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Compiles source into Python Bytecode
@@ -412,7 +413,7 @@ public class PythonCompiler {
 			else if (dc.funcdef() != null)
 				compileFunction(dc.funcdef(), bytecode, dc.decorators());
 		} else
-			throw Utils.throwException("SyntaxError", "statament type not implemented");
+			throw new SyntaxError("statament type not implemented");
 	}
 	
 	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
@@ -1099,56 +1100,56 @@ public class PythonCompiler {
 
 	private void compileDel(ExprContext ctx, List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.xor_expr().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use xor in del statemenet");
+			throw new SyntaxError("can't use xor in del statemenet");
 		compileDel(ctx.xor_expr(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(Xor_exprContext ctx,
 			List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.and_expr().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use and in del statemenet");
+			throw new SyntaxError("can't use and in del statemenet");
 		compileDel(ctx.and_expr(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(And_exprContext ctx,
 			List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.shift_expr().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use shift in del statemenet");
+			throw new SyntaxError("can't use shift in del statemenet");
 		compileDel(ctx.shift_expr(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(Shift_exprContext ctx,
 			List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.arith_expr().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+			throw new SyntaxError("can't use arithmetics in del statemenet");
 		compileDel(ctx.arith_expr(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(Arith_exprContext ctx,
 			List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.term().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+			throw new SyntaxError("can't use arithmetics in del statemenet");
 		compileDel(ctx.term(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(TermContext ctx, List<PythonBytecode> bytecode,
 			boolean delkeyOnly) {
 		if (ctx.factor().size() > 1)
-			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+			throw new SyntaxError("can't use arithmetics in del statemenet");
 		compileDel(ctx.factor(0), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(FactorContext ctx,
 			List<PythonBytecode> bytecode, boolean delkeyOnly) {
 		if (ctx.factor() != null)
-			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+			throw new SyntaxError("can't use arithmetics in del statemenet");
 		compileDel(ctx.power(), bytecode, delkeyOnly);
 	}
 
 	private void compileDel(PowerContext ctx, List<PythonBytecode> bytecode,
 			boolean delkeyOnly) {
 		if (ctx.factor() != null)
-			throw Utils.throwException("SyntaxError", "can't use arithmetics in del statemenet");
+			throw new SyntaxError("can't use arithmetics in del statemenet");
 		if (ctx.trailer().size() > 0){
 			compile(ctx.atom(), bytecode);
 			// atom on stack
@@ -1158,7 +1159,7 @@ public class PythonCompiler {
 					TrailerContext tc = ctx.trailer(i);
 					String text = tc.getText().trim();
 					if (text.startsWith("("))
-						throw Utils.throwException("SyntaxError", "can't use del in function call");
+						throw new SyntaxError("can't use del in function call");
 					if (tc.NAME() != null){
 						String fname = tc.NAME().getText();
 						cb = addBytecode(bytecode, Bytecode.DELATTR, tc.start);
@@ -1183,13 +1184,13 @@ public class PythonCompiler {
 			if (atom.nname() != null){
 				String vname = atom.nname().getText();
 				if (stack.typeOfVariable(vname) == VariableType.DYNAMIC)
-					throw Utils.throwException("SyntaxError", "can't use del statemenet on dynamic variables");
+					throw new SyntaxError("can't use del statemenet on dynamic variables");
 				cb = addBytecode(bytecode, Bytecode.DEL, atom.nname().start);
 				cb.stringValue = atom.nname().getText();
 				cb.booleanValue = stack.typeOfVariable(vname) == VariableType.GLOBAL;
 				return;
 			}
-			throw Utils.throwException("SyntaxError", "can't use atoms in del statemenet");
+			throw new SyntaxError("can't use atoms in del statemenet");
 		}
 	}
 
@@ -1226,7 +1227,7 @@ public class PythonCompiler {
 	private void compile(Yield_exprContext ctx, List<PythonBytecode> bytecode) {
 		String name = compilingFunction.peek();
 		if (name == null)
-			throw Utils.throwException("SyntaxError", "yield outside function body");
+			throw new SyntaxError("yield outside function body");
 		
 		compileRightHand(ctx.testlist(), bytecode);
 		cb = addBytecode(bytecode, Bytecode.YIELD, ctx.stop); 
@@ -1235,13 +1236,13 @@ public class PythonCompiler {
 
 	private void compile(Break_stmtContext break_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		if ((cs == null) || (cs.size() == 0))
-			throw Utils.throwException("SyntaxError", "'break' outside loop");
+			throw new SyntaxError("'break' outside loop");
 		cs.peek().outputBreak(break_stmt, bytecode, cs);
 	}
 
 	private void compile(Continue_stmtContext continue_stmt, List<PythonBytecode> bytecode, ControllStack cs) {
 		if ((cs == null) || (cs.size() == 0))
-			throw Utils.throwException("SyntaxError", "'continue' outside loop");
+			throw new SyntaxError("'continue' outside loop");
 		cs.peek().outputContinue(continue_stmt, bytecode, cs);
 	}
 
@@ -1269,7 +1270,7 @@ public class PythonCompiler {
 
 	private void compile(Return_stmtContext ctx, List<PythonBytecode> bytecode) {
 		if (compilingClass.peek() != null)
-			throw Utils.throwException("SyntaxError", "return cannot be inside class definition");
+			throw new SyntaxError("return cannot be inside class definition");
 		if (ctx.testlist() != null)
 			compileRightHand(ctx.testlist(), bytecode);
 		cb = addBytecode(bytecode, Bytecode.RETURN, ctx.start);
@@ -1320,7 +1321,7 @@ public class PythonCompiler {
 			// AugAssign
 			TestlistContext leftHand = expr.testlist();
 			if (leftHand.test().size() > 1)
-				throw Utils.throwException("SyntaxError", "illegal expression for augmented assignment");
+				throw new SyntaxError("illegal expression for augmented assignment");
 			// TODO
 			// Bytecode.makeBytecode(
 			compileRightHand(leftHand, bytecode);
@@ -1335,7 +1336,7 @@ public class PythonCompiler {
 			else if (expr.augassignexp().augassign().getText().equals("%="))
 				putGetAttr(NumberObject.__MOD__, bytecode, expr.start);
 			else
-				throw Utils.throwException("SyntaxError", "illegal augmented assignment");
+				throw new SyntaxError("illegal augmented assignment");
 			compileRightHand(expr.augassignexp().yield_or_expr(), bytecode);
 			cb = addBytecode(bytecode, Bytecode.CALL, expr.stop);
 			cb.intValue = 1;
@@ -1527,7 +1528,7 @@ public class PythonCompiler {
 						putNot(bytecode, ((ExprContext) ctx.getChild(i+1)).start);
 					return;
 				} else
-					throw Utils.throwException("SyntaxError", "unsupported comparison operation");
+					throw new SyntaxError("unsupported comparison operation");
 				putGetAttr(operation, bytecode, ((ExprContext) ctx.getChild(i+1)).start);
 				compile((ExprContext) ctx.getChild(i+1), bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start);
@@ -1770,7 +1771,7 @@ public class PythonCompiler {
 			} else {
 				rv.normalArgCount ++;
 				if (rv.kwArgCount > 0)
-					throw Utils.throwException("SyntaxError", "non-keyword arg after keyword arg");
+					throw new SyntaxError("non-keyword arg after keyword arg");
 				compile(ac.test(), bytecode);
 			}
 		}
@@ -2256,89 +2257,89 @@ public class PythonCompiler {
 
 	private void compileAssignment(TestContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.lambdef() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to lambda");
+			throw new SyntaxError("can't assign to lambda");
 		if (ctx.or_test(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.or_test(0), bytecode);
 	}
 
 	/** Generates bytecode that stores top of stack into whatever is passed as parameter */ 
 	private void compileAssignment(ExprlistContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.expr().size() > 1) {
-			throw Utils.throwException("SyntaxError", "can't assign to tuple");
+			throw new SyntaxError("can't assign to tuple");
 		}
 		compileAssignment(ctx.expr(0), bytecode);
 	}
 	
 	private void compileAssignment(Or_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.and_test(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.and_test(0), bytecode);
 	}
 
 	private void compileAssignment(And_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.not_test(0), bytecode);		
 	}
 
 	private void compileAssignment(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.comparison(), bytecode);		
 	}
 
 	private void compileAssignment(ComparisonContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.expr(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to comparison");
+			throw new SyntaxError("can't assign to comparison");
 		compileAssignment(ctx.expr(0), bytecode);		
 	}
 
 	private void compileAssignment(ExprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.xor_expr(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.xor_expr(0), bytecode);
 	}
 
 	private void compileAssignment(Xor_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.and_expr(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.and_expr(0), bytecode);
 	}
 
 	private void compileAssignment(And_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.shift_expr(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.shift_expr(0), bytecode);
 	}
 
 	private void compileAssignment(Shift_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.arith_expr(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.arith_expr(0), bytecode);
 	}
 
 	private void compileAssignment(Arith_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.term(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.term(0), bytecode);
 	}
 	
 	private void compileAssignment(TermContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.factor(1) != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.factor(0), bytecode);
 	}
 	
 	private void compileAssignment(FactorContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.factor() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		compileAssignment(ctx.power(), bytecode);
 	}
 
 	private void compileAssignment(PowerContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.factor() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to operator");
+			throw new SyntaxError("can't assign to operator");
 		if (ctx.trailer().size() > 0)
 			compileTrailers(ctx.atom(), ctx.trailer(), 0, bytecode);
 		else
@@ -2355,11 +2356,11 @@ public class PythonCompiler {
 			TrailerContext t = trailers.get(offset);
 			if (t.arglist() != null) {
 				// ... xyz(something)
-				throw Utils.throwException("SyntaxError", "can't assign to function call");
+				throw new SyntaxError("can't assign to function call");
 			} else if (t.subscriptlist() != null) {
 				// ... xyz[something]
 				if (t.subscriptlist().subscript().size() > 1)
-					throw Utils.throwException("SyntaxError", "list indices must be integers, not tuple");
+					throw new SyntaxError("list indices must be integers, not tuple");
 				SubscriptContext s = t.subscriptlist().subscript(0);
 				if (s.stest() != null) {
 					// xyz[a] = value
@@ -2371,7 +2372,7 @@ public class PythonCompiler {
 					cb.intValue = 2;
 				} else {
 					// xyz[a:b] = ...
-					throw Utils.throwException("SyntaxError", "assignment to splice not yet implemented");
+					throw new SyntaxError("assignment to splice not yet implemented");
 				}
 			} else {
 				// ... xyz.something
@@ -2393,13 +2394,13 @@ public class PythonCompiler {
 	
 	private void compileAssignment(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.listmaker() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
+			throw new SyntaxError("can't assign to generator expression");
 		if (ctx.dictorsetmaker() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to generator literal");
+			throw new SyntaxError("can't assign to generator literal");
 		if ( (ctx.number() != null) || (ctx.string().size() > 0) )
-			throw Utils.throwException("SyntaxError", "can't assign to literal");
+			throw new SyntaxError("can't assign to literal");
 		if (ctx.bracket_atom() != null)
-			throw Utils.throwException("SyntaxError", "can't assign to generator expression");
+			throw new SyntaxError("can't assign to generator expression");
 		compileAssignment(ctx.nname(), bytecode);
 	}
 

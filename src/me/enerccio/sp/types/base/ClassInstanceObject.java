@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -70,7 +71,7 @@ public class ClassInstanceObject extends PythonObject {
 	
 	public NumberObject pyHash(TupleObject args, KwArgs kw){
 		if (args.len() != 0)
-			throw Utils.throwException("TypeError", "__hash__(): requires 0 parameters");
+			throw new TypeError("__hash__(): requires 0 parameters");
 		if (kw != null)
 			kw.notExpectingKWArgs();
 		return NumberObject.valueOf(getId());

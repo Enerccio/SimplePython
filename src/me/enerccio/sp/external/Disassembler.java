@@ -23,6 +23,8 @@ import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.errors.StopIteration;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
@@ -33,7 +35,6 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
-import me.enerccio.sp.utils.Utils;
 
 public class Disassembler {
 
@@ -72,13 +73,13 @@ public class Disassembler {
 		try {
 			return doGetNext();
 		} catch (BufferUnderflowException e){
-			throw Utils.throwException("StopIteration");
+			throw new StopIteration();
 		}
 	}
 	
 	private PythonObject doGetNext(){
 		if (readBuff.remaining() == 0)
-			Utils.throwException("StopIteration");
+			throw new StopIteration();
 		
 		last_bytecode_pos = readBuff.position();
 		DebugInformation d = debug.get(debug.floorKey(last_bytecode_pos));
@@ -175,7 +176,7 @@ public class Disassembler {
 				break;
 			}
 		} catch (CastFailedException e){
-			throw Utils.throwException("TypeError", "bytecode internal failure", e);
+			throw new TypeError("bytecode internal failure", e);
 		}
 		
 		return bytecode;
