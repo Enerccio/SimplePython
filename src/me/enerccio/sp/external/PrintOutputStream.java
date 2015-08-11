@@ -33,14 +33,12 @@ public class PrintOutputStream {
 	
 	@WrapMethod
 	public synchronized void write(String data){
-		synchronized (PythonRuntime.runtime){
-			@SuppressWarnings("resource")
-			OutputStream os = err ? PythonRuntime.runtime.getErr() : PythonRuntime.runtime.getOut();
-			try {
-				os.write(data.getBytes());
-			} catch (IOException e) {
-				throw new IOError("failed to write to stream", e);
-			}
+		@SuppressWarnings("resource")
+		OutputStream os = err ? PythonRuntime.runtime.getErr() : PythonRuntime.runtime.getOut();
+		try {
+			os.write(data.getBytes());
+		} catch (IOException e) {
+			throw new IOError("failed to write to stream", e);
 		}
 	}
 	

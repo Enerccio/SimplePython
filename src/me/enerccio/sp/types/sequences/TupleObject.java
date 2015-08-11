@@ -78,17 +78,6 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	}
 	
 	@Override
-	public void newObject(){
-		if (!initialized)
-			synchronized (this){
-				if (!initialized){
-					super.newObject();
-					initialized = true;
-				}
-			}
-	}
-	
-	@Override
 	public int getId(){
 		final int prime = 31;
         int result = 1;

@@ -36,6 +36,7 @@ import me.enerccio.sp.compiler.PythonBytecode.JumpIfNoReturn;
 import me.enerccio.sp.compiler.PythonBytecode.JumpIfNone;
 import me.enerccio.sp.compiler.PythonBytecode.JumpIfTrue;
 import me.enerccio.sp.compiler.PythonBytecode.KCall;
+import me.enerccio.sp.compiler.PythonBytecode.MakeFuture;
 import me.enerccio.sp.compiler.PythonBytecode.KwArg;
 import me.enerccio.sp.compiler.PythonBytecode.Load;
 import me.enerccio.sp.compiler.PythonBytecode.LoadBuiltin;
@@ -91,9 +92,9 @@ public enum Bytecode {
 	// variables
 	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70), LOADBUILTIN(71),
 	// special call-related
-	KWARG(80), UNPACK_KWARG(81),
+	KWARG(80), UNPACK_KWARG(81), MAKE_FUTURE(82),
 	// exceptions
-	RAISE(82), RERAISE(83),
+	RAISE(85), RERAISE(86),
 	// macros
 	GETATTR(89), SETATTR(90), ISINSTANCE(91), 
 	// frames 
@@ -213,6 +214,10 @@ public enum Bytecode {
 			break;
 		case LOADGLOBAL:
 			bytecode = new LoadGlobal();
+			
+			break;
+		case MAKE_FUTURE:
+			bytecode = new MakeFuture();
 			
 			break;
 		case NOP:

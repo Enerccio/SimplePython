@@ -379,8 +379,17 @@ suite:
  simple_stmt | NEWLINE INDENT stmt+ DEDENT
 ;
 
+
+lambdef:
+ 'lambda' farg? (',' farg)* (',' vararg)? ':' suite
+; 
+
+future:
+ 'future' ':' test
+;
+
 test:
- or_test ('if' or_test 'else' test)? | lambdef
+ or_test ('if' or_test 'else' test)? | lambdef | future
 ;
 
 or_test:
@@ -464,10 +473,6 @@ dictorsetmaker:
 testlist_comp:
  test ( comp_for | (',' test)* ','? )
 ;
-
-lambdef:
- 'lambda' farg? (',' farg)* (',' vararg)? ':' suite
-; 
 
 trailer:
  '(' arglist? ')' | '[' subscriptlist ']' | '.' NAME

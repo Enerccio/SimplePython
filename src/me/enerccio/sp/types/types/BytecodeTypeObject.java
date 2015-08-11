@@ -169,6 +169,9 @@ public class BytecodeTypeObject extends TypeObject {
 			case LOADGLOBAL:
 				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
 				break;
+			case MAKE_FUTURE:
+				bytecode.object = Coerce.toJava(args.get(1), String[].class);
+				break;
 			case NOP:
 				break;
 			case OPEN_LOCALS:

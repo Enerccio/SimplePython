@@ -123,6 +123,7 @@ public class Disassembler {
 			case SETATTR:
 				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				break;
+			case MAKE_FUTURE:
 			case KWARG:
 				bytecode.object = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String[].class);
 				break;

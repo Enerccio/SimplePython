@@ -20,8 +20,10 @@ package me.enerccio.sp.compiler;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
@@ -63,6 +65,7 @@ import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.For_stmtContext;
 import me.enerccio.sp.parser.pythonParser.FuncdefContext;
+import me.enerccio.sp.parser.pythonParser.FutureContext;
 import me.enerccio.sp.parser.pythonParser.Global_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
@@ -829,6 +832,8 @@ public class PythonCompiler {
 				
 				compileStatement(c, bytecode, null);
 			}
+		} else if (suite instanceof TestContext) {
+			compile((TestContext)suite, bytecode);
 		} else
 			for (StmtContext c : ((String_inputContext) suite).stmt())
 				compileStatement(c, bytecode, null);
@@ -1363,14 +1368,13 @@ public class PythonCompiler {
 		}
 		
 		for (TestContext tc : testlist.test())
-			compile(tc, bytecode);
+			compilePossibleFuture(tc, bytecode);
 		
 		if (tlc > 1){
 			cb = addBytecode(bytecode, Bytecode.CALL, testlist.stop);
 			cb.intValue = tlc;
 		}
 	}
-	
 	private void putGetAttr(String attr, List<PythonBytecode> bytecode, Token t) {
 		cb = addBytecode(bytecode, Bytecode.GETATTR, t);
 		cb.stringValue = attr;
@@ -1380,19 +1384,93 @@ public class PythonCompiler {
 		cb = addBytecode(bytecode, Bytecode.TRUTH_VALUE, t);
 		cb.intValue = 1;
 	}
+	
+	private void compilePossibleFuture(TestContext ctx, List<PythonBytecode> bytecode) {
+		if (findFuture(ctx)) {
+			compileFuture(ctx, bytecode);
+			return;
+		}
+		compile(ctx, bytecode);
+	}
 
 	private void compile(TestContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.lambdef() != null){
 			compile(ctx.lambdef(), bytecode);
 			return;
 		}
-		if (ctx.getChildCount() > 1){
+		else if (ctx.future() != null){
+			compile(ctx.future().test(), bytecode);
+			return;
+		}
+		else if (ctx.getChildCount() > 1){
 			compileTernary(ctx, bytecode);
 			return;
 		}
 		compile(ctx.or_test(0), bytecode);
 	}
 
+	private void compileFuture(TestContext ctx, List<PythonBytecode> bytecode) {
+		UserFunctionObject fnc = new UserFunctionObject();
+		fnc.newObject();
+		
+		String functionName = "future";
+		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
+		
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
+		compilingClass.push(null);
+		doCompileFunction(ctx, fncb, ctx.start, null);
+		compilingClass.pop();
+		
+		cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
+		cb.intValue = 1;	
+		
+		fnc.block = new CompiledBlockObject(fncb);
+		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.args = new ArrayList<String>();
+		
+		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
+		cb.value = fnc;
+		addBytecode(bytecode, Bytecode.RESOLVE_CLOSURE, ctx.stop);
+		
+		cb = addBytecode(bytecode, Bytecode.MAKE_FUTURE, ctx.stop);
+		cb.object = inspectVariables(ctx).toArray(new String[] {} );
+	}
+	
+	private Set<String> inspectVariables(TestContext testlist) {
+		Set<String> vars = new HashSet<>();
+		for (ParseTree x : testlist.children)
+			inspectVariables(x, vars);
+		return vars;
+	}
+
+	private void inspectVariables(ParseTree t, Set<String> vars) {
+		if (t instanceof NnameContext)
+			vars.add(t.getText());
+		for (int i =0; i<t.getChildCount(); i++)
+			inspectVariables(t.getChild(i), vars);
+	}
+
+	private boolean findFuture(TestContext testlist) {
+		Boolean rv = null;
+		for (ParseTree x : testlist.children) {
+			rv = findFuture(x);
+			if (rv != null) return rv;
+		}
+		return false;
+	}
+	
+	private Boolean findFuture(ParseTree t) {
+		Boolean rv = null;
+		if (t instanceof FutureContext)
+			return true;
+		if (t instanceof LambdefContext)
+			return false;
+		for (int i =0; i<t.getChildCount(); i++) {
+			rv = findFuture(t.getChild(i));
+			if (rv != null) return rv;
+		}
+		return rv;
+	}
 	private void compile(Or_testContext ctx, List<PythonBytecode> bytecode) {
 		List<PythonBytecode> jumps = new LinkedList<>();
 		int last = ctx.and_test().size() - 1;
