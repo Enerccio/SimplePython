@@ -1,5 +1,2 @@
 def test():
-	def inner(anca):
-		print anca
-		print locals()
-	inner(locals())
+	print lambda x: x+x
