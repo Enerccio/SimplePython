@@ -21,8 +21,10 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -43,6 +45,11 @@ public class NoneObject extends PythonObject {
 	@Override
 	public boolean truthValue() {
 		return false;
+	}
+	
+	@Override
+	public ClassObject getType(){
+		return PythonRuntime.NONE_TYPE;
 	}
 
 	@Override

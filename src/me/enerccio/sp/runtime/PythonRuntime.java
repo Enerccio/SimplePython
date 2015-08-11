@@ -425,8 +425,8 @@ public class PythonRuntime {
 	
 	/** Some basic types */
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
-	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
 	public static final TypeObject NONE_TYPE = new NoneTypeObject();
+	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
 	public static final TypeObject STRING_TYPE = new StringTypeObject();
 	public static final TypeObject INT_TYPE = new IntTypeObject();
 	public static final TypeObject LONG_TYPE = new LongTypeObject();
@@ -465,6 +465,7 @@ public class PythonRuntime {
 					EnvironmentObject e = new EnvironmentObject();
 					e.add(globals);
 					
+					globals.put(NoneTypeObject.NONE_TYPE_CALL, NONE_TYPE);
 					globals.put("None", NoneObject.NONE);
 					globals.put("True", BoolObject.TRUE);
 					globals.put("False", BoolObject.FALSE);
@@ -506,7 +507,6 @@ public class PythonRuntime {
 					globals.put(ComplexTypeObject.COMPLEX_CALL, new ComplexTypeObject());
 					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, new BoundFunctionTypeObject());
 					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
-					globals.put(NoneTypeObject.NONE_TYPE_CALL, new NoneTypeObject());
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
 					
 					pythonParser p;
