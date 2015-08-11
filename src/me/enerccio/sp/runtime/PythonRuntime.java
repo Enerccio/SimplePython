@@ -485,7 +485,7 @@ public class PythonRuntime {
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, int.class));
 					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
-					globals.put(DIR, Utils.staticMethodCall(PythonRuntime.class, DIR, PythonObject.class));
+					globals.put(DIR, Utils.staticMethodCall(true, PythonRuntime.class, DIR, TupleObject.class, KwArgs.class));
 					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
 					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
 					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, DictObject.class, DictObject.class));
@@ -699,7 +699,18 @@ public class PythonRuntime {
 		return PythonInterpreter.interpreter.get().execute(true, fnc, null);
 	}
 	
-	protected static List<String> dir(PythonObject o){
+	public static List<String> dir(TupleObject to, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.checkEmpty("dir");
+		if (to.len() > 1)
+			throw new TypeError("dir(): requires 1 or 0 arguments, got " + to.len());
+		
+		PythonObject o;
+		if (to.len() == 1)
+			o = to.get(0);
+		else
+			o = Utils.run("locals");
+		
 		Set<String> fields = new TreeSet<String>();
 		
 		synchronized (o){
