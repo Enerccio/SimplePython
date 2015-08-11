@@ -19,6 +19,7 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -39,12 +40,14 @@ public abstract class TypeObject extends ClassObject {
 	
 	@Override
 	public void newObject(){
-		super.newObject();
-		
-		try {
-			Utils.putPublic(this, "__name__", new MethodPropertyObject("__name__", JavaMethodObject.noArgMethod(this, "getTypeIdentificator")));
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new RuntimeException("kurva", e);
+		if (PythonRuntime.NONE_TYPE != null) {
+			super.newObject();
+			
+			try {
+				Utils.putPublic(this, "__name__", new MethodPropertyObject("__name__", JavaMethodObject.noArgMethod(this, "getTypeIdentificator")));
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new RuntimeException("kurva", e);
+			}
 		}
 	}
 	
