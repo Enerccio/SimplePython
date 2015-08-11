@@ -40,7 +40,6 @@ public class BoolObject extends NumberObject {
 	private BoolObject(boolean v){
 		this.value = v;
 		intRepresentation = NumberObject.valueOf(this.intValue());
-		newObject();
 	}
 	
 	@Override

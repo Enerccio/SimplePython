@@ -80,7 +80,6 @@ public class PythonInterpreter extends PythonObject {
 			}
 			
 			PythonInterpreter i = new PythonInterpreter();
-			i.newObject();
 			interpreters.add(i);
 			return i;
 		}

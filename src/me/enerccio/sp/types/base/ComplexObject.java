@@ -36,7 +36,7 @@ public class ComplexObject extends NumberObject {
 	@Override public NumberType getNumberType() { return NumberType.COMPLEX; }
 
 	public ComplexObject(){
-		newObject();
+		
 	}
 	
 	public ComplexObject(double r, double i){
@@ -46,7 +46,6 @@ public class ComplexObject extends NumberObject {
 	public ComplexObject(NumberObject r, NumberObject i) {
 		fields.put(REAL_ACCESSOR, new AugumentedPythonObject(r, AccessRestrictions.PUBLIC));
 		fields.put(IMAG_ACCESSOR, new AugumentedPythonObject(i, AccessRestrictions.PUBLIC));
-		newObject();
 	}
 	
 	@Override

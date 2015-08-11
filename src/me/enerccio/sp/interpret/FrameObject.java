@@ -93,7 +93,6 @@ public class FrameObject extends PythonObject {
 
 	public FrameObject cloneFrame() {
 		FrameObject f = new FrameObject();
-		f.newObject();
 		f.pc = pc;
 		f.compiled = compiled;
 		f.accepts_return = accepts_return;

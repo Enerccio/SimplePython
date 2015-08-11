@@ -50,11 +50,6 @@ public abstract class ContainerObject extends PythonObject {
 	}
 	
 	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
-	
-	@Override
-	public void newObject(){
-		super.newObject();
-	}
 
 	@Override
 	public Set<String> getGenHandleNames() {

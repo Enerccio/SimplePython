@@ -271,7 +271,7 @@ public abstract class NumberObject extends PythonObject {
 
 		@Override
 		public void newObject(){
-			super.newObject();
+			
 		}
 		
 		private static IntObject[] baseMap = new IntObject[1 + 2 * PythonRuntime.PREALOCATED_INTEGERS];
@@ -695,7 +695,6 @@ public abstract class NumberObject extends PythonObject {
 
 		LongObject(long v){
 			value = v;
-			newObject();
 		}
 		
 		@Override
@@ -1042,7 +1041,6 @@ public abstract class NumberObject extends PythonObject {
 
 		FloatObject(float v){
 			value = v;
-			newObject();
 		}
 		
 		@Override
@@ -1295,7 +1293,6 @@ public abstract class NumberObject extends PythonObject {
 
 		public DoubleObject(double v){
 			value = v;
-			newObject();
 		}
 		
 		@Override
