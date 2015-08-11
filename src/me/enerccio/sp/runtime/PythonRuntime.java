@@ -158,7 +158,7 @@ public class PythonRuntime {
 	public Map<String, ModuleContainer> root = new TreeMap<String, ModuleContainer>();
 	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
 	/** object identifier key generator */
-	private long key = Long.MIN_VALUE; 
+	private volatile long key = Long.MIN_VALUE; 
 	
 	/* related to serialization */
 	private CyclicBarrier awaitBarrierEntry;
@@ -263,7 +263,7 @@ public class PythonRuntime {
 	 * Called by every object to grab it's link key
 	 * @param o
 	 */
-	public synchronized void newInstanceInitialization(PythonObject o){
+	public void newInstanceInitialization(PythonObject o){
 		o.linkName = key++;
 	}
 	

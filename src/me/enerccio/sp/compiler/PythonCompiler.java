@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import me.enerccio.sp.compiler.PythonBytecode.Call;
 import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.compiler.VariableStack.VariableType;
 import me.enerccio.sp.errors.SyntaxError;
@@ -1424,7 +1425,10 @@ public class PythonCompiler {
 		if (fncb.get(fncb.size()-1) instanceof Pop){
 			fncb.remove(fncb.size()-1);
 			cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
-			cb.intValue = 1;	
+			cb.intValue = 1;
+		} else if (fncb.get(fncb.size()-1) instanceof Call){
+			cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
+			cb.intValue = 1;
 		} else {
 			cb = addBytecode(fncb, Bytecode.PUSH, ctx.stop);
 			cb.value = NoneObject.NONE;
@@ -1433,9 +1437,12 @@ public class PythonCompiler {
 		}
 		
 		fnc.block = new CompiledBlockObject(fncb);
+		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.args = new ArrayList<String>();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
 		cb.value = fnc;
+		addBytecode(bytecode, Bytecode.RESOLVE_CLOSURE, ctx.stop);
 		
 		cb = addBytecode(bytecode, Bytecode.MAKE_FUTURE, ctx.stop);
 		cb.object = inspectVariables(ctx).toArray(new String[] {} );

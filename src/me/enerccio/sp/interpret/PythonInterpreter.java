@@ -57,6 +57,7 @@ import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.system.FutureObject;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -531,12 +532,24 @@ public class PythonInterpreter extends PythonObject {
 				// Frame ended without return, jump to specified label and keep frame on stack
 				o.pc = jv;
 			break;
+		case MAKE_FUTURE:
+			// this has no future :(
+			jv = o.nextInt();
+			List<String> closureCopy = new ArrayList<String>();
+			for (int i=0; i<jv; i++) {
+				String name = o.compiled.getConstant(o.nextInt()).toString();
+				closureCopy.add(name);
+			}
+			stack.push(new FutureObject((UserFunctionObject)stack.pop(), closureCopy, environment()));
+			break;
 		case LOAD: 
 			// pushes variable onto stack
 			String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
 			value = environment().get(new StringObject(svl), false, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
+			if (value instanceof FutureObject)
+				value = ((FutureObject)value).getValue();
 			stack.push(value);
 			break;
 		case LOADGLOBAL:
@@ -545,6 +558,8 @@ public class PythonInterpreter extends PythonObject {
 			value = environment().get(new StringObject(svl), true, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
+			if (value instanceof FutureObject)
+				value = ((FutureObject)value).getValue();
 			stack.push(value);
 			break;
 		case POP:
@@ -1079,5 +1094,9 @@ public class PythonInterpreter extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return new HashMap<String, JavaMethodObject>();
+	}
+
+	public List<DictObject> getCurrentClosure() {
+		return currentClosure;
 	}
 }
