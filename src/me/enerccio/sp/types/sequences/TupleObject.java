@@ -62,7 +62,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	public void notExpectingArgs() {
 		if (array.length == 0)
 			return;
-		throw Utils.throwException("TypeError", "function takes no arguments");
+		throw new TypeError("function takes no arguments");
 	}
 
 	/** 
@@ -74,7 +74,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			kw.notExpectingKWArgs();
 		if (array.length == 0)
 			return;
-		throw Utils.throwException("TypeError", "function takes no arguments");
+		throw new TypeError("function takes no arguments");
 	}
 	
 	@Override
@@ -194,6 +194,6 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	@Override
 	public void deleteKey(PythonObject key) {
-		throw Utils.throwException("TypeError", "'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+		throw new TypeError("'" + Utils.run("typename", this) + "' object doesn't support item deletion");
 	}
 }

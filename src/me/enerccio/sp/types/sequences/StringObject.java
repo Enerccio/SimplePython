@@ -165,7 +165,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	public PythonObject center(TupleObject to, KwArgs kwargs){
 		if (to.len() < 1 || to.len() > 2)
-			throw Utils.throwException("TypeError", "center(): requires 1 or 2 arguments, " + to.len() + " provided");
+			throw new TypeError("center(): requires 1 or 2 arguments, " + to.len() + " provided");
 		
 		int llen = Coerce.argument(to, 0, "endwith", int.class);
 		String fill = ArgumentConsumer.consumeArgument("center", to, kwargs, 1, "fillchar", String.class, " ");
@@ -183,7 +183,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	public PythonObject count(TupleObject to, KwArgs kwargs){
 		if (to.len() < 1 || to.len() > 3)
-			throw Utils.throwException("TypeError", "center(): requires from 1 to 3 arguments, " + to.len() + " provided");
+			throw new TypeError("center(): requires from 1 to 3 arguments, " + to.len() + " provided");
 		
 		String sub = Coerce.argument(to, 0, "endwith", String.class);
 		int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1, "start", int.class, 0);
@@ -210,7 +210,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	public PythonObject endswith(TupleObject to, KwArgs kwargs){
 		if (to.len() < 1 || to.len() > 3)
-			throw Utils.throwException("TypeError", "substring(): requires from 1 to 3 arguments, " + to.len() + " provided");
+			throw new TypeError("substring(): requires from 1 to 3 arguments, " + to.len() + " provided");
 
 		String suffix = Coerce.argument(to, 0, "endwith", String.class);
 		int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1, "start", int.class, 0);
@@ -230,7 +230,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	public PythonObject expandtabs(TupleObject to, KwArgs kwargs){
 		if (to.len() > 1)
-			throw Utils.throwException("TypeError", "substring(): requires at most 1 argument, " + to.len() + " provided");
+			throw new TypeError("substring(): requires at most 1 argument, " + to.len() + " provided");
 		int tabs = ArgumentConsumer.consumeArgument("expandtabs", to, kwargs, 0, "tabsize", int.class, 8);
 		
 		StringBuilder bd = new StringBuilder();
@@ -260,7 +260,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		
 	public PythonObject find(TupleObject to, KwArgs kwargs){
 		if (to.len() < 1 || to.len() > 3)
-			throw Utils.throwException("TypeError", "substring(): requires from 1 to 3 arguments, " + to.len() + " provided");
+			throw new TypeError("substring(): requires from 1 to 3 arguments, " + to.len() + " provided");
 		String suffix = Coerce.argument(to, 0, "endwith", String.class);
 		int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1, "start", int.class, 0);
 		int end = ArgumentConsumer.consumeArgument("count", to, kwargs, 2, "end", int.class, value.length()); 
@@ -283,7 +283,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	
 	@Override
 	public void deleteKey(PythonObject key) {
-		throw Utils.throwException("TypeError", "'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+		throw new TypeError("'" + Utils.run("typename", this) + "' object doesn't support item deletion");
 	}
 	
 	public PythonObject mul(PythonObject b){
@@ -431,7 +431,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 						arg = no.longValue();
 				}
 				
-				result.append(String.format("%" + rest + mode, arg));
+				try {
+					result.append(String.format("%" + rest + mode, arg));
+				} catch (Exception e){
+					throw new TypeError("__mod__(): wrong format syntax caused by " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+				}
 				cstep = FormatStep.TEXT;
 			} else if (cstep == FormatStep.TEXT) {
 				result.append(c);

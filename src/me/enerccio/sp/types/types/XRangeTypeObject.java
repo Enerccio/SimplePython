@@ -17,12 +17,12 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.sequences.XRangeObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * xrange type object. Used as type for xrange objects and to construct new xrange objects.
@@ -41,7 +41,7 @@ public class XRangeTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if ((args.len() < 1) || (args.len() > 3))
-			throw Utils.throwException("TypeError", "xrange() requires 1-3 int arguments");
+			throw new TypeError("xrange() requires 1-3 int arguments");
 		
 		int start = ((NumberObject)args.valueAt(0)).intValue();
 		int end = (args.len() < 2 ? 0 : ((NumberObject)args.valueAt(1)).intValue());
@@ -55,7 +55,7 @@ public class XRangeTypeObject extends TypeObject {
 		else if (step > start + end)
 			end = step + start;
 		if (step == 0)
-			throw Utils.throwException("TypeError", "xrange() arg 3 must not be zero");
+			throw new TypeError("xrange() arg 3 must not be zero");
 		
 		XRangeObject rv = new XRangeObject(start, end, step);
 		rv.newObject();

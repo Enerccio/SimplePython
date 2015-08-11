@@ -17,7 +17,7 @@
  */
 package me.enerccio.sp.sandbox;
 
-import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.errors.SandboxViolationError;
 
 public abstract class PythonSecurityManager {
 	
@@ -38,7 +38,7 @@ public abstract class PythonSecurityManager {
 	
 	public void checkSandbox(SecureAction a, String callName, Object... additionalDeciders){
 		if (!actionAllowed(a, additionalDeciders)){
-			throw Utils.throwException("SandboxViolationError", callName+"(): not allowed");
+			throw new SandboxViolationError(callName+"(): not allowed");
 		}
 	}
 	

@@ -17,12 +17,12 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * list()
@@ -70,7 +70,7 @@ public class ListTypeObject extends TypeObject {
 		} else if (args.len() == 1) {
 			return make_list(args.get(0));
 		}
-		throw Utils.throwException("TypeError", "list() takes at most 1 argument");
+		throw new TypeError("list() takes at most 1 argument");
 	}
 
 }

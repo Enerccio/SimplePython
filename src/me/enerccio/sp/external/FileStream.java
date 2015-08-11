@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 
+import me.enerccio.sp.errors.IOError;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.StringObject;
-import me.enerccio.sp.utils.Utils;
 
 public class FileStream {
 
@@ -39,7 +39,7 @@ public class FileStream {
 		try {
 			init(file, mode);
 		} catch (Exception e){
-			throw Utils.throwException("IOError", "failed to open file " + file, e);
+			throw new IOError("failed to open file " + file, e);
 		}
 	}
 	
@@ -63,7 +63,7 @@ public class FileStream {
 		try {
 			file.close();
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "failed to close resource", e);
+			throw new IOError("failed to close resource", e);
 		}
 	}
 	
@@ -72,7 +72,7 @@ public class FileStream {
 		try {
 			return file.getFD();
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "io error", e);
+			throw new IOError("io error", e);
 		}
 	}
 	
@@ -88,7 +88,7 @@ public class FileStream {
 		try {
 			rc = file.read(data);
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "read failed", e);
+			throw new IOError("read failed", e);
 		}
 		
 		data = truncate(data, rc);
@@ -101,7 +101,7 @@ public class FileStream {
 			try {
 				return new StringObject(new String(data, encoding));
 			} catch (UnsupportedEncodingException e) {
-				throw Utils.throwException("IOError", "encoding error", e);
+				throw new IOError("encoding error", e);
 			}
 	}
 	
@@ -126,7 +126,7 @@ public class FileStream {
 				file.seek(file.length() + pos);
 			}
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "seek failed", e);
+			throw new IOError("seek failed", e);
 		}
 	}
 	
@@ -135,7 +135,7 @@ public class FileStream {
 		try {
 			return file.getFilePointer();
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "tell failed", e);
+			throw new IOError("tell failed", e);
 		}
 	}
 	
@@ -148,10 +148,10 @@ public class FileStream {
 				try {
 					file.write(o.value.getBytes(encoding));
 				} catch (UnsupportedEncodingException e) {
-					throw Utils.throwException("IOError", "encoding error", e);
+					throw new IOError("encoding error", e);
 				}
 		} catch (IOException e) {
-			throw Utils.throwException("IOError", "write failed", e);
+			throw new IOError("write failed", e);
 		}
 	}
 }

@@ -115,3 +115,5 @@ class ValueError(StandardError):
 class GeneratorExit(Exception):
     pass
 
+class NativeError(Exception):
+    pass

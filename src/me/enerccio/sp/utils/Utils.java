@@ -72,16 +72,6 @@ public class Utils {
 	public static PythonObject run(String function, PythonObject... args) {
 		return PythonInterpreter.interpreter.get().executeCall(true, function, args);
 	}
-	
-	/**
-	 * throws exception of that type, that text and that cause
-	 * @param type
-	 * @param text
-	 * @return
-	 */
-	public static RuntimeException throwException(String type, String text, Throwable cause) {
-		return new PythonExecutionException(run(type, new StringObject(text)), cause);
-	}
 
 	/**
 	 * throws exception of that type, that text and that cause
@@ -91,25 +81,6 @@ public class Utils {
 	 */
 	public static RuntimeException throwException(ClassObject type, String text, Throwable cause) {
 		return new PythonExecutionException(type.call(new TupleObject(new StringObject(text)), KwArgs.EMPTY), cause);
-	}
-
-	/**
-	 * throws exception of that type and that text
-	 * @param type
-	 * @param text
-	 * @return
-	 */
-	public static RuntimeException throwException(String type, String text) {
-		return new PythonExecutionException(run(type, new StringObject(text)));
-	}
-	
-	/**
-	 * throws exception of that type
-	 * @param type
-	 * @return
-	 */
-	public static RuntimeException throwException(String type) {
-		return new PythonExecutionException(run(type));
 	}
 
 	/**

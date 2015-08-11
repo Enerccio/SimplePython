@@ -17,11 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * bool()
@@ -42,7 +42,7 @@ public class BoolTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() > 1)
-			throw Utils.throwException("TypeError", "bool(): requires 0 or 1 arguments");
+			throw new TypeError("bool(): requires 0 or 1 arguments");
 		if (args.len() == 1)
 			return BoolObject.fromBoolean(args.valueAt(0).truthValue());
 		return BoolObject.FALSE;

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -79,10 +80,10 @@ public class UserFunctionObject extends CallableObject {
 		int rargs = this.args.size();
 		
 		if (argc < rargs)
-			throw Utils.throwException("TypeError",  fields.get("__name__").object + "(): incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
+			throw new TypeError(fields.get("__name__").object + "(): incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
 		
 		if (!isVararg && argc > rargs)
-			throw Utils.throwException("TypeError", fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
+			throw new TypeError(fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
 		DictObject a = new DictObject();
 		
@@ -126,7 +127,7 @@ public class UserFunctionObject extends CallableObject {
 				// Argument passed in tuple
 				pl[i] = args.get(i);
 				if (kwargs != null && kwargs.contains(key))
-					throw Utils.throwException("TypeError", fields.get("__name__").object + "() got multiple values for keyword argument '" + key + "'");
+					throw new TypeError(fields.get("__name__").object + "() got multiple values for keyword argument '" + key + "'");
 			} else if ((kwargs != null) && (kwargs.contains(key))) {
 				// Argument passed in kwargs
 				pl[i] = kwargs.consume(key);
@@ -135,7 +136,7 @@ public class UserFunctionObject extends CallableObject {
 				pl[i] = m.getItem(key);
 			} else {
 				// Missing argument
-				throw Utils.throwException("TypeError", fields.get("__name__").object + "() required argument '" + key + "' missing");
+				throw new TypeError(fields.get("__name__").object + "() required argument '" + key + "' missing");
 			}
 		}
 		if (kwargs != null && !isKvararg)

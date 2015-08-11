@@ -17,13 +17,13 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * float()
@@ -44,7 +44,7 @@ public class FloatTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 1)
-			throw Utils.throwException("TypeError", "foat(): Incorrect number of parameters");
+			throw new TypeError("foat(): Incorrect number of parameters");
 		
 		PythonObject a = args.valueAt(0);
 		
@@ -66,10 +66,10 @@ public class FloatTypeObject extends TypeObject {
 				else
 					return NumberObject.valueOf(((NumberObject)o).floatValue());
 			} else {
-				throw Utils.throwException("TypeError", "float(): __int__ did not returned number");
+				throw new TypeError("float(): __int__ did not returned number");
 			}
 		}
 
-		throw Utils.throwException("TypeError", "float(): Incorrect type of parameter");
+		throw new TypeError("float(): Incorrect type of parameter");
 	}
 }

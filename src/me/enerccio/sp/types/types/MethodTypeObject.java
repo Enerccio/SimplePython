@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -45,7 +46,7 @@ public class MethodTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (args.len() != 3)
-			throw Utils.throwException("TypeError", "method(): wrong mumber of parameters, requires 3, got " + args.len());
+			throw new TypeError("method(): wrong mumber of parameters, requires 3, got " + args.len());
 		
 		UserFunctionObject fnc;
 		ClassInstanceObject inst;
@@ -55,7 +56,7 @@ public class MethodTypeObject extends TypeObject {
 			inst = (ClassInstanceObject) args.valueAt(1);
 			accessor = (ClassObject) args.valueAt(2);
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", "method(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be instance");
+			throw new TypeError("method(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be instance");
 		}
 		
 		UserMethodObject mo = new UserMethodObject();

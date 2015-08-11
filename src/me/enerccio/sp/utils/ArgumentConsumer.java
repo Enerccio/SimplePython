@@ -1,5 +1,6 @@
 package me.enerccio.sp.utils;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -39,7 +40,7 @@ public class ArgumentConsumer {
 			value = Coerce.argument(to, ord, function, clazz);
 			if (kw != null)
 				if (kw.contains(arg))
-					throw Utils.throwException("TypeError", function+"(): duplicate argument '" + arg + "'");
+					throw new TypeError(function+"(): duplicate argument '" + arg + "'");
 		} else {
 			if (kw != null){
 				if (kw.contains(arg))
@@ -64,7 +65,7 @@ public class ArgumentConsumer {
 			X value = Coerce.argument(to, ord, function, clazz);
 			if (kw != null)
 				if (kw.contains(arg))
-					throw Utils.throwException("TypeError", function+"(): duplicate argument '" + arg + "'");
+					throw new TypeError(function+"(): duplicate argument '" + arg + "'");
 			return value;
 		} else {
 			if (kw != null){
@@ -72,6 +73,6 @@ public class ArgumentConsumer {
 					return kw.consume(arg, clazz);
 			}
 		}
-		throw Utils.throwException(function + "(): argument at position " + ord + " not provided");
+		throw new TypeError(function + "(): argument at position " + ord + " not provided");
 	}
 }

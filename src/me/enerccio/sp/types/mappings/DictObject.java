@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.KeyError;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
@@ -89,9 +92,9 @@ public class DictObject extends ContainerObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw Utils.throwException("AttributeError", "'" + 
+		throw new AttributeError("'" + 
 				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 
@@ -125,11 +128,11 @@ public class DictObject extends ContainerObject {
 	public synchronized PythonObject getItem(TupleObject a, KwArgs kwargs){
 		if (kwargs != null) kwargs.checkEmpty(__GETITEM__);
 		if (a.len() != 1)
-			throw Utils.throwException("TypeError", "__getitem__(): requires 1 parameter");
+			throw new TypeError("__getitem__(): requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
 		synchronized (backingMap){
 			if (!backingMap.containsKey(key))
-				throw Utils.throwException("KeyError", "Unknown key " + key);
+				throw new KeyError("Unknown key " + key);
 			return backingMap.get(key);
 		}
 	}
@@ -137,7 +140,7 @@ public class DictObject extends ContainerObject {
 	public synchronized PythonObject setItem(TupleObject a, KwArgs kwargs){
 		if (kwargs != null) kwargs.checkEmpty(__SETITEM__);
 		if (a.len() != 2)
-			throw Utils.throwException("TypeError", "__setitem__(): requires 2 parameters");
+			throw new TypeError("__setitem__(): requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
 		PythonObject value = a.getObjects()[1];
 		synchronized (backingMap){
@@ -222,7 +225,7 @@ public class DictObject extends ContainerObject {
 	
 	@Override
 	public int getId(){
-		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("typename", this) + "'");
+		throw new TypeError("unhashable type '" + Utils.run("typename", this) + "'");
 	}
 
 	@Override
@@ -245,7 +248,7 @@ public class DictObject extends ContainerObject {
 	@Override
 	public synchronized void deleteKey(PythonObject key) {
 		if (!backingMap.containsKey(key))
-			throw Utils.throwException("NameError", "__delkey__(): unknown key '" + key.toString() + "'");
+			throw new KeyError("__delkey__(): unknown key '" + key.toString() + "'");
 		backingMap.remove(key);
 	}
 

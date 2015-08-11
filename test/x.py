@@ -1,2 +1,5 @@
 def test():
-	print "%*d" % (3, 3.14512)
+	try:
+		print "%*.1d" % (3, 3.14512)
+	except Error, e:
+		raise e

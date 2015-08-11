@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -79,7 +80,7 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	@Override
 	public PythonObject next() {
 		if (cp >= len)
-			throw Utils.throwException("StopIteration");
+			throw new StopIteration();
 		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, NumberObject.valueOf(cp++));
 		return value;
 	}

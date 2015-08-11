@@ -29,6 +29,8 @@ import java.util.TreeMap;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -115,7 +117,7 @@ public class CompiledBlockObject extends PythonObject {
 				bytecode = null;
 			}
 		} catch (Exception e) {
-			throw Utils.throwException("TypeError", "invalid bytecode", e);
+			throw new TypeError("invalid bytecode", e);
 		}
 		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
 		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
@@ -126,8 +128,7 @@ public class CompiledBlockObject extends PythonObject {
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (key.equals(CO_CODE) || key.equals(CO_CONSTS) || key.equals(CO_DEBUG))
-			throw Utils.throwException("AttributeError", "'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'" + Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
 	

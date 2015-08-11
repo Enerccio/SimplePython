@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -30,7 +31,6 @@ import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.iterators.XRangeIterator;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * xrange implementation
@@ -101,7 +101,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	public PythonObject get(PythonObject key) {
 		if (NumberObject.isInteger(key))
 			return NumberObject.valueOf(start + step * ((NumberObject)key).intValue());
-		throw Utils.throwException("TypeError", "sequence index must be integer, not '" + key.getType() + "'");
+		throw new TypeError("sequence index must be integer, not '" + key.getType() + "'");
 	}
 
 	@Override

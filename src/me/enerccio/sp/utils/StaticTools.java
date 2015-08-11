@@ -25,13 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
-
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.parser.formatLexer;
 import me.enerccio.sp.parser.formatParser;
 import me.enerccio.sp.parser.formatterLexer;
@@ -42,6 +36,13 @@ import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class StaticTools {
 	
@@ -104,7 +105,7 @@ public class StaticTools {
 				if (suitable == null) {
 					for (List<ClassObject> cllist : mergeList)
 						if (cllist.size() != 0)
-							throw Utils.throwException("TypeError", "unsuitable class hierarchy!");
+							throw new TypeError("unsuitable class hierarchy!");
 					return m;
 				}
 				

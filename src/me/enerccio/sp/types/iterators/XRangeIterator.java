@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * xrange implementation
@@ -100,7 +100,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	public PythonObject next() {
 		PythonObject rv = nextInternal();
 		if (rv == null)
-			throw Utils.throwException("StopIteration");
+			throw new StopIteration();
 		return rv;
 	}
 

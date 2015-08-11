@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.compiler.PythonCompiler;
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -60,7 +62,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 				frame = new PythonCompiler().doCompile(fcx, this, PythonRuntime.runtime.getGlobals());
 			}
 		} catch (Exception e) {
-			throw Utils.throwException("SyntaxError", "failed to parse source code of " + provider, e);
+			throw new SyntaxError("failed to parse source code of " + provider, e);
 		}
 	}
 	
@@ -99,13 +101,13 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (key.equals(__NAME__) || key.equals(__DICT__))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		if (fields.containsKey(key))
 			return super.set(key, localContext, value);
 		else {
 			if (!globals.contains(key))
-				throw Utils.throwException("AttributeError", "'" + 
+				throw new AttributeError("'" + 
 						Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
 			if (value == null)
 				globals.backingMap.remove(key);

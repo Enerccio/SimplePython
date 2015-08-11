@@ -22,6 +22,7 @@ import java.util.List;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.ModuleInfo;
@@ -110,7 +111,7 @@ public class ObjectTypeObject extends TypeObject {
 	public static PythonObject getattribute(PythonObject self, String attribute){
 		PythonObject value = self.get(attribute, PythonInterpreter.interpreter.get().getLocalContext());
 		if (value == null)
-			throw Utils.throwException("AttributeError", String.format("%s object has no attribute '%s'", self, attribute));
+			throw new AttributeError(String.format("%s object has no attribute '%s'", self, attribute));
 		return value;
 	}
 	

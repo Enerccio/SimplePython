@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
@@ -65,6 +66,6 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	
 	@Override
 	public int getId(){
-		throw Utils.throwException("TypeError", "unhashable type '" + Utils.run("typename", this) + "'");
+		throw new TypeError("unhashable type '" + Utils.run("typename", this) + "'");
 	}
 }

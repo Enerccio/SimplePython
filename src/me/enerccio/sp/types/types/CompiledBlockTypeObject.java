@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -29,7 +30,6 @@ import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
-import me.enerccio.sp.utils.Utils;
 
 public class CompiledBlockTypeObject extends TypeObject {
 	private static final long serialVersionUID = -6361635864292501735L;
@@ -45,7 +45,7 @@ public class CompiledBlockTypeObject extends TypeObject {
 		if (varArgs != null)
 			varArgs.checkEmpty("compiled_block");
 		if (o.len() != 2)
-			throw Utils.throwException("TypeError", "compiled_block(): expected 2 arguments, got " + o.len());
+			throw new TypeError("compiled_block(): expected 2 arguments, got " + o.len());
 		try {
 			String s = Coerce.toJava(o.get(0), String.class);
 			@SuppressWarnings("unchecked")
@@ -61,7 +61,7 @@ public class CompiledBlockTypeObject extends TypeObject {
 			co.newObject();
 			return co;
 		} catch (CastFailedException e){
-			throw Utils.throwException("TypeError", "compiled_block(): first argument must be 'str' object and second argument must be 'dict' object containing 'str'->object pairs");
+			throw new TypeError("compiled_block(): first argument must be 'str' object and second argument must be 'dict' object containing 'str'->object pairs");
 		} 
 	}
 

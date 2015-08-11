@@ -24,9 +24,12 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.NativeError;
 import me.enerccio.sp.errors.PythonException;
-import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -176,7 +179,7 @@ public class JavaMethodObject extends CallableObject {
 		try {
 			return doCall(args, kwargs);
 		} catch (PointerMethodIncompatibleException e) {
-			throw Utils.throwException("TypeError", e.getMessage(), e);
+			throw new TypeError(e.getMessage(), e);
 		}
 	}
 	
@@ -195,9 +198,9 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
+			throw new NativeError(toString() + ": failed java call", e);
 		} catch (Throwable e){
-			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
+			throw new NativeError(toString() + ": failed java call", e);
 		}
 		
 		// Prepare stuff
@@ -260,9 +263,9 @@ public class JavaMethodObject extends CallableObject {
 				throw Utils.throwException(((PythonException)e.getTargetException()).type, ((PythonException)e.getTargetException()).message, e.getTargetException());
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
-			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
+			throw new NativeError(toString() + ": failed java call", e);
 		} catch (Throwable e) {
-			throw Utils.throwException("TypeError", toString() + ": failed java call", e);
+			throw new NativeError(toString() + ": failed java call", e);
 		}
 	}
 
@@ -274,9 +277,9 @@ public class JavaMethodObject extends CallableObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw Utils.throwException("AttributeError", "'" + 
+		throw new AttributeError("'" + 
 				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 	}
 

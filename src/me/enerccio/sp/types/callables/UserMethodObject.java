@@ -20,6 +20,7 @@ package me.enerccio.sp.types.callables;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
@@ -90,7 +91,7 @@ public class UserMethodObject extends CallableObject {
 	@Override
 	public PythonObject set(String key, PythonObject localContext, PythonObject value) {
 		if (key.equals(SELF) || key.equals(FUNC) || key.equals(ACCESSOR))
-			throw Utils.throwException("AttributeError", "'" + 
+			throw new AttributeError("'" + 
 					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}

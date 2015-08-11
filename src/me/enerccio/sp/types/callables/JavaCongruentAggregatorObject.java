@@ -22,11 +22,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * Aggreagtes methods with same name of the java class into single callable, that will call applicable methods based on the 
@@ -50,9 +50,9 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 				return mo.doCall(args, kwargs);
 			} catch (PointerMethodIncompatibleException e){
 				if (methods.size() == 1)
-					throw Utils.throwException("TypeError", e.getMessage(), e);
+					throw new TypeError(e.getMessage(), e);
 			}
-		throw Utils.throwException("TypeError", name + "(): no applicable method found");
+		throw new TypeError(name + "(): no applicable method found");
 	}
 
 	@Override

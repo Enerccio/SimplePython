@@ -20,10 +20,10 @@ package me.enerccio.sp.types.properties;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 public class MethodPropertyObject extends PythonObject implements PropertyObject {
 	private static final long serialVersionUID = 8102333533134900507L;
@@ -48,7 +48,7 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 	@Override
 	public void set(PythonObject set) {
 		if (setter == null)
-			throw Utils.throwException("TypeError", "field '" + name + "' is read-only");
+			throw new TypeError("field '" + name + "' is read-only");
 		setter.call(new TupleObject(set), null);
 	}
 

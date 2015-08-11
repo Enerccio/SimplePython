@@ -17,12 +17,12 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.utils.Utils;
 
 /**
  * complex()
@@ -43,7 +43,7 @@ public class ComplexTypeObject extends TypeObject {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
 		if (o.len() > 2)
-			throw Utils.throwException("TypeError", "complex(): requires up to 2 parameters");
+			throw new TypeError("complex(): requires up to 2 parameters");
 		
 		double real = 0;
 		double imag = 0;
@@ -56,7 +56,7 @@ public class ComplexTypeObject extends TypeObject {
 				real = ((NumberObject)o.valueAt(0)).doubleValue();
 			}
 		} catch (ClassCastException e){
-			throw Utils.throwException("TypeError", "complex(): parameters must be numbers");
+			throw new TypeError("complex(): parameters must be numbers");
 		}
 		
 		return new ComplexObject(real, imag);

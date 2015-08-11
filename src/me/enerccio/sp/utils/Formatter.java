@@ -25,6 +25,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import me.enerccio.sp.errors.IndexError;
+import me.enerccio.sp.errors.NameError;
+import me.enerccio.sp.errors.SyntaxError;
+import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -83,7 +87,7 @@ public class Formatter {
 		try {
 			p = ParserGenerator.parseFormatter(value);
 		} catch (Exception e){
-			throw Utils.throwException("RuntimeError", "format(): internal error", e);
+			throw new SyntaxError("format(): failed to parse input ", e);
 		}
 		return this;
 	}
@@ -101,7 +105,7 @@ public class Formatter {
 		} catch (PythonExecutionException e){
 			throw e;
 		} catch (Exception e){
-			throw Utils.throwException("ValueError", "format(): failed parsing format string", e);
+			throw new ValueError("format(): failed parsing format string", e);
 		}
 	}
 
@@ -291,7 +295,7 @@ public class Formatter {
 		
 		if (i < indexMap.size())
 			return indexMap.get(i);
-		throw Utils.throwException("IndexError", "index " + i + " outside the range");
+		throw new IndexError("index " + i + " outside the range");
 	}
 	
 	private PythonObject getTexted(String key) {
@@ -302,7 +306,7 @@ public class Formatter {
 		}
 		if (dataMap.containsKey(key))
 			return dataMap.get(key);
-		throw Utils.throwException("NameError", "unknown key '" + key + "'");
+		throw new NameError("unknown key '" + key + "'");
 	}
 
 }
