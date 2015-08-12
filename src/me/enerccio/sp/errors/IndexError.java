@@ -23,6 +23,6 @@ public class IndexError extends PythonException {
 	private static final long serialVersionUID = 5421505414L;
 	
 	public IndexError(String message) {
-		super(PythonRuntime.INDEX_ERROR, message);
+		super(PythonRuntime.INDEX_ERROR, message, null);
 	}
 }
