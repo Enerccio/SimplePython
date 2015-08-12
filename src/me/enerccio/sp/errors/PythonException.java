@@ -47,8 +47,8 @@ public abstract class PythonException extends RuntimeException {
 	public final String message;
 	public final ClassObject type;
 	
-	public PythonException(ClassObject type, String message, Throwable t) {
-		super(type.get(ClassObject.__NAME__, null).toString() + ":" + message, t);
+	public PythonException(ClassObject type, String message, Throwable cause) {
+		super(type.get(ClassObject.__NAME__, null).toString() + ":" + message, cause);
 		this.type = type;
 		this.message = message;
 	}

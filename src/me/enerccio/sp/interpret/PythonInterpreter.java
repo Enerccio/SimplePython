@@ -58,6 +58,7 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.FutureObject;
+import me.enerccio.sp.types.system.PythonFutureObject;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -540,7 +541,7 @@ public class PythonInterpreter extends PythonObject {
 				String name = o.compiled.getConstant(o.nextInt()).toString();
 				closureCopy.add(name);
 			}
-			stack.push(new FutureObject((UserFunctionObject)stack.pop(), closureCopy, environment()));
+			stack.push(new PythonFutureObject((UserFunctionObject)stack.pop(), closureCopy, environment()));
 			break;
 		case LOAD: 
 			// pushes variable onto stack
