@@ -48,6 +48,10 @@ public abstract class SequenceObject extends ContainerObject {
 	
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
+	public SequenceObject(boolean internalUse){
+		super(internalUse);
+	}
+	
 	static {
 		try {
 			sfields.putAll(ContainerObject.getSFields());

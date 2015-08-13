@@ -35,6 +35,10 @@ public class StaticMethodObject extends PythonObject {
 	private static final long serialVersionUID = -7257861263236747558L;
 	public static final String __FUNC__ = "__FUNC__";
 	
+	public StaticMethodObject() {
+		super(false);
+	}
+	
 	@Override
 	public boolean truthValue() {
 		return true;

@@ -34,7 +34,7 @@ public class EllipsisObject extends PythonObject {
 	public static final EllipsisObject ELLIPSIS = new EllipsisObject();
 
 	private EllipsisObject(){
-		
+		super(false);
 	}
 	
 	@Override

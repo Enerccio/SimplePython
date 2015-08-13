@@ -73,7 +73,7 @@ public class UserMethodObject extends CallableObject {
 		if (accessor == null)
 			accessor = NoneObject.NONE;
 		
-		TupleObject aargs = new TupleObject(Utils.pushLeft(caller, args.getObjects().clone()));
+		TupleObject aargs = new TupleObject(true, Utils.pushLeft(caller, args.getObjects().clone()));
 		PythonObject v;
 		
 		if (callable instanceof UserFunctionObject){

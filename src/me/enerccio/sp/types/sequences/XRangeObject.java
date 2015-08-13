@@ -45,7 +45,8 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 			
 	private int start, end, step;
 
-	public XRangeObject(int start, int end, int step) {
+	public XRangeObject(boolean internalUse, int start, int end, int step) {
+		super(internalUse);
 		this.start = start;
 		this.end = end;
 		this.step = step;

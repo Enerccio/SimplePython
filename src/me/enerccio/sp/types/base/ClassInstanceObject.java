@@ -44,6 +44,10 @@ public class ClassInstanceObject extends PythonObject {
 	public static final String __HASH__ = "__hash__";
 	public static final String __GETATTRIBUTE__ = "__getattribute__";
 
+	public ClassInstanceObject() {
+		super(false);
+	}
+	
 	@Override
 	public boolean truthValue() {
 		return true;

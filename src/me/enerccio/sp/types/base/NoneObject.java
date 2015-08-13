@@ -41,6 +41,10 @@ public class NoneObject extends PythonObject {
 	public static final NoneObject NONE = new NoneObject();
 	public static final TypeObject TYPE = new NoneTypeObject();
 	
+	public NoneObject() {
+		super(false);
+	}
+	
 	@Override
 	public void newObject() {
 		if (PythonRuntime.NONE_TYPE != null)

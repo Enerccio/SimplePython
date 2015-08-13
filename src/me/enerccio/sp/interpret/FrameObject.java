@@ -35,6 +35,10 @@ import me.enerccio.sp.types.iterators.GeneratorObject;
 public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
 	
+	public FrameObject(){
+		super(true);
+	}
+	
 	/**
 	 * Parent frame is null if this is normal frame, or reference to parent frame if this is a subframe
 	 */

@@ -36,25 +36,26 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 	}
 	
 	public MethodPropertyObject(String name, JavaMethodObject getter, JavaMethodObject setter) {
+		super(false);
 		this.name = name;
 		this.getter = getter;
 		this.setter = setter;
 	}
 	
 	public MethodPropertyObject() {
-		
+		super(false);
 	}
 
 	@Override
 	public void set(PythonObject set) {
 		if (setter == null)
 			throw new TypeError("field '" + name + "' is read-only");
-		setter.call(new TupleObject(set), null);
+		setter.call(new TupleObject(true, set), null);
 	}
 
 	@Override
 	public PythonObject get() {
-		return getter.call(new TupleObject(), null);
+		return getter.call(new TupleObject(true), null);
 	}
 
 	@Override

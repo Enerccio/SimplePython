@@ -107,6 +107,7 @@ public class BytecodeTypeObject extends TypeObject {
 			if (b == null)
 				throw new TypeError("bytecode(): unknown bytecode number " + byteNum);
 			PythonBytecode bytecode = Bytecode.makeBytecode(b, null, null, mook);
+			bytecode.newObject();
 			
 			switch (b) {
 			case ACCEPT_ITER:

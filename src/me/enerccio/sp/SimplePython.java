@@ -185,7 +185,6 @@ public class SimplePython {
 		}
 		
 		TupleObject t = new TupleObject(values);
-		t.newObject();
 		return t;
 	}
 	

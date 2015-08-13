@@ -47,6 +47,7 @@ public class CompiledBlockObject extends PythonObject {
 	public static final String CO_DEBUG = "co_debug";
 
 	public CompiledBlockObject(List<PythonBytecode> bytecode){
+		super(false);
 		mmap = new HashMap<Integer, PythonObject>();
 		try {
 			if (compiled == null) {
@@ -62,6 +63,7 @@ public class CompiledBlockObject extends PythonObject {
 	}
 	
 	public CompiledBlockObject(byte[] compiled, Map<Integer, PythonObject> mmap) {
+		super(false);
 		this.compiled = compiled;
 		this.mmap = mmap;
 	}

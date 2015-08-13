@@ -49,6 +49,10 @@ public abstract class ContainerObject extends PythonObject {
 		}
 	}
 	
+	public ContainerObject(boolean internalObject){
+		super(internalObject);
+	}
+	
 	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
 
 	@Override

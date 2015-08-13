@@ -72,6 +72,7 @@ public class GeneratorObject extends PythonObject {
 	}
 	
 	public GeneratorObject(String name, List<FrameObject> o){
+		super(false);
 		this.name = name;
 		this.storedFrames = o;
 	}
@@ -116,7 +117,7 @@ public class GeneratorObject extends PythonObject {
 	}
 	
 	public synchronized  PythonObject throwException(ClassObject cls, PythonObject v) {
-		this.storedFrames.get(this.storedFrames.size()-1).exception = cls.call(new TupleObject(v), null); 
+		this.storedFrames.get(this.storedFrames.size()-1).exception = cls.call(new TupleObject(true, v), null); 
 		return send(NoneObject.NONE);
 	}
 	

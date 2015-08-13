@@ -139,8 +139,13 @@ public class Coerce {
 			}
 			return dict;
 		}
-		if (o instanceof PythonObject)
+		if (o instanceof PythonObject){
+			if (o instanceof StringObject)
+				return new StringObject(((StringObject) o).value);
+			if (o instanceof TupleObject)
+				return new TupleObject(((TupleObject) o).getObjects());
 			return (PythonObject) o;
+		}
 		if (o == null)
 			return NoneObject.NONE;
 		return PythonRuntime.runtime.getJavaClass(o.getClass().getCanonicalName(), o, null);

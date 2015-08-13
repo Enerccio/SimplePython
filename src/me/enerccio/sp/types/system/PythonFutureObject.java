@@ -48,10 +48,11 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	
 	public PythonFutureObject(UserFunctionObject fc, List<String> closureCopy,
 			EnvironmentObject environment) {
+		super(false);
 		futureCall = fc;
 		closure = new DictObject();
 		for (String key : closureCopy){
-			closure.put(key, environment.get(new StringObject(key), false, false));
+			closure.put(key, environment.get(new StringObject(key, true), false, false));
 		}
 		startNewFuture();
 	}
@@ -79,7 +80,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		Thread t = new Thread("future-call-thread") {
 			@Override
 			public void run(){
-				futureCall.call(new TupleObject(), null);
+				futureCall.call(new TupleObject(true), null);
 				PythonInterpreter.interpreter.get().getCurrentClosure().add(0, closure);
 				try {
 					result = PythonInterpreter.interpreter.get().executeAll(0);

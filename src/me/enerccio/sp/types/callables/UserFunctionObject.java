@@ -96,8 +96,7 @@ public class UserFunctionObject extends CallableObject {
 		}
 		
 		if (isVararg){
-			TupleObject t = (TupleObject) Utils.list2tuple(vargs);
-			t.newObject();
+			TupleObject t = (TupleObject) Utils.list2tuple(vargs, false);
 			a.put(vararg, t);
 		}
 		
@@ -141,7 +140,7 @@ public class UserFunctionObject extends CallableObject {
 		}
 		if (kwargs != null && !isKvararg)
 			kwargs.checkEmpty(fields.get("__name__").object + "()");
-		return new TupleObject(pl); // pl.toArray(new PythonObject[pl.size()]));
+		return new TupleObject(true, pl); // pl.toArray(new PythonObject[pl.size()]));
 	}
 
 	@Override

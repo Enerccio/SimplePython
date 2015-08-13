@@ -62,7 +62,10 @@ public abstract class NumberObject extends PythonObject {
 	public static final String __GT__ = "__gt__";
 	public static final String __GE__ = "__ge__";
 
-	public NumberObject() { }
+	public NumberObject() { 
+		super(false);
+	}
+	
 	@Override protected void registerObject(){ }
 	
 	public static NumberObject valueOf(int n) {

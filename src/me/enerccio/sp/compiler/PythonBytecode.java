@@ -51,7 +51,7 @@ public class PythonBytecode extends PythonObject {
 	public boolean booleanValue;
 	
 	public PythonBytecode(){
-		
+		super(true);
 	}
 	
 	@Override

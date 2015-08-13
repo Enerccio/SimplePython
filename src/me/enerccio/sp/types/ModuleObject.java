@@ -51,6 +51,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 	private DictObject globals;
 
 	public ModuleObject(ModuleProvider provider) {
+		super(false);
 		this.provider = provider;
 
 		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));

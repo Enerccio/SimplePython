@@ -57,8 +57,7 @@ public class XRangeTypeObject extends TypeObject {
 		if (step == 0)
 			throw new TypeError("xrange() arg 3 must not be zero");
 		
-		XRangeObject rv = new XRangeObject(start, end, step);
-		rv.newObject();
+		XRangeObject rv = new XRangeObject(false, start, end, step);
 		return rv;
 	}
 }

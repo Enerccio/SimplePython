@@ -46,6 +46,11 @@ public abstract class MutableSequenceObject extends SequenceObject {
 		}
 	}
 	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	
+	public MutableSequenceObject(boolean internalUse){
+		super(internalUse);
+	}
+	
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();

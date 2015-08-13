@@ -84,11 +84,20 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	}
 	
 	public StringObject(){
-		newObject();
+		super(false);
+	}
+	
+	public StringObject(boolean internalUse){
+		super(internalUse);
 	}
 	
 	public StringObject(String v){
-		newObject();
+		super(false);
+		value = v;
+	}
+	
+	public StringObject(String v, boolean internalUse){
+		super(internalUse);
 		value = v;
 	}
 	

@@ -80,7 +80,7 @@ public class Utils {
 	 * @return
 	 */
 	public static RuntimeException throwException(ClassObject type, String text, Throwable cause) {
-		return new PythonExecutionException(type.call(new TupleObject(new StringObject(text)), KwArgs.EMPTY), cause);
+		return new PythonExecutionException(type.call(new TupleObject(true, new StringObject(text)), KwArgs.EMPTY), cause);
 	}
 
 	/**
@@ -149,8 +149,8 @@ public class Utils {
 		return a.equals(b);
 	}
 
-	public static PythonObject list2tuple(List<? extends PythonObject> list) {
-		return new TupleObject(list.toArray(new PythonObject[list.size()]));
+	public static PythonObject list2tuple(List<? extends PythonObject> list, boolean internalUse) {
+		return new TupleObject(internalUse, list.toArray(new PythonObject[list.size()]));
 	}
 
 	public static <T> List<T> reverse(List<T> l) {
@@ -178,7 +178,7 @@ public class Utils {
 	public static PythonObject getGlobal(String variable) {
 		if (PythonInterpreter.interpreter.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return PythonInterpreter.interpreter.get().environment().get(new StringObject(variable), true, false);
+		return PythonInterpreter.interpreter.get().environment().get(new StringObject(variable, true), true, false);
 	}
 
 	public static String asString(byte[] compiled) {

@@ -31,7 +31,7 @@ public abstract class CallableObject extends PythonObject {
 	public static final String __CALL__ = "__call__";
 	
 	public CallableObject(){
-		
+		super(false);
 	}
 	
 	/**

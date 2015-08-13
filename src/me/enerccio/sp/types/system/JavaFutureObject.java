@@ -33,6 +33,7 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	private PythonObject value = null;
 	
 	public JavaFutureObject() {
+		super(false);
 	}
 
 	@Override

@@ -47,6 +47,7 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 
 
 	public FieldPropertyObject(Object object, Field field, boolean readOnly) {
+		super(false);
 		readOnly = readOnly ? true : !Modifier.isFinal(field.getModifiers());
 		this.readOnly = readOnly;
 		this.property = field;

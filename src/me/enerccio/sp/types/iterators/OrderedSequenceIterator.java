@@ -41,6 +41,7 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	private int len = 0;
 
 	public OrderedSequenceIterator(SequenceObject sequenceObject) {
+		super(false);
 		this.sequence = sequenceObject;
 		this.len = sequence.len();
 	}

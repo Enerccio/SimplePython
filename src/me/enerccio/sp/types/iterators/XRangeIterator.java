@@ -38,6 +38,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	private int i, end, step;
 
 	public XRangeIterator(int start, int end, int step) {
+		super(false);
 		this.i = start;
 		this.end = end;
 		this.step = step;

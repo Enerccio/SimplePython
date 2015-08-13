@@ -39,6 +39,10 @@ public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
 	private List<DictObject> environments = new ArrayList<DictObject>();
 	
+	public EnvironmentObject(){
+		super(true);
+	}
+	
 	/**
 	 * Adds closure maps to the environment
 	 * @param closures

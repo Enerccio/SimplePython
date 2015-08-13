@@ -46,8 +46,9 @@ public abstract class PythonObject implements Serializable {
 	public static final String __EQ__ = "__eq__";
 	public static final String __NE__ = "__ne__";
 	
-	public PythonObject(){
-		newObject();
+	public PythonObject(boolean internalObject){
+		if (!internalObject)
+			newObject();
 	}
 	
 	protected static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();

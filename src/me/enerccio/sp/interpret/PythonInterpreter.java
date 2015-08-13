@@ -92,6 +92,7 @@ public class PythonInterpreter extends PythonObject {
 	public static final Set<PythonInterpreter> interpreters = Collections.synchronizedSet(new HashSet<PythonInterpreter>());
 	
 	public PythonInterpreter(){
+		super(true);
 		bind();
 	}
 	
@@ -172,17 +173,17 @@ public class PythonInterpreter extends PythonObject {
 		if (callable instanceof CallableObject){
 			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
 				int cfc = currentFrame.size();
-				((CallableObject)callable).call(new TupleObject(args), kwargs);
+				((CallableObject)callable).call(new TupleObject(true, args), kwargs);
 				return executeAll(cfc);
 			} else if (internalCall) {
 				int cfc = currentFrame.size();
-				returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
+				returnee = ((CallableObject)callable).call(new TupleObject(true, args), kwargs);
 				if (cfc < currentFrame.size()){
 					returnee = executeAll(cfc);
 				}
 				return returnee;
 			} else {
-				return returnee = ((CallableObject)callable).call(new TupleObject(args), kwargs);
+				return returnee = ((CallableObject)callable).call(new TupleObject(true, args), kwargs);
 			}
 		} else {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
@@ -218,7 +219,7 @@ public class PythonInterpreter extends PythonObject {
 	 * @return
 	 */
 	public PythonObject getGlobal(String key) {
-		return environment().get(new StringObject(key), true, false);
+		return environment().get(new StringObject(key, true), true, false);
 	}
 
 	/**
@@ -403,7 +404,7 @@ public class PythonInterpreter extends PythonObject {
 			if (va){
 				PythonObject[] va2 = args;
 				PythonObject iterable = va2[va2.length-1];
-				ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(iterable), null);
+				ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(true, iterable), null);
 				
 				
 				args = new PythonObject[va2.length - 1 + lo.objects.size()];
@@ -429,7 +430,7 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(((InternallyIterable)value).__iter__());
 				o.pc = jv;
 			} else {
-				runnable = environment().get(new StringObject("iter"), true, false);				
+				runnable = environment().get(new StringObject("iter", true), true, false);				
 				returnee = execute(true, runnable, null, value);
 				o.accepts_return = true;
 			}
@@ -541,7 +542,7 @@ public class PythonInterpreter extends PythonObject {
 		case LOAD: 
 			// pushes variable onto stack
 			String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl), false, false);
+			value = environment().get(new StringObject(svl, true), false, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -551,7 +552,7 @@ public class PythonInterpreter extends PythonObject {
 		case TEST_FUTURE: 
 			// pushes variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl), false, false);
+			value = environment().get(new StringObject(svl, true), false, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -562,7 +563,7 @@ public class PythonInterpreter extends PythonObject {
 		case LOADGLOBAL:
 			// pushes global variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl), true, false);
+			value = environment().get(new StringObject(svl, true), true, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -673,7 +674,7 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject seq = stack.pop();
 			int count = o.nextInt();
 			
-			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(seq), null);
+			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(true, seq), null);
 			if (lo.objects.size() > count)
 				throw new TypeError("too many values to unpack");
 			if (lo.objects.size() < count)
@@ -757,7 +758,7 @@ public class PythonInterpreter extends PythonObject {
 		case DELATTR:{
 			runnable = environment().getBuiltin("delattr");
 			PythonObject[] args = new PythonObject[2];
-			args[1] = new StringObject(((StringObject)o.compiled.getConstant(o.nextInt())).value);	// attribute
+			args[1] = (StringObject)o.compiled.getConstant(o.nextInt());							// attribute
 			args[0] = stack.pop();																	// object
 			returnee = execute(false, runnable, null, args);
 		} break;
@@ -771,9 +772,9 @@ public class PythonInterpreter extends PythonObject {
 				args[0] = stack.pop();	// object
 				args[2] = stack.pop();	// value
 			} else {
-				args[1] = new StringObject(((StringObject)po).value);	// attribute
-				args[0] = stack.pop();									// object
-				args[2] = stack.pop();									// value
+				args[1] = (StringObject)po;		// attribute
+				args[0] = stack.pop();			// object
+				args[2] = stack.pop();			// value
 			} 
 			returnee = execute(false, runnable, null, args);
 			break;
@@ -1004,16 +1005,16 @@ public class PythonInterpreter extends PythonObject {
 			modulePath = modulePath.replaceFirst(mm, "");
 			modulePath = modulePath.replaceFirst("\\.", "");
 			if (target == null){
-				target = environment.get(new StringObject(mm), false, false);
+				target = environment.get(new StringObject(mm, true), false, false);
 				if (target == null || !(target instanceof ModuleObject)){
-					ModuleObject thisModule = (ModuleObject) environment.get(new StringObject("__thismodule__"), true, false);
+					ModuleObject thisModule = (ModuleObject) environment.get(new StringObject("__thismodule__", true), true, false);
 					target = null;
 					synchronized (PythonRuntime.runtime){
 						String resolvePath = thisModule == null ? null : thisModule.provider.getPackageResolve();
 						if (resolvePath == null)
 							target = PythonRuntime.runtime.root.get(mm) != null ? PythonRuntime.runtime.root.get(mm).module : null;
 						if (target == null)
-							target = PythonRuntime.runtime.getModule(mm, resolvePath == null ? null : new StringObject(resolvePath));
+							target = PythonRuntime.runtime.getModule(mm, resolvePath == null ? null : new StringObject(resolvePath, true));
 					}
 				}
 			} else {
@@ -1029,7 +1030,7 @@ public class PythonInterpreter extends PythonObject {
 					pythonImport(environment, variable, modulePath, target.get(mm, null));
 					return;
 				} else {
-					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve()));
+					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve(), true));
 				}
 			}
 			pythonImport(environment, variable, modulePath, target);

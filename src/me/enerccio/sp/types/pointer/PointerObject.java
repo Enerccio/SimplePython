@@ -35,6 +35,7 @@ public class PointerObject extends PythonObject {
 	private static final long serialVersionUID = 25L;
 	
 	public PointerObject(Object o){
+		super(false);
 		pointed = o;
 	}
 	

@@ -40,6 +40,10 @@ public class BoundHandleObject extends PythonObject {
 	public static final String FUNC = "__func__";
 	public static final String ACCESSOR = "__access__";
 	
+	public BoundHandleObject() {
+		super(false);
+	}
+	
 	@Override
 	public void newObject() {
 		super.newObject();

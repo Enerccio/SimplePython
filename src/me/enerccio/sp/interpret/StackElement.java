@@ -29,12 +29,14 @@ public class StackElement extends PythonObject {
 	}
 	
 	private StackElement() {
+		super(false);
 		line = character = -1;
 		module = null;
 		function = "<module>";
 	}
 
 	public StackElement(ModuleInfo module, String function, int line, int character) {
+		super(false);
 		this.module = module;
 		this.line = line;
 		this.character = character;
