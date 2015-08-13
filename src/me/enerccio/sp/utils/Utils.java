@@ -178,7 +178,7 @@ public class Utils {
 	public static PythonObject getGlobal(String variable) {
 		if (PythonInterpreter.interpreter.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return PythonInterpreter.interpreter.get().environment().get(new StringObject(variable, true), true, false);
+		return PythonInterpreter.interpreter.get().environment().get(new StringObject(variable), true, false);
 	}
 
 	public static String asString(byte[] compiled) {

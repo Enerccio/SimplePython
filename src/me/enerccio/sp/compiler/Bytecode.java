@@ -69,6 +69,14 @@ public enum Bytecode {
 	public static final String NO_FUNCTION = "<module>";
 
 	public final int id;
+	
+	private static final Bytecode[] bytecodes;
+	
+	static {
+		bytecodes = new Bytecode[256];
+		for (Bytecode b : values())
+			bytecodes[b.id] = b;
+	}
 
 	/**
 	 * Transforms int into bytecode or null if no such bytecode exists
@@ -76,10 +84,10 @@ public enum Bytecode {
 	 * @return
 	 */
 	public static Bytecode fromNumber(int intValue) {
-		for (Bytecode b : values())
-			if (b.id == intValue)
-				return b;
-		throw new NullPointerException("bytecode not found: " + intValue);
+		Bytecode b = bytecodes[intValue];
+		if (b == null)
+			throw new NullPointerException("bytecode not found: " + intValue);
+		return b;
 	}
 
 	/**

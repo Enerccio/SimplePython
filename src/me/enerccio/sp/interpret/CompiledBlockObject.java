@@ -555,4 +555,11 @@ public class CompiledBlockObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
+
+	public ByteBuffer getBytedataAsNativeBuffer() {
+		ByteBuffer b = ByteBuffer.allocateDirect(compiled.length);
+		b.put(compiled);
+		b.position(0);
+		return b;
+	}
 }

@@ -96,7 +96,7 @@ public class FrameObject extends PythonObject {
 		f.pc = pc;
 		f.compiled = compiled;
 		f.accepts_return = accepts_return;
-		f.dataStream = ByteBuffer.wrap(f.compiled.getBytedata());
+		f.dataStream = f.compiled.getBytedataAsNativeBuffer();
 		f.prevPc = prevPc;
 		f.environment = environment;
 		f.exception = exception;

@@ -297,7 +297,6 @@ public abstract class NumberObject extends PythonObject
 		
 		private IntObject(int v){
 			value = v;
-			newObject();
 		}
 
 		@Override

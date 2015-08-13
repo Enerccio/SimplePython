@@ -36,8 +36,8 @@ def math_interpreter_template():
     
     template_switch = """
         case %s: {
-                PythonObject a = stack.pop();
                 PythonObject b = stack.pop();
+                PythonObject a = stack.pop();
                 if (!(a instanceof ClassInstanceObject) && (a instanceof Has%sMethod))
                     stack.push(((Has%sMethod)a).%s(b));
                 else
