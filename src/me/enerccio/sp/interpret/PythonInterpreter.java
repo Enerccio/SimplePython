@@ -312,9 +312,10 @@ public class PythonInterpreter extends PythonObject {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
 			return StackElement.LAST_FRAME; 
-		if (o.debugLine < 0)
+		DebugInformation dd = o.compiled.getDebugInformation(o.prevPc);
+		if (dd.lineno < 0)
 			return StackElement.SYSTEM_FRAME;
-		return new StackElement(o.debugModule, o.debugFunction, o.debugLine, o.debugInLine);
+		return new StackElement(dd.module, dd.function, dd.lineno, dd.charno);
 	}
 
 	/**
@@ -325,9 +326,10 @@ public class PythonInterpreter extends PythonObject {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
 			return "<last frame>";
-		if (o.debugLine < 0)
+		DebugInformation dd = o.compiled.getDebugInformation(o.prevPc);
+		if (dd.lineno < 0)
 			return "<system-frame>";
-		return String.format("<at module %s, line %s, char %s>", o.debugModule, o.debugLine, o.debugInLine);
+		return String.format("<at module %s, line %s, char %s>", dd.module, dd.lineno, dd.charno);
 	}
 
 	/**
@@ -338,14 +340,7 @@ public class PythonInterpreter extends PythonObject {
 	private ExecutionResult executeSingleInstruction(FrameObject o) {
 		int spc = o.pc;
 		o.dataStream.position(spc);
-
-		DebugInformation dd = o.compiled.getDebugInformation(spc);
-
-		o.debugModule = dd.module;
-		o.debugLine = dd.lineno;
-		o.debugFunction = dd.function;
-		o.debugInLine = dd.charno;
-		
+		o.prevPc = spc;
 		Bytecode opcode = o.nextOpcode();
 		Stack<PythonObject> stack = o.stack;
 		

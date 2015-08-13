@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.runtime.ModuleInfo;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
@@ -55,6 +54,8 @@ public class FrameObject extends PythonObject {
 	public ByteBuffer dataStream;
 	/** program counter */
 	public int pc;
+	/** previous pc */
+	public int prevPc;
 	/** python stack of this frame */
 	public Stack<PythonObject> stack = new Stack<PythonObject>();
 	public GeneratorObject ownedGenerator;
@@ -70,11 +71,6 @@ public class FrameObject extends PythonObject {
 	protected String doToString() {
 		return "<frame object 0x" + Integer.toHexString(hashCode()) + ">";
 	}
-	
-	public ModuleInfo debugModule;
-	public int debugLine;
-	public int debugInLine;
-	public String debugFunction;
 
 	public KwArgs.HashMapKWArgs kwargs = null;
 
@@ -97,10 +93,7 @@ public class FrameObject extends PythonObject {
 		f.compiled = compiled;
 		f.accepts_return = accepts_return;
 		f.dataStream = ByteBuffer.wrap(f.compiled.getBytedata());
-		f.debugInLine = debugInLine;
-		f.debugLine = debugLine;
-		f.debugFunction = debugFunction;
-		f.debugModule = debugModule;
+		f.prevPc = prevPc;
 		f.environment = environment;
 		f.exception = exception;
 		f.kwargs = kwargs;

@@ -122,14 +122,14 @@ public abstract class PythonObject implements Serializable {
 	/**
 	 * Fields of this object are stored here.
 	 */
-	public Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>());
+	public Map<String, AugumentedPythonObject> fields = Collections.synchronizedMap(new HashMap<String, AugumentedPythonObject>(16));
 	
 	public Map<String, AugumentedPythonObject> getEditableFields(){
 		return fields;
 	}
 	
 	private Map<String, SoftReference<JavaMethodObject>> genFields = 
-			Collections.synchronizedMap(new HashMap<String, SoftReference<JavaMethodObject>>());
+			Collections.synchronizedMap(new HashMap<String, SoftReference<JavaMethodObject>>(16));
 	
 	/**
 	 * Returns the field value for the key and local context
