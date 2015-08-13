@@ -120,6 +120,7 @@ public class Disassembler {
 			case SAVEDYNAMIC:
 			case SAVEGLOBAL:
 			case SAVE_LOCAL:
+			case TEST_FUTURE:
 			case SETATTR:
 				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				break;

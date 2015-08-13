@@ -401,7 +401,11 @@ and_test:
 ;
 
 not_test:
- 'not' not_test | comparison
+ 'not' not_test | comparison | ready_expr
+;
+
+ready_expr:
+ 'ready' nname
 ;
 
 comparison:

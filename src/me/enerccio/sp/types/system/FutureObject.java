@@ -26,4 +26,6 @@ public interface FutureObject {
 	
 	/** Should wait until value is available */
 	public PythonObject getValue();
+	
+	public boolean isReady();
 }

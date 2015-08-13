@@ -1,14 +1,9 @@
-x = 10
-
 def anca():
     print "anca zacina"
-    for i in xrange(0, 100):
-        if i == 99:
+    for i in xrange(0, 10000):
+        if i == 9999:
             print "anca konci"
             return i
-
-
-x = 1 + x + (future : anca())
-
-print "caka sa na future"
-print "x = ", x
+        
+def test():
+    print anca() + 10

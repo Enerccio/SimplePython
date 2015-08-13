@@ -85,6 +85,7 @@ import me.enerccio.sp.parser.pythonParser.Or_testContext;
 import me.enerccio.sp.parser.pythonParser.PowerContext;
 import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
+import me.enerccio.sp.parser.pythonParser.Ready_exprContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Shift_exprContext;
 import me.enerccio.sp.parser.pythonParser.Simple_stmtContext;
@@ -1505,7 +1506,10 @@ public class PythonCompiler {
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() == null) {
-			compile(ctx.comparison(), bytecode);
+			if (ctx.ready_expr() == null)
+				compile(ctx.comparison(), bytecode);
+			else
+				compile(ctx.ready_expr(), bytecode);
 			return;
 		}
 		int amount = countNots(ctx, bytecode);
@@ -1513,10 +1517,19 @@ public class PythonCompiler {
 		cb.intValue = amount % 2;
 	}
 	
+	private void compile(Ready_exprContext ctx,
+			List<PythonBytecode> bytecode) {
+		cb = addBytecode(bytecode, Bytecode.TEST_FUTURE, ctx.start);
+		cb.stringValue = ctx.nname().getText();
+	}
+
 	private int countNots(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() != null)
 			return 1 + countNots(ctx.not_test(), bytecode);
-		compile(ctx.comparison(), bytecode);
+		if (ctx.ready_expr() != null)
+			compile(ctx.ready_expr(), bytecode);
+		else
+			compile(ctx.comparison(), bytecode);
 		return 0;
 	}
 	

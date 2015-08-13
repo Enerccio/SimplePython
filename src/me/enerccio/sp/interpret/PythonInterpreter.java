@@ -553,6 +553,17 @@ public class PythonInterpreter extends PythonObject {
 				value = ((FutureObject)value).getValue();
 			stack.push(value);
 			break;
+		case TEST_FUTURE: 
+			// pushes variable onto stack
+			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+			value = environment().get(new StringObject(svl), false, false);
+			if (value == null)
+				throw new NameError("name " + svl + " is not defined");
+			if (value instanceof FutureObject)
+				stack.push(BoolObject.fromBoolean(((FutureObject)value).isReady()));
+			else
+				stack.push(BoolObject.TRUE);
+			break;
 		case LOADGLOBAL:
 			// pushes global variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;

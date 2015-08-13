@@ -38,13 +38,13 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	@Override
 	public PythonObject getValue(){
 		synchronized (this) {
-			if (status != FutureStatus.RUNNING)
+			if (isReady())
 				return value;
 		}
 		
 		while (true){
 			synchronized (this) {
-				if (status != FutureStatus.RUNNING)
+				if (isReady())
 					break;
 			}
 			try {
@@ -83,5 +83,10 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	@Override
 	protected String doToString() {
 		return "<java future object>";
+	}
+
+	@Override
+	public boolean isReady() {
+		return status != FutureStatus.RUNNING;
 	}
 }

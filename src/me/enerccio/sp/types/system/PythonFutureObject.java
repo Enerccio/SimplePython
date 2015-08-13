@@ -58,11 +58,11 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	public PythonObject getValue(){
-		if (status != FutureStatus.RUNNING)
+		if (isReady())
 			return doGetValue();
 		
 		while (true){
-			if (status != FutureStatus.RUNNING)
+			if (isReady())
 				break;
 			try {
 				monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
@@ -122,5 +122,10 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	@Override
 	protected String doToString() {
 		return "<future-call of " + futureCall.toString() + ", state = " + status.toString() + ">";
+	}
+
+	@Override
+	public boolean isReady() {
+		return status != FutureStatus.RUNNING;
 	}
 }
