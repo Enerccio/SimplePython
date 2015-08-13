@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -240,6 +241,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
 				tl.add(item);
 			}
+		} catch (StopIteration e){
+			return;
 		} catch (PythonExecutionException e) {
 			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
 				; // nothing
@@ -248,5 +251,21 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			else
 				throw e;
 		}
+	}
+	
+	@Override
+	public PythonObject mul(PythonObject b) {
+		if (b instanceof NumberObject && NumberObject.isInteger(b)){
+			NumberObject no = (NumberObject)b;
+			int cnt = no.intValue();
+			List<PythonObject> ret = new ArrayList<PythonObject>();
+			
+			for (int i=0; i<cnt; i++){
+				ret.addAll(Arrays.asList(array));
+			}
+			
+			return Utils.list2tuple(ret, false);
+		}
+		throw new TypeError("unsupported operand type(s) for *: '" + this + "' and '" + b + "'");
 	}
 }

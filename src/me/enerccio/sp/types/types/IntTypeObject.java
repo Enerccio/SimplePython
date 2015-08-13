@@ -46,8 +46,11 @@ public class IntTypeObject extends TypeObject {
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
-		PythonObject base = kwargs.consume("base");
-		kwargs.checkEmpty("int");
+		PythonObject base = null;
+		if (kwargs != null){
+			base = kwargs.consume("base");
+			kwargs.checkEmpty("int");	
+		}
 		if (args.len() < 1)
 			return NumberObject.valueOf(0l);
 		if (args.len() > 2)

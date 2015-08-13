@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.IndexError;
+import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
@@ -85,6 +86,8 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
 				append(item);
 			}
+		} catch (StopIteration e){
+			return;
 		} catch (PythonExecutionException e) {
 			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
 				; // nothing
@@ -236,5 +239,21 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		if (i >= len() || i<-(len()))
 			throw new IndexError("Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
 		objects.remove((morphAround(i, len())));
+	}
+
+	@Override
+	public PythonObject mul(PythonObject b) {
+		if (b instanceof NumberObject && NumberObject.isInteger(b)){
+			NumberObject no = (NumberObject)b;
+			int cnt = no.intValue();
+			ListObject ret = new ListObject();
+			synchronized (objects){
+				for (int i=0; i<cnt; i++){
+					ret.objects.addAll(objects);
+				}
+			}
+			return ret;
+		}
+		throw new TypeError("unsupported operand type(s) for *: '" + this + "' and '" + b + "'");
 	}
 }

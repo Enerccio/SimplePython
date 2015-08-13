@@ -49,6 +49,4 @@ def main():
     print("%0.9f" % (sqrt(vBv/vv)))
         
 def test():
-    # main()
-    print zip(["a", "b", "c"])
-    print zip(["a", "b", "c"], [1, 2, 3])
+    main()

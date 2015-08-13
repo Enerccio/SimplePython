@@ -357,7 +357,7 @@ public class PythonInterpreter extends PythonObject {
 		}
 		
 		if (TRACE_ENABLED)
-			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + stack);
+			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + printStack(stack));
 		
 		switch (opcode){
 		case NOP:
@@ -626,7 +626,9 @@ public class PythonInterpreter extends PythonObject {
 			return ExecutionResult.EOF;
 		case SAVE:
 			// saves value into environment as variable
-			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop(), false, false);
+			String ss = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+			PythonObject v = stack.pop();
+			environment().set(ss, v, false, false);
 			break;
 		case KWARG:
 			// stores kwargs using stored list of key names
@@ -932,6 +934,23 @@ public class PythonInterpreter extends PythonObject {
 		}
 			
 		return ExecutionResult.OK;
+	}
+
+	private static String printStack(Stack<PythonObject> stack) {
+		StringBuilder bd = new StringBuilder();
+		
+		bd.append("[");
+		Object[] arr = stack.toArray();
+		for (Object o : arr){
+			String  s = o.toString();
+			if (s.length() > 40)
+				s = s.substring(0, 37) + "...";
+			bd.append(s);
+			bd.append("; ");
+		}
+		bd.append("]");
+		
+		return bd.toString();
 	}
 
 	/**

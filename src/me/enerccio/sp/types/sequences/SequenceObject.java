@@ -26,6 +26,7 @@ import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasAddMethod;
+import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasMulMethod;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -41,12 +42,13 @@ import me.enerccio.sp.utils.Utils;
  *
  */
 public abstract class SequenceObject extends ContainerObject 
-		implements HasAddMethod {
+		implements HasAddMethod, HasMulMethod {
 	private static final long serialVersionUID = 10L;
 	
 	public static final String __ITER__ = "__iter__";
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __ADD__ = "__add__";
+	public static final String __MUL__ = "__mul__";
 	
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
 	
@@ -60,6 +62,7 @@ public abstract class SequenceObject extends ContainerObject
 			sfields.put(__ITER__, 		JavaMethodObject.noArgMethod(SequenceObject.class, "__iter__"));
 			sfields.put(__GETITEM__,	new JavaMethodObject(SequenceObject.class, "get", PythonObject.class));
 			sfields.put(__ADD__,		new JavaMethodObject(SequenceObject.class, "add", PythonObject.class));
+			sfields.put(__MUL__,		new JavaMethodObject(SequenceObject.class, "mul", PythonObject.class));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -83,6 +86,7 @@ public abstract class SequenceObject extends ContainerObject
 	public abstract PythonObject get(PythonObject key);
 	public abstract PythonObject get(int i);
 	public abstract PythonObject add(PythonObject b);
+	public abstract PythonObject mul(PythonObject b);
 	
 	public abstract PythonObject __iter__(); 
 
