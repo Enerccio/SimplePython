@@ -59,7 +59,7 @@ public enum Bytecode {
 	
 	// math macros
 	ADD(164), SUB(165), MUL(166), DIV(167), MOD(168), AND(169), OR(170), XOR(171), POW(172), RSHIFT(173), LSHIFT(174),
-	LT(175), LESS(176), GREATER(177), GE(178), EQ(179), NEW(180)
+	LT(175), LE(176), GE(177), GT(178), EQ(179), NE(180)
 	;
 	
 	Bytecode(int id){
@@ -293,13 +293,13 @@ public enum Bytecode {
 		case DIV:
 		case EQ:
 		case GE:
-		case GREATER:
-		case LESS:
+		case GT:
+		case LE:
 		case LSHIFT:
 		case LT:
 		case MOD:
 		case MUL:
-		case NEW:
+		case NE:
 		case OR:
 		case POW:
 		case RSHIFT:

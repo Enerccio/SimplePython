@@ -263,13 +263,13 @@ public class CompiledBlockObject extends PythonObject {
 			case DIV:
 			case EQ:
 			case GE:
-			case GREATER:
-			case LESS:
+			case GT:
+			case LE:
 			case LSHIFT:
 			case LT:
 			case MOD:
 			case MUL:
-			case NEW:
+			case NE:
 			case OR:
 			case POW:
 			case RSHIFT:
@@ -488,9 +488,9 @@ public class CompiledBlockObject extends PythonObject {
 				break;
 			case GE:
 				break;
-			case GREATER:
+			case GT:
 				break;
-			case LESS:
+			case LE:
 				break;
 			case LSHIFT:
 				break;
@@ -500,7 +500,7 @@ public class CompiledBlockObject extends PythonObject {
 				break;
 			case MUL:
 				break;
-			case NEW:
+			case NE:
 				break;
 			case OR:
 				break;

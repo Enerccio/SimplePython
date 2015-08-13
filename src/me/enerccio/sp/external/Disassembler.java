@@ -163,13 +163,13 @@ public class Disassembler {
 			case DIV:
 			case EQ:
 			case GE:
-			case GREATER:
-			case LESS:
+			case GT:
+			case LE:
 			case LSHIFT:
 			case LT:
 			case MOD:
 			case MUL:
-			case NEW:
+			case NE:
 			case OR:
 			case POW:
 			case RSHIFT:

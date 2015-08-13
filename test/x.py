@@ -1,9 +1,11 @@
 def anca():
     print "anca zacina"
-    for i in xrange(0, 10000):
+    i = 0
+    while True:
         if i == 9999:
             print "anca konci"
             return i
+        i = i + 1;
         
 def test():
     print anca() + 10

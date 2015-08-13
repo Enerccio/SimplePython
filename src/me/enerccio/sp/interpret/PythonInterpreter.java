@@ -118,6 +118,8 @@ public class PythonInterpreter extends PythonObject {
 	private PythonObject returnee;
 	private List<DictObject> currentClosure;
 	
+	private final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
+	
 	/**
 	 * whether this interpret can be stopped at safe place or not
 	 * @return
@@ -924,7 +926,8 @@ public class PythonInterpreter extends PythonObject {
 			environment().delete(vname, isGlobal);
 		} break;
 		default:
-			throw new InterpreterError("unhandled bytecode " + opcode.toString());
+			if (!mathHelper.mathOperation(this, o, stack, opcode))
+				throw new InterpreterError("unhandled bytecode " + opcode.toString());
 		}
 			
 		return ExecutionResult.OK;

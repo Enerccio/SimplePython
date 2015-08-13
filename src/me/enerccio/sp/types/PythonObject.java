@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasEqMethod;
+import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasNeMethod;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -39,7 +41,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public abstract class PythonObject implements Serializable {
+public abstract class PythonObject implements Serializable, HasEqMethod, HasNeMethod {
 	private static final long serialVersionUID = 1L;
 	public static final String __CLASS__ = "__class__";
 	public static final String __FORMAT__ = "__format__";

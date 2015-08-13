@@ -128,13 +128,13 @@ public class BoolObject extends NumberObject {
 	}
 	
 	@Override
-	public PythonObject ls(PythonObject b){
-		return intRepresentation.ls(b);
+	public PythonObject lshift(PythonObject b){
+		return intRepresentation.lshift(b);
 	}
 	
 	@Override
-	public PythonObject rs(PythonObject b){
-		return intRepresentation.rs(b);
+	public PythonObject rshift(PythonObject b){
+		return intRepresentation.rshift(b);
 	}
 	
 	@Override

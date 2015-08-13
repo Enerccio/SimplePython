@@ -1287,21 +1287,19 @@ public class PythonCompiler {
 			// TODO
 			// Bytecode.makeBytecode(
 			compileRightHand(leftHand, bytecode);
+			compileRightHand(expr.augassignexp().yield_or_expr(), bytecode);
 			if (expr.augassignexp().augassign().getText().equals("+="))
-				putGetAttr(NumberObject.__ADD__, bytecode, expr.start);
+				addBytecode(bytecode, Bytecode.ADD, expr.start);
 			else if (expr.augassignexp().augassign().getText().equals("-="))
-				putGetAttr(NumberObject.__SUB__, bytecode, expr.start);
+				addBytecode(bytecode, Bytecode.SUB, expr.start);
 			else if (expr.augassignexp().augassign().getText().equals("*="))
-				putGetAttr(NumberObject.__MUL__, bytecode, expr.start);
+				addBytecode(bytecode, Bytecode.MUL, expr.start);
 			else if (expr.augassignexp().augassign().getText().equals("/="))
-				putGetAttr(NumberObject.__DIV__, bytecode, expr.start);
+				addBytecode(bytecode, Bytecode.DIV, expr.start);
 			else if (expr.augassignexp().augassign().getText().equals("%="))
-				putGetAttr(NumberObject.__MOD__, bytecode, expr.start);
+				addBytecode(bytecode, Bytecode.MOD, expr.start);
 			else
 				throw new SyntaxError("illegal augmented assignment");
-			compileRightHand(expr.augassignexp().yield_or_expr(), bytecode);
-			cb = addBytecode(bytecode, Bytecode.CALL, expr.stop);
-			cb.intValue = 1;
 			compileAssignment(leftHand.test(0), bytecode);			
 		} else {
 			if (expr.yield_or_expr().size() == 0){
@@ -1549,21 +1547,21 @@ public class PythonCompiler {
 			
 			compile(ctx.expr(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
-				String operation = null;
+				Bytecode operation = null;
 				if (ctx.getChild(i).getText().equals("<"))
-					operation = NumberObject.__LT__;
+					operation = Bytecode.LT;
 				else if (ctx.getChild(i).getText().equals(">"))
-					operation = NumberObject.__GT__;
+					operation = Bytecode.GT;
 				else if (ctx.getChild(i).getText().equals("=="))
-					operation = NumberObject.__EQ__;
+					operation = Bytecode.EQ;
 				else if (ctx.getChild(i).getText().equals(">="))
-					operation = NumberObject.__GE__;
+					operation = Bytecode.GE;
 				else if (ctx.getChild(i).getText().equals("<="))
-					operation = NumberObject.__LE__;
+					operation = Bytecode.LE;
 				else if (ctx.getChild(i).getText().equals("<>"))
-					operation = NumberObject.__NE__;
+					operation = Bytecode.NE;
 				else if (ctx.getChild(i).getText().equals("!="))
-					operation = NumberObject.__NE__;
+					operation = Bytecode.NE;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
 					cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ((ExprContext) ctx.getChild(i+1)).start);
 					cb.stringValue = ObjectTypeObject.IS;
@@ -1576,11 +1574,8 @@ public class PythonCompiler {
 					return;
 				} else
 					throw new SyntaxError("unsupported comparison operation");
-				putGetAttr(operation, bytecode, ((ExprContext) ctx.getChild(i+1)).start);
 				compile((ExprContext) ctx.getChild(i+1), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ((ExprContext) ctx.getChild(i+1)).start);
-				cb.intValue = 1;
-				
+				addBytecode(bytecode, operation, ((ExprContext) ctx.getChild(i+1)).start);
 			}
 		} else 
 			compile(ctx.expr(0), bytecode);
@@ -1589,12 +1584,9 @@ public class PythonCompiler {
 	private void compile(ExprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.xor_expr(0), bytecode);
-			String operation = NumberObject.__OR__;
 			for (int i=1; i<ctx.xor_expr().size(); i++){
-				putGetAttr(operation, bytecode, ctx.xor_expr(i).start);
 				compile(ctx.xor_expr(i), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ctx.xor_expr(i).stop);
-				cb.intValue = 1;
+				addBytecode(bytecode, Bytecode.OR, ctx.xor_expr(i).stop);
 			}
 		} else 
 			compile(ctx.xor_expr(0), bytecode);
@@ -1603,12 +1595,9 @@ public class PythonCompiler {
 	private void compile(Xor_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.and_expr(0), bytecode);
-			String operation = NumberObject.__XOR__;
 			for (int i=1; i<ctx.and_expr().size(); i++){
-				putGetAttr(operation, bytecode, ctx.and_expr(i).start);
 				compile(ctx.and_expr(i), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ctx.and_expr(i).stop);
-				cb.intValue = 1;
+				addBytecode(bytecode, Bytecode.XOR, ctx.and_expr(i).stop);
 			}
 		} else 
 			compile(ctx.and_expr(0), bytecode);
@@ -1618,12 +1607,9 @@ public class PythonCompiler {
 	private void compile(And_exprContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.shift_expr(0), bytecode);
-			String operation = NumberObject.__AND__;
 			for (int i=1; i<ctx.shift_expr().size(); i++){
-				putGetAttr(operation, bytecode, ctx.shift_expr(i).start);
 				compile(ctx.shift_expr(i), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ctx.shift_expr(i).stop);
-				cb.intValue = 1;
+				addBytecode(bytecode, Bytecode.AND, ctx.shift_expr(i).stop);
 			}
 		} else 
 			compile(ctx.shift_expr(0), bytecode);
@@ -1633,11 +1619,9 @@ public class PythonCompiler {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.arith_expr(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
-				String operation = ctx.getChild(i).getText().equals("<<") ? NumberObject.__LSHIFT__ : NumberObject.__RSHIFT__;
-				putGetAttr(operation, bytecode, ((Arith_exprContext) ctx.getChild(i+1)).start);
+				Bytecode operation = ctx.getChild(i).getText().equals("<<") ? Bytecode.LSHIFT : Bytecode.RSHIFT;
 				compile((Arith_exprContext) ctx.getChild(i+1), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ((Arith_exprContext) ctx.getChild(i+1)).stop);
-				cb.intValue = 1;
+				addBytecode(bytecode, operation, ((Arith_exprContext) ctx.getChild(i+1)).stop);
 			}
 		} else 
 			compile(ctx.arith_expr(0), bytecode);
@@ -1647,11 +1631,10 @@ public class PythonCompiler {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.term(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
-				String operation = ctx.getChild(i).getText().equals("+") ? NumberObject.__ADD__ : NumberObject.__SUB__;
-				putGetAttr(operation, bytecode, ((TermContext)ctx.getChild(i+1)).start);
 				compile((TermContext)ctx.getChild(i+1), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ((TermContext)ctx.getChild(i+1)).stop);
-				cb.intValue = 1;
+				
+				Bytecode operation = ctx.getChild(i).getText().equals("+") ? Bytecode.ADD : Bytecode.SUB;
+				addBytecode(bytecode, operation, ((TermContext)ctx.getChild(i+1)).stop);
 			}
 		} else 
 			compile(ctx.term(0), bytecode);
@@ -1662,16 +1645,15 @@ public class PythonCompiler {
 			compile(ctx.factor(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
 				String operation = ctx.getChild(i).getText();
+				Bytecode op = null;
 				if (operation.equals("*"))
-					operation = NumberObject.__MUL__;
+					op = Bytecode.MUL;
 				if (operation.equals("/"))
-					operation = NumberObject.__DIV__;
+					op = Bytecode.DIV;
 				if (operation.equals("%"))
-					operation = NumberObject.__MOD__;
-				putGetAttr(operation, bytecode, ((FactorContext)ctx.getChild(i+1)).start);
+					op = Bytecode.MOD;
 				compile((FactorContext)ctx.getChild(i+1), bytecode);
-				cb = addBytecode(bytecode, Bytecode.CALL, ((FactorContext)ctx.getChild(i+1)).stop);
-				cb.intValue = 1;
+				addBytecode(bytecode, op, ((FactorContext)ctx.getChild(i+1)).stop);
 			}
 		} else 
 			compile(ctx.factor(0), bytecode);
@@ -1686,18 +1668,16 @@ public class PythonCompiler {
 				return;
 			}
 			
-			String operation = null;
+			Bytecode operation = null;
 			if (ctx.getText().startsWith("+"))
-				operation = NumberObject.__ADD__;
+				operation = Bytecode.ADD;
 			if (ctx.getText().startsWith("-"))
-				operation = NumberObject.__SUB__;
+				operation = Bytecode.SUB;
 			
 			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.factor().start);
 			cb.value = NumberObject.valueOf(0);
-			putGetAttr(operation, bytecode, ctx.factor().start);
 			compile(ctx.factor(), bytecode);
-			cb = addBytecode(bytecode, Bytecode.CALL, ctx.factor().stop);
-			cb.intValue = 1;
+			addBytecode(bytecode, operation, ctx.factor().stop);
 		} else 
 			compile(ctx.power(), bytecode);
 	}
@@ -1710,11 +1690,8 @@ public class PythonCompiler {
 			}
 		}
 		if (ctx.factor() != null){
-			String operation = NumberObject.__POW__;
-			putGetAttr(operation, bytecode, ctx.factor().start);
 			compile(ctx.factor(), bytecode);
-			cb = addBytecode(bytecode, Bytecode.CALL, ctx.factor().stop);
-			cb.intValue = 1;
+			addBytecode(bytecode, Bytecode.POW, ctx.factor().stop);
 		}
 	}
 

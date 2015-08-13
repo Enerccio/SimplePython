@@ -25,6 +25,7 @@ import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.errors.ValueError;
+import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasAddMethod;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -39,7 +40,8 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public abstract class SequenceObject extends ContainerObject {
+public abstract class SequenceObject extends ContainerObject 
+		implements HasAddMethod {
 	private static final long serialVersionUID = 10L;
 	
 	public static final String __ITER__ = "__iter__";

@@ -255,9 +255,9 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case GE:
 				break;
-			case GREATER:
+			case GT:
 				break;
-			case LESS:
+			case LE:
 				break;
 			case LSHIFT:
 				break;
@@ -267,7 +267,7 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case MUL:
 				break;
-			case NEW:
+			case NE:
 				break;
 			case OR:
 				break;
