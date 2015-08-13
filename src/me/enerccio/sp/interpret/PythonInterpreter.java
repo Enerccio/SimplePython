@@ -52,6 +52,7 @@ import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.InternallyIterable;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.PythonProxy;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.properties.PropertyObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -113,10 +114,10 @@ public class PythonInterpreter extends PythonObject {
 	/** Number of times this interpret is accessed by itself. If >0, interpret can't be serialized */
 	private volatile int accessCount = 0;
 	/** Represents currrently passed arguments to the function */
-	private DictObject args = null;
+	private InternalDict args = null;
 	/** Represents value returned by a call */
 	private PythonObject returnee;
-	private List<DictObject> currentClosure;
+	private List<InternalDict> currentClosure;
 	
 	private final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
 	
@@ -221,7 +222,7 @@ public class PythonInterpreter extends PythonObject {
 	 * @return
 	 */
 	public PythonObject getGlobal(String key) {
-		return environment().get(new StringObject(key, true), true, false);
+		return environment().get(key, true, false);
 	}
 
 	/**
@@ -369,12 +370,13 @@ public class PythonInterpreter extends PythonObject {
 		case OPEN_LOCALS:{
 			// adds new dict to env as empty locals
 				EnvironmentObject env = currentFrame.getLast().environment;
-				env.pushLocals(new DictObject());
+				env.pushLocals(new StringDictObject());
 			} break;
 		case PUSH_LOCALS:{
 			// retrieves locals of this call and pushes them onto stack
 				EnvironmentObject env = currentFrame.getLast().environment;
-				stack.push(env.getLocals());
+				InternalDict locals = env.getLocals();
+				stack.push((PythonObject) locals);
 			} break;
 		case PUSH_ENVIRONMENT:
 			// pushes new environment onto environment stack. 
@@ -432,7 +434,7 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(((InternallyIterable)value).__iter__());
 				o.pc = jv;
 			} else {
-				runnable = environment().get(new StringObject("iter", true), true, false);				
+				runnable = environment().get("iter", true, false);				
 				returnee = execute(true, runnable, null, value);
 				o.accepts_return = true;
 			}
@@ -544,7 +546,7 @@ public class PythonInterpreter extends PythonObject {
 		case LOAD: 
 			// pushes variable onto stack
 			String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl, true), false, false);
+			value = environment().get(svl, false, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -554,7 +556,7 @@ public class PythonInterpreter extends PythonObject {
 		case TEST_FUTURE: 
 			// pushes variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl, true), false, false);
+			value = environment().get(svl, false, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -565,7 +567,7 @@ public class PythonInterpreter extends PythonObject {
 		case LOADGLOBAL:
 			// pushes global variable onto stack
 			svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			value = environment().get(new StringObject(svl, true), true, false);
+			value = environment().get(svl, true, false);
 			if (value == null)
 				throw new NameError("name " + svl + " is not defined");
 			if (value instanceof FutureObject)
@@ -624,7 +626,7 @@ public class PythonInterpreter extends PythonObject {
 			return ExecutionResult.EOF;
 		case SAVE:
 			// saves value into environment as variable
-			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())), stack.pop(), false, false);
+			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop(), false, false);
 			break;
 		case KWARG:
 			// stores kwargs using stored list of key names
@@ -642,11 +644,11 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case SAVE_LOCAL:
 			// saves the value exactly into locals (used by def and clas)
-			environment().getLocals().backingMap.put(((StringObject)o.compiled.getConstant(o.nextInt())), stack.pop());
+			environment().getLocals().putVariable(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop());
 			break;
 		case SAVEGLOBAL:
 			// saves the value to the global variable
-			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())), stack.pop(), true, false);
+			environment().set(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop(), true, false);
 			break;
 		case DUP:
 			// duplicates stack x amount of times
@@ -716,9 +718,9 @@ public class PythonInterpreter extends PythonObject {
 			break;
 		case RESOLVE_ARGS:
 			// resolves args into locals
-			synchronized (this.args.backingMap){
-				for (PythonProxy key : this.args.backingMap.keySet()){
-					environment().getLocals().backingMap.put((StringObject) key.o, this.args.backingMap.get(key));
+			synchronized (this.args){
+				for (String key : this.args.keySet()){
+					environment().getLocals().putVariable(key, this.args.getVariable(key));
 				}
 			}
 			break;
@@ -885,9 +887,9 @@ public class PythonInterpreter extends PythonObject {
 			StringObject variable = (StringObject) o.compiled.getConstant(o.nextInt());
 			for (int i=currentFrame.size()-1; i>=0; i--){
 				FrameObject oo = currentFrame.get(i);
-				DictObject locals = oo.environment.getLocals();
-				if (locals.contains(variable.value)){
-					stack.push(locals.doGet(variable));
+				InternalDict locals = oo.environment.getLocals();
+				if (locals.containsVariable(variable.value)){
+					stack.push(locals.getVariable(variable.value));
 					found = true;
 					break;
 				}
@@ -901,16 +903,16 @@ public class PythonInterpreter extends PythonObject {
 			boolean found = false;
 			for (int i=currentFrame.size()-1; i>=0; i--){
 				FrameObject oo = currentFrame.get(i);
-				DictObject locals = oo.environment.getLocals();
-				if (locals.contains(variable.value)){
-					locals.backingMap.put(variable, value);
+				InternalDict locals = oo.environment.getLocals();
+				if (locals.containsVariable(variable.value)){
+					locals.putVariable(variable.value, value);
 					found = true;
 					break;
 				}
 			}
 			if (!found){
-				DictObject locals = o.environment.getLocals();
-				locals.backingMap.put(variable, value);
+				InternalDict locals = o.environment.getLocals();
+				locals.putVariable(variable.value, value);
 			}
 		} break;
 		case LOADBUILTIN:{
@@ -923,7 +925,7 @@ public class PythonInterpreter extends PythonObject {
 		case DEL: {
 			StringObject vname = (StringObject) o.compiled.getConstant(o.nextInt());
 			boolean isGlobal = o.nextInt() == 1;
-			environment().delete(vname, isGlobal);
+			environment().delete(vname.value, isGlobal);
 		} break;
 		default:
 			if (!mathHelper.mathOperation(this, o, stack, opcode))
@@ -982,25 +984,19 @@ public class PythonInterpreter extends PythonObject {
 					target = PythonRuntime.runtime.getModule(variable, null);
 				}
 			} else if (!variable.equals("*")){
-				environment.set(new StringObject(variable), 
+				environment.set(variable, 
 						target,
 						true, false);
 			} else {
-				DictObject dict = (DictObject) target.getEditableFields().get(ModuleObject.__DICT__).object;
+				InternalDict dict = (InternalDict) target.getEditableFields().get(ModuleObject.__DICT__).object;
 				synchronized (dict){
-					synchronized (dict.backingMap){
-						for (PythonProxy key : dict.backingMap.keySet()){
-							if (key.o instanceof StringObject){
-								String kkey = ((StringObject)key.o).value;
-								if (!kkey.startsWith("__"))
-									environment.set((StringObject)key.o, 
-											dict.backingMap.get(key),
+						for (String key : dict.keySet()){
+								if (!key.startsWith("__"))
+									environment.set(key, 
+											dict.getVariable(key),
 											true, false);
-							}
 						}
-					}
 				}
-				
 			}
 		} else {
 			String[] split = modulePath.split("\\.");
@@ -1008,9 +1004,9 @@ public class PythonInterpreter extends PythonObject {
 			modulePath = modulePath.replaceFirst(mm, "");
 			modulePath = modulePath.replaceFirst("\\.", "");
 			if (target == null){
-				target = environment.get(new StringObject(mm, true), false, false);
+				target = environment.get(mm, false, false);
 				if (target == null || !(target instanceof ModuleObject)){
-					ModuleObject thisModule = (ModuleObject) environment.get(new StringObject("__thismodule__", true), true, false);
+					ModuleObject thisModule = (ModuleObject) environment.get("__thismodule__", true, false);
 					target = null;
 					synchronized (PythonRuntime.runtime){
 						String resolvePath = thisModule == null ? null : thisModule.provider.getPackageResolve();
@@ -1023,7 +1019,7 @@ public class PythonInterpreter extends PythonObject {
 			} else {
 				if (target instanceof ModuleObject){
 					ModuleObject mod = (ModuleObject)target;
-					PythonObject target2 = ((DictObject)mod.getEditableFields().get(ModuleObject.__DICT__).object).doGet(mm);
+					PythonObject target2 = ((InternalDict)mod.getEditableFields().get(ModuleObject.__DICT__).object).getVariable(mm);
 					if (target2 != null){
 						pythonImport(environment, variable, modulePath, target2);
 						return;
@@ -1054,7 +1050,7 @@ public class PythonInterpreter extends PythonObject {
 	 * Sets the arguments for the next RESOLVE_ARGS call
 	 * @param a
 	 */
-	public void setArgs(DictObject a) {
+	public void setArgs(InternalDict a) {
 		args = a;
 	}
 
@@ -1094,7 +1090,7 @@ public class PythonInterpreter extends PythonObject {
 		return accessCount;
 	}
 
-	public void setClosure(List<DictObject> closure) {
+	public void setClosure(List<InternalDict> closure) {
 		this.currentClosure = closure;
 	}
 	@Override
@@ -1107,7 +1103,7 @@ public class PythonInterpreter extends PythonObject {
 		return new HashMap<String, JavaMethodObject>();
 	}
 
-	public List<DictObject> getCurrentClosure() {
+	public List<InternalDict> getCurrentClosure() {
 		return currentClosure;
 	}
 }

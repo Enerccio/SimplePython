@@ -22,12 +22,13 @@ import java.util.List;
 
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -58,22 +59,22 @@ public class FunctionTypeObject extends TypeObject {
 		PythonRuntime.runtime.checkSandboxAction("function", SecureAction.RUNTIME_COMPILE);
 		
 		String src = null;
-		DictObject dict = null;
-		List<DictObject> maps = new ArrayList<DictObject>();
+		InternalDict dict = null;
+		List<InternalDict> maps = new ArrayList<InternalDict>();
 		List<String> aas = new ArrayList<String>();
 		String vararg = null;
 		String kwararg = null;
-		DictObject defaults = null;
+		InternalDict defaults = null;
 		
 		try {
 			PythonObject arg = args.getObjects()[0];
 			src = ((StringObject)arg).value;
 			
-			dict = (DictObject)args.getObjects()[1];
+			dict = (InternalDict)args.getObjects()[1];
 			
 			TupleObject to = (TupleObject)args.getObjects()[2];
 			for (PythonObject o : to.getObjects())
-				maps.add(((DictObject)o));
+				maps.add(((InternalDict)o));
 			
 			ListObject o = (ListObject)args.getObjects()[3];
 			for (PythonObject oo : o.objects)
@@ -89,9 +90,9 @@ public class FunctionTypeObject extends TypeObject {
 			
 			arg = args.getObjects()[6];
 			if (arg != NoneObject.NONE)
-				defaults = (DictObject)arg;
+				defaults = (InternalDict)arg;
 			else
-				defaults = new DictObject();
+				defaults = new StringDictObject();
 			
 		} catch (ClassCastException e){
 			throw new TypeError(" function(): wrong types of arguments");

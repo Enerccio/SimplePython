@@ -29,14 +29,13 @@ import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
-import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.Utils;
+import me.enerccio.sp.interpret.InternalDict;
 
 /**
  * Class Object. Represents custom class types.
@@ -84,7 +83,7 @@ public class ClassObject extends CallableObject {
 		if (fields.containsKey(o.value))
 			return fields.get(o.value).object;
 		try {
-			return ((DictObject)fields.get(__DICT__).object).doGet(o);
+			return ((InternalDict)fields.get(__DICT__).object).getVariable(o.value);
 		} catch (NullPointerException e){
 			throw new AttributeError(String.format("%s object has no attribute '%s'", Utils.run("typename", this), o.value));
 		}
@@ -93,9 +92,9 @@ public class ClassObject extends CallableObject {
 	public PythonObject setAttr(StringObject o, PythonObject v){
 		try {
 			if (v == null)
-				((DictObject)fields.get(__DICT__).object).backingMap.remove(o);
+				((InternalDict)fields.get(__DICT__).object).remove(o.value);
 			else {
-				((DictObject)fields.get(__DICT__).object).put(o.value, v);
+				((InternalDict)fields.get(__DICT__).object).putVariable(o.value, v);
 			}
 			return NoneObject.NONE;
 		} catch (NullPointerException e){
@@ -140,12 +139,10 @@ public class ClassObject extends CallableObject {
 	 * @param clazz
 	 */
 	private void addToInstance(PythonObject s, ClassInstanceObject instance, ClassObject clazz) {
-		DictObject dict = (DictObject)s;
-		synchronized (dict.backingMap){
-			for (PythonProxy pkey : dict.backingMap.keySet()){
-				PythonObject key = pkey.o;
-				String kkey = ((StringObject)key).getString();
-				PythonObject value = dict.backingMap.get(key);
+		InternalDict dict = (InternalDict)s;
+		synchronized (dict){
+			for (String kkey : dict.keySet()){
+				PythonObject value = dict.getVariable(kkey);
 				if (value instanceof ClassMethodObject){
 					PythonObject data = value.getEditableFields().get(ClassMethodObject.__FUNC__).object;
 					value = new UserMethodObject();
@@ -193,7 +190,7 @@ public class ClassObject extends CallableObject {
 		if (fields.containsKey(key))
 			return super.set(key, localContext, value);
 		else {
-			((DictObject)fields.get(__DICT__).object).put(key, value);
+			((InternalDict)fields.get(__DICT__).object).putVariable(key, value);
 		}
 		return NoneObject.NONE;
 	}
@@ -207,7 +204,7 @@ public class ClassObject extends CallableObject {
 	public synchronized PythonObject get(String key, PythonObject localContext) {
 		PythonObject o = super.get(key, localContext);
 		if (o == null && fields.containsKey(__DICT__))
-			o = ((DictObject)fields.get(__DICT__).object).getItem(key);
+			o = ((InternalDict)fields.get(__DICT__).object).getVariable(key);
 		return o;
 	}
 }

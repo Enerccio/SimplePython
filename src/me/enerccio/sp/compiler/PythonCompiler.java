@@ -30,6 +30,7 @@ import me.enerccio.sp.compiler.PythonBytecode.Pop;
 import me.enerccio.sp.compiler.VariableStack.VariableType;
 import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
 import me.enerccio.sp.parser.pythonParser.ArglistContext;
@@ -120,6 +121,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.ListTypeObject;
@@ -171,8 +173,8 @@ public class PythonCompiler {
 	 * @param locals map of locals for the function
 	 * @return completed object
 	 */
-	public UserFunctionObject doCompile(String_inputContext sctx, List<DictObject> globals, 
-			List<String> args, String vargarg, String kwararg, DictObject defaults, DictObject locals) {
+	public UserFunctionObject doCompile(String_inputContext sctx, List<InternalDict> globals, 
+			List<String> args, String vargarg, String kwararg, InternalDict defaults, InternalDict locals) {
 		module = GENERATED_FUNCTIONS;
 		stack.push();
 		compilingFunction.push("generated-function");
@@ -196,7 +198,7 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		doCompileFunction(sctx, fncb, sctx.start, locals);
+		doCompileFunction(sctx, fncb, sctx.start);
 		compilingClass.pop();
 		
 		cb = addBytecode(fncb, Bytecode.PUSH, sctx.stop);
@@ -207,10 +209,13 @@ public class PythonCompiler {
 		fnc.block = new CompiledBlockObject(fncb);
 		
 		globals.add(locals);
-		Utils.putPublic(fnc, "function_defaults", defaults);
+		Utils.putPublic(fnc, "function_defaults", (PythonObject) defaults);
 		Utils.putPublic(fnc, "__doc__", getDocstring());
 		
-		fnc.setClosure(globals);
+		List<InternalDict> iDictList = new ArrayList<InternalDict>();
+		for (InternalDict d : globals)
+			iDictList.add(d);
+		fnc.setClosure(iDictList);
 		
 		compilingFunction.pop();
 		return fnc;
@@ -290,7 +295,7 @@ public class PythonCompiler {
 	 * @param m module
 	 * @return
 	 */
-	public CompiledBlockObject doCompile(File_inputContext fcx, ModuleInfo m, DictObject builtins) {
+	public CompiledBlockObject doCompile(File_inputContext fcx, ModuleInfo m, StringDictObject builtins) {
 		this.module = m;
 		compilingFunction.push(null);
 		
@@ -667,9 +672,9 @@ public class PythonCompiler {
 		fnc.args = new ArrayList<String>();
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
-		doCompileFunction(classdef.suite(), fncb, classdef.suite().start, null);
+		doCompileFunction(classdef.suite(), fncb, classdef.suite().start);
 		
-		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		
 		addBytecode(fncb, Bytecode.PUSH_LOCALS, classdef.stop);
 		cb = addBytecode(fncb, Bytecode.RETURN, classdef.stop);
@@ -743,7 +748,7 @@ public class PythonCompiler {
 		
 		compilingClass.push(null);
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
-		doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start, null);
+		doCompileFunction(funcdef.suite(), fncb, funcdef.suite().start);
 		compilingClass.pop();
 		
 		Utils.putPublic(fnc, "__doc__", getDocstring());
@@ -762,7 +767,7 @@ public class PythonCompiler {
 		addBytecode(bytecode, Bytecode.DUP, funcdef.stop); // function_defaults
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, funcdef.stop);
-		cb.value = new DictObject();
+		cb.value = new StringDictObject();
 
 		for (int i=0; i<funcdef.farg().size(); i++){
 			FargContext ctx = funcdef.farg(i);
@@ -813,7 +818,7 @@ public class PythonCompiler {
 	}
 
 	private void doCompileFunction(ParseTree suite,
-			List<PythonBytecode> bytecode, Token t, DictObject dict) {
+			List<PythonBytecode> bytecode, Token t) {
 
 		stack.push();
 		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, t);
@@ -1417,14 +1422,14 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		doCompileFunction(ctx, fncb, ctx.start, null);
+		doCompileFunction(ctx, fncb, ctx.start);
 		compilingClass.pop();
 		
 		cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
 		cb.intValue = 1;	
 		
 		fnc.block = new CompiledBlockObject(fncb);
-		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
@@ -2220,7 +2225,7 @@ public class PythonCompiler {
 		
 		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
 		compilingClass.push(null);
-		doCompileFunction(ctx.suite(), fncb, ctx.suite().start, null);
+		doCompileFunction(ctx.suite(), fncb, ctx.suite().start);
 		compilingClass.pop();
 		
 		if (fncb.get(fncb.size()-1) instanceof Pop){
@@ -2242,7 +2247,7 @@ public class PythonCompiler {
 		addBytecode(bytecode, Bytecode.DUP, ctx.stop); // function_defaults
 		
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
-		cb.value = new DictObject();
+		cb.value = new StringDictObject();
 
 		for (int i=0; i<ctx.farg().size(); i++){
 			FargContext fctx = ctx.farg(i);

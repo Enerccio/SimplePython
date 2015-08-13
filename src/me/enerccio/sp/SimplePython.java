@@ -30,7 +30,6 @@ import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.properties.PropertyObject;
-import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Coerce;
 
@@ -130,7 +129,7 @@ public class SimplePython {
 	 * @see me.enerccio.sp.utils.Coerce
 	 */
 	public static void injectGlobals(String key, PythonObject value){
-		r.getGlobals().backingMap.put(new StringObject(key), value);
+		r.getGlobals().backingMap.put(key, value);
 	}
 	
 	/**

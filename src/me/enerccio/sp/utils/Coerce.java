@@ -14,6 +14,7 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -288,6 +289,8 @@ public class Coerce {
 			public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException {
 				if (o instanceof DictObject)
 					return ((DictObject)o).asRegularDict();
+				if (o instanceof StringDictObject)
+					return ((StringDictObject)o).asRegularDict();
 				
 				throw new CastFailedException("Can't convert " + o.toString() + " to Map");
 			}

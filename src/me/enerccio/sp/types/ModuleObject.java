@@ -25,6 +25,7 @@ import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -33,7 +34,7 @@ import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
@@ -48,7 +49,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 	public static final String __NAME__ = "__name__";
 	public static final String __DICT__ = "__dict__";
 	public static final String __THISMODULE__ = "__thismodule__";
-	private DictObject globals;
+	private StringDictObject globals;
 
 	public ModuleObject(ModuleProvider provider) {
 		super(false);
@@ -149,15 +150,15 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 		
 		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame.getLast();
 		
-		DictObject args = new DictObject();
-		args.put(__THISMODULE__, this);
-		args.put(__NAME__, new StringObject(provider.getModuleName()));
+		InternalDict args = new StringDictObject();
+		args.putVariable(__THISMODULE__, this);
+		args.putVariable(__NAME__, new StringObject(provider.getModuleName()));
 		
 		PythonInterpreter.interpreter.get().setArgs(args);
 		
 		PythonInterpreter.interpreter.get().executeAll(cfc);
 		
-		globals = newFrame.environment.getLocals();
+		globals = (StringDictObject) newFrame.environment.getLocals();
 		Utils.putPublic(this, __DICT__, globals);
 	}
 

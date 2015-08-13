@@ -18,7 +18,7 @@
 package me.enerccio.sp.external;
 
 import me.enerccio.sp.types.callables.CallableObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.Dictionary;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Formatter;
@@ -35,7 +35,7 @@ public class FormatterAccessor {
 	}
 	
 	@WrapMethod
-	public String doFormat(String formatString, TupleObject to, DictObject dict){
+	public String doFormat(String formatString, TupleObject to, Dictionary dict){
 		return new Formatter(to, dict, getValue, checkUnused, formatField).format(formatString).doConsume();
 	}
 }

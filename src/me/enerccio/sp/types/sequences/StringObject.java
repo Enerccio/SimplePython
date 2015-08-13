@@ -32,7 +32,7 @@ import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.Dictionary;
 import me.enerccio.sp.utils.ArgumentConsumer;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
@@ -310,11 +310,11 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 		String formatText = value;
 		StringBuilder result = new StringBuilder();
 		
-		DictObject dictSource = null;
+		Dictionary dictSource = null;
 		TupleObject tupleSource = null;
 
-		if (b instanceof DictObject) {
-			dictSource = (DictObject)b;
+		if (b instanceof Dictionary) {
+			dictSource = (Dictionary)b;
 			tupleSource = new TupleObject(b);
 		} else {
 			if (b instanceof TupleObject)
@@ -349,7 +349,7 @@ public class StringObject extends ImmutableSequenceObject implements SimpleIDAcc
 	}));
 	
 	private void simpleFormat(String formatText, StringBuilder result,
-			TupleObject tupleSource, DictObject dictSource) throws CastFailedException {
+			TupleObject tupleSource, Dictionary dictSource) throws CastFailedException {
 		FormatStep cstep = FormatStep.TEXT;
 		char c;
 		int tupleCount = 0;

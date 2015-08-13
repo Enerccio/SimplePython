@@ -34,7 +34,7 @@ import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.JavaFunctionObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -63,15 +63,15 @@ public class ObjectTypeObject extends TypeObject {
 			super.newObject();
 			Utils.putPublic(this, "__name__", new StringObject("object"));
 			Utils.putPublic(this, "__bases__", new TupleObject());
-			DictObject md = null;
-			Utils.putPublic(this, "__dict__", md = new DictObject());
+			StringDictObject md = null;
+			Utils.putPublic(this, "__dict__", md = new StringDictObject());
 			
 			UserFunctionObject usf = new UserFunctionObject();
 			usf.newObject();
 			Utils.putPublic(usf, "__name__", new StringObject("object.__init__"));
 			usf.args = new ArrayList<String>();
 			usf.args.add("self");
-			Utils.putPublic(usf, "function_defaults", new DictObject());
+			Utils.putPublic(usf, "function_defaults", new StringDictObject());
 			PythonBytecode cb;
 			List<PythonBytecode> usfb = new ArrayList<PythonBytecode>();
 			usfb.add(Bytecode.makeBytecode(Bytecode.PUSH_ENVIRONMENT, null, null, OBJECT_MODULE_INFO));

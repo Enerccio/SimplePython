@@ -24,11 +24,13 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -85,24 +87,24 @@ public class UserFunctionObject extends CallableObject {
 		if (!isVararg && argc > rargs)
 			throw new TypeError(fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
 			
-		DictObject a = new DictObject();
+		InternalDict a = new StringDictObject();
 		
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
 		for (int i=0; i<Math.max(oargs.len(), args.len()); i++){
 			if (i < this.args.size())
-				a.put(this.args.get(i), args.getObjects()[i]);
+				a.putVariable(this.args.get(i), args.getObjects()[i]);
 			else
 				vargs.add(oargs.getObjects()[i]);
 		}
 		
 		if (isVararg){
 			TupleObject t = (TupleObject) Utils.list2tuple(vargs, false);
-			a.put(vararg, t);
+			a.putVariable(vararg, t);
 		}
 		
 		if (isKvararg){
 			DictObject kwdict = args.convertKwargs(kwargs);
-			a.put(kvararg, kwdict);
+			a.putVariable(kvararg, kwdict);
 		}
 		
 		PythonInterpreter.interpreter.get().setArgs(a);
@@ -118,7 +120,7 @@ public class UserFunctionObject extends CallableObject {
 	 * @return
 	 */
 	public TupleObject refillArgs(TupleObject args, KwArgs kwargs) {
-		DictObject m = (DictObject) fields.get("function_defaults").object;
+		InternalDict m = (InternalDict) fields.get("function_defaults").object;
 		PythonObject[] pl = new PythonObject[this.args.size()];
 		for (int i=0; i<pl.length; i++) {
 			String key = this.args.get(i);
@@ -130,9 +132,9 @@ public class UserFunctionObject extends CallableObject {
 			} else if ((kwargs != null) && (kwargs.contains(key))) {
 				// Argument passed in kwargs
 				pl[i] = kwargs.consume(key);
-			} else if (m.contains(key)) {
+			} else if (m.containsVariable(key)) {
 				// Argument filled from defaults
-				pl[i] = m.getItem(key);
+				pl[i] = m.getVariable(key);
 			} else {
 				// Missing argument
 				throw new TypeError(fields.get("__name__").object + "() required argument '" + key + "' missing");
@@ -155,12 +157,12 @@ public class UserFunctionObject extends CallableObject {
 		return true;
 	}
 
-	private List<DictObject> closure;
-	public void setClosure(List<DictObject> closure) {
+	private List<InternalDict> closure;
+	public void setClosure(List<InternalDict> closure) {
 		this.closure = closure;
 	}
 	
-	public List<DictObject> getClosure(){
+	public List<InternalDict> getClosure(){
 		return closure;
 	}
 	

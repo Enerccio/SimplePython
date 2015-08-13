@@ -54,7 +54,7 @@ import me.enerccio.sp.parser.formatterParser.Text_fspecContext;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.CallableObject;
-import me.enerccio.sp.types.mappings.DictObject;
+import me.enerccio.sp.types.mappings.Dictionary;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -70,7 +70,7 @@ public class Formatter {
 	private CallableObject formatField;
 	private Set<PythonObject> used = new HashSet<PythonObject>();
 	
-	public Formatter(TupleObject to, DictObject kwargs, CallableObject getValue, CallableObject checkUnused, CallableObject formatField) {
+	public Formatter(TupleObject to, Dictionary kwargs, CallableObject getValue, CallableObject checkUnused, CallableObject formatField) {
 		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.asStringDict());
 		indexMap = new ArrayList<PythonObject>(Arrays.asList(to.getObjects()));
 		this.getValue = getValue;

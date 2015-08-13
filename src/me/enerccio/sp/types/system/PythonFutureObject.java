@@ -25,14 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.interpret.EnvironmentObject;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.sequences.StringObject;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
@@ -42,7 +42,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	private UserFunctionObject futureCall;
 	private PythonObject result;
 	private PythonObject exception;
-	private DictObject closure;
+	private InternalDict closure;
 	private volatile FutureStatus status = FutureStatus.RUNNING;
 	private Semaphore monitor = new Semaphore(0);
 	
@@ -50,9 +50,9 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			EnvironmentObject environment) {
 		super(false);
 		futureCall = fc;
-		closure = new DictObject();
+		closure = new StringDictObject();
 		for (String key : closureCopy){
-			closure.put(key, environment.get(new StringObject(key, true), false, false));
+			closure.putVariable(key, environment.get(key, false, false));
 		}
 		startNewFuture();
 	}

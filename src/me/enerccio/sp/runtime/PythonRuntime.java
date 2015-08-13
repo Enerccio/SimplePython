@@ -49,6 +49,7 @@ import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.NoGetattrException;
@@ -74,7 +75,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.mappings.PythonProxy;
+import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.pointer.PointerFactory;
 import me.enerccio.sp.types.pointer.PointerFinalizer;
 import me.enerccio.sp.types.pointer.PointerObject;
@@ -403,7 +404,7 @@ public class PythonRuntime {
 	}
 
 	/** stored globals are here */
-	private static volatile DictObject globals = null;
+	private static volatile StringDictObject globals = null;
 	public static final String IS = "is";
 	public static final String MRO = "mro";
 	public static final String GETATTR = "getattr";
@@ -464,12 +465,12 @@ public class PythonRuntime {
 	 * Generates globals. This is only done once but then cloned
 	 * @return
 	 */
-	public DictObject getGlobals() {
+	public StringDictObject getGlobals() {
 		if (globals == null)
 			synchronized (this){
 				if (globals == null){
 					buildingGlobals.set(true);
-					globals = new DictObject();
+					globals = new StringDictObject();
 					buildingGlobals.set(false);
 					
 					EnvironmentObject e = new EnvironmentObject();
@@ -495,7 +496,7 @@ public class PythonRuntime {
 					globals.put(DIR, Utils.staticMethodCall(true, PythonRuntime.class, DIR, TupleObject.class, KwArgs.class));
 					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
 					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
-					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, DictObject.class, DictObject.class));
+					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, InternalDict.class, InternalDict.class));
 					globals.put(COMPILE, Utils.staticMethodCall(PythonRuntime.class, COMPILE, PythonObject.class, StringObject.class));
 					globals.put(EVAL, Utils.staticMethodCall(true, PythonRuntime.class, EVAL, TupleObject.class, KwArgs.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
@@ -574,11 +575,11 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject locals(){
-		return PythonInterpreter.interpreter.get().environment().getLocals();
+		return (PythonObject) PythonInterpreter.interpreter.get().environment().getLocals();
 	}
 	
 	protected static PythonObject globals(){
-		return PythonInterpreter.interpreter.get().environment().getGlobals();
+		return (PythonObject) PythonInterpreter.interpreter.get().environment().getGlobals();
 	}
 	
 	protected static PythonObject compile(PythonObject source, StringObject filename){
@@ -609,14 +610,14 @@ public class PythonRuntime {
 		return block;
 	}
 	
-	protected static PythonObject exec_function(PythonObject code, DictObject locals, DictObject globals){
+	protected static PythonObject exec_function(PythonObject code, InternalDict locals, InternalDict globals){
 		PythonRuntime.runtime.checkSandboxAction("exec", SecureAction.RUNTIME_EVAL, code);
 		
 		if (locals == null){
-			locals = (DictObject) Utils.run("locals");
+			locals = (InternalDict) Utils.run("locals");
 		}
 		if (globals == null){
-			globals = (DictObject) Utils.run("globals");
+			globals = (InternalDict) Utils.run("globals");
 		}
 		
 		CompiledBlockObject block;
@@ -635,8 +636,8 @@ public class PythonRuntime {
 		
 		fnc.block = block;
 		
-		fnc.setClosure(Arrays.asList(new DictObject[]{locals, globals, runtime.getGlobals()}));
-		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.setClosure(Arrays.asList(new InternalDict[]{locals, globals, runtime.getGlobals()}));
+		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 		
 		PythonInterpreter.interpreter.get().execute(true, fnc, null);
@@ -651,12 +652,12 @@ public class PythonRuntime {
 			throw new TypeError("eval(): requires 1 to 3 arguments, got " + to.len());
 		try {
 			String s = Coerce.toJava(to.get(0), String.class);
-			DictObject d1 = null;
+			InternalDict d1 = null;
 			if (to.len()>1)
-				d1 = Coerce.toJava(to.get(1), DictObject.class);
-			DictObject d2 = null;
+				d1 = Coerce.toJava(to.get(1), InternalDict.class);
+			InternalDict d2 = null;
 			if (to.len()>2)
-				d1 = Coerce.toJava(to.get(2), DictObject.class);
+				d1 = Coerce.toJava(to.get(2), InternalDict.class);
 			
 			return eval_function(s, d1, d2);
 		} catch (CastFailedException e){
@@ -664,14 +665,14 @@ public class PythonRuntime {
 		}
 	}
 	
-	protected static PythonObject eval_function(String code, DictObject locals, DictObject globals){
+	protected static PythonObject eval_function(String code, InternalDict locals, InternalDict globals){
 		PythonRuntime.runtime.checkSandboxAction("eval", SecureAction.RUNTIME_EVAL, code);
 		
 		if (locals == null){
-			locals = (DictObject) Utils.run("locals");
+			locals = (InternalDict) Utils.run("locals");
 		}
 		if (globals == null){
-			globals = (DictObject) Utils.run("globals");
+			globals = (InternalDict) Utils.run("globals");
 		}
 		
 		CompiledBlockObject block;
@@ -687,8 +688,8 @@ public class PythonRuntime {
 		
 		fnc.block = block;
 		
-		fnc.setClosure(Arrays.asList(new DictObject[]{locals, globals, runtime.getGlobals()}));
-		Utils.putPublic(fnc, "function_defaults", new DictObject());
+		fnc.setClosure(Arrays.asList(new InternalDict[]{locals, globals, runtime.getGlobals()}));
+		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 		
 		return PythonInterpreter.interpreter.get().execute(true, fnc, null);
@@ -715,20 +716,18 @@ public class PythonRuntime {
 				
 				if (o.getEditableFields().containsKey("__dict__")){
 					PythonObject dd = o.getEditableFields().get("__dict__").object;
-					if (dd instanceof DictObject){
+					if (dd instanceof InternalDict){
 						synchronized (dd){
-							DictObject d = (DictObject)dd;
-							synchronized (d.backingMap){
-								for (PythonProxy pp : d.backingMap.keySet()){
-									if (pp.o instanceof StringObject)
-										fields.add(((StringObject)pp.o).value);
+							InternalDict d = (InternalDict)dd;
+							synchronized (d){
+								for (String pp : d.keySet())
+									fields.add(pp);
 								}
 							}
 						}
 					}
 				}
 			}
-		}
 		
 		if (o.get("__dir__", null) != null){
 			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.get("__dir__", null), null);
@@ -869,7 +868,7 @@ public class PythonRuntime {
 			return (ClassObject)Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
 			return PythonRuntime.TUPLE_TYPE;
-		if (py instanceof DictObject)
+		if (py instanceof DictObject || py instanceof StringDictObject)
 			return PythonRuntime.DICT_TYPE;
 		if (py instanceof StringObject)
 			return PythonRuntime.STRING_TYPE;
