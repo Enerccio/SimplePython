@@ -24,9 +24,13 @@ import java.util.List;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
+import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.OrderedSequenceIterator;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.utils.Utils;
@@ -116,7 +120,6 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			for (PythonObject o : ((TupleObject)b).array)
 				ar[i++] = o;
 			TupleObject t = new TupleObject(ar);
-			t.newObject();
 			return t;
 		}
 		throw new TypeError("can only concatenate tuple (not '" + b.toString() + "') to tuple");
@@ -140,7 +143,6 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	public PythonObject get(PythonObject key) {
 		if (key instanceof SliceObject){
 			TupleObject to = new TupleObject();
-			to.newObject();
 			
 			int[] slicedata = getSliceData(array.length, key);
 			int sav = slicedata[0];
@@ -193,5 +195,58 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	@Override
 	public void deleteKey(PythonObject key) {
 		throw new TypeError("'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+	}
+
+	public static TupleObject fromSequence(SequenceObject o) {
+		List<PythonObject> tl = new ArrayList<PythonObject>();
+		makeFromSequence(o, tl);
+		return (TupleObject) Utils.list2tuple(tl, false);
+	}
+
+	private static void makeFromSequence(SequenceObject o, List<PythonObject> tl) {
+		for (int i = 0; i<o.len(); i++)
+			tl.add(o.get(NumberObject.valueOf(i)));
+	}
+
+	public static TupleObject fromIterator(PythonObject o) {
+		List<PythonObject> tl = new ArrayList<PythonObject>();
+		makeFromIterator(o, tl);
+		return (TupleObject) Utils.list2tuple(tl, false);
+	}
+
+	private static void makeFromIterator(PythonObject o, List<PythonObject> tl) {
+		PythonObject iter = o.get(__ITER__, null);
+		try {
+			PythonObject iterator;
+			if (iter == null) {
+				// Use iter() function to grab iterator
+				iterator = Utils.run("iter", o);
+			} else {
+				iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
+				if (iterator instanceof InternalIterator) {
+					InternalIterator ii = (InternalIterator)iterator;
+					PythonObject item = ii.next();
+					while (item != null) {
+						tl.add(item);
+						item = ii.next();
+					}
+					return;
+				}
+			}
+			PythonObject next = iterator.get("next", null);
+			if (next == null)
+				throw new TypeError("iterator of " + o.toString() + " has no next() method");
+			while (true) {
+				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
+				tl.add(item);
+			}
+		} catch (PythonExecutionException e) {
+			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+				; // nothing
+			else if (PythonRuntime.isinstance(e.getException(), PythonRuntime.INDEX_ERROR).truthValue())
+				; // still nothing
+			else
+				throw e;
+		}
 	}
 }

@@ -147,7 +147,6 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	public PythonObject keys(TupleObject t, KwArgs kwargs) {
 		if (kwargs != null) kwargs.checkEmpty("keys");
 		ListObject o = new ListObject();
-		o.newObject();
 		synchronized (backingMap) {
 			for (String k : backingMap.keySet())
 				o.append(new StringObject(k));
@@ -168,7 +167,6 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	public PythonObject values(TupleObject t, KwArgs kwargs) {
 		if (kwargs != null) kwargs.checkEmpty("values");
 		ListObject o = new ListObject();
-		o.newObject();
 		synchronized (backingMap) {
 			for (PythonObject k : backingMap.values())
 				o.append(k);

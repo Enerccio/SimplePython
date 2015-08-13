@@ -439,27 +439,13 @@ public class PythonRuntime {
 	public static final TypeObject COMPILED_BLOCK_TYPE = new CompiledBlockTypeObject();
 	public static final TypeObject BOUND_FUNCTION_TYPE = new BoundFunctionTypeObject();
 	public static final TypeObject METHOD_TYPE = new MethodTypeObject();
-	
-	static {
-		NoneObject.TYPE.newObject();
-		NoneObject.NONE.newObject();
-		BYTECODE_TYPE.newObject();
-		FUNCTION_TYPE.newObject();
-		COMPILED_BLOCK_TYPE.newObject();
-		BOUND_FUNCTION_TYPE.newObject();
-		METHOD_TYPE.newObject();
-		OBJECT_TYPE.newObject();
-		STRING_TYPE.newObject();
-		BOOL_TYPE.newObject();
-		INT_TYPE.newObject();
-		TYPE_TYPE.newObject();
-		DICT_TYPE.newObject();
-		TUPLE_TYPE.newObject();
-		JAVA_CALLABLE_TYPE.newObject();
-	}
 	public static final TypeObject LONG_TYPE = new LongTypeObject();
 	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject LIST_TYPE = new ListTypeObject();
+	
+	static {
+		OBJECT_TYPE.newObject();
+	}
 	
 	/**
 	 * Generates globals. This is only done once but then cloned
@@ -502,6 +488,7 @@ public class PythonRuntime {
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
+					globals.put(TupleTypeObject.MAKE_TUPLE_CALL, Utils.staticMethodCall(true, TupleTypeObject.class, "make_tuple", TupleObject.class, KwArgs.class));
 					globals.put(ListTypeObject.LIST_CALL, LIST_TYPE);
 					globals.put(ListTypeObject.MAKE_LIST_CALL, Utils.staticMethodCall(true, ListTypeObject.class, "make_list", TupleObject.class, KwArgs.class));
 					globals.put(DictTypeObject.DICT_CALL, DICT_TYPE);
@@ -629,7 +616,6 @@ public class PythonRuntime {
 		}
 		
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
@@ -681,7 +667,6 @@ public class PythonRuntime {
 		block = c.doCompileEval(ParserGenerator.parseEval(code).eval_input());
 		
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));

@@ -108,14 +108,12 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	@Override
 	public PythonObject __iter__() {
 		XRangeIterator rv = new XRangeIterator(start, end, step);
-		rv.newObject();
 		return rv;
 	}
 	
 	public PythonObject __reversed__(TupleObject t, KwArgs kw) {
 		t.notExpectingArgs(kw);
 		XRangeIterator rv = new XRangeIterator(end - 1, start - 1, - step);
-		rv.newObject();
 		return rv;
 	}
 

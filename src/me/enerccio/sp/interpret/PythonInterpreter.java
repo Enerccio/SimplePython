@@ -848,7 +848,6 @@ public class PythonInterpreter extends PythonObject {
 				ol.get(0).pc -= 5;
 				Collections.reverse(ol);
 				GeneratorObject generator = new GeneratorObject(name, ol);
-				generator.newObject();
 				for (FrameObject fr : ol)
 					fr.ownedGenerator = generator;
 				returnee = generator;

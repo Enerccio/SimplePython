@@ -67,7 +67,6 @@ public class ObjectTypeObject extends TypeObject {
 			Utils.putPublic(this, "__dict__", md = new StringDictObject());
 			
 			UserFunctionObject usf = new UserFunctionObject();
-			usf.newObject();
 			Utils.putPublic(usf, "__name__", new StringObject("object.__init__"));
 			usf.args = new ArrayList<String>();
 			usf.args.add("self");
@@ -83,7 +82,6 @@ public class ObjectTypeObject extends TypeObject {
 			usf.block = new CompiledBlockObject(usfb);
 			
 			BoundHandleObject bh = new BoundHandleObject();
-			bh.newObject();
 			Utils.putPublic(bh, BoundHandleObject.ACCESSOR, this);
 			Utils.putPublic(bh, BoundHandleObject.FUNC, usf);
 			md.put(ClassInstanceObject.__INIT__, bh);

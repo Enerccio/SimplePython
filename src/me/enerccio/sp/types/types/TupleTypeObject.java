@@ -17,8 +17,11 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.sequences.ListObject;
+import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
@@ -29,18 +32,39 @@ import me.enerccio.sp.types.sequences.TupleObject;
 public class TupleTypeObject extends TypeObject {
 	private static final long serialVersionUID = -5391029961115891279L;
 	public static final String TUPLE_CALL = "tuple";
+	public static final String MAKE_TUPLE_CALL = "make_tuple";
 
 	@Override
 	public String getTypeIdentificator() {
 		return "tuple";
 	}
+
+	public static PythonObject make_tuple(TupleObject args, KwArgs kwargs) {
+		return args;
+	}
+	
+	public static TupleObject make_tuple(PythonObject o) {
+		TupleObject lo;
+		if (o instanceof SequenceObject)
+			lo = TupleObject.fromSequence((SequenceObject)o);
+		 else
+			lo = TupleObject.fromIterator(o);
+		return lo;
+	}
+
 	
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs){
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
-		args.newObject();
-		return args;
+			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined
+		;
+		if (args.len() == 0) {
+			ListObject lo = new ListObject();
+			return lo;
+		} else if (args.len() == 1) {
+			return make_tuple(args.get(0));
+		}
+		throw new TypeError("tuple() takes at most 1 argument");
 	}
 
 }

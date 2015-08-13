@@ -285,7 +285,6 @@ public abstract class NumberObject extends PythonObject
 		static {
 			for (int i=-PythonRuntime.PREALOCATED_INTEGERS; i<PythonRuntime.PREALOCATED_INTEGERS; i++){
 				baseMap[i + PythonRuntime.PREALOCATED_INTEGERS] = new IntObject(i);
-				baseMap[i + PythonRuntime.PREALOCATED_INTEGERS].newObject();
 			}
 		}
 		

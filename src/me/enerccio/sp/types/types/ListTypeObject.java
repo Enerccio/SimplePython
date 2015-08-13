@@ -41,7 +41,6 @@ public class ListTypeObject extends TypeObject {
 
 	public static PythonObject make_list(TupleObject args, KwArgs kwargs) {
 		ListObject lo = new ListObject();
-		lo.newObject();
 		for (int i=0; i<args.len(); i++)
 			lo.append(args.get(i));
 		return lo;
@@ -53,7 +52,6 @@ public class ListTypeObject extends TypeObject {
 			lo = new ListObject((SequenceObject)o);
 		 else
 			lo = new ListObject(o);
-		lo.newObject();
 		return lo;
 	}
 
@@ -65,7 +63,6 @@ public class ListTypeObject extends TypeObject {
 		;
 		if (args.len() == 0) {
 			ListObject lo = new ListObject();
-			lo.newObject();
 			return lo;
 		} else if (args.len() == 1) {
 			return make_list(args.get(0));

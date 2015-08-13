@@ -179,7 +179,6 @@ public class PythonCompiler {
 		stack.push();
 		compilingFunction.push("generated-function");
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = "generated-function-" + (++genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
@@ -654,7 +653,7 @@ public class PythonCompiler {
 		cb = addBytecode(bytecode, Bytecode.PUSH, classdef.start);
 		cb.value = new StringObject(className);
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, classdef.start);
-		cb.stringValue = "tuple";
+		cb.stringValue = "make_tuple";
 		int c = classdef.testlist() != null ? classdef.testlist().test().size() : 0;
 		if (classdef.testlist() != null)
 			for (TestContext tc : classdef.testlist().test())
@@ -667,7 +666,6 @@ public class PythonCompiler {
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.start);
 		cb.intValue = c;
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		Utils.putPublic(fnc, "__name__", new StringObject("$$__classBodyFncFor" + className + "$$"));
 		fnc.args = new ArrayList<String>();
 		
@@ -719,7 +717,6 @@ public class PythonCompiler {
 	private void compileFunction(FuncdefContext funcdef,
 			List<PythonBytecode> bytecode, DecoratorsContext dc) {
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = funcdef.nname().getText();
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
@@ -1252,7 +1249,7 @@ public class PythonCompiler {
 		cb.stringValue = "print_function";
 		
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
-		cb.stringValue = TupleTypeObject.TUPLE_CALL;
+		cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 		
 		for (int i=st; i<ctx.test().size(); i++){
 			compile(ctx.test(i), bytecode);
@@ -1368,7 +1365,7 @@ public class PythonCompiler {
 		int tlc = testlist.test().size();
 		if (tlc > 1){
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, testlist.start);
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 		}
 		
 		for (TestContext tc : testlist.test())
@@ -1415,7 +1412,6 @@ public class PythonCompiler {
 
 	private void compileFuture(TestContext ctx, List<PythonBytecode> bytecode) {
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = "future";
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));
@@ -1726,7 +1722,7 @@ public class PythonCompiler {
 		int tlc = sc.subscript().size();
 		if (tlc > 1){
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, sc.start);
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 		}
 		for (SubscriptContext s : sc.subscript()){
 			compile(s, bytecode);
@@ -1928,7 +1924,7 @@ public class PythonCompiler {
 			List<PythonBytecode> bytecode, Token t) {
 		if (ctx == null){
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, t);
-			cb.stringValue = TupleTypeObject.TUPLE_CALL;
+			cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, t);
 			cb.intValue = 0;
 			return;
@@ -1954,7 +1950,7 @@ public class PythonCompiler {
 		} else {
 			if ((ctx.test().size() > 1) || ctx.children.get(ctx.children.size() - 1).getText().equals(",")) {
 				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
-				cb.stringValue = TupleTypeObject.TUPLE_CALL;
+				cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 				for (TestContext i : ctx.test())
 					compile(i, bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
@@ -2200,7 +2196,6 @@ public class PythonCompiler {
 
 	private void compile(LambdefContext ctx, List<PythonBytecode> bytecode) {
 		UserFunctionObject fnc = new UserFunctionObject();
-		fnc.newObject();
 		
 		String functionName = "lambda";
 		Utils.putPublic(fnc, "__name__", new StringObject(compilingClass.peek() == null ? functionName : compilingClass.peek() + "." + functionName));

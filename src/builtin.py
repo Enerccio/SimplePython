@@ -307,3 +307,15 @@ def close_generator(generator):
     
 def typename(object):
     return type(object).__name__
+
+def zip(*iterables):
+    data = [iter(x) for x in iterables]
+    result = []
+    while True:
+        d = []
+        for iterable in data:
+            try:
+                d.append(iterable.next())
+            except StopIteration:
+                return result
+        result.append(tuple(d))

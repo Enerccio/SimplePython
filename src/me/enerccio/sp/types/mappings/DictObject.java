@@ -167,7 +167,6 @@ public class DictObject extends ContainerObject  implements InternalDict, Dictio
 	public PythonObject keys(TupleObject t, KwArgs kwargs) {
 		if (kwargs != null) kwargs.checkEmpty("keys");
 		ListObject o = new ListObject();
-		o.newObject();
 		synchronized (backingMap) {
 			for (PythonProxy k : backingMap.keySet())
 				o.append(k.o);
@@ -188,7 +187,6 @@ public class DictObject extends ContainerObject  implements InternalDict, Dictio
 	public PythonObject values(TupleObject t, KwArgs kwargs) {
 		if (kwargs != null) kwargs.checkEmpty("values");
 		ListObject o = new ListObject();
-		o.newObject();
 		synchronized (backingMap) {
 			for (PythonObject k : backingMap.values())
 				o.append(k);

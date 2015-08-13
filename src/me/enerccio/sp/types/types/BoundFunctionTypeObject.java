@@ -57,7 +57,6 @@ public class BoundFunctionTypeObject extends TypeObject {
 		}
 		
 		BoundHandleObject bh = new BoundHandleObject();
-		bh.newObject();
 		Utils.putPublic(bh, BoundHandleObject.FUNC, fnc);
 		Utils.putPublic(bh, BoundHandleObject.ACCESSOR, accessor);
 		return bh;

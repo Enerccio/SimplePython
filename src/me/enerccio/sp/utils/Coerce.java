@@ -125,7 +125,6 @@ public class Coerce {
 			return BoolObject.fromBoolean((Boolean) o);
 		if (o instanceof Collection){
 			ListObject lo = new ListObject();
-			lo.newObject();
 			for (Object i : (Collection<?>)o){
 				lo.objects.add(i == null ? NoneObject.NONE : toPython(i, i.getClass()));
 			}

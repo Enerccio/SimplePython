@@ -60,7 +60,6 @@ public class MethodTypeObject extends TypeObject {
 		}
 		
 		UserMethodObject mo = new UserMethodObject();
-		mo.newObject();
 		Utils.putPublic(mo, UserMethodObject.FUNC, fnc);
 		Utils.putPublic(mo, UserMethodObject.SELF, inst);
 		Utils.putPublic(mo, UserMethodObject.ACCESSOR, accessor);

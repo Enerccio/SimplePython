@@ -25,8 +25,6 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
-import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -72,7 +70,6 @@ public class TypeTypeObject extends TypeObject {
 			throw new TypeError("type(): dict must be a dict");
 
 		ClassObject type = new ClassObject();
-		type.newObject(); // TODO
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);
 		Utils.putPublic(type, ClassObject.__DICT__, dict);
@@ -84,7 +81,6 @@ public class TypeTypeObject extends TypeObject {
 					PythonObject o = d.getVariable(key);
 					if (o instanceof UserFunctionObject){
 						BoundHandleObject bh = new BoundHandleObject();
-						bh.newObject();
 						Utils.putPublic(bh, BoundHandleObject.ACCESSOR, type);
 						Utils.putPublic(bh, BoundHandleObject.FUNC, o);
 						d.putVariable(key, bh);
