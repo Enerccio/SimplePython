@@ -67,16 +67,15 @@ class __QueueOperator(object):
         else:
             raise TypeError("enqueue(): object is not of event type or callable")
         
-    def __lshift__(self, event):
+    def __larrow__(self, event):
         return self.enqueue(event)
         
-    def __rshift__(self, event_id):
+    def __rarrow__(self, event_id):
         try:
             self.__queue.mutex.acquire()
             for event in self.__queue._queue:
                 if event.id == event_id:
-                    self.__queue._queue.remove(event)
-                    return
+                    return self.__queue._queue.remove(event)
         finally:
             self.__queue.mutex.release()
 
@@ -85,8 +84,8 @@ class EventReactor(object):
         self.__event_queue = SynchronizedQueue()
         self.__enqueuer = __QueueOperator(self.__event_queue)
         
-        self.__rshift__ = self.__enqueuer.__rshift__
-        self.__lshift__ = self.__enqueuer.__lshift__
+        self.__rarrowt__ = self.__enqueuer.__rarrow__
+        self.__larrow__ = self.__enqueuer.__larrow__
         
         self.__last_access_time = sys.current_time()
         
@@ -143,11 +142,11 @@ class __EventQueueProxy(object):
     def enqueue(self, event, periodic=False, periodTime=0, initDelay=0, args=[], kwargs={}):
         return _event_queue.enqueue(event, periodic, periodTime, initDelay, args, kwargs)
     
-    def __lshift__(self, event):
-        return _event_queue << event
+    def __larrow__(self, event):
+        return _event_queue.__larrow__(event)
         
-    def __rshift__(self, event_id):
-        return _event_queue >> event_id
+    def __rarrow__(self, event_id):
+        return _event_queue.__rarrow__(event_id)
 
 class __StopProxy(object):
     def __call__(self):

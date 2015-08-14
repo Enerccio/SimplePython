@@ -256,4 +256,12 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 		}
 		throw new TypeError("unsupported operand type(s) for *: '" + this + "' and '" + b + "'");
 	}
+
+	@Override
+	public PythonObject remove(PythonObject o) {
+		int idx = objects.indexOf(o);
+		if (idx == -1)
+			throw new TypeError("remove(x): x not in the list");
+		return objects.remove(idx);
+	}
 }

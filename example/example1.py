@@ -46,4 +46,4 @@ def event_handler(event, callable, po, args):
     callable(po, *args)
 
 def add_event(callable, po, args):
-    event_queue << Event(event_handler, args=(callable, po, args))
+    event_queue <- Event(event_handler, args=(callable, po, args))
