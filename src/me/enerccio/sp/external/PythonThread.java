@@ -26,50 +26,58 @@ import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class PythonThread extends Thread {
+public class PythonThread implements Runnable {
 
 	private UserMethodObject call;
+	private Thread t;
 	
 	@WrapField(readOnly = true)
 	public boolean executed;
 	public PythonThread(ClassInstanceObject o, String name){
 		PythonRuntime.runtime.checkSandboxAction("jthread", SecureAction.NEW_THREAD);
 		
+		t = new Thread(this);
 		setThreadName(name);
 		call = (UserMethodObject) SimplePython.getField(o, "execute");
+	}
+	
+	PythonThread(Thread t){
+		this.t = t; 
 	}
 	
 	@Override
 	public void run() {
 		executed = true;
-		PythonInterpreter.interpreter.get().execute(true, call, null);
+		
+		if (call != null)
+			PythonInterpreter.interpreter.get().execute(true, call, null);
 	};
 	
 	@WrapMethod
 	public void threadStart(){
-		start();
+		t.start();
 	}
 	
 	@WrapMethod
 	public boolean threadRunning(){
-		return isAlive();
+		return t.isAlive();
 	}
 	
 	@WrapMethod
 	public void setThreadName(String name){
 		if (name != null)
-			setName(name);
+			t.setName(name);
 	}
 	
 	@WrapMethod
 	public String getThreadName(){
-		return getName();
+		return t.getName();
 	}
 	
 	@WrapMethod
 	public void waitJoin(){
 		try {
-			join();
+			t.join();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
@@ -77,6 +85,6 @@ public class PythonThread extends Thread {
 	
 	@WrapMethod
 	public void interruptThread(){
-		interrupt();
+		t.interrupt();
 	}
 }

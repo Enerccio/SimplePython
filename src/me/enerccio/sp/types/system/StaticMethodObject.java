@@ -21,9 +21,12 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -31,12 +34,12 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class StaticMethodObject extends PythonObject {
+public class StaticMethodObject extends CallableObject {
 	private static final long serialVersionUID = -7257861263236747558L;
 	public static final String __FUNC__ = "__FUNC__";
 	
 	public StaticMethodObject() {
-		super(false);
+		
 	}
 	
 	@Override
@@ -61,7 +64,7 @@ public class StaticMethodObject extends PythonObject {
 	
 	@Override
 	protected String doToString() {
-		return "<static method of " + fields.get(__FUNC__).toString() + ">";
+		return "<static method of " + fields.get(__FUNC__).object.toString() + ">";
 	}
 	
 	@Override
@@ -72,5 +75,10 @@ public class StaticMethodObject extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+	
+	@Override
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
+		return ((CallableObject)fields.get(__FUNC__).object).call(args, kwargs);
 	}
 }

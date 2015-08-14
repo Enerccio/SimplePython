@@ -15,14 +15,19 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.errors;
+package me.enerccio.sp.external;
 
-import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class ImportError extends PythonException {
-	private static final long serialVersionUID = 54215546315414L;
+public class ThreadInfo extends Thread {
 	
-	public ImportError(String message) {
-		super(PythonRuntime.IMPORT_ERROR, message);
+	public ThreadInfo(){
+		
 	}
+	
+	@WrapMethod
+	public PythonThread current_thread(){
+		return new PythonThread(Thread.currentThread());
+	}
+	
 }

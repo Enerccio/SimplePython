@@ -1,3 +1,5 @@
 import y
 
 TEST = 50
+
+__all__ = ["TEST"]

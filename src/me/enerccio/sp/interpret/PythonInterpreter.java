@@ -60,6 +60,8 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.FutureObject;
 import me.enerccio.sp.types.system.PythonFutureObject;
+import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -664,7 +666,11 @@ public class PythonInterpreter extends PythonObject {
 			// import bytecode
 			String s1 = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
 			String s2 = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-			pythonImport(environment(), s1, s2, null);
+			try {
+				pythonImport(environment(), s1, s2, null);
+			} catch (CastFailedException e1) {
+				throw new TypeError("__all__ must be a list");
+			}
 			break;
 		case SWAP_STACK: {
 			// swaps head of the stack with value below it
@@ -993,9 +999,10 @@ public class PythonInterpreter extends PythonObject {
 	 * @param variable
 	 * @param modulePath
 	 * @param target
+	 * @throws CastFailedException 
 	 */
 	private void pythonImport(EnvironmentObject environment, String variable,
-			String modulePath, PythonObject target) {
+			String modulePath, PythonObject target) throws CastFailedException {
 		if (modulePath == null || modulePath.equals("")){
 			if (target == null){
 				synchronized (PythonRuntime.runtime){
@@ -1008,12 +1015,16 @@ public class PythonInterpreter extends PythonObject {
 			} else {
 				InternalDict dict = (InternalDict) target.getEditableFields().get(ModuleObject.__DICT__).object;
 				synchronized (dict){
-						for (String key : dict.keySet()){
-								if (!key.startsWith("__"))
-									environment.set(key, 
-											dict.getVariable(key),
-											true, false);
-						}
+					Set<String> importKeys = new HashSet<String>();
+					if (!dict.containsVariable("__all__"))
+						importKeys.addAll(dict.keySet());
+					else
+						importKeys.addAll((List<String>)Coerce.toJavaCollection(dict.getVariable("__all__"), List.class, String.class));
+					for (String key : importKeys){
+						environment.set(key, 
+								dict.getVariable(key),
+								true, false);
+					}
 				}
 			}
 		} else {

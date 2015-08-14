@@ -18,9 +18,16 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+__all__ = ["Thread"]
+
+_threadinfo = javainstance("threadinfo")
+
 class Thread(object):
-    def __init__(self, name=None):
-        self.__jthread = javainstance("jthread", self, name)
+    def __init__(self, name=None, thread=None):
+        if thread is None:
+            self.__jthread = javainstance("jthread", self, name)
+        else:
+            self.__jthread = thread
         self.executed = getattr(self.__jthread, "executed")
         
     def set_name(self, name):
@@ -43,3 +50,18 @@ class Thread(object):
         
     def running(self):
         return self.__jthread.threadRunning()
+    
+    def __eq__(self, other):
+        if hasattr(other, "__jthread"):
+            return self.__jthread == other.__jthread
+        return False
+    
+    def __str__(self):
+        return "<Thread '" + self.get_name() + ", jthread='" + str(self.__jthread) + "'>"
+    
+    @staticmethod
+    def current_thread():
+        """
+        Returns current thread as new instance of Thread object
+        """
+        return Thread(None, _threadinfo.current_thread())

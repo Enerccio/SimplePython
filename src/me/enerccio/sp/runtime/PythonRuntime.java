@@ -44,8 +44,10 @@ import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
 import me.enerccio.sp.external.PrintOutputStream;
+import me.enerccio.sp.external.PythonMutex;
 import me.enerccio.sp.external.PythonTerminator;
 import me.enerccio.sp.external.PythonThread;
+import me.enerccio.sp.external.ThreadInfo;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -86,11 +88,10 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
-import me.enerccio.sp.types.system.ClassMethodObject;
-import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.types.types.BoolTypeObject;
 import me.enerccio.sp.types.types.BoundFunctionTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
+import me.enerccio.sp.types.types.ClassMethodTypeObject;
 import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
@@ -105,6 +106,7 @@ import me.enerccio.sp.types.types.MethodTypeObject;
 import me.enerccio.sp.types.types.NoneTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
+import me.enerccio.sp.types.types.StaticMethodTypeObject;
 import me.enerccio.sp.types.types.StringTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
 import me.enerccio.sp.types.types.TypeObject;
@@ -153,6 +155,8 @@ public class PythonRuntime {
 		addAlias(FormatterAccessor.class.getName(), "formatter");
 		addAlias(PythonTerminator.class.getName(), "terminator");
 		addAlias(Disassembler.class.getName(), "disassembler");
+		addAlias(ThreadInfo.class.getName(), "threadinfo");
+		addAlias(PythonMutex.class.getName(), "jmutex");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
@@ -400,7 +404,7 @@ public class PythonRuntime {
 		}
 		if (provider != null)
 			return loadModule(provider);
-		return null;
+		return Pair.makePair(null, null);
 	}
 
 	/** stored globals are here */
@@ -473,8 +477,8 @@ public class PythonRuntime {
 					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
 					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
 					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
-					globals.put(CLASSMETHOD, Utils.staticMethodCall(PythonRuntime.class, CLASSMETHOD, UserFunctionObject.class));
-					globals.put(STATICMETHOD, Utils.staticMethodCall(PythonRuntime.class, STATICMETHOD, UserFunctionObject.class));
+					globals.put(CLASSMETHOD, new ClassMethodTypeObject());
+					globals.put(STATICMETHOD, new StaticMethodTypeObject());
 					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
 					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
 					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, int.class));
@@ -749,18 +753,6 @@ public class PythonRuntime {
 		if (s.length() != 1)
 			throw new ValueError("ord(): string must be single character length");
 		return NumberObject.valueOf(s.charAt(0));
-	}
-	
-	protected static PythonObject classmethod(UserFunctionObject o){
-		ClassMethodObject cmo = new ClassMethodObject();
-		Utils.putPublic(cmo, ClassMethodObject.__FUNC__, o);
-		return cmo;
-	}
-	
-	protected static PythonObject staticmethod(UserFunctionObject o){
-		StaticMethodObject smo = new StaticMethodObject();
-		Utils.putPublic(smo, StaticMethodObject.__FUNC__, o);
-		return smo;
 	}
 	
 	protected static PythonObject mro(ClassObject clazz){

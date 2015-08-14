@@ -1,8 +1,10 @@
 package me.enerccio.sp.utils;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,9 +25,14 @@ import me.enerccio.sp.types.types.ListTypeObject;
 
 public class Coerce {
 	private static final Map<Class<?>, Coercion> COERCIONS = new HashMap<>();
+	private static final Map<Class<?>, ContainerCoerce> COERCIONS_CONTAINERS = new HashMap<>();
 
 	private interface Coercion {
 		public Object coerce(PythonObject o, Class<?> clazz) throws CastFailedException;
+	}
+	
+	private interface ContainerCoerce {
+		public Object coerce(PythonObject o, Class<?> iClass) throws CastFailedException;
 	}
 
 	/** Coerces PythonObject to specified java class, if possible */
@@ -80,6 +87,27 @@ public class Coerce {
 			throw new CastFailedException("Can't convert " + o.toString() + " to " + clazz.getName());
 		
 		return (X)co.coerce(o, clazz);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <X> Collection<X> toJavaCollection(PythonObject o, Class<?> cls1, Class<X> cls2) throws CastFailedException {
+	
+		ContainerCoerce co = COERCIONS_CONTAINERS.get(cls1);
+		if (co == null) {
+			// Can't coerce directly
+			for (Entry<Class<?>, ContainerCoerce> coer : COERCIONS_CONTAINERS.entrySet()) {
+				if (cls1.isAssignableFrom(coer.getKey())) {
+					co = coer.getValue();
+					break;
+				}
+			}
+		}
+		
+		if (co == null)
+			// Coercion class not found
+			throw new CastFailedException("Can't convert " + o.toString() + " to " + cls1.getName());
+		
+		return (Collection<X>)co.coerce(o, cls2);
 	}
 	
 	/** 
@@ -325,6 +353,23 @@ public class Coerce {
 					return o.toString();
 				}
 				return o;
+			}
+		});
+		
+		COERCIONS_CONTAINERS.put(List.class, new ContainerCoerce() {
+			
+			@Override
+			public Object coerce(PythonObject o, Class<?> iClass)
+					throws CastFailedException {
+				
+				ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(o), null);
+				List<Object> l = new ArrayList<Object>();
+				synchronized (lo.objects){
+					for (PythonObject po : lo.objects)
+						l.add(toJava(po, iClass));
+				}
+				
+				return l;
 			}
 		});
 	}

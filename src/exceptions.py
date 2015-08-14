@@ -117,3 +117,6 @@ class GeneratorExit(Exception):
 
 class NativeError(Exception):
     pass
+
+class InterpreterError(Exception):
+    pass
