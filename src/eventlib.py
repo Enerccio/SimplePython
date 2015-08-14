@@ -139,9 +139,32 @@ class EventReactor(object):
     def fire_event(self, event):
         event.call()
 
-event_queue = None
-stop = None
-has_events = None
+
+_event_queue = None
+_stop = None
+_has_events = None
+
+class __EventQueueProxy(object):
+    def enqueue(self, event, periodic=False, periodTime=0, initDelay=0, args=[], kwargs={}):
+        return _event_queue.enqueue(event, periodic, periodTime, initDelay, args, kwargs)
+    
+    def __lshift__(self, event):
+        return _event_queue << event
+        
+    def __rshift__(self, event_id):
+        return _event_queue >> event_id
+
+class __StopProxy(object):
+    def __call__(self):
+        return _stop()
+        
+class __HasEventsProxy(object):
+    def __call__(self):
+        return _has_events();
+
+event_queue = __EventQueueProxy()
+stop = __StopProxy()
+has_events = __HasEventsProxy()
 
 def standard_events(poll_idle=10):
     global __std_er, event_queue, stop
@@ -150,7 +173,7 @@ def standard_events(poll_idle=10):
     __std_er_t.idle = poll_idle
     __std_er = EventReactor(poll_idle)
     __std_er_t.start()
-    event_queue = __std_er
-    stop = __std_er_t.stopEventThread
-    has_events = __std_er.has_events
+    _event_queue = __std_er
+    _stop = __std_er_t.stopEventThread
+    _has_events = __std_er.has_events
     

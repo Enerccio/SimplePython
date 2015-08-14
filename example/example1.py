@@ -1,4 +1,4 @@
-import eventlib
+from eventlib import *
 import os
 
 def exit(object):
@@ -38,7 +38,7 @@ class example(object):
         self.frame.add(panel)
         self.frame.pack()
 
-eventlib.standard_events()
+standard_events()
 e = example()
 
 def event_handler(event, callable, po, args):
@@ -46,4 +46,4 @@ def event_handler(event, callable, po, args):
     callable(po, *args)
 
 def add_event(callable, po, args):
-    eventlib.event_queue << eventlib.Event(event_handler, args=(callable, po, args))
+    event_queue << Event(event_handler, args=(callable, po, args))
