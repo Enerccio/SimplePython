@@ -410,13 +410,51 @@ public class PythonCompiler {
 			compileWithProtocol(i+1, items, items.get(i), suite, bytecode, cs);
 		}
 	}
+	
+	private class WithControllStackItem implements ControllStackItem {
+		
+		@Override
+		public void outputContinue(Continue_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+			cb.stringValue = "LoopContinue";
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+		}
+
+		
+		@Override
+		public void outputBreak(Break_stmtContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+			cb.stringValue = "LoopBreak";
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
+			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
+		}
+
+		@Override
+		public void outputFinallyBreakBlock(Try_stmtContext ctx,
+				List<PythonBytecode> bytecode, ControllStack cs) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void outputFinallyContinueBlock(Try_stmtContext ctx,
+				List<PythonBytecode> bytecode, ControllStack cs) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
 
 	private void compileWithProtocol(int i, List<With_itemContext> items,
 			With_itemContext wi, SuiteContext suite, List<PythonBytecode> bytecode,
 			ControllStack cs) {
+		WithControllStackItem withCSI = new WithControllStackItem();
+		cs = ControllStack.push(cs, withCSI);
 		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, wi.start, getFunction(), module);
 		PythonBytecode excTestJump = Bytecode.makeBytecode(Bytecode.GOTO, wi.start, getFunction(), module);
-		
 		
 		compileWithEntryProtocol(wi, bytecode, cs);
 		bytecode.add(makeFrame);
@@ -468,6 +506,20 @@ public class PythonCompiler {
 		cb.value = NoneObject.NONE;
 		exceptionNotSuppressed.intValue = bytecode.size();
 		// raises if exception is on top of the stack, or not if None
+		
+		// test for LoopBreak and LoopContinue if in loop
+		cs.pop();
+		ControllStackItem it = cs.peek();
+		if (it != null){
+			addBytecode(bytecode, Bytecode.DUP, wi.stop);
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, wi.stop);
+			cb.stringValue = "LoopContinue"; 
+			addBytecode(bytecode, Bytecode.ISINSTANCE, wi.stop);
+			PythonBytecode skipOver1 = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, wi.stop, getFunction(), module);
+			bytecode.add(skipOver1);
+			
+		}
+		
 		addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
 		// If execution reaches here, there was no exception and there is still frame on top of stack.
 		// If this frame returned value, it should be returned from here as well.
