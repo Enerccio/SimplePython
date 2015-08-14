@@ -1563,6 +1563,8 @@ public class PythonCompiler {
 					operation = Bytecode.NE;
 				else if (ctx.getChild(i).getText().equals("!="))
 					operation = Bytecode.NE;
+				else if (ctx.getChild(i).getText().equals("?"))
+					operation = Bytecode.QM;
 				else if (ctx.getChild(i).getText().equals("is") || ctx.getChild(i).getText().equals("isnot")) {
 					cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ((ExprContext) ctx.getChild(i+1)).start);
 					cb.stringValue = ObjectTypeObject.IS;
@@ -1620,7 +1622,15 @@ public class PythonCompiler {
 		if (ctx.getChildCount() > 1){
 			compile(ctx.arith_expr(0), bytecode);
 			for (int i=1; i<ctx.getChildCount(); i+=2){
-				Bytecode operation = ctx.getChild(i).getText().equals("<<") ? Bytecode.LSHIFT : Bytecode.RSHIFT;
+				String op = ctx.getChild(i).getText();
+				Bytecode operation = null;
+				switch (op){
+				case "<<": operation = Bytecode.LSHIFT; break;
+				case ">>": operation = Bytecode.RSHIFT; break;
+				case "::": operation = Bytecode.DCOLON; break;
+				case "<-": operation = Bytecode.LARROW; break;
+				case "->": operation = Bytecode.RARROW; break;
+				}
 				compile((Arith_exprContext) ctx.getChild(i+1), bytecode);
 				addBytecode(bytecode, operation, ((Arith_exprContext) ctx.getChild(i+1)).stop);
 			}

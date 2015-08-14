@@ -272,6 +272,10 @@ public class CompiledBlockObject extends PythonObject {
 			case RSHIFT:
 			case SUB:
 			case XOR:
+			case DCOLON:
+			case QM:
+			case LARROW:
+			case RARROW:
 				bd.append(String.format(FORMAT, ""));
 				break;
 			case KWARG:
@@ -511,6 +515,14 @@ public class CompiledBlockObject extends PythonObject {
 			case SUB:
 				break;
 			case XOR:
+				break;
+			case DCOLON:
+				break;
+			case QM:
+				break;
+			case LARROW:
+				break;
+			case RARROW:
 				break;
 			}
 			

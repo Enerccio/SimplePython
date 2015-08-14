@@ -175,6 +175,10 @@ public class Disassembler {
 			case RSHIFT:
 			case SUB:
 			case XOR:
+			case DCOLON:
+			case QM:
+			case LARROW:
+			case RARROW:
 				break;
 			}
 		} catch (CastFailedException e){

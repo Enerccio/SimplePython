@@ -413,7 +413,7 @@ comparison:
 ;
 
 comp_op:
- '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not'
+ '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not' | '?'
 ;
 
 expr:
@@ -429,7 +429,7 @@ and_expr:
 ;
 
 shift_expr:
- arith_expr (('<<'|'>>') arith_expr)*
+ arith_expr (('<<'|'>>'|'::'|'->'|'<-') arith_expr)*
 ;
 
 arith_expr:
