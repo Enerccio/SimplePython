@@ -3,3 +3,4 @@
 /doc/
 src/me/enerccio/sp/parser/python*.tokens
 src/me/enerccio/sp/parser/python*.java
+/spydoc/

@@ -23,24 +23,7 @@ from threading import *
 from collections import SynchronizedQueue
 from sync import Mutex
 
-__all__ = ["EventReactor", "Event", "standard_events", "event_queue", "stop", "has_events"]
-
-class __EventReactorThread(Thread):
-    def __init__(self):
-        self.stopped = False
-        self.idle = 0
-        super(__EventReactorThread, self).__init__(name="standard-eventreactor-thread", daemon=True)
-    
-    def execute(self):
-        while not self.stopped:
-            if not __std_er.poll():
-                Thread.wait(self.idle)
-            
-    def stopEventThread(self):
-        self.stopped = True
-
-__std_er_t = __EventReactorThread()
-__std_er = None
+__all__ = ["EventReactor", "ThreadedEventReactor", "Event", "standard_events", "event_queue", "stop", "has_events"]
         
 class Event(object):
     __event_counter = 0
@@ -99,8 +82,6 @@ class __QueueOperator(object):
 
 class EventReactor(object):
     def __init__(self):
-        super(EventReactor, self).__init__()
-        
         self.__event_queue = SynchronizedQueue()
         self.__enqueuer = __QueueOperator(self.__event_queue)
         
@@ -138,7 +119,21 @@ class EventReactor(object):
             
     def fire_event(self, event):
         event.call()
-
+        
+class ThreadedEventReactor(EventReactor, Thread):
+    def __init__(self, idle_time=10):
+        self.stopped = False
+        self.idle = idle_time
+        EventReactor.__init__(self)
+        Thread.__init__(self, name="standard-eventreactor-thread", daemon=True)
+    
+    def execute(self):
+        while not self.stopped:
+            if not self.poll():
+                Thread.wait(self.idle)
+            
+    def stop_event_thread(self):
+        self.stopped = True
 
 _event_queue = None
 _stop = None
@@ -167,13 +162,11 @@ stop = __StopProxy()
 has_events = __HasEventsProxy()
 
 def standard_events(poll_idle=10):
-    global __std_er, _event_queue, _stop, _has_events
-    if __std_er is not None:
+    global _event_queue, _stop, _has_events
+    if _event_queue is not None:
         raise TypeError("standard_events can only be called once!")
-    __std_er_t.idle = poll_idle
-    __std_er = EventReactor(poll_idle)
-    __std_er_t.start()
-    _event_queue = __std_er
-    _stop = __std_er_t.stopEventThread
-    _has_events = __std_er.has_events
+    _event_queue = ThreadedEventReactor(poll_idle)
+    _stop = _event_queue.stop_event_thread
+    _has_events = _event_queue.has_events
+    _event_queue.start()
     
