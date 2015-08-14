@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
-# math module
+__all__ = ["floor", "max", "min"]
 
 def floor(x):
     if type(x) == real:

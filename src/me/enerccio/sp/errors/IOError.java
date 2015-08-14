@@ -19,7 +19,7 @@ package me.enerccio.sp.errors;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 
-public class IOError extends PythonException {
+public class IOError extends BasePythonError {
 	private static final long serialVersionUID = 9845123L;
 	
 	public IOError(String message) {

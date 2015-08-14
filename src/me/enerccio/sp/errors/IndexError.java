@@ -19,7 +19,7 @@ package me.enerccio.sp.errors;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 
-public class IndexError extends PythonException {
+public class IndexError extends BasePythonError {
 	private static final long serialVersionUID = 5421505414L;
 	
 	public IndexError(String message) {

@@ -19,7 +19,7 @@ package me.enerccio.sp.errors;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 
-public class InterpreterError extends PythonException {
+public class InterpreterError extends BasePythonError {
 	private static final long serialVersionUID = 54215546315414L;
 	
 	public InterpreterError(String message) {

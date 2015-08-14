@@ -30,6 +30,7 @@ import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.BasePythonError;
 import me.enerccio.sp.errors.InterpreterError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.errors.PythonException;
@@ -281,7 +282,11 @@ public class PythonInterpreter extends PythonObject {
 				return ExecutionResult.EOF;
 			}
 			try {
-				return executeSingleInstruction(o);
+				try {
+					return executeSingleInstruction(o);
+				} catch (BasePythonError e){
+					throw Utils.throwException(e.type, e.message, e);
+				}
 			} catch (PythonExecutionException e){
 				handleException(e);
 				return ExecutionResult.EOF;

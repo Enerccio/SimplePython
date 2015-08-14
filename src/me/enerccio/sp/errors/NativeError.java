@@ -19,7 +19,7 @@ package me.enerccio.sp.errors;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 
-public class NativeError extends PythonException{
+public class NativeError extends BasePythonError{
 private static final long serialVersionUID = 54215666315414L;
 	
 	public NativeError(String message, Throwable cause) {

@@ -18,8 +18,15 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+__all__ = ["stdout", "stderr", "exit", "current_time"]
+
 stdout = javainstance("sysoutstream", False)
 stderr = javainstance("sysoutstream", True)
 
+__system = javainstance("system")
+
 def exit(status=0):
     raise SystemExit(status)
+
+def current_time():
+    return __system.current_time()

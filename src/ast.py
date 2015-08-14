@@ -41,3 +41,5 @@ class AST(object):
         
     def get_bytecode(self):
         return list(self.__ast)
+
+__all__ = ["AST", "BYTECODE_NAMES", "BYTECODE_TYPES"] + BYTECODE_NAMES.keys()

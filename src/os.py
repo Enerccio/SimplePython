@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+__all__ = ["SEEK_SET", "SEEK_CUR", "SEEK_END", "_exit"]
+
 SEEK_SET = 0
 SEEK_CUR = 1
 SEEK_END = 2

@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+__all__ = ["dis"]
+
 def dis(object):
     """
     Disassembles the object, if is a object that can be disassembled into standard stream

@@ -25,11 +25,13 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.errors.BasePythonError;
 import me.enerccio.sp.errors.NativeError;
 import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.parser.pythonBaseListener;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -204,6 +206,8 @@ public class JavaMethodObject extends CallableObject {
 		} catch (InvocationTargetException e){
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();
+			if (e.getTargetException() instanceof BasePythonError)
+				throw Utils.throwException(((PythonException)e.getTargetException()).type, ((PythonException)e.getTargetException()).message, e.getTargetException());
 			throw new NativeError(toString() + ": failed java call", e);
 		} catch (Throwable e){
 			throw new NativeError(toString() + ": failed java call", e);
@@ -265,7 +269,7 @@ public class JavaMethodObject extends CallableObject {
 		} catch (PythonException e) {
 			throw Utils.throwException(e.type, e.message, e);
 		} catch (InvocationTargetException e){
-			if (e.getTargetException() instanceof PythonException)
+			if (e.getTargetException() instanceof BasePythonError)
 				throw Utils.throwException(((PythonException)e.getTargetException()).type, ((PythonException)e.getTargetException()).message, e.getTargetException());
 			if (e.getTargetException() instanceof PythonExecutionException)
 				throw (RuntimeException)e.getTargetException();

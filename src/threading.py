@@ -65,3 +65,17 @@ class Thread(object):
         Returns current thread as new instance of Thread object
         """
         return Thread(None, _threadinfo.current_thread())
+    
+    @staticmethod
+    def wait(ms):
+        """
+        Waits ms milliseconds
+        """
+        _threadinfo.wait_time(ms, 0)
+        
+    @staticmethod
+    def wait_nanotime(ms, ns):
+        """
+        Waits time milliseconds and ns nanoseconds
+        """
+        _threadinfo.wait_time(ms, ns)

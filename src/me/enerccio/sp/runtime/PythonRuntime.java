@@ -45,6 +45,7 @@ import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
 import me.enerccio.sp.external.PrintOutputStream;
 import me.enerccio.sp.external.PythonMutex;
+import me.enerccio.sp.external.PythonSystem;
 import me.enerccio.sp.external.PythonTerminator;
 import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.external.ThreadInfo;
@@ -157,6 +158,7 @@ public class PythonRuntime {
 		addAlias(Disassembler.class.getName(), "disassembler");
 		addAlias(ThreadInfo.class.getName(), "threadinfo");
 		addAlias(PythonMutex.class.getName(), "jmutex");
+		addAlias(PythonSystem.class.getName(), "system");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */

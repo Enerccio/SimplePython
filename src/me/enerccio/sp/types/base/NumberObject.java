@@ -375,7 +375,7 @@ public abstract class NumberObject extends PythonObject
 							}
 							return IntObject.getCached(r);
 						} else {
-							return NumberObject.valueOf(value + n.longValue());
+							return NumberObject.valueOf(value - n.longValue());
 						}
 				}
 			}

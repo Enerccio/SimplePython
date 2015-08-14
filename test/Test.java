@@ -23,7 +23,10 @@ public class Test {
 				SimplePython.executeFunction("x", "test");
 
 		} finally {
-			System.out.println("Took " + (System.currentTimeMillis() - c) + " ms");
+			System.out.println();
+			System.out.println("Runtime statistics:");
+			System.out.println("Took total " + (System.currentTimeMillis() - c) + " ms");
+			System.out.println("Took init " + ((System.currentTimeMillis() - c) - (System.currentTimeMillis() - c2)) + " ms");
 			System.out.println("Took pure runtime " + (System.currentTimeMillis() - c2) + " ms");
 		}
 	}

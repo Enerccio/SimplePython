@@ -15,14 +15,19 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.errors;
+package me.enerccio.sp.external;
 
-import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class NameError extends BasePythonError {
-	private static final long serialVersionUID = 54215546315414L;
+public class PythonSystem extends Thread {
 	
-	public NameError(String message) {
-		super(PythonRuntime.ATTRIBUTE_ERROR, message);
+	public PythonSystem(){
+		
 	}
+	
+	@WrapMethod
+	public long current_time(){
+		return System.currentTimeMillis();
+	}
+	
 }

@@ -50,6 +50,13 @@ def callable(object):
     if t == javamethod: return True
     return hasattr(object, "__call__")
 
+def iterable(object):
+    if hasattr(object, "__iter__"):
+        return True
+    if hasattr(object, "__getitem__"):
+        return True
+    return False
+
 def cmp(x, y):
     if x < y:
         return -1

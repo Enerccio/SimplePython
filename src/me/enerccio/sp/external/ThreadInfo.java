@@ -30,4 +30,12 @@ public class ThreadInfo extends Thread {
 		return new PythonThread(Thread.currentThread());
 	}
 	
+	@WrapMethod
+	public void wait_time(long millis, int nanos){
+		try {
+			Thread.sleep(millis, nanos);
+		} catch (InterruptedException e){
+			
+		}
+	}
 }

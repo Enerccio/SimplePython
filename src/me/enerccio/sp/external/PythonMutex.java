@@ -17,53 +17,34 @@
  */
 package me.enerccio.sp.external;
 
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
 public class PythonMutex {
 	
-	private Semaphore m;
-	private Thread currentHolder = null;
-	int ac;
+	private ReentrantLock m;
 	
 	public PythonMutex(){
-		m = new Semaphore(1);
+		m = new ReentrantLock();
 	}
 	
 	@WrapMethod
 	public void acquire(){
-		try {
-			m.acquire();
-		} catch (InterruptedException e) {
-			throw new TypeError("jmutext(): interrupted");
-		}
-		assignThread();
-	}
-	
-	private void assignThread() {
-		Thread t = Thread.currentThread();
-		if (currentHolder == null || !t.equals(currentHolder)){
-			ac = 0;
-			currentHolder = t;
-		} else
-			++ac;
+		m.lock();
 	}
 
 	@WrapMethod
 	public void try_acquire(){
-		if (m.tryAcquire()){
-			assignThread();
-		}
+		m.tryLock();
 	}
 	
 	@WrapMethod
 	public void try_acquire_timeout(long ms, String unit){
 		try {
-			if (m.tryAcquire(ms, TimeUnit.valueOf(unit)))
-				assignThread();
+			m.tryLock(ms, TimeUnit.valueOf(unit));
 		} catch (InterruptedException e) {
 			throw new TypeError("jmutext(): interrupted");
 		} catch (IllegalArgumentException e){
@@ -73,13 +54,6 @@ public class PythonMutex {
 	
 	@WrapMethod
 	public void release(){
-		Thread t = Thread.currentThread();
-		if (currentHolder == null || !t.equals(currentHolder))
-			throw new TypeError("release(): mutex can only be released by the thread it was acquired");
-		if (ac == 0) {
-			currentHolder = null;
-			m.release();
-		} else
-			--ac;
+		m.unlock();
 	}
 }
