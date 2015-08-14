@@ -74,15 +74,12 @@ class __QueueOperator(object):
         return self.remove(event_id)
     
     def remove(self, id_or_event):
-        try:
-            self.__queue.mutex.acquire()
+        with self.__queue.mutex:
             if id_or_event in self.__queue:
                 return self.__queue.remove(id_or_event)
             for event in self.__queue._queue:
                 if event.id == event_id:
                     return self.__queue._queue.remove(event)
-        finally:
-            self.__queue.mutex.release()
 
 class EventReactor(object):
     def __init__(self):
@@ -97,8 +94,7 @@ class EventReactor(object):
     def poll(self):
         dif = sys.current_time() - self.__last_access_time
         self.__last_access_time = sys.current_time() 
-        try:
-            self.__event_queue.mutex.acquire()
+        with self.__event_queue.mutex:
             if self.__event_queue.has_elements():
                 event = self.__event_queue.poll()
                 event.currentPTime -= dif
@@ -111,15 +107,10 @@ class EventReactor(object):
                 else:
                     self.__event_queue.add(event)
             return False
-        finally:
-            self.__event_queue.mutex.release()
             
     def has_events(self):
-        try:
-            self.__event_queue.mutex.acquire()
+        with self.__event_queue.mutex:
             return len(self.__event_queue)
-        finally:
-            self.__event_queue.mutex.release()
             
     def fire_event(self, event):
         event.call()

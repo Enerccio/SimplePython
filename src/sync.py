@@ -45,3 +45,10 @@ class Mutex(object):
         
     def release(self):
         self.__jmutex.release()
+        
+    def __enter__(self):
+        self.acquire()
+        return self
+    
+    def __exit__(self, t, v):
+        self.release()

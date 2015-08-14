@@ -50,36 +50,21 @@ class SynchronizedQueue(Queue):
         self.mutex = Mutex()
         
     def add(self, object):
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             Queue.add(self, object)
-        finally:
-            self.mutex.release()
         
     def poll(self):
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             return Queue.poll(self)
-        finally:
-            self.mutex.release()
         
     def has_elements(self):
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             return Queue.has_elements(self)
-        finally:
-            self.mutex.release()
     
     def __str__(self):
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             return "SynchronizedQueue" + str(self._queue)
-        finally:
-            self.mutex.release()
             
     def __len__(self):
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             return Queue.__len__(self)
-        finally:
-            self.mutex.release()
