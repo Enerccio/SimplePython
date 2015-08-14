@@ -20,6 +20,7 @@ package me.enerccio.sp.interpret;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class CompiledBlockObject extends PythonObject {
 		try {
 			if (compiled == null) {
 				compiled = compile(bytecode, mmap, dmap);
-				bytecode = null;
+				// bytecode = null;
 			}
 		} catch (Exception e) {
 			throw new TypeError("invalid bytecode", e);
@@ -165,11 +166,8 @@ public class CompiledBlockObject extends PythonObject {
 			
 			if (d == null || !d.equals(block.getDebugInformation(pos))){
 				d = block.getDebugInformation(pos);
-				
-				bd.append(
-					String.format("<at %s %-7.7s> ",
-						d.module.getName(), " " + d.lineno + ":" + d.charno));
-				
+				bd.append(String.format("<at %s %-7.7s> ",
+					d.module.getName(), " " + d.lineno + ":" + d.charno));	
 			}
 			
 			if (!single)
@@ -224,7 +222,6 @@ public class CompiledBlockObject extends PythonObject {
 				break;
 			case DELATTR:
 			case GETATTR:
-			case KWARG:
 			case LOAD:
 			case LOADGLOBAL:
 			case LOADBUILTIN:
@@ -277,10 +274,13 @@ public class CompiledBlockObject extends PythonObject {
 			case XOR:
 				bd.append(String.format(FORMAT, ""));
 				break;
-			//default:
-			//	bd.append(String.format(FORMAT, " --- FIXME: unknown opcode --- "));
-			//	break;
-			
+			case KWARG:
+				c = b.getInt();
+				List<String> kwargs = new ArrayList<String>();
+				for (int i=0; i<c; i++)
+					kwargs.add(block.getConstant(b.getInt()).toString());
+				bd.append(String.format(FORMAT, String.format("%s (id %s)" , c, kwargs)));
+				break;
 			}
 			
 			if (single)
