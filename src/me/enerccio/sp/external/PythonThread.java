@@ -54,6 +54,11 @@ public class PythonThread implements Runnable {
 	};
 	
 	@WrapMethod
+	public void setDaemon(boolean daemon){
+		t.setDaemon(daemon);
+	}
+	
+	@WrapMethod
 	public void threadStart(){
 		t.start();
 	}

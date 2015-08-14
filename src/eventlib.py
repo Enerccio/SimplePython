@@ -23,13 +23,13 @@ from threading import *
 from collections import SynchronizedQueue
 from sync import Mutex
 
-__all__ = ["EventReactor", "standard_events", "event_queue", "stop", "has_events"]
+__all__ = ["EventReactor", "Event", "standard_events", "event_queue", "stop", "has_events"]
 
 class __EventReactorThread(Thread):
     def __init__(self):
         self.stopped = False
         self.idle = 0
-        super(__EventReactorThread, self).__init__(name="standard-eventreactor-thread")
+        super(__EventReactorThread, self).__init__(name="standard-eventreactor-thread", daemon=True)
     
     def execute(self):
         while not self.stopped:
