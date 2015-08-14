@@ -160,14 +160,14 @@ class __StopProxy(object):
         
 class __HasEventsProxy(object):
     def __call__(self):
-        return _has_events();
+        return _has_events()
 
 event_queue = __EventQueueProxy()
 stop = __StopProxy()
 has_events = __HasEventsProxy()
 
 def standard_events(poll_idle=10):
-    global __std_er, _event_queue, _stop
+    global __std_er, _event_queue, _stop, _has_events
     if __std_er is not None:
         raise TypeError("standard_events can only be called once!")
     __std_er_t.idle = poll_idle
