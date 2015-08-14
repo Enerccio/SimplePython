@@ -429,6 +429,7 @@ public class PythonRuntime {
 	public static final String GLOBALS = "globals";
 	public static final String COMPILE = "compile";
 	public static final String EVAL = "eval";
+	public static final String STATICFUNCTION = "staticfunction";
 	
 	/** Some basic types */
 	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject.get();
@@ -491,6 +492,7 @@ public class PythonRuntime {
 					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, InternalDict.class, InternalDict.class));
 					globals.put(COMPILE, Utils.staticMethodCall(PythonRuntime.class, COMPILE, PythonObject.class, StringObject.class));
 					globals.put(EVAL, Utils.staticMethodCall(true, PythonRuntime.class, EVAL, TupleObject.class, KwArgs.class));
+					globals.put(STATICFUNCTION, Utils.staticMethodCall(true, PythonRuntime.class, STATICFUNCTION, TupleObject.class, KwArgs.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
@@ -735,6 +737,27 @@ public class PythonRuntime {
 		}
 		
 		return new ArrayList<String>(fields);
+	}
+	
+	protected static PythonObject staticfunction(TupleObject args, KwArgs kwargs){
+		if (kwargs != null)
+			kwargs.checkEmpty("staticmethod");
+		
+		if (args.len() < 2)
+			throw new TypeError("staticmethod(): requires at least 2 arguments");
+		
+		String typename, name;
+		
+		try {
+			typename = Coerce.toJava(args.get(0), String.class);
+			name = Coerce.toJava(args.get(1), String.class);
+		} catch (CastFailedException e) {
+			throw new TypeError("staticmethod(): first two arguments must be strings");
+		}
+		
+		TupleObject slice = (TupleObject) args.get(new SliceObject(Coerce.toPython(2), Coerce.toPython(args.len()), Coerce.toPython(1)));
+		PythonObject o = PythonRuntime.runtime.getJavaClass(true, typename, null, null, slice.getObjects());
+		return o.get(name, null);
 	}
 	
 	protected static PythonObject apply(PythonObject callable, ListObject args){
@@ -1028,7 +1051,7 @@ public class PythonRuntime {
 	 * @param args
 	 * @return
 	 */
-	public PythonObject getJavaClass(String cls, Object pointedObject, KwArgs kwargs, PythonObject... args) {
+	public PythonObject getJavaClass(boolean staticMethodMaker, String cls, Object pointedObject, KwArgs kwargs, PythonObject... args) {
 		if (!aliases.containsKey(cls) && !allowAutowraps)
 			throw new TypeError("javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
 		if (!aliases.containsKey(cls))
@@ -1041,17 +1064,17 @@ public class PythonRuntime {
 		
 		cls = aliases.get(cls);
 		
+		Class<?> clazz;
+		try {
+			clazz = Class.forName(cls);
+		} catch (ClassNotFoundException e1) {
+			throw new TypeError("javainstance(): unknown java type " + cls);
+		}
+		
 		Object o;
-		if (pointedObject != null)
+		if (pointedObject != null || staticMethodMaker)
 			o = pointedObject;
 		else {
-			Class<?> clazz;
-			try {
-				clazz = Class.forName(cls);
-			} catch (ClassNotFoundException e1) {
-				throw new TypeError("javainstance(): unknown java type " + cls);
-			}
-			
 			Object[] jargs = new Object[args.length + (kwargs != null ? 1 : 0)];
 			
 			Constructor<?> selected = null;
@@ -1101,9 +1124,9 @@ public class PythonRuntime {
 		if (factory == null){
 			throw new TypeError("javainstance(): no available factory for class " + cls);
 		}
-		PointerObject ptr = factory.doInitialize(o);
-		if (augumentors.containsKey(o.getClass().getName())){
-			return augumentors.get(o.getClass().getName()).finalizePointer(ptr);
+		PointerObject ptr = factory.doInitialize(o, clazz);
+		if (augumentors.containsKey(clazz.getName())){
+			return augumentors.get(clazz.getName()).finalizePointer(ptr);
 		} else
 			return ptr;
 	}

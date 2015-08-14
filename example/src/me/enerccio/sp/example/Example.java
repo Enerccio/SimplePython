@@ -7,14 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonPathResolver;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.pointer.WrapPublicFactory;
 import me.enerccio.sp.utils.Coerce;
-
 
 public class Example extends JFrame {
 	private static final long serialVersionUID = 3581091849784539787L;
@@ -49,9 +47,5 @@ public class Example extends JFrame {
 			SimplePython.executeFunction("example1", "add_event", exitFnc, eventOwner, SimplePython.asTuple(args));
 		}
 		
-	}
-	
-	public void showDialog(String d){
-		JOptionPane.showMessageDialog(null, d);
 	}
 }

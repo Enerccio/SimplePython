@@ -31,6 +31,6 @@ public interface PointerFactory extends Serializable {
 	 * @param instance
 	 * @return
 	 */
-	PointerObject doInitialize(Object instance);
+	PointerObject doInitialize(Object instance, Class<?> clazz);
 	
 }

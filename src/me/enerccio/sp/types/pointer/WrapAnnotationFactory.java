@@ -43,9 +43,9 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 	}
 	
 	@Override
-	protected List<Method> getMethods(Object instance) {
+	protected List<Method> getMethods(Class<?> clazz) {
 		List<Method> ml = new ArrayList<Method>();
-		for (Method m : instance.getClass().getMethods()){
+		for (Method m : clazz.getMethods()){
 			if (m.isAnnotationPresent(WrapMethod.class))
 				ml.add(m);
 		}
@@ -53,9 +53,9 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 	}
 
 	@Override
-	protected List<Pair<Field, Boolean>> getFields(Object instance) {
+	protected List<Pair<Field, Boolean>> getFields(Class<?> clazz) {
 		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
-		for (Field f : instance.getClass().getFields())
+		for (Field f : clazz.getFields())
 			if (f.isAnnotationPresent(WrapField.class))
 				fl.add(Pair.makePair(f, f.getAnnotation(WrapField.class).readOnly()));
 		return fl;

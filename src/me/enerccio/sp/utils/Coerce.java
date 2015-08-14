@@ -176,12 +176,12 @@ public class Coerce {
 		}
 		if (o == null)
 			return NoneObject.NONE;
-		return PythonRuntime.runtime.getJavaClass(o.getClass().getCanonicalName(), o, null);
+		return PythonRuntime.runtime.getJavaClass(false, o.getClass().getCanonicalName(), o, null);
 	}
 	
 	/** Coerces object to nearest applicable python type */
 	public static PythonObject toPython(Object o) {
-		return PythonRuntime.runtime.getJavaClass(o.getClass().getName(), o, null);
+		return PythonRuntime.runtime.getJavaClass(false, o.getClass().getName(), o, null);
 	}
 	
 	/** Coerces object to nearest applicable python type */

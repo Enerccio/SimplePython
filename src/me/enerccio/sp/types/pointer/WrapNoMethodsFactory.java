@@ -26,7 +26,7 @@ public class WrapNoMethodsFactory implements PointerFactory {
 	private static final long serialVersionUID = -4372859400649832530L;
 
 	@Override
-	public PointerObject doInitialize(Object instance) {
+	public PointerObject doInitialize(Object instance, Class<?> clazz) {
 		PointerObject o = new PointerObject(instance);
 		return o;
 	}

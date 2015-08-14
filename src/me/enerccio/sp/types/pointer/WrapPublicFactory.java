@@ -33,18 +33,18 @@ public class WrapPublicFactory extends WrapBaseFactory implements PointerFactory
 	private static final long serialVersionUID = 693487950048251692L;
 
 	@Override
-	protected List<Method> getMethods(Object instance) {
+	protected List<Method> getMethods(Class<?> clazz) {
 		List<Method> ml = new ArrayList<Method>();
-		for (Method m : instance.getClass().getMethods()){
+		for (Method m : clazz.getMethods()){
 			ml.add(m);
 		}
 		return ml;
 	}
 
 	@Override
-	protected List<Pair<Field, Boolean>> getFields(Object instance) {
+	protected List<Pair<Field, Boolean>> getFields(Class<?> clazz) {
 		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
-		for (Field f : instance.getClass().getFields())
+		for (Field f : clazz.getFields())
 			fl.add(Pair.makePair(f, false));
 		return fl;
 	}

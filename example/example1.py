@@ -7,8 +7,7 @@ def exit(object):
     
 def show_alert(object, *args):
     print object
-    e.frame.showDialog(*args)
-    
+    staticfunction("javax.swing.JOptionPane", "showMessageDialog")(None, *args)
 
 class example(object):
     def __init__(self):

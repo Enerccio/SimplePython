@@ -56,7 +56,7 @@ public class JavaInstanceTypeObject extends TypeObject {
 		
 		PythonRuntime.runtime.checkSandboxAction("javainstance", SecureAction.JAVA_INSTANCE_CREATION, cls);
 		
-		return PythonRuntime.runtime.getJavaClass(cls, null, kwargs, Utils.removeFirst(args.getObjects()));
+		return PythonRuntime.runtime.getJavaClass(false, cls, null, kwargs, Utils.removeFirst(args.getObjects()));
 	}
 
 	
