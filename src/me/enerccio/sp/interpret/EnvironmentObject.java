@@ -99,6 +99,10 @@ public class EnvironmentObject extends PythonObject {
 		
 		PythonObject o;
 		for (int i=it; i<environments.size(); i++){
+			if (!isGlobal && environments.size() == 2)
+				break; // ignore builtin when set to non global
+			if (!isGlobal && environments.size() > 1 && i == environments.size()-2)
+				break; // ignore globals when setting without globals
 			if (environments.size() > 1 && i == environments.size()-1)
 				break; // ignore builtins
 			

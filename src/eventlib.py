@@ -167,7 +167,7 @@ stop = __StopProxy()
 has_events = __HasEventsProxy()
 
 def standard_events(poll_idle=10):
-    global __std_er, event_queue, stop
+    global __std_er, _event_queue, _stop
     if __std_er is not None:
         raise TypeError("standard_events can only be called once!")
     __std_er_t.idle = poll_idle
