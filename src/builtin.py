@@ -122,7 +122,12 @@ class file(object):
         
         self.__data_stream = javainstance("filestream", self.name, self.mode)
         self.encoding = self.__data_stream.encoding()
-        
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, type, value):
+        self.close()
         
     def check_closed(self):
         if self.closed:

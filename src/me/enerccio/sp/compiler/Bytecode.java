@@ -40,7 +40,7 @@ public enum Bytecode {
 	POP(31), PUSH(32), CALL(33), KCALL(34), RCALL(35), ECALL(36), DUP(37),
 	SWAP_STACK(38), JUMPIFTRUE(39), JUMPIFFALSE(40), JUMPIFNONE(41),
 	JUMPIFNORETURN(42), GOTO(43), RETURN(44), SAVE_LOCAL(45),
-	TRUTH_VALUE(46),
+	TRUTH_VALUE(46), MAKE_FIRST(47),
 	// variables
 	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70), LOADBUILTIN(71),
 	// special call-related
@@ -190,6 +190,10 @@ public enum Bytecode {
 			break;
 		case POP:
 			bytecode = new Pop();
+			
+			break;
+		case MAKE_FIRST:
+			bytecode = new MakeFirst();
 			
 			break;
 		case PUSH:

@@ -186,10 +186,13 @@ public class CompiledBlockObject extends PythonObject {
 			case JUMPIFNORETURN:
 			case JUMPIFTRUE:
 			case KCALL:
-			case PUSH_FRAME:
 			case RCALL:
 			case UNPACK_SEQUENCE:
+			case MAKE_FIRST:
 				bd.append(String.format(FORMAT, b.getInt()));
+				break;
+			case PUSH_FRAME:
+				bd.append(String.format(FORMAT, b.getInt() + ", copy " + b.getInt() + " elements"));
 				break;
 			case ACCEPT_ITER:
 			case GET_ITER:
@@ -431,12 +434,16 @@ public class CompiledBlockObject extends PythonObject {
 			case PUSH_FRAME:
 				jumpMap.put(itc, b.intValue);
 				w.writeInt(b.intValue);
+				w.writeInt(b.object == null ? 0 : (Integer)b.object);
 				break;
 			case PUSH_LOCAL_CONTEXT:
 				break;
 			case RAISE:
 				break;
 			case RCALL:
+				w.writeInt(b.intValue);
+				break;
+			case MAKE_FIRST:
 				w.writeInt(b.intValue);
 				break;
 			case RERAISE:

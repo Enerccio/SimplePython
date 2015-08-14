@@ -205,6 +205,14 @@ small_stmt:
              import_stmt | global_stmt | dynamic_stmt | exec_stmt)
 ;
 
+with_stmt:
+'with' with_item (',' with_item)*  ':' suite
+;
+
+with_item: 
+test ('as' expr)?
+;
+
 exec_stmt:
  'exec' expr ('in' test (',' test)?)?
 ;
@@ -325,7 +333,7 @@ dynamic_stmt:
 ;
 
 compound_stmt:
- if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated
+ if_stmt | while_stmt | for_stmt | try_stmt | switch_stmt | funcdef | classdef | decorated | with_stmt
 ;
 
 if_stmt:

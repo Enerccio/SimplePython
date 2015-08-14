@@ -108,6 +108,8 @@ import me.enerccio.sp.parser.pythonParser.Try_exceptContext;
 import me.enerccio.sp.parser.pythonParser.Try_stmtContext;
 import me.enerccio.sp.parser.pythonParser.VarargContext;
 import me.enerccio.sp.parser.pythonParser.While_stmtContext;
+import me.enerccio.sp.parser.pythonParser.With_itemContext;
+import me.enerccio.sp.parser.pythonParser.With_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Xor_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_exprContext;
 import me.enerccio.sp.parser.pythonParser.Yield_or_exprContext;
@@ -382,15 +384,116 @@ public class PythonCompiler {
 				compileClass(dc.classdef(), bytecode, dc.decorators());
 			else if (dc.funcdef() != null)
 				compileFunction(dc.funcdef(), bytecode, dc.decorators());
+		} else if (cstmt.with_stmt() != null){
+			compileWith(cstmt.with_stmt(), bytecode, cs);
 		} else
 			throw new SyntaxError("statament type not implemented");
 	}
-	
+
 	private void compileSuite(SuiteContext ctx, List<PythonBytecode> bytecode, ControllStack cs) {
 		if (ctx.simple_stmt() != null)
 			compileSimpleStatement(ctx.simple_stmt(), bytecode, cs);
 		for (StmtContext sctx : ctx.stmt())
 			compileStatement(sctx, bytecode, cs);
+	}
+	
+	private void compileWith(With_stmtContext with_stmt,
+			List<PythonBytecode> bytecode, ControllStack cs) {
+		compileWith(0, with_stmt.with_item(), with_stmt.suite(), bytecode, cs);
+	}
+
+	private void compileWith(int i, List<With_itemContext> items,
+			SuiteContext suite, List<PythonBytecode> bytecode, ControllStack cs) {
+		if (i == items.size()){
+			compileWithBody(suite, bytecode, cs);
+		} else {
+			compileWithProtocol(i+1, items, items.get(i), suite, bytecode, cs);
+		}
+	}
+
+	private void compileWithProtocol(int i, List<With_itemContext> items,
+			With_itemContext wi, SuiteContext suite, List<PythonBytecode> bytecode,
+			ControllStack cs) {
+		PythonBytecode makeFrame = Bytecode.makeBytecode(Bytecode.PUSH_FRAME, wi.start, getFunction(), module);
+		PythonBytecode excTestJump = Bytecode.makeBytecode(Bytecode.GOTO, wi.start, getFunction(), module);
+		
+		
+		compileWithEntryProtocol(wi, bytecode, cs);
+		bytecode.add(makeFrame);
+		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.start);
+		addBytecode(bytecode, Bytecode.PUSH_EXCEPTION, wi.start);
+		bytecode.add(excTestJump);
+		makeFrame.intValue = bytecode.size();
+		makeFrame.object = 1;
+	
+		// assignment is done within subframe
+		if (wi.expr() != null){
+			compileAssignment(wi.expr(), bytecode);
+		} else {
+			addBytecode(bytecode, Bytecode.POP, wi.stop);
+		}
+		compileWith(i, items, suite, bytecode, cs);
+		addBytecode(bytecode, Bytecode.RETURN, wi.stop);
+		excTestJump.intValue = bytecode.size();
+		// Stack contains TOP -> with item -> return value -> frame -> exception
+		addBytecode(bytecode, Bytecode.DUP, wi.stop);
+		cb = addBytecode(bytecode, Bytecode.MAKE_FIRST, wi.stop);
+		cb.intValue = 4;
+		// Stack contains TOP -> return value -> frame -> exception #1 -> exception #1 -> with item
+		putGetAttr("__exit__", bytecode, wi.stop);
+		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1
+		addBytecode(bytecode, Bytecode.DUP, wi.stop);
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1 -> exception #1
+		PythonBytecode jumpIfNoException = addBytecode(bytecode, Bytecode.JUMPIFNONE, wi.stop);
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1 -> exception #1 
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, wi.stop);
+		cb.stringValue = "type";
+		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
+		cb.intValue = 1;
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1 -> exception #1.__class__
+		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1.__class__ -> exception #1
+		
+		jumpIfNoException.intValue = bytecode.size();
+		// Stack contains TOP -> return value -> frame -> exception #1 -> with item.__exit__ -> exception #1.__class__/None -> exception #1/None
+		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
+		cb.intValue = 2;
+		// Stack contains TOP -> return value -> frame -> exception #1 -> result(with item.__exit__)
+		PythonBytecode exceptionNotSuppressed = addBytecode(bytecode, Bytecode.JUMPIFFALSE, wi.stop);
+		// exception is suppressed, just pop it and push None
+		addBytecode(bytecode, Bytecode.POP, wi.stop);
+		cb = addBytecode(bytecode, Bytecode.PUSH, wi.stop);
+		cb.value = NoneObject.NONE;
+		exceptionNotSuppressed.intValue = bytecode.size();
+		// raises if exception is on top of the stack, or not if None
+		addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
+		// If execution reaches here, there was no exception and there is still frame on top of stack.
+		// If this frame returned value, it should be returned from here as well.
+		PythonBytecode noReturnJump = addBytecode(bytecode, Bytecode.JUMPIFNORETURN, wi.stop);
+		// There is TOP -> return value -> frame on stack if execution reaches here
+		addBytecode(bytecode, Bytecode.POP, wi.stop);
+		cb = addBytecode(bytecode, Bytecode.RETURN, wi.stop);
+		cb.intValue = 1;
+		noReturnJump.intValue = bytecode.size();
+		addBytecode(bytecode, Bytecode.POP, wi.stop);
+		addBytecode(bytecode, Bytecode.POP, wi.stop);
+	}
+
+	private void compileWithEntryProtocol(With_itemContext wi,
+			List<PythonBytecode> bytecode, ControllStack cs) {
+		compile(wi.test(), bytecode);
+		addBytecode(bytecode, Bytecode.DUP, wi.stop);
+		putGetAttr("__enter__", bytecode, wi.stop);
+		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
+		cb.intValue = 0;
+	}
+
+	private void compileWithBody(SuiteContext suite,
+			List<PythonBytecode> bytecode, ControllStack cs) {
+		compileSuite(suite, bytecode, cs);
+		addBytecode(bytecode, Bytecode.RETURN, suite.stop);
 	}
 
 	private void compileTry(Try_stmtContext try_stmt, List<PythonBytecode> bytecode, ControllStack cs) {

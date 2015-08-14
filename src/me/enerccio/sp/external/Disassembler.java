@@ -96,7 +96,6 @@ public class Disassembler {
 			case CALL:
 			case DUP:
 			case ECALL:
-			case PUSH_FRAME:
 			case RCALL:
 			case RETURN:
 			case SETUP_LOOP:
@@ -109,7 +108,13 @@ public class Disassembler {
 			case JUMPIFNONE:
 			case JUMPIFNORETURN:
 			case JUMPIFTRUE:
+			case SWAP_STACK:
+			case MAKE_FIRST:
 				bytecode.intValue = readBuff.getInt();
+				break;
+			case PUSH_FRAME:
+				bytecode.intValue = readBuff.getInt();
+				bytecode.object = readBuff.getInt();
 				break;
 			case DELATTR:
 			case LOAD:
@@ -156,7 +161,6 @@ public class Disassembler {
 			case RERAISE:
 			case RESOLVE_ARGS:
 			case RESOLVE_CLOSURE:
-			case SWAP_STACK:
 			case UNPACK_KWARG:
 			case ADD:
 			case AND:

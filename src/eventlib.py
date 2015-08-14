@@ -71,8 +71,13 @@ class __QueueOperator(object):
         return self.enqueue(event)
         
     def __rarrow__(self, event_id):
+        return self.remove(event_id)
+    
+    def remove(self, id_or_event):
         try:
             self.__queue.mutex.acquire()
+            if id_or_event in self.__queue:
+                return self.__queue.remove(id_or_event)
             for event in self.__queue._queue:
                 if event.id == event_id:
                     return self.__queue._queue.remove(event)

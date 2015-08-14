@@ -98,6 +98,17 @@ public class PythonBytecode extends PythonObject {
 		}
 	}
 	
+	public static class MakeFirst extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4386921119191660149L;
+
+		{
+			bytecode = Bytecode.MAKE_FIRST;
+		}
+	}
+	
 	public static class TestFuture extends PythonBytecode {
 		/**
 		 * 

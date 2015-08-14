@@ -18,6 +18,7 @@
 package me.enerccio.sp.external;
 
 import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -50,7 +51,11 @@ public class FileStream {
 		} else {
 			encoding = "utf-8";
 		}
-		this.file = new RandomAccessFile(file, m);
+		try {
+			this.file = new RandomAccessFile(file, m);
+		} catch (FileNotFoundException e){
+			throw new IOError("open(): no such file or directory: '" + file + "'");
+		}
 	}
 	
 	@WrapMethod

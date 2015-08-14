@@ -685,6 +685,19 @@ public class PythonInterpreter extends PythonObject {
 			stack.push(bot);
 			break;
 		}
+		case MAKE_FIRST: {
+			// moves element x units in stack to the top of the stack, pushing rest down
+			int nth = o.nextInt();
+			List<PythonObject> rest = new ArrayList<PythonObject>();
+			for (int i=0; i<nth; i++)
+				rest.add(stack.pop());
+			PythonObject newHead = stack.pop();
+			Collections.reverse(rest);
+			for (PythonObject datum : rest)
+				stack.push(datum);
+			stack.push(newHead);
+			break;
+		}
 		case UNPACK_SEQUENCE:
 			// unpacks sequence onto stack
 			int cfc = currentFrame.size();
@@ -837,6 +850,18 @@ public class PythonInterpreter extends PythonObject {
 			nf.dataStream = ByteBuffer.wrap(nf.compiled.getBytedata());
 			nf.pc = o.nextInt();
 			currentFrame.add(nf);
+			
+			// moves x elements from original stack to new stack (used by WITH)
+			int popc = o.nextInt();
+			if (popc > 0){
+				List<PythonObject> po = new ArrayList<PythonObject>();
+				for (int i=0; i<popc; i++){
+					po.add(stack.pop());
+				}
+				Collections.reverse(po);
+				for (PythonObject oo : po)
+					nf.stack.push(oo);
+			}
 			break;
 		case PUSH_EXCEPTION:
 			// who has any idea what this shit does call 1-555-1337
