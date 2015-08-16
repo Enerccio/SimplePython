@@ -437,7 +437,7 @@ and_expr:
 ;
 
 shift_expr:
- arith_expr (('<<'|'>>'|'::'|'->'|'<-') arith_expr)*
+ arith_expr (('<<'|'>>'|'::'|'->') arith_expr)*
 ;
 
 arith_expr:

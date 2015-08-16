@@ -555,8 +555,9 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
-				cb = addBytecode(bytecode, Bytecode.GOTO, wi.stop);
-				cb.intValue = ((LoopStackItem)it).start;
+				PythonBytecode c = Bytecode.makeBytecode(Bytecode.GOTO, wi.stop, getFunction(), module); 
+				bytecode.add(c); 
+				((LoopStackItem)it).addJump(c);
 			}
 			
 			skipOver2.intValue = bytecode.size();
@@ -1825,7 +1826,6 @@ public class PythonCompiler {
 				case "<<": operation = Bytecode.LSHIFT; break;
 				case ">>": operation = Bytecode.RSHIFT; break;
 				case "::": operation = Bytecode.DCOLON; break;
-				case "<-": operation = Bytecode.LARROW; break;
 				case "->": operation = Bytecode.RARROW; break;
 				}
 				compile((Arith_exprContext) ctx.getChild(i+1), bytecode);
@@ -2770,7 +2770,6 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// return code (should be None)
 				addBytecode(bytecode, Bytecode.RERAISE, ctx.start);
 			} else if (overMe instanceof WithControllStackItem) {
-				((TryFinallyItem)overMe).needsBreakBlock = true;
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
@@ -2799,7 +2798,6 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// return code (should be None)
 				addBytecode(bytecode, Bytecode.RERAISE, ctx.start);
 			} else if (overMe instanceof WithControllStackItem) {
-				((TryFinallyItem)overMe).needsContinueBlock = true;
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);

@@ -1,22 +1,19 @@
-class X(object):
-    def __init__(self):
-        self.ec = 0
-    def __enter__(self):
-        try:
-            return self.ec
-        finally:
-            self.ec += 1
-    
-    def __exit__(self, type, value):
-        print type, value
-        
+import eventlib
+
+count = 0
+def xxx(event, arg):
+    global count
+    print "event happened!!! ", str(event), arg
+    count += 1
+    if count > 5:
+        event.periodic = False
+
 def test():
-    x = X()
-    for a in (0, 1):
-        try:
-            with x as y:
-                print y
-                break
-        finally:
-            print "b"
-        print "a"
+    a = [1, 2, 3, 4]
+    print a.remove(2), a
+    
+    eventlib.standard_events()
+    id = eventlib.event_queue << eventlib.Event(xxx, True, 1000, args="test")
+    print "event id", id
+    while eventlib.has_events():
+        pass

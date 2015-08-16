@@ -287,8 +287,6 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case QM:
 				break;
-			case LARROW:
-				break;
 			case RARROW:
 				break;
 			}

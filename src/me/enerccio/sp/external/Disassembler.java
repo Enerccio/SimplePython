@@ -181,7 +181,6 @@ public class Disassembler {
 			case XOR:
 			case DCOLON:
 			case QM:
-			case LARROW:
 			case RARROW:
 				break;
 			}

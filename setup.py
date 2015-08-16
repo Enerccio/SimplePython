@@ -25,7 +25,7 @@ def math_interpreter_template():
     output_path = "gen/me/enerccio/sp/interpret/InterpreterMathExecutorHelper.java"
     
     operations = ["ADD", "SUB", "MUL", "DIV", "MOD", "AND", "OR", "XOR", "POW", "RSHIFT", "LSHIFT",
-                  "LT", "LE", "GE", "GT", "EQ", "NE", "DCOLON", "QM", "LARROW", "RARROW"]
+                  "LT", "LE", "GE", "GT", "EQ", "NE", "DCOLON", "QM", "RARROW"]
     op_lower = [s.lower() for s in operations]
     op_camel = [s[0] + s[1:].lower() for s in operations]
     

@@ -277,7 +277,6 @@ public class CompiledBlockObject extends PythonObject {
 			case XOR:
 			case DCOLON:
 			case QM:
-			case LARROW:
 			case RARROW:
 				bd.append(String.format(FORMAT, ""));
 				break;
@@ -526,8 +525,6 @@ public class CompiledBlockObject extends PythonObject {
 			case DCOLON:
 				break;
 			case QM:
-				break;
-			case LARROW:
 				break;
 			case RARROW:
 				break;
