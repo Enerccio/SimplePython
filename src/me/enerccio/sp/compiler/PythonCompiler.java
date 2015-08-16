@@ -523,6 +523,9 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);	// return code (should be None)
 				addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
+				if (it instanceof TryFinallyItem){
+					((TryFinallyItem)it).needsContinueBlock = true;
+				}
 			} else {
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
@@ -545,6 +548,9 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);	// return code (should be None)
 				addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
+				if (it instanceof TryFinallyItem){
+					((TryFinallyItem)it).needsBreakBlock = true;
+				}
 			} else {
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
 				addBytecode(bytecode, Bytecode.POP, wi.stop);
