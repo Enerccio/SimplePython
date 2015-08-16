@@ -511,13 +511,49 @@ public class PythonCompiler {
 		cs.pop();
 		ControllStackItem it = cs.peek();
 		if (it != null){
-			addBytecode(bytecode, Bytecode.DUP, wi.stop);
 			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, wi.stop);
 			cb.stringValue = "LoopContinue"; 
 			addBytecode(bytecode, Bytecode.ISINSTANCE, wi.stop);
 			PythonBytecode skipOver1 = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, wi.stop, getFunction(), module);
 			bytecode.add(skipOver1);
 			
+			if (it instanceof TryFinallyItem || it instanceof WithControllStackItem){
+				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);	// frame
+				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);	// return code (should be None)
+				addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
+			} else {
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				cb = addBytecode(bytecode, Bytecode.GOTO, wi.stop);
+				cb.intValue = ((LoopStackItem)it).start;
+			}
+			
+			skipOver1.intValue = bytecode.size();
+			
+			cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, wi.stop);
+			cb.stringValue = "LoopBreak"; 
+			addBytecode(bytecode, Bytecode.ISINSTANCE, wi.stop);
+			PythonBytecode skipOver2 = Bytecode.makeBytecode(Bytecode.JUMPIFFALSE, wi.stop, getFunction(), module);
+			bytecode.add(skipOver2);
+			
+			if (it instanceof TryFinallyItem || it instanceof WithControllStackItem){
+				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);	// frame
+				addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);	// return code (should be None)
+				addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
+			} else {
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				addBytecode(bytecode, Bytecode.POP, wi.stop);
+				cb = addBytecode(bytecode, Bytecode.GOTO, wi.stop);
+				cb.intValue = ((LoopStackItem)it).start;
+			}
+			
+			skipOver2.intValue = bytecode.size();
 		}
 		
 		addBytecode(bytecode, Bytecode.RERAISE, wi.stop);
@@ -2727,6 +2763,13 @@ public class PythonCompiler {
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// return code (should be None)
 				addBytecode(bytecode, Bytecode.RERAISE, ctx.start);
+			} else if (overMe instanceof WithControllStackItem) {
+				((TryFinallyItem)overMe).needsBreakBlock = true;
+				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
+				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
+				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
+				addBytecode(bytecode, Bytecode.POP, ctx.start);	// return code (should be None)
+				addBytecode(bytecode, Bytecode.RERAISE, ctx.start);
 			} else {
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// exception
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
@@ -2743,6 +2786,13 @@ public class PythonCompiler {
 			
 			ControllStackItem overMe = cs.peek();
 			if (overMe instanceof TryFinallyItem) {
+				((TryFinallyItem)overMe).needsContinueBlock = true;
+				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
+				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
+				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
+				addBytecode(bytecode, Bytecode.POP, ctx.start);	// return code (should be None)
+				addBytecode(bytecode, Bytecode.RERAISE, ctx.start);
+			} else if (overMe instanceof WithControllStackItem) {
 				((TryFinallyItem)overMe).needsContinueBlock = true;
 				addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.start);
 				addBytecode(bytecode, Bytecode.POP, ctx.start);	// frame
@@ -2778,7 +2828,7 @@ public class PythonCompiler {
 	
 	private class LoopStackItem implements ControllStackItem {
 		private List<PythonBytecode> bcs = new LinkedList<>();
-		private int start;
+		public int start;
 
 		LoopStackItem(int startAddress) {
 			this.start = startAddress;

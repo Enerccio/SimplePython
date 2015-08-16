@@ -13,7 +13,10 @@ class X(object):
 def test():
     x = X()
     for a in (0, 1):
-        with x as y:
-            print y
-            continue
+        try:
+            with x as y:
+                print y
+                break
+        finally:
+            print "b"
         print "a"
