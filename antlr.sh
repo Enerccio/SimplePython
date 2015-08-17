@@ -32,7 +32,7 @@ if [ ! -e $TMP$CHECK_CLASS -o $TMP$CHECK_CLASS -ot $CHECK_JAVA ] ; then
 fi
 
 popd
-cp test/x.spy $TMP/x.spy
+cp test/x.py $TMP/x.py
 cd $TMP
 
-$GRUN me.enerccio.sp.parser.python file_input -encoding 'utf-8' $1 x.spy
+$GRUN me.enerccio.sp.parser.python file_input -encoding 'utf-8' $1 x.py
