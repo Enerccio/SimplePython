@@ -396,7 +396,7 @@ public abstract class NumberObject extends PythonObject
 					case BOOL:
 					case INT:
 						if (PythonRuntime.USE_INT_ONLY) {
-							long r = value + n.intValue();
+							long r = value * n.intValue();
 							int ir = (int)r;
 							if (ir != r)
 								throw new TypeError("int overflow");
