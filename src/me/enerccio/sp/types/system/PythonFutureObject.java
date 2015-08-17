@@ -52,7 +52,10 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		futureCall = fc;
 		closure = new StringDictObject();
 		for (String key : closureCopy){
-			closure.putVariable(key, environment.get(key, false, false));
+			PythonObject var = environment.get(key, false, false);
+			if (var.get("__onfuture__", null) != null)
+				var = PythonInterpreter.interpreter.get().execute(true, var.get("__onfuture__", null), null);
+			closure.putVariable(key, var);
 		}
 		startNewFuture();
 	}

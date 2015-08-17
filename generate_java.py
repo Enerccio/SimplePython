@@ -4,7 +4,7 @@
 SimplePython - embeddable python interpret in java
 Copyright (c) Peter Vanusanik, All rights reserved.
  
- setup.py for initializing java generated classes
+ generate_java.py for initializing java generated classes
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,11 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+import os
+
 def math_interpreter_template():
+    os.makedirs("gen/me/enerccio/sp/interpret")
+    
     template_path = "src/me/enerccio/sp/interpret/InterpreterMathExecutorHelper.java.template"
     output_path = "gen/me/enerccio/sp/interpret/InterpreterMathExecutorHelper.java"
     
