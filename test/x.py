@@ -1,19 +1,9 @@
-import eventlib
-
-count = 0
-def xxx(event, arg):
-    global count
-    print "event happened!!! ", str(event), arg
-    count += 1
-    if count > 5:
-        event.periodic = False
+def x():
+    c = 0
+    for a in xrange(1024):
+        for b in xrange(1024):
+            c += a + b
+    return c 
 
 def test():
-    a = [1, 2, 3, 4]
-    print a.remove(2), a
-    
-    eventlib.standard_events()
-    id = eventlib.event_queue << eventlib.Event(xxx, True, 1000, args="test")
-    print "event id", id
-    while eventlib.has_events():
-        pass
+    print x()

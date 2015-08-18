@@ -9,7 +9,7 @@ Welcome to SimplePython's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
     quickstart
     differences
