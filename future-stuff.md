@@ -35,10 +35,10 @@ if ready lines:
     do_something_fancy(lines)
 ```
 
-ready operator returns `true`, if argument is _Future object_ created by
+ready operator returns `true`, if variable contains _Future object_ created by
 [future statement](#future-statement) and computation of expression is done, or
-argument is not _Future object_ at all. For _Future object_ with value still
-being computed, operator returns false.
+variable doesn't contain _Future object_ at all. For _Future object_ with value
+still being computed, operator returns false.
 
 Another, more meaningful example of usage would be:
 
@@ -58,9 +58,10 @@ potentially halt thread until value is computed), but working with variable
 which was _Future object_ assigned into is needed. In that case, future operator
 can be used.
 
-future operator returns its own argument, even if argument is _Future object_.
-Unlike every other possible use, accessing _Future object_ with future operator
-will _not_ replace it with computed value nor wait for this value to be computed.
+future operator returns actual value of variable, even if variable is
+_Future object_. Unlike every other possible use, accessing _Future object_ with
+future operator will _not_ replace it with computed value nor wait for this
+value to be computed.
 
 Some examples:
 
