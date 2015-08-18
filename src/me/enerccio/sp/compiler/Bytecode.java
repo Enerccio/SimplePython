@@ -44,7 +44,7 @@ public enum Bytecode {
 	// variables
 	LOAD(64), LOADGLOBAL(65), SAVE(66), SAVEGLOBAL(67), UNPACK_SEQUENCE(68), LOADDYNAMIC(69), SAVEDYNAMIC(70), LOADBUILTIN(71),
 	// special call-related
-	KWARG(80), UNPACK_KWARG(81), MAKE_FUTURE(82), TEST_FUTURE(83),
+	KWARG(80), UNPACK_KWARG(81), MAKE_FUTURE(82), TEST_FUTURE(83), LOAD_FUTURE(84),
 	// exceptions
 	RAISE(85), RERAISE(86),
 	// macros
@@ -178,6 +178,10 @@ public enum Bytecode {
 			break;
 		case LOADGLOBAL:
 			bytecode = new LoadGlobal();
+			
+			break;
+		case LOAD_FUTURE:
+			bytecode = new LoadFuture();
 			
 			break;
 		case MAKE_FUTURE:

@@ -437,6 +437,10 @@ public class PythonInterpreter extends PythonObject {
 		case LOAD: 
 			load(o, stack);
 			break;
+		case LOAD_FUTURE:
+			// pushes variable onto stack. If variable is future, it is not resolved
+			loadFuture(o, stack);
+			break;
 		case TEST_FUTURE: 
 			testFuture(o, stack);
 			break;
@@ -719,6 +723,17 @@ public class PythonInterpreter extends PythonObject {
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
 			value = ((FutureObject)value).getValue();
+		stack.push(value);
+	}
+	
+	private void loadFuture(FrameObject o, Stack<PythonObject> stack) {
+		String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		PythonObject value = environment().get(svl, false, false);
+		if (value == null)
+			throw new NameError("name " + svl + " is not defined");
+		if (value instanceof FutureObject)
+			if (((FutureObject)value).isReady())
+				value = ((FutureObject)value).getValue();
 		stack.push(value);
 	}
 

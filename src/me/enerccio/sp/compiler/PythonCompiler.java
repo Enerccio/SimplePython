@@ -67,6 +67,7 @@ import me.enerccio.sp.parser.pythonParser.Flow_stmtContext;
 import me.enerccio.sp.parser.pythonParser.For_stmtContext;
 import me.enerccio.sp.parser.pythonParser.FuncdefContext;
 import me.enerccio.sp.parser.pythonParser.FutureContext;
+import me.enerccio.sp.parser.pythonParser.Future_opContext;
 import me.enerccio.sp.parser.pythonParser.Global_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
@@ -86,7 +87,7 @@ import me.enerccio.sp.parser.pythonParser.Or_testContext;
 import me.enerccio.sp.parser.pythonParser.PowerContext;
 import me.enerccio.sp.parser.pythonParser.Print_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Raise_stmtContext;
-import me.enerccio.sp.parser.pythonParser.Ready_exprContext;
+import me.enerccio.sp.parser.pythonParser.Ready_opContext;
 import me.enerccio.sp.parser.pythonParser.Return_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Shift_exprContext;
 import me.enerccio.sp.parser.pythonParser.Simple_stmtContext;
@@ -1702,29 +1703,35 @@ public class PythonCompiler {
 	}
 	
 	private void compile(Not_testContext ctx, List<PythonBytecode> bytecode) {
-		if (ctx.not_test() == null) {
-			if (ctx.ready_expr() == null)
-				compile(ctx.comparison(), bytecode);
-			else
-				compile(ctx.ready_expr(), bytecode);
-			return;
-		}
-		int amount = countNots(ctx, bytecode);
-		cb = addBytecode(bytecode, Bytecode.TRUTH_VALUE, ctx.start);
-		cb.intValue = amount % 2;
+		if (ctx.not_test() != null) {
+			int amount = countNots(ctx, bytecode);
+			cb = addBytecode(bytecode, Bytecode.TRUTH_VALUE, ctx.start);
+			cb.intValue = amount % 2;
+		} else if (ctx.ready_op() != null)
+			compile(ctx.ready_op(), bytecode);
+		else if (ctx.future_op() != null)
+			compile(ctx.future_op(), bytecode);
+		else
+			compile(ctx.comparison(), bytecode);
 	}
 	
-	private void compile(Ready_exprContext ctx,
-			List<PythonBytecode> bytecode) {
+	private void compile(Ready_opContext ctx, List<PythonBytecode> bytecode) {
 		cb = addBytecode(bytecode, Bytecode.TEST_FUTURE, ctx.start);
+		cb.stringValue = ctx.nname().getText();
+	}
+	
+	private void compile(Future_opContext ctx, List<PythonBytecode> bytecode) {
+		cb = addBytecode(bytecode, Bytecode.LOAD_FUTURE, ctx.start);
 		cb.stringValue = ctx.nname().getText();
 	}
 
 	private int countNots(Not_testContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.not_test() != null)
 			return 1 + countNots(ctx.not_test(), bytecode);
-		if (ctx.ready_expr() != null)
-			compile(ctx.ready_expr(), bytecode);
+		else if (ctx.ready_op() != null)
+			compile(ctx.ready_op(), bytecode);
+		else if (ctx.future_op() != null)
+			compile(ctx.future_op(), bytecode);
 		else
 			compile(ctx.comparison(), bytecode);
 		return 0;

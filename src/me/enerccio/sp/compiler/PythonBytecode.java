@@ -735,6 +735,17 @@ public class PythonBytecode extends PythonObject {
 				sb.delete(sb.length() - 2, sb.length());
 			return String.format("%s(%s)", getOpcode().toString(), sb);
 		}
+	}	
+
+	public static class LoadFuture extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5415324154611824119L;
+
+		{
+			bytecode = Bytecode.LOAD_FUTURE;
+		}
 	}
 	
 	public static class MakeFuture extends PythonBytecode {
