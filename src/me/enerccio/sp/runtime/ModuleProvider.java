@@ -19,6 +19,7 @@ package me.enerccio.sp.runtime;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * ModuleProvider represents module file into memory
@@ -26,14 +27,6 @@ import java.io.InputStream;
  *
  */
 public class ModuleProvider {
-	
-	public ModuleProvider(String moduleName, String srcFile, byte[] source, String packageResolve, boolean isPackage){
-		this.moduleName = moduleName;
-		this.packageResolve = packageResolve;
-		this.source = source;
-		this.srcFile = srcFile;
-		this.isPackage = isPackage;
-	}
 	
 	/**
 	 * @return name of the module
@@ -46,6 +39,8 @@ public class ModuleProvider {
 	 * @return input stream of the source
 	 */
 	public InputStream getSource() {
+		if (source == null)
+			return null;
 		return new ByteArrayInputStream(source);
 	}
 
@@ -67,10 +62,47 @@ public class ModuleProvider {
 		return isPackage;
 	}
 
-	private final String moduleName;
-	private final byte[] source;
-	private final String srcFile;
-	private final String packageResolve;
-	private final boolean isPackage;
+	private final String 	   moduleName;
+	private final byte[] 	   source;
+	private final String 	   srcFile;
+	private final String 	   packageResolve;
+	private final boolean 	   isPackage;
+	private final boolean	   isPrecompiled;
+	private final boolean 	   allowPrecompilation;
+	private final OutputStream precompilationTarget;
+	private final byte[]	   compiledSource;
+	
+	public ModuleProvider(String moduleName, byte[] source, String srcFile,
+			String packageResolve, boolean isPackage, boolean isPrecompiled,
+			boolean allowPrecompilation, OutputStream precompilationTarget, byte[] compiledSource) {
+		super();
+		this.moduleName = moduleName;
+		this.source = source;
+		this.srcFile = srcFile;
+		this.packageResolve = packageResolve;
+		this.isPackage = isPackage;
+		this.isPrecompiled = isPrecompiled;
+		this.allowPrecompilation = allowPrecompilation;
+		this.precompilationTarget = precompilationTarget;
+		this.compiledSource = compiledSource;
+	}
+
+	public boolean isPrecompiled() {
+		return isPrecompiled;
+	}
+
+	public boolean isAllowPrecompilation() {
+		return allowPrecompilation;
+	}
+
+	public OutputStream getPrecompilationTarget() {
+		return precompilationTarget;
+	}
+
+	public byte[] getCompiledSource() {
+		return compiledSource;
+	}
+	
+	
 
 }

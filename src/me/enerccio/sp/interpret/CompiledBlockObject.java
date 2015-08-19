@@ -69,6 +69,15 @@ public class CompiledBlockObject extends PythonObject {
 		this.mmap = mmap;
 	}
 
+	public CompiledBlockObject(byte[] compiled) {
+		super(false);
+		this.compiled = compiled;
+		mmap = new HashMap<Integer, PythonObject>();
+		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
+		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
+		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
+	}
+
 	public static class DebugInformation {
 		public int lineno, charno;
 		public ModuleInfo module;
@@ -105,8 +114,8 @@ public class CompiledBlockObject extends PythonObject {
 	}
 	
 	private byte[] compiled;
-	private Map<Integer, PythonObject> mmap;
-	private NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
+	public Map<Integer, PythonObject> mmap;
+	public NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
 	
 	public byte[] getBytedata(){
 		return compiled;

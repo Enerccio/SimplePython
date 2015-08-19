@@ -179,6 +179,22 @@ public class StaticTools {
 		    }
 		    return count;
 		}
+
+		public static byte[] toByteArray(InputStream input, int c) throws IOException {
+			if (c == 0)
+				return new byte[0];
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			byte[] buffer = new byte[2048];
+			long count = 0L;
+		    int n = 0;
+		    while (-1 != (n = input.read(buffer, 0, (int)(c-count)))) {
+		      if (n == 0)
+		    	  return bos.toByteArray();
+		      bos.write(buffer, 0, n);
+		      count += n;
+		    }
+			return bos.toByteArray();
+		}
 	}
 	
 	/**

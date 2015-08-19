@@ -104,6 +104,14 @@ public abstract class NumberObject extends PythonObject
 		return false;
 	}
 	
+	/** Returns True if specified PythonObject is NumberObject and int */ 
+	public static boolean isComplex(PythonObject o) {
+		if (o instanceof NumberObject)
+			if (((NumberObject)o).getNumberType() == NumberType.COMPLEX)
+				return true;
+		return false;
+	}
+	
 	/** 
 	 * Returns True if specified PythonObject is NumberObject and long.
 	 * If PythonRuntime.USE_INT_ONLY is set to true, returns true for ints as well. 

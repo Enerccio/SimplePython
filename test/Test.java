@@ -15,7 +15,7 @@ public class Test {
 		try {
 			SimplePython.initialize();
 			SimplePython.setAllowAutowraps(true);
-			SimplePython.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin"));
+			SimplePython.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin" + File.separator + "t"));
 			
 			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();

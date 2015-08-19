@@ -1,0 +1,80 @@
+/*
+ * SimplePython - embeddable python interpret in java
+ * Copyright (c) Peter Vanusanik, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+package me.enerccio.sp.compiler;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.OutputStream;
+
+import me.enerccio.sp.compiler.BlockDefinition.DataTag;
+import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.utils.Pair;
+
+public class ModuleDefinition {
+
+	private static final int pycHeader = 0xDEADBABE;
+	private static final int version = 0;
+	
+	public ModuleDefinition(byte[] inputData) throws Exception{
+		fromBytes(inputData);
+	}
+
+	private void fromBytes(byte[] inputData) throws Exception {
+		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(inputData));
+		int header = dis.readInt();
+		if (header != pycHeader)
+			throw new RuntimeException("unknown header " + header + ", expected " + pycHeader);
+		int ver = dis.readInt();
+		if (version != ver)
+			throw new RuntimeException("mismatched version");
+		root = BlockDefinition.unpackTaggedData(dis);
+	}
+
+	public ModuleDefinition(ModuleObject mo){
+		fromModule(mo);
+	}
+	
+	private Pair<DataTag, Object> root;
+	
+	private void fromModule(ModuleObject mo) {
+		root = Pair.makePair(DataTag.MODULE, (Object)Pair.makePair(DataTag.BLOCK, (Object)new BlockDefinition(mo.getFrame())));
+	}
+	
+	public void writeToStream(OutputStream os) throws Exception{
+		if (os == null)
+			return;
+		DataOutputStream wr = new DataOutputStream(os);
+		wr.writeInt(pycHeader);
+		wr.writeInt(version);
+		wr.write(BlockDefinition.asBytes(root, version));
+		os.close();
+	}
+
+	@SuppressWarnings("unchecked")
+	public ModuleObject toModule(ModuleProvider provider) {
+		ModuleObject mo = new ModuleObject(provider, false);
+		
+		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root.getSecond()).getSecond();
+		mo.frame = b.toFrame(provider);
+		
+		return mo;
+	}
+	
+}

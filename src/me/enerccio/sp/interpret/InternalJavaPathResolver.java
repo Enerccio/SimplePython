@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import me.enerccio.sp.runtime.ModuleProvider;
@@ -42,13 +43,24 @@ public class InternalJavaPathResolver implements PythonDataSourceResolver {
 		try {
 			return doResolve(is, name+".py", name);
 		} catch (Exception e) {
+			try {
+				InputStream iss = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".pyc");
+				return doResolvePyc(iss, name+".pyc", name);
+			} catch (Exception e2){
+				
+			}
 			return null;
 		}
 	}
 
+	private ModuleProvider doResolvePyc(InputStream is, String fname, String mname) throws Exception {
+		if (is == null) return null;
+		return new ModuleProvider(mname, null, fname, "", false, true, false, null, IOUtils.toByteArray(is));
+	}
+
 	private ModuleProvider doResolve(InputStream is, String fname, String mname) throws Exception {
 		if (is == null) return null;
-		return new ModuleProvider(mname, fname, IOUtils.toByteArray(is), "", false);
+		return new ModuleProvider(mname, IOUtils.toByteArray(is), fname, "", false, false, false, null, null);
 	}
 
 }
