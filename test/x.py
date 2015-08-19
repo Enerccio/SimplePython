@@ -1,9 +1,8 @@
-import __future__.print_function as anca
 
-print anca
+class X:
+    def __str__(self):
+        raise "X - " + str(TypeError(self))
 
-from __future__ import print_function
 
 def test():
-    x = print(anca)
-    print(anca, x, sep="X")
+    print X()

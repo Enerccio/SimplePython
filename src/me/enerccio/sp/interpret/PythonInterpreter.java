@@ -34,6 +34,7 @@ import me.enerccio.sp.errors.BasePythonError;
 import me.enerccio.sp.errors.InterpreterError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.errors.PythonException;
+import me.enerccio.sp.errors.RuntimeError;
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
@@ -74,6 +75,28 @@ import me.enerccio.sp.utils.Utils;
 public class PythonInterpreter extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final boolean TRACE_ENABLED = System.getenv("SPY_TRACE_ENABLED") != null;
+	public static final int MAX_DEEP_STACK;
+	
+	static {
+		if (System.getenv("DEEP_STACK_LIMIT") != null)
+			MAX_DEEP_STACK = Integer.parseInt(System.getenv("DEEP_STACK_LIMIT"));
+		else
+			MAX_DEEP_STACK = -1;
+	}
+	
+	private boolean handlingOverflow = false;
+	
+	public void checkOverflow() {
+		if (MAX_DEEP_STACK > 0){
+			if (currentFrame.size() > MAX_DEEP_STACK && !handlingOverflow){
+				handlingOverflow = true;
+				throw new RuntimeError("maximum recursion depth exceeded");
+			} else if (currentFrame.size() < MAX_DEEP_STACK -1 ){
+				handlingOverflow = false;
+			}
+		}
+	}
+	
 	/** Thread local accessor to the interpret */
 	public static final transient ThreadLocal<PythonInterpreter> interpreter = new ThreadLocal<PythonInterpreter>(){
 
@@ -233,6 +256,8 @@ public class PythonInterpreter extends PythonObject {
 	 * @param frame
 	 */
 	public void executeBytecode(CompiledBlockObject frame) {
+		checkOverflow();
+		
 		FrameObject n;
 		currentFrame.add(n = new FrameObject());
 		n.compiled = frame;
@@ -648,6 +673,8 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private void ecall(FrameObject o, Stack<PythonObject> stack) {
+		checkOverflow();
+		
 		PythonObject runnable = stack.peek();
 		FrameObject frame;
 		try {
@@ -1019,6 +1046,8 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private void pushFrame(FrameObject o, Stack<PythonObject> stack) {
+		checkOverflow();
+		
 		// inserts new subframe onto frame stack
 		o.accepts_return = true;
 		FrameObject nf = new FrameObject();

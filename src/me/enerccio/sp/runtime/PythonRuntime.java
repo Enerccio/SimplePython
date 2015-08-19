@@ -178,6 +178,7 @@ public class PythonRuntime {
 	private OutputStream err = System.err;
 	public static ClassObject ERROR;
 	public static ClassObject ATTRIBUTE_ERROR;
+	public static ClassObject RUNTIME_ERROR;
 	public static ClassObject NAME_ERROR;
 	public static ClassObject STOP_ITERATION;
 	public static ClassObject GENERATOR_EXIT;
@@ -562,6 +563,7 @@ public class PythonRuntime {
 					INTERPRETER_ERROR = (ClassObject)globals.getItem("InterpreterError");
 					IMPORT_ERROR	= (ClassObject)globals.getItem("ImportError");
 					SANDBOX_ERROR	= (ClassObject)globals.getItem("SandboxViolationError");
+					RUNTIME_ERROR	= (ClassObject)globals.getItem("RuntimeError");
 					AST				= (ClassObject)globals.getItem("ast");
 					
 					buildingGlobals.set(false);
@@ -763,6 +765,8 @@ public class PythonRuntime {
 	}
 	
 	protected static PythonObject apply(PythonObject callable, ListObject args){
+		PythonInterpreter.interpreter.get().checkOverflow();
+		
 		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects, true);
 		PythonInterpreter.interpreter.get().execute(false, callable, null, a.getObjects());
