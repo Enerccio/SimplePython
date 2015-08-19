@@ -409,11 +409,15 @@ and_test:
 ;
 
 not_test:
- 'not' not_test | comparison | ready_expr
+ 'not' not_test | comparison | ready_op | future_op
 ;
 
-ready_expr:
+ready_op:
  'ready' nname
+;
+
+future_op:
+ 'future' nname
 ;
 
 comparison:
