@@ -51,7 +51,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 	public static final String __THISMODULE__ = "__thismodule__";
 	private StringDictObject globals;
 
-	public ModuleObject(ModuleProvider provider) {
+	public ModuleObject(ModuleProvider provider, boolean compilingBT) {
 		super(false);
 		this.provider = provider;
 
@@ -61,14 +61,14 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 			pythonParser p = ParserGenerator.parse(this.provider);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx, this, PythonRuntime.runtime.getGlobals());
+				frame = new PythonCompiler().doCompile(fcx, this, compilingBT ? null : PythonRuntime.runtime.getGlobals());
 			}
 		} catch (Exception e) {
 			throw new SyntaxError("failed to parse source code of " + provider, e);
 		}
 	}
 	
-	public ModuleObject(ModuleProvider p, boolean i) {
+	public ModuleObject(ModuleProvider p) {
 		super(false);
 		this.provider = p;
 	}

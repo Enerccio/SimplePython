@@ -20,9 +20,11 @@ package me.enerccio.sp.compiler;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.OutputStream;
 
 import me.enerccio.sp.compiler.BlockDefinition.DataTag;
+import me.enerccio.sp.interpret.PythonPathResolver;
 import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.utils.Pair;
@@ -69,12 +71,38 @@ public class ModuleDefinition {
 
 	@SuppressWarnings("unchecked")
 	public ModuleObject toModule(ModuleProvider provider) {
-		ModuleObject mo = new ModuleObject(provider, false);
+		ModuleObject mo = new ModuleObject(provider);
 		
 		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root.getSecond()).getSecond();
 		mo.frame = b.toFrame(provider);
 		
 		return mo;
+	}
+	
+	public static void main(String[] args){
+		File path = new File(args[0]);
+		PythonPathResolver pp = PythonPathResolver.make(path.getAbsolutePath());
+		for (File f : path.listFiles()){
+			if (f.getAbsolutePath().endsWith(".py")){
+				String mn = f.getName().replace(".py", "");
+				ModuleProvider mp = pp.resolve(mn, "");
+				ModuleObject mo;
+				if (mn.equals("builtin")){
+					mo = new ModuleObject(mp, true);
+				} else {
+					mo = new ModuleObject(mp, false);	
+				}
+				
+				if (mp.isAllowPrecompilation()){
+					ModuleDefinition md = new ModuleDefinition(mo);
+					try {
+						md.writeToStream(mp.getPrecompilationTarget());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 	
 }

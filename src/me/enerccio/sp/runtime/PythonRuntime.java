@@ -62,7 +62,6 @@ import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -343,11 +342,11 @@ public class PythonRuntime {
 				if (provider.getSource() == null){
 					return Pair.makePair(null, provider.isPackage());
 				} else {
-					return Pair.makePair(new ModuleObject(provider), provider.isPackage());
+					return Pair.makePair(new ModuleObject(provider, false), provider.isPackage());
 				}
 			}
 		} else {
-			ModuleObject mo = new ModuleObject(provider);
+			ModuleObject mo = new ModuleObject(provider, false);
 			if (provider.isAllowPrecompilation()){
 				ModuleDefinition md = new ModuleDefinition(mo);
 				try {
@@ -546,31 +545,49 @@ public class PythonRuntime {
 					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
 					
-					pythonParser p;
+					
+					ModuleProvider mp;
+					CompiledBlockObject builtin;
 					try {
-						p = ParserGenerator.parse(new ModuleProvider("builtin", 
-																	 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), 
-																	 "builtin", 
-																	 null, 
-																	 false,
-																	 false,
-																	 false,
-																	 null,
-																	 null));
+						mp = new ModuleProvider("builtin", 
+								 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), 
+								 "builtin", 
+								 null, 
+								 false,
+								 getClass().getClassLoader().getResourceAsStream("builtin.pyc") != null,
+								 false,
+								 null,
+								 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.pyc")));
 					} catch (Exception e1) {
 						throw new RuntimeException("Failed to initialize python!");
 					}
 					
-					PythonCompiler c = new PythonCompiler();
-					CompiledBlockObject builtin = c.doCompile(p.file_input(), new ModuleInfo() { 
-						@Override public ModuleProvider getIncludeProvider() { return null ; }
-						@Override public String getName() { return "<builtin>"; }
-						@Override public String getFileName() { return getName(); }
-					}, null);
+					if (getClass().getClassLoader().getResourceAsStream("builtin.pyc") == null){
+						PythonCompiler c = new PythonCompiler();
+						try {
+							builtin = c.doCompile(ParserGenerator.parse(mp).file_input(), new ModuleInfo() { 
+								@Override public ModuleProvider getIncludeProvider() { return null ; }
+								@Override public String getName() { return "<builtin>"; }
+								@Override public String getFileName() { return getName(); }
+							}, null);
+						} catch (Exception e1) {
+							throw new RuntimeException("Failed to initialize python!");
+						}	
+					} else {
+						try {
+							ModuleObject mo = new ModuleDefinition(mp.getCompiledSource()).toModule(mp);
+							builtin = mo.frame;
+						} catch (Exception e1) {
+							throw new RuntimeException("Failed to initialize python!");
+						}
+					}
 					
-					PythonInterpreter.interpreter.get().executeBytecode(builtin);
+					PythonInterpreter i = PythonInterpreter.interpreter.get();
+					i.setArgs(new StringDictObject());
+					i.executeBytecode(builtin);
+					
 					while (true){
-						ExecutionResult r = PythonInterpreter.interpreter.get().executeOnce();
+						ExecutionResult r = i.executeOnce();
 						if (r == ExecutionResult.OK)
 							continue;
 						if (r == ExecutionResult.FINISHED)
