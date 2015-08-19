@@ -189,7 +189,7 @@ label_or_stmt:
 ;
 
 stmt:
- simple_stmt | compound_stmt
+ future_stmt | simple_stmt | compound_stmt
 ;
 
 label:
@@ -201,8 +201,7 @@ simple_stmt:
 ;
 
 small_stmt:
- (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt |
-             import_stmt | global_stmt | dynamic_stmt | exec_stmt)
+ (expr_stmt | print_stmt | del_stmt | pass_stmt | flow_stmt | import_stmt | global_stmt | dynamic_stmt | exec_stmt)
 ;
 
 with_stmt:
@@ -240,8 +239,9 @@ augassign:
 ;
 
 print_stmt:
- 'print' ( (test (',' test)* endp?)? |
+ 'print' (( (test (',' test)* endp?)? |
                       push test ((',' test)+ endp?)?)
+          | '(' arglist? ')' )
 ;
 
 push:
@@ -294,6 +294,10 @@ import_name:
 
 import_from:
  ('from' dotted_name 'import' (star | '(' import_as_names ')' | import_as_names))
+;
+
+future_stmt:
+ 'from __future__ import' nname (',' nname)* ','?
 ;
 
 star:
@@ -467,6 +471,7 @@ atom:
  | nname
  | number
  | string+
+ | 'print'
 ;
 
 bracket_atom:

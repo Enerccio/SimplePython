@@ -1,9 +1,9 @@
-def x():
-    c = 0
-    for a in xrange(1024):
-        for b in xrange(1024):
-            c += a + b
-    return c 
+import __future__.print_function as anca
+
+print anca
+
+from __future__ import print_function
 
 def test():
-    print x()
+    x = print(anca)
+    print(anca, x, sep="X")

@@ -68,6 +68,7 @@ import me.enerccio.sp.parser.pythonParser.For_stmtContext;
 import me.enerccio.sp.parser.pythonParser.FuncdefContext;
 import me.enerccio.sp.parser.pythonParser.FutureContext;
 import me.enerccio.sp.parser.pythonParser.Future_opContext;
+import me.enerccio.sp.parser.pythonParser.Future_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Global_stmtContext;
 import me.enerccio.sp.parser.pythonParser.If_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Import_as_nameContext;
@@ -162,6 +163,8 @@ public class PythonCompiler {
 	private Stack<String> compilingClass = new Stack<String>();
 	private Stack<String> compilingFunction = new Stack<String>();
 	private Stack<String> docstring = new Stack<String>();
+	
+	private Set<Futures> futures = new HashSet<Futures>();
 	
 	private ModuleInfo module = null;
 	
@@ -358,7 +361,9 @@ public class PythonCompiler {
 	}
 
 	private void compileStatement(StmtContext sctx, List<PythonBytecode> bytecode, ControllStack cs) {
-		if (sctx.simple_stmt() != null)
+		if (sctx.future_stmt() != null)
+			compileFuture(sctx.future_stmt(), bytecode);
+		else if (sctx.simple_stmt() != null)
 			compileSimpleStatement(sctx.simple_stmt(), bytecode, cs);
 		else
 			compileCompoundStatement(sctx.compound_stmt(), bytecode, cs);
@@ -1229,6 +1234,22 @@ public class PythonCompiler {
 		}
 	}
 
+	private void compileFuture(Future_stmtContext future_stmt,
+			List<PythonBytecode> bytecode) {
+		for (NnameContext future : future_stmt.nname())
+			compileFuture(future.getText(), bytecode);
+	}
+
+	private void compileFuture(String fidx, List<PythonBytecode> bytecode) {
+		switch (fidx){
+		case "print_function":
+			futures.add(Futures.PRINT_FUNCTION);
+			break;
+		default:
+			throw new SyntaxError("unknown future: " + fidx);
+		}
+	}
+
 	private void compile(Exec_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
@@ -1443,12 +1464,21 @@ public class PythonCompiler {
 	private void compile(Print_stmtContext ctx,
 			List<PythonBytecode> bytecode) {
 		
+		if (futures.contains(Futures.PRINT_FUNCTION)){
+			compilePrintFunction(ctx, bytecode);
+			return;
+		}
+		
 		int st = ctx.push() == null ? 0 : 1;
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start); 
 		cb.stringValue = "print_function";
 		
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 		cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
+		
+		if (ctx.arglist() != null){
+			throw new SyntaxError("print is statement, did you forget to import from futures?");
+		}
 		
 		for (int i=st; i<ctx.test().size(); i++){
 			compile(ctx.test(i), bytecode);
@@ -1476,6 +1506,28 @@ public class PythonCompiler {
 		cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 		cb.intValue = 4;
 		
+		addBytecode(bytecode, Bytecode.POP, ctx.stop);
+	}
+
+	private void compilePrintFunction(Print_stmtContext ctx,
+			List<PythonBytecode> bytecode) {
+		if (ctx.arglist() == null)
+			throw new SyntaxError("print is now a function, did you forget not to import from futures?");
+		
+		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start); 
+		cb.stringValue = "print_function_fnc";
+		
+		if (ctx.arglist() == null){
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
+			cb.intValue = 0;
+		} else {
+			CallArgsData args = compileArguments(ctx.arglist(), bytecode);
+			cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
+			cb.intValue = args.normalArgCount;
+			if (args.hasArgExpansion)
+				cb.intValue = -1 * (cb.intValue + 1);
+		}
+
 		addBytecode(bytecode, Bytecode.POP, ctx.stop);
 	}
 
@@ -2059,13 +2111,13 @@ public class PythonCompiler {
 				BigInteger bi = null;
 				
 				if (ic.BIN_INTEGER() != null)
-					bi = new BigInteger(numberValue, 2);
+					bi = new BigInteger(numberValue.startsWith("x") ? numberValue.substring(1) : numberValue.substring(2), 2);
 				if (ic.OCT_INTEGER() != null)
-					bi = new BigInteger(numberValue, 8);
+					bi = new BigInteger(numberValue.startsWith("x") ? numberValue.substring(1) : numberValue.substring(2), 8);
 				if (ic.DECIMAL_INTEGER() != null)
 					bi = new BigInteger(numberValue, 10);
 				if (ic.HEX_INTEGER() != null)
-					bi = new BigInteger(numberValue, 16);
+					bi = new BigInteger(numberValue.startsWith("x") ? numberValue.substring(1) : numberValue.substring(2), 16);
 				
 				NumberObject o = NumberObject.valueOf(bi.longValue());
 				cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
@@ -2102,6 +2154,13 @@ public class PythonCompiler {
 			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")){
 			compile(ctx.dictorsetmaker(), bytecode, ctx.getStart());
+		} else if (ctx.getText().equals("print")){
+			if (futures.contains(Futures.PRINT_FUNCTION)){
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+				cb.stringValue = "print_function_fnc";
+			} else {
+				throw new SyntaxError("invalid syntax print not a function (did you forget future import?)");
+			}
 		}
 	}
 	

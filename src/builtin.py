@@ -283,6 +283,10 @@ def print_function(objects, sep=' ', end='\n', file=sys.stdout):
             first = False
         file.write(str(o))
     file.write(end)
+    
+def print_function_fnc(*objects, **kwargs):
+    print_function(objects, **kwargs)
+    
    
 def range(arg1, arg2=None, arg3=1):
     if arg2 is None:

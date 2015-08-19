@@ -2,7 +2,7 @@
 SimplePython - embeddable python interpret in java
 Copyright (c) Peter Vanusanik, All rights reserved.
  
-ast module
+future module
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,4 +18,17 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
-raise ImportError("SimplePython has no __future__")
+__all__ = ["print_function"]
+
+_PRINT_FUNCTION = 0x1
+
+class __FutureObject(object):
+    def __init__(self, future_id, version_id, version_impl):
+        self.future_id = future_id
+        self.version_id = version_id
+        self.version_impl = version_impl
+    
+    def __str__(self):
+        return "Future[id=" + self.future_id + ", v=" + self.version_id + ", impl=" + self.version_impl + "]"
+    
+print_function = __FutureObject(_PRINT_FUNCTION, "2.7", "3.0")
