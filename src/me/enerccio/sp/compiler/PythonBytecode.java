@@ -118,6 +118,12 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.TEST_FUTURE;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+
 	}
 	
 	public static class BinaryOperator extends PythonBytecode {
