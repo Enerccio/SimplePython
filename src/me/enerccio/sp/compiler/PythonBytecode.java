@@ -118,6 +118,12 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.TEST_FUTURE;
 		}
+		
+		@Override
+		protected String doToString() {
+			return String.format("%s(%s)", getOpcode().toString(), stringValue);
+		}
+
 	}
 	
 	public static class BinaryOperator extends PythonBytecode {
@@ -734,6 +740,17 @@ public class PythonBytecode extends PythonObject {
 			if (sb.length() > 3)
 				sb.delete(sb.length() - 2, sb.length());
 			return String.format("%s(%s)", getOpcode().toString(), sb);
+		}
+	}	
+
+	public static class LoadFuture extends PythonBytecode {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5415324154611824119L;
+
+		{
+			bytecode = Bytecode.LOAD_FUTURE;
 		}
 	}
 	

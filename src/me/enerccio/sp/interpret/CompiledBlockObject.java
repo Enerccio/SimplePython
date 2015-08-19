@@ -237,6 +237,7 @@ public class CompiledBlockObject extends PythonObject {
 			case SAVEDYNAMIC:
 			case SETATTR:
 			case TEST_FUTURE:
+			case LOAD_FUTURE:
 			case YIELD:
 				c = b.getInt();
 				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
@@ -401,6 +402,9 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
 			case LOADBUILTIN:
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				break;
+			case LOAD_FUTURE:
 				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
 				break;
 			case TEST_FUTURE:
