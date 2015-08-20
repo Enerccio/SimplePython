@@ -17,76 +17,83 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 
 /**
- * PathResolver which searches root of the jar/java path for .spy.
+ * PythonPath resolver. This is standard disk python path resolver. You provide path and SP will search there for .spy files and packages
  * @author Enerccio
- *
+ * @see FilesystemResolver#make(String)
  */
-public class InternalJavaPathResolver implements ModuleResolver {
-	private static final String RESOLVER_ID = "IJPR_1";
+public class FilesystemResolver implements ModuleResolver {
+	private static final String RESOLVER_ID = "FSPR_1";
+	private File rootPath;
 
+	public FilesystemResolver(String path) {
+		rootPath = new File(path);
+	}
+	
 	@Override
 	public ModuleData resolve(String name, String resolvePath) {
-		if (name.contains("."))
-			return null;
-		try {
-			InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".py");
-			if (is == null)
-				return null;
-			return new MI(name, is);
-		} catch (Exception e2){
-			return null;
+		String pp = resolvePath.replace(".", File.separator);
+		File path = new File(new File(rootPath, pp), name + ".py");
+		if (!path.exists())
+			path = new File(new File(rootPath, pp), name);
+		if (path.exists()){
+			if (path.isDirectory()){
+				File init = new File(path, "__init__.py");
+				if (init.exists() && !init.isDirectory()) {
+					try {
+						return new MI(name, path, resolvePath, true);  
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			} else {
+				try {
+					if (path.getName().endsWith(".py")){
+						return new MI(name, path, resolvePath, true);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
+		return null;
 	}
-
+	
 	@Override
-	public InputStream read(ModuleData data) {
-		if (data instanceof MI)
-			if (((MI)data).is != null)
-					return ((MI)data).is;
-		return getClass().getClassLoader().getResourceAsStream(data.getFileName());
+	public InputStream read(ModuleData data) throws IOException {
+		return new FileInputStream(((MI)data).file);
 	}
-
+	
 	@Override
 	public long lastModified(ModuleData data) {
-		URL url = getClass().getResource("/" + data.getFileName());
-		long l;
-		try {
-			l = url.openConnection().getLastModified();
-			return (l == 0) ? Long.MAX_VALUE : l;
-		} catch (IOException e) { }
-		return Long.MAX_VALUE;
+		return ((MI)data).file.lastModified();
 	}
-
-	public ModuleData getModuleData(String name) {
-		return new MI(name);
-	}
-
+	
 	private class MI implements ModuleData {
 		private String name;
-		private InputStream is;
+		private File file;
+		private String resolvePath;
+		private boolean isPackage;
 
-		MI(String name) {
+		MI(String name, File file, String resolvePath, boolean isPackage) {
 			this.name = name;
-			this.is = null;
-		}
-		
-		MI(String name, InputStream is) {
-			this.name = name;
-			this.is = is;
+			this.file = file;
+			this.resolvePath = resolvePath;
+			this.isPackage = isPackage;
 		}
 
 		@Override
 		public ModuleResolver getResolver() {
-			return InternalJavaPathResolver.this;
+			return FilesystemResolver.this;
 		}
 
 		@Override
@@ -96,26 +103,23 @@ public class InternalJavaPathResolver implements ModuleResolver {
 
 		@Override
 		public String getFileName() {
-			return name + ".py";
+			return file.getName();
 		}
 
 		@Override
 		public String getPackageResolve() {
-			return "";
+			return resolvePath;
 		}
 
 		@Override
 		public boolean isPackage() {
-			return false;
+			return isPackage;
 		}
 	}
 
 	@Override
 	public InputStream cachedRead(ModuleData data) {
-		InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(data.getFileName() + "c");
-		if (is == null)
-			return PythonRuntime.cachedRead(data);
-		return is;
+		return PythonRuntime.cachedRead(data);
 	}
 
 	@Override

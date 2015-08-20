@@ -20,25 +20,19 @@ package me.enerccio.sp.compiler;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.OutputStream;
 
 import me.enerccio.sp.compiler.BlockDefinition.DataTag;
-import me.enerccio.sp.interpret.PythonPathResolver;
-import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.utils.Pair;
 
 public class ModuleDefinition {
 
 	private static final int pycHeader = 0xDEADBABE;
 	private static final int version = 0;
-	
-	public ModuleDefinition(byte[] inputData) throws Exception{
-		fromBytes(inputData);
-	}
 
-	private void fromBytes(byte[] inputData) throws Exception {
+	public ModuleDefinition(byte[] inputData) throws Exception{
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(inputData));
 		int header = dis.readInt();
 		if (header != pycHeader)
@@ -50,14 +44,10 @@ public class ModuleDefinition {
 	}
 
 	public ModuleDefinition(ModuleObject mo){
-		fromModule(mo);
+		root = Pair.makePair(DataTag.MODULE, (Object)Pair.makePair(DataTag.BLOCK, (Object)new BlockDefinition(mo.getFrame())));
 	}
 	
 	private Pair<DataTag, Object> root;
-	
-	private void fromModule(ModuleObject mo) {
-		root = Pair.makePair(DataTag.MODULE, (Object)Pair.makePair(DataTag.BLOCK, (Object)new BlockDefinition(mo.getFrame())));
-	}
 	
 	public void writeToStream(OutputStream os) throws Exception{
 		if (os == null)
@@ -70,39 +60,10 @@ public class ModuleDefinition {
 	}
 
 	@SuppressWarnings("unchecked")
-	public ModuleObject toModule(ModuleProvider provider) {
-		ModuleObject mo = new ModuleObject(provider);
-		
+	public ModuleObject toModule(ModuleData data) {
+		ModuleObject mo = new ModuleObject(data);
 		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root.getSecond()).getSecond();
-		mo.frame = b.toFrame(provider);
-		
+		mo.frame = b.toFrame(data);
 		return mo;
 	}
-	
-	public static void main(String[] args){
-		File path = new File(args[0]);
-		PythonPathResolver pp = PythonPathResolver.make(path.getAbsolutePath());
-		for (File f : path.listFiles()){
-			if (f.getAbsolutePath().endsWith(".py")){
-				String mn = f.getName().replace(".py", "");
-				ModuleProvider mp = pp.resolve(mn, "");
-				ModuleObject mo;
-				if (mn.equals("builtin")){
-					mo = new ModuleObject(mp, true);
-				} else {
-					mo = new ModuleObject(mp, false);	
-				}
-				
-				if (mp.isAllowPrecompilation()){
-					ModuleDefinition md = new ModuleDefinition(mo);
-					try {
-						md.writeToStream(mp.getPrecompilationTarget());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
-	
 }

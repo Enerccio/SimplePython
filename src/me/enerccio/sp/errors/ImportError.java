@@ -25,4 +25,8 @@ public class ImportError extends BasePythonError {
 	public ImportError(String message) {
 		super(PythonRuntime.IMPORT_ERROR, message);
 	}
+
+	public ImportError(String message, Throwable cause) {
+		super(PythonRuntime.IMPORT_ERROR, message, cause);
+	}
 }

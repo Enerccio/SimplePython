@@ -24,10 +24,10 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.runtime.ModuleInfo;
-import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -46,10 +46,12 @@ import me.enerccio.sp.utils.Utils;
  */
 public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
-	private static final ModuleInfo OBJECT_MODULE_INFO = new ModuleInfo() {
+	private static final ModuleData OBJECT_MODULE_INFO = new ModuleData() {
 		@Override public String getName() { return "<object>"; }
-		@Override public ModuleProvider getIncludeProvider() { return null; }
 		@Override public String getFileName() { return getName(); }
+		@Override public ModuleResolver getResolver() { return null; }
+		@Override public String getPackageResolve() { return ""; }
+		@Override public boolean isPackage() { return false; }
 	};
 	public static final String OBJECT_CALL = "object";
 	public static final String __CONTAINS__ = "__contains__";

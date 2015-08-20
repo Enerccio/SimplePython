@@ -32,7 +32,7 @@ import me.enerccio.sp.parser.formatterLexer;
 import me.enerccio.sp.parser.formatterParser;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
-import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -229,16 +229,16 @@ public class StaticTools {
 		 * @throws IOException 
 		 * @throws Exception
 		 */
-		public static pythonParser parse(ModuleProvider provider) throws IOException{
-			ANTLRInputStream is = new ANTLRInputStream(provider.getSource());
+		public static pythonParser parse(ModuleData data) throws IOException{
+			ANTLRInputStream is = new ANTLRInputStream(data.getResolver().read(data));
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
-			lexer.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
+			lexer.addErrorListener(new ThrowingErrorListener(data.getFileName()));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 			
 			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener(provider.getSrcFile()));
+			parser.addErrorListener(new ThrowingErrorListener(data.getFileName()));
 			return parser;
 		}
 		

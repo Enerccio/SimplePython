@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -35,7 +36,6 @@ import me.enerccio.sp.types.system.ClassMethodObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
 import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.Utils;
-import me.enerccio.sp.interpret.InternalDict;
 
 /**
  * Class Object. Represents custom class types.

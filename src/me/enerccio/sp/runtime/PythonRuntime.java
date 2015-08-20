@@ -17,9 +17,17 @@
  */
 package me.enerccio.sp.runtime;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +42,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.compiler.ModuleDefinition;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.compiler.PythonCompiler;
@@ -41,6 +50,7 @@ import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.BasePythonError;
 import me.enerccio.sp.errors.ImportError;
 import me.enerccio.sp.errors.PythonException;
+import me.enerccio.sp.errors.RuntimeError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.external.Disassembler;
@@ -58,14 +68,15 @@ import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.NoGetattrException;
-import me.enerccio.sp.interpret.PythonDataSourceResolver;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -117,7 +128,6 @@ import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
-import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.StaticTools.IOUtils;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -134,6 +144,7 @@ public class PythonRuntime {
 	public static boolean USE_DOUBLE_FLOAT = false;	// True to use double as backend for python 'float' number
 	public static boolean USE_INT_ONLY = false;		// True to disable long completely; long(x) will return int and int arithmetic may throw TypeError on overflow  
 	private PythonSecurityManager manager;
+	private InternalJavaPathResolver ijpr = new InternalJavaPathResolver();
 	
 	public void setSecurityManager(PythonSecurityManager manager){
 		this.manager = manager;
@@ -150,7 +161,7 @@ public class PythonRuntime {
 	private PythonRuntime(){
 		addFactory("", WrapNoMethodsFactory.class);
 		addFactory("me.enerccio.sp.external", WrapAnnotationFactory.class);
-		addResolver(new InternalJavaPathResolver());
+		addResolver(ijpr);
 		
 		addAlias(FileStream.class.getName(), "filestream");
 		addAlias(PrintOutputStream.class.getName(), "sysoutstream");
@@ -165,7 +176,7 @@ public class PythonRuntime {
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
 	public Map<String, ModuleContainer> root = new TreeMap<String, ModuleContainer>();
-	private List<PythonDataSourceResolver> resolvers = new ArrayList<PythonDataSourceResolver>();
+	private List<ModuleResolver> resolvers = new ArrayList<ModuleResolver>();
 	/** object identifier key generator */
 	private volatile long key = Long.MIN_VALUE; 
 	
@@ -265,7 +276,7 @@ public class PythonRuntime {
 	 * Adds data source resolver
 	 * @param resolver
 	 */
-	public synchronized void addResolver(PythonDataSourceResolver resolver){
+	public synchronized void addResolver(ModuleResolver resolver){
 		resolvers.add(resolver);
 	}
 	
@@ -321,42 +332,11 @@ public class PythonRuntime {
 			return sm;
 		return path + "." + sm;
 	}
-
-	/**
-	 * Loads the module from module provider and returns it
-	 * @param provider
-	 * @return
-	 */
-	private Pair<ModuleObject, Boolean> loadModule(ModuleProvider provider){
-		if (provider.isPrecompiled()){
-			try {
-				ModuleDefinition md;
-				ModuleObject mo = (md = new ModuleDefinition(provider.getCompiledSource())).toModule(provider);
-				try {
-					md.writeToStream(provider.getPrecompilationTarget());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}		
-				return Pair.makePair(mo, provider.isPackage());
-			} catch (Exception e){
-				if (provider.getSource() == null){
-					return Pair.makePair(null, provider.isPackage());
-				} else {
-					return Pair.makePair(new ModuleObject(provider, false), provider.isPackage());
-				}
-			}
-		} else {
-			ModuleObject mo = new ModuleObject(provider, false);
-			if (provider.isAllowPrecompilation()){
-				ModuleDefinition md = new ModuleDefinition(mo);
-				try {
-					md.writeToStream(provider.getPrecompilationTarget());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			return Pair.makePair(mo, provider.isPackage());
-		}
+	
+	public static class ModuleContainer {
+		public ModuleObject module;
+		public Map<String, ModuleObject> submodules = new TreeMap<String, ModuleObject>();
+		public Map<String, ModuleContainer> subpackages = new TreeMap<String, ModuleContainer>();
 	}
 	
 	/**
@@ -389,10 +369,15 @@ public class PythonRuntime {
 			}
 		}
 		
-		Pair<ModuleObject, Boolean> data = resolveModule(name, moduleResolvePath);
-		ModuleObject mo = data.getFirst();
-		if (mo == null)
+		ModuleData data = resolveModule(name, moduleResolvePath);
+		if (data == null)
 			throw new ImportError("unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
+		ModuleObject mo;
+		try {
+			mo = getCompiled(data, false);
+		} catch (Exception e) {
+			throw new ImportError("failed to load module '" + name + "' with resolve path '" + moduleResolvePath.value + "'", e);
+		}
 		
 		if (!modulePath.equals("")){
 			String[] submodules = modulePath.split("\\.");
@@ -403,7 +388,7 @@ public class PythonRuntime {
 				else
 					c = c.subpackages.get(pathElement);
 			}
-			if (data.getSecond()){
+			if (data.isPackage()) {
 				ModuleContainer newCont = new ModuleContainer();
 				newCont.module = mo;
 				c.subpackages.put(name, newCont);
@@ -419,6 +404,28 @@ public class PythonRuntime {
 		mo.initModule();
 		return mo;
 	}
+	
+	private ModuleObject getCompiled(ModuleData data, boolean loadingBuiltins) throws IOException, Exception {
+		InputStream pyc = data.getResolver().cachedRead(data);
+		if (pyc != null) {
+			try {
+				return new ModuleDefinition(IOUtils.toByteArray(pyc)).toModule(data);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} 
+		ModuleObject mo = new ModuleObject(data, loadingBuiltins);
+		OutputStream pyco = data.getResolver().cachedWrite(data);
+		if (pyco != null) {
+			try {
+				new ModuleDefinition(mo).writeToStream(pyco);
+				pyco.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return mo;
+	}
 
 	/**
 	 * resolve the actual module
@@ -426,17 +433,13 @@ public class PythonRuntime {
 	 * @param moduleResolvePath
 	 * @return
 	 */
-	private Pair<ModuleObject, Boolean> resolveModule(String name,
-			StringObject moduleResolvePath) {
-		ModuleProvider provider = null;
-		for (PythonDataSourceResolver resolver : resolvers){
-			if (provider != null)
-				break;
-			provider = resolver.resolve(name, moduleResolvePath.value);
+	private ModuleData resolveModule(String name, StringObject moduleResolvePath) {
+		ModuleData data = null;
+		for (ModuleResolver resolver : resolvers){
+			data = resolver.resolve(name, moduleResolvePath.value);
+			if (data != null) break;
 		}
-		if (provider != null)
-			return loadModule(provider);
-		return Pair.makePair(null, null);
+		return data;
 	}
 
 	/** stored globals are here */
@@ -546,48 +549,20 @@ public class PythonRuntime {
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
 					
 					
-					ModuleProvider mp;
+					ModuleData mp;
 					CompiledBlockObject builtin;
 					try {
-						mp = new InternalJavaPathResolver().resolve("builtin", "");
+						mp = new ModuleData() {
+							@Override public boolean isPackage() { return false; }
+							@Override public ModuleResolver getResolver() { return ijpr; }
+							@Override public String getPackageResolve() { return ""; }
+							@Override public String getName() { return "builtin"; }
+							@Override public String getFileName() { return "builtin.py"; };
+						};
+						ModuleObject mo = getCompiled(mp, true);
+						builtin = mo.frame;
 					} catch (Exception e1) {
 						throw new RuntimeException("Failed to initialize python!");
-					}
-					
-					if (!mp.isPrecompiled()){
-						try {
-							
-							ModuleObject mo = new ModuleObject(mp, true);
-							builtin = mo.frame;
-							
-							try {
-								if (mp.isAllowPrecompilation()){
-									ModuleDefinition md = new ModuleDefinition(mo);
-									md.writeToStream(mp.getPrecompilationTarget());
-								}
-							} catch (Exception e2){
-								// pass
-							}
-							
-						} catch (Exception e1) {
-							throw new RuntimeException("Failed to initialize python!");
-						}	
-					} else {
-						try {
-							ModuleDefinition md;
-							ModuleObject mo = (md = new ModuleDefinition(mp.getCompiledSource())).toModule(mp);
-							builtin = mo.frame;
-							
-							try {
-								if (mp.isAllowPrecompilation())
-									md.writeToStream(mp.getPrecompilationTarget());
-							} catch (Exception e2){
-								// pass
-							}
-							
-						} catch (Exception e1) {
-							throw new RuntimeException("Failed to initialize python!");
-						}
 					}
 					
 					PythonInterpreter i = PythonInterpreter.interpreter.get();
@@ -636,6 +611,73 @@ public class PythonRuntime {
 	
 	protected static PythonObject globals(){
 		return (PythonObject) PythonInterpreter.interpreter.get().environment().getGlobals();
+	}
+	
+	/** 
+	 * Provides default cache resolution. Used by ModuleResolver classes; Do not use manually.
+	 */
+	public static InputStream cachedRead(ModuleData data) {
+		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
+		long lastMod = data.getResolver().lastModified(data);
+		for (File f : SimplePython.pycCaches) {
+			File pyc = new File(f, pycname);
+			if (pyc.exists()) {
+				if (lastMod < pyc.lastModified()) {
+					try {
+						return new FileInputStream(pyc);
+					} catch (FileNotFoundException e) {
+						// Shouldn't happen
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	/** 
+	 * Provides default cache resolution. Used by ModuleResolver classes; Do not use manually.
+	 */
+	public static OutputStream cachedWrite(ModuleData data) {
+		if (SimplePython.pycCaches.isEmpty())
+			return null;
+		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
+		try {
+			return new FileOutputStream(new File(SimplePython.pycCaches.get(0), pycname));
+		} catch (Exception e) {
+			// Shouldn't happen
+			e.printStackTrace();
+			new File(SimplePython.pycCaches.get(0), pycname).delete();
+			return null;
+		}
+	}
+	
+	/** Returns hash of filename and module provider info. ".pyc" is not part of returned value */
+	public static String getCacheHash(ModuleData data) {
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA1");
+		} catch (NoSuchAlgorithmException e1) {
+			throw new RuntimeError("RuntimeError: Failed to compute hash");
+		}
+		md.update(data.getName().getBytes());
+		md.update(data.getFileName().getBytes());
+		md.update(data.getPackageResolve().getBytes());
+		md.update(data.getResolver().getResolverID().getBytes());
+		
+		StringBuffer hexString = new StringBuffer();
+		byte[] hash = md.digest();
+
+        for (int i = 0; i < hash.length; i++) {
+            if ((0xff & hash[i]) < 0x10) {
+                hexString.append("0"
+                        + Integer.toHexString((0xFF & hash[i])));
+            } else {
+                hexString.append(Integer.toHexString(0xFF & hash[i]));
+            }
+        }
+        
+        return hexString.toString();
 	}
 	
 	protected static PythonObject compile(PythonObject source, StringObject filename){
