@@ -4,3 +4,4 @@
 src/me/enerccio/sp/parser/python*.tokens
 src/me/enerccio/sp/parser/python*.java
 src/*.pyc
+/__pycache__/

@@ -3,7 +3,6 @@ import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.FilesystemResolver;
-import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 
 public class Test {
@@ -24,7 +23,6 @@ public class Test {
 			
 			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();
-//			System.in.read();
 			if (x.getField("test") != null)
 				SimplePython.executeFunction("x", "test");
 
