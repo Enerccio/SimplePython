@@ -407,23 +407,24 @@ public class PythonRuntime {
 	
 	private ModuleObject getCompiled(ModuleData data, boolean loadingBuiltins) throws IOException, Exception {
 		InputStream pyc = data.getResolver().cachedRead(data);
-		if (pyc == null) {
-			System.out.println("Loading py " + data.getFileName());
-			ModuleObject mo = new ModuleObject(data, loadingBuiltins);
-			OutputStream pyco = data.getResolver().cachedWrite(data);
-			if (pyco != null) {
-				try {
-					new ModuleDefinition(mo).writeToStream(pyco);
-					pyco.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		if (pyc != null) {
+			try {
+				return new ModuleDefinition(IOUtils.toByteArray(pyc)).toModule(data);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			return mo;
-		} else {
-			System.out.println("Loading cached " + data.getFileName());
-			return new ModuleDefinition(IOUtils.toByteArray(pyc)).toModule(data);
+		} 
+		ModuleObject mo = new ModuleObject(data, loadingBuiltins);
+		OutputStream pyco = data.getResolver().cachedWrite(data);
+		if (pyco != null) {
+			try {
+				new ModuleDefinition(mo).writeToStream(pyco);
+				pyco.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
+		return mo;
 	}
 
 	/**
@@ -616,7 +617,7 @@ public class PythonRuntime {
 	 * Provides default cache resolution. Used by ModuleResolver classes; Do not use manually.
 	 */
 	public static InputStream cachedRead(ModuleData data) {
-		String pycname = getCacheHash(data) + ".pyc";
+		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
 		long lastMod = data.getResolver().lastModified(data);
 		for (File f : SimplePython.pycCaches) {
 			File pyc = new File(f, pycname);
@@ -640,12 +641,13 @@ public class PythonRuntime {
 	public static OutputStream cachedWrite(ModuleData data) {
 		if (SimplePython.pycCaches.isEmpty())
 			return null;
-		String pycname = getCacheHash(data) + ".pyc";
+		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
 		try {
 			return new FileOutputStream(new File(SimplePython.pycCaches.get(0), pycname));
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			// Shouldn't happen
 			e.printStackTrace();
+			new File(SimplePython.pycCaches.get(0), pycname).delete();
 			return null;
 		}
 	}
