@@ -128,11 +128,16 @@ public class Disassembler {
 			case TEST_FUTURE:
 			case SETATTR:
 			case LOAD_FUTURE:
+			case GETATTR:
 				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				break;
 			case MAKE_FUTURE:
 			case KWARG:
-				bytecode.object = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String[].class);
+				String[] arr = new String[readBuff.getInt()];
+				for (int i=0; i<arr.length; i++) {
+					arr[i] = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				}
+				bytecode.object = arr;
 				break;
 			case YIELD:
 				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
@@ -149,7 +154,6 @@ public class Disassembler {
 				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
 				bytecode.booleanValue = readBuff.getInt() == 1;
 				break;
-			case GETATTR:
 			case ISINSTANCE:
 			case NOP:
 			case OPEN_LOCALS:

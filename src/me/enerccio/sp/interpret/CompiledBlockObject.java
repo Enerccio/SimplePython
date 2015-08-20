@@ -58,24 +58,26 @@ public class CompiledBlockObject extends PythonObject {
 		} catch (Exception e) {
 			throw new TypeError("invalid bytecode", e);
 		}
+		finishCB();
+	}
+	
+	public void finishCB() {
 		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
 		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
 		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
-	
+
 	public CompiledBlockObject(byte[] compiled, Map<Integer, PythonObject> mmap) {
 		super(false);
 		this.compiled = compiled;
 		this.mmap = mmap;
+		
 	}
 
 	public CompiledBlockObject(byte[] compiled) {
 		super(false);
 		this.compiled = compiled;
 		mmap = new HashMap<Integer, PythonObject>();
-		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
-		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
-		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
 
 	public static class DebugInformation {

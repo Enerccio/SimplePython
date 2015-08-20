@@ -99,6 +99,7 @@ public class BlockDefinition {
 			add(c.dmap, i, di.get(i), mi);
 		}
 		
+		c.finishCB();
 		return c;
 	}
 
