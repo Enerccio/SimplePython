@@ -3,7 +3,7 @@ package me.enerccio.sp.interpret;
 import java.util.Map;
 import java.util.Set;
 
-import me.enerccio.sp.runtime.ModuleInfo;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
@@ -13,7 +13,7 @@ public class StackElement extends PythonObject {
 	public static final StackElement SYSTEM_FRAME = new StackElement(); 
 	public static final StackElement LAST_FRAME = new StackElement();
 	
-	public final ModuleInfo module;
+	public final ModuleData module;
 	public final int line;
 	public final int character;
 	public final String function;
@@ -35,7 +35,7 @@ public class StackElement extends PythonObject {
 		function = "<module>";
 	}
 
-	public StackElement(ModuleInfo module, String function, int line, int character) {
+	public StackElement(ModuleData module, String function, int line, int character) {
 		super(false);
 		this.module = module;
 		this.line = line;

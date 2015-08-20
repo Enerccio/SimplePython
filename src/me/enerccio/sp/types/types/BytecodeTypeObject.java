@@ -24,8 +24,8 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.runtime.ModuleInfo;
-import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.interpret.ModuleResolver;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -77,22 +77,12 @@ public class BytecodeTypeObject extends TypeObject {
 		return tMap;
 	}
 	
-	private static ModuleInfo mook = new ModuleInfo() {
-		
-		@Override
-		public String getName() {
-			return "<generated-module>";
-		}
-		
-		@Override
-		public ModuleProvider getIncludeProvider() {
-			return null;
-		}
-		
-		@Override
-		public String getFileName() {
-			return "<generated-module>";
-		}
+	private static ModuleData mook = new ModuleData() {
+		@Override public String getName() { return "<generated-module>"; }
+		@Override public String getFileName() { return "<generated-module>"; }
+		@Override public ModuleResolver getResolver() { return null; }
+		@Override public String getPackageResolve() { return ""; }
+		@Override public boolean isPackage() { return false; }
 	};
 
 	@Override

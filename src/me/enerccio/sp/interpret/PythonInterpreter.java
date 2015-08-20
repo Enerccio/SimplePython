@@ -52,8 +52,6 @@ import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
 import me.enerccio.sp.types.iterators.InternalIterator;
 import me.enerccio.sp.types.iterators.InternallyIterable;
-import me.enerccio.sp.types.mappings.DictObject;
-import me.enerccio.sp.types.mappings.PythonProxy;
 import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.properties.PropertyObject;
@@ -1276,7 +1274,7 @@ public class PythonInterpreter extends PythonObject {
 					ModuleObject thisModule = (ModuleObject) environment.get("__thismodule__", true, false);
 					target = null;
 					synchronized (PythonRuntime.runtime){
-						String resolvePath = thisModule == null ? null : thisModule.provider.getPackageResolve();
+						String resolvePath = thisModule == null ? null : thisModule.getModuleData().getPackageResolve();
 						if (resolvePath == null)
 							target = PythonRuntime.runtime.root.get(mm) != null ? PythonRuntime.runtime.root.get(mm).module : null;
 						if (target == null)
@@ -1296,7 +1294,7 @@ public class PythonInterpreter extends PythonObject {
 					pythonImport(environment, variable, modulePath, target.get(mm, null));
 					return;
 				} else {
-					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).provider.getPackageResolve(), true));
+					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).getModuleData().getPackageResolve(), true));
 				}
 			}
 			pythonImport(environment, variable, modulePath, target);

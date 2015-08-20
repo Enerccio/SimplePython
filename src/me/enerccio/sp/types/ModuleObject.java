@@ -26,11 +26,10 @@ import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.InternalDict;
+import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
-import me.enerccio.sp.runtime.ModuleInfo;
-import me.enerccio.sp.runtime.ModuleProvider;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -44,60 +43,50 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class ModuleObject extends PythonObject implements ModuleInfo {
+public class ModuleObject extends PythonObject {
 	private static final long serialVersionUID = -2347220852204272570L;
 	public static final String __NAME__ = "__name__";
 	public static final String __DICT__ = "__dict__";
 	public static final String __THISMODULE__ = "__thismodule__";
 	private StringDictObject globals;
 
-	public ModuleObject(ModuleProvider provider, boolean compilingBT) {
-		super(false);
-		this.provider = provider;
-
-		Utils.putPublic(this, __NAME__, new StringObject(provider.getModuleName()));
-		
-		try {
-			pythonParser p = ParserGenerator.parse(this.provider);
-			File_inputContext fcx = p.file_input();
-			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx, this, compilingBT ? null : PythonRuntime.runtime.getGlobals());
-			}
-		} catch (Exception e) {
-			throw new SyntaxError("failed to parse source code of " + provider, e);
-		}
-	}
-	
-	public ModuleObject(ModuleProvider p) {
-		super(false);
-		this.provider = p;
-	}
-
-	/** provider bound to this module */
-	public final ModuleProvider provider;
+	/** module data for this module */
+	public final ModuleData data;
 	/** bytecode of the body of this module */
 	public CompiledBlockObject frame;
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
 
+
+	public ModuleObject(ModuleData data, boolean compilingBT) {
+		super(false);
+		this.data = data;
+
+		Utils.putPublic(this, __NAME__, new StringObject(data.getName()));
+		
+		try {
+			pythonParser p = ParserGenerator.parse(data);
+			File_inputContext fcx = p.file_input();
+			if (fcx != null){
+				frame = new PythonCompiler().doCompile(fcx, data, compilingBT ? null : PythonRuntime.runtime.getGlobals());
+			}
+		} catch (Exception e) {
+			throw new SyntaxError("failed to parse source code of " + data.getFileName(), e);
+		}
+	}
+	
+	public ModuleObject(ModuleData data) {
+		super(false);
+		this.data = data;
+	}
+	
 	@Override
 	public boolean truthValue() {
 		return true;
 	}
 	
-	@Override 
-	public ModuleProvider getIncludeProvider() { 
-		return provider;
-	}
-	
-	@Override
-	public String getName() {
-		return provider.getModuleName();
-	}
-
-	@Override
-	public String getFileName() {
-		return provider.getSrcFile();
+	public ModuleData getModuleData() {
+		return data;
 	}
 	
 	public void injectGlobal(String key, PythonObject value) {
@@ -157,7 +146,7 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 		
 		InternalDict args = new StringDictObject();
 		args.putVariable(__THISMODULE__, this);
-		args.putVariable(__NAME__, new StringObject(provider.getModuleName()));
+		args.putVariable(__NAME__, new StringObject(data.getName()));
 		
 		PythonInterpreter.interpreter.get().setArgs(args);
 		
@@ -188,5 +177,34 @@ public class ModuleObject extends PythonObject implements ModuleInfo {
 
 	public CompiledBlockObject getFrame() {
 		return frame;
+	}
+	
+	/** Provides informations about module */
+	public static interface ModuleData {
+		/** 
+		 * Returns module resolver used to load this module. May return null for some very special cases. 
+		 */
+		ModuleResolver getResolver();
+
+		/**
+		 * Returns module name, including package, if possible. Used by trace and dis method.
+		 */
+		String getName();
+
+		/**
+		 * Returns module filename. For modules not generated from file, this may return same as getName()
+		 */
+		String getFileName();
+
+		
+		/**
+		 * Returns weirdest shit...
+		 */
+		String getPackageResolve();
+
+		/**
+		 * Returns true if module is package 
+		 */
+		boolean isPackage();
 	}
 }

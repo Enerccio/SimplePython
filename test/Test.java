@@ -2,7 +2,8 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;
-import me.enerccio.sp.interpret.PythonPathResolver;
+import me.enerccio.sp.interpret.FilesystemResolver;
+import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject;
 
 public class Test {
@@ -13,9 +14,13 @@ public class Test {
 		long c2 = 0;
 		
 		try {
+			File cache = new File("__pycache__");
+			cache.mkdir();
+			SimplePython.addPycCache(cache);
+			
 			SimplePython.initialize();
 			SimplePython.setAllowAutowraps(true);
-			SimplePython.addResolver(PythonPathResolver.make(Paths.get("").toAbsolutePath().toString() + File.separator + "bin" + File.separator + "t"));
+			SimplePython.addResolver(new FilesystemResolver(Paths.get("").toAbsolutePath().toString() + File.separator + "bin" + File.separator + "t"));
 			
 			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();

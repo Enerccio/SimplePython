@@ -29,9 +29,9 @@ import java.util.TreeMap;
 import me.enerccio.sp.errors.RuntimeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
-import me.enerccio.sp.runtime.ModuleInfo;
-import me.enerccio.sp.runtime.ModuleProvider;
+import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.EllipsisObject;
@@ -88,23 +88,22 @@ public class BlockDefinition {
 		}
 	}
 	
-	public CompiledBlockObject toFrame(ModuleProvider provider) {
+	public CompiledBlockObject toFrame(final ModuleData mi) {
 		CompiledBlockObject c = new CompiledBlockObject(bytecode);
 		
 		for (Integer i : tagobjects.keySet()){
-			add(c.mmap, i, tagobjects.get(i), provider);
+			add(c.mmap, i, tagobjects.get(i), mi);
 		}
 		
 		for (Integer i : di.keySet()){
-			add(c.dmap, i, di.get(i), provider);
+			add(c.dmap, i, di.get(i), mi);
 		}
 		
 		return c;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void add(NavigableMap<Integer, DebugInformation> dmap, Integer i,
-			Pair<DataTag, Object> pair, final ModuleProvider p) {
+	private void add(NavigableMap<Integer, DebugInformation> dmap, Integer i, Pair<DataTag, Object> pair, final ModuleData mi) {
 		Object[] arr = (Object[]) pair.getSecond();
 		
 		final String name = idList.get((Integer)((Pair<DataTag, Object>)arr[0]).getSecond());
@@ -114,11 +113,11 @@ public class BlockDefinition {
 		di.function = idList.get((Integer)((Pair<DataTag, Object>)arr[2]).getSecond());
 		di.lineno = (Integer)((Pair<DataTag, Object>)arr[3]).getSecond();
 		di.charno = (Integer)((Pair<DataTag, Object>)arr[4]).getSecond();
-		ModuleInfo mf = new ModuleInfo(){
+		ModuleData mf = new ModuleData(){
 
 			@Override
-			public ModuleProvider getIncludeProvider() {
-				return p;
+			public ModuleResolver getResolver() {
+				return mi.getResolver();
 			}
 
 			@Override
@@ -130,7 +129,16 @@ public class BlockDefinition {
 			public String getFileName() {
 				return fname;
 			}
-			
+
+			@Override
+			public String getPackageResolve() {
+				return mi.getPackageResolve();
+			}
+
+			@Override
+			public boolean isPackage() {
+				return mi.isPackage();
+			}
 		};
 		
 		di.module = mf;
@@ -138,8 +146,7 @@ public class BlockDefinition {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void add(Map<Integer, PythonObject> mmap, Integer i,
-			Pair<DataTag, Object> pair, ModuleProvider provider) {
+	private void add(Map<Integer, PythonObject> mmap, Integer i, Pair<DataTag, Object> pair, final ModuleData mi) {
 		
 		PythonObject v = null;
 		switch (pair.getFirst()){
@@ -174,7 +181,7 @@ public class BlockDefinition {
 			
 			Pair<DataTag, Object> docString = (Pair<DataTag, Object>) arr[2];
 			
-			CompiledBlockObject cbc = ((BlockDefinition)((Pair<DataTag, Object>) arr[3]).getSecond()).toFrame(provider);
+			CompiledBlockObject cbc = ((BlockDefinition)((Pair<DataTag, Object>) arr[3]).getSecond()).toFrame(mi);
 			
 			boolean hasVararg = ((Pair<DataTag, Object>) arr[4]).getSecond().equals(new Integer(1));
 			String vararg = (String) ((Pair<DataTag, Object>) arr[5]).getSecond();
