@@ -1,9 +1,15 @@
+class Y(object):
+    def __init__(self):
+        print frame()
+        print frame(0)
+        print frame(0).get_local_context()
+
 def x():
-    c = 0
-    for a in xrange(1024):
-        for b in xrange(1024):
-            c += a + b
-    return c 
+    print frame()
+    print dir(frame(0))
+    print frame(0).get_environment()
+    print frame(0).get_local_context()
+    Y() 
 
 def test():
-    print x()
+    x()

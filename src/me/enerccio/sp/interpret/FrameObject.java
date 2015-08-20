@@ -18,6 +18,7 @@
 package me.enerccio.sp.interpret;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -26,6 +27,7 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
+import me.enerccio.sp.types.sequences.ListObject;
 
 /**
  * FrameObject represents execution frame. Holds flags related to the execution and also pc + bytecode
@@ -36,7 +38,72 @@ public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
 	
 	public FrameObject(){
-		super(true);
+		super(false);
+	}
+	
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
+	
+	static {
+		try {
+			sfields.putAll(PythonObject.getSFields());
+			sfields.put("current_pos", JavaMethodObject.noArgMethod(FrameObject.class, "currentPos"));
+			sfields.put("current_stack", JavaMethodObject.noArgMethod(FrameObject.class, "currentStack"));
+			sfields.put("get_parent", JavaMethodObject.noArgMethod(FrameObject.class, "getParent"));
+			sfields.put("is_subframe", JavaMethodObject.noArgMethod(FrameObject.class, "isSubframe"));
+			sfields.put("get_bound_code", JavaMethodObject.noArgMethod(FrameObject.class, "getCompiled"));
+			sfields.put("get_bound_generator", JavaMethodObject.noArgMethod(FrameObject.class, "getGenerator"));
+			sfields.put("get_local_context", JavaMethodObject.noArgMethod(FrameObject.class, "getLocalContext"));
+			sfields.put("get_environment", JavaMethodObject.noArgMethod(FrameObject.class, "getEnvironment"));
+		} catch (Exception e) {
+			throw new RuntimeException("Fuck", e);
+		}
+	}
+	
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
+	
+	public int currentPos(){
+		return pc;
+	}
+	
+	public PythonObject currentStack(){
+		ListObject lo = new ListObject();
+		for (PythonObject o : stack)
+			lo.objects.add(o);
+		return lo;
+	}
+	
+	public FrameObject getParent(){
+		return parentFrame;
+	}
+	
+	public boolean isSubframe(){
+		return parentFrame != null;
+	}
+	
+	public CompiledBlockObject getCompiled(){
+		return compiled;
+	}
+	
+	public GeneratorObject getGenerator(){
+		return ownedGenerator;
+	}
+	
+	public PythonObject getLocalContext(){
+		return localContext;
+	}
+	
+	public EnvironmentObject getEnvironment(){
+		return environment;
 	}
 	
 	/**
@@ -109,15 +176,5 @@ public class FrameObject extends PythonObject {
 		f.stack = stack;
 		
 		return f;
-	}
-	
-	@Override
-	public Set<String> getGenHandleNames() {
-		return PythonObject.sfields.keySet();
-	}
-
-	@Override
-	protected Map<String, JavaMethodObject> getGenHandles() {
-		return PythonObject.sfields;
 	}
 }

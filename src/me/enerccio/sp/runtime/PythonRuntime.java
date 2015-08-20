@@ -65,6 +65,7 @@ import me.enerccio.sp.external.ThreadInfo;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.InternalJavaPathResolver;
 import me.enerccio.sp.interpret.KwArgs;
@@ -110,6 +111,7 @@ import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
 import me.enerccio.sp.types.types.FloatTypeObject;
+import me.enerccio.sp.types.types.FrameTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaCallableTypeObject;
@@ -547,6 +549,7 @@ public class PythonRuntime {
 					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, new BoundFunctionTypeObject());
 					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
+					globals.put(FrameTypeObject.FRAME_CALL, new FrameTypeObject());
 					
 					
 					ModuleData mp;
@@ -992,6 +995,8 @@ public class PythonRuntime {
 			return BOUND_FUNCTION_TYPE;
 		if (py instanceof CompiledBlockObject)
 			return COMPILED_BLOCK_TYPE;
+		if (py instanceof FrameObject)
+			return (ClassObject)Utils.getGlobal(FrameTypeObject.FRAME_CALL);
 		
 		return OBJECT_TYPE;
 	}
