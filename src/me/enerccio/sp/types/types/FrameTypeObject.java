@@ -48,7 +48,7 @@ public class FrameTypeObject extends TypeObject {
 		if (nthFromTop < 0)
 			throw new IndexError("n must be positive");
 		int idx = i.currentFrame.size() - (nthFromTop + 1);
-		if (idx < 0 || idx > i.currentFrame.size())
+		if (idx < 0 || idx >= i.currentFrame.size())
 			throw new IndexError("n out of bounds");
 		return i.currentFrame.get(idx);
 	}

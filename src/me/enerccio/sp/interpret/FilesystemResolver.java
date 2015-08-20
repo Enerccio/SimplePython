@@ -129,6 +129,6 @@ public class FilesystemResolver implements ModuleResolver {
 
 	@Override
 	public String getResolverID() {
-		return RESOLVER_ID;
+		return RESOLVER_ID + rootPath.getAbsolutePath();
 	}
 }

@@ -332,15 +332,15 @@ public class PythonCompiler {
 		
 		compile(fcx, bytecode, m);
 		
-		compilingClass.pop();
-		stack.pop();
-		
-		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
-		
 		cb = addBytecode(bytecode, Bytecode.PUSH, fcx.start);
 		cb.value = getDocstring();
 		cb = addBytecode(bytecode, Bytecode.SAVE_LOCAL, fcx.start);
 		cb.stringValue = "__doc__";
+		
+		compilingClass.pop();
+		stack.pop();
+		
+		CompiledBlockObject cob = new CompiledBlockObject(bytecode);
 		
 		compilingFunction.pop();
 		return cob;
