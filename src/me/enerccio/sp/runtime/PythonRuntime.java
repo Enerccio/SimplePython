@@ -549,34 +549,42 @@ public class PythonRuntime {
 					ModuleProvider mp;
 					CompiledBlockObject builtin;
 					try {
-						mp = new ModuleProvider("builtin", 
-								 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.py")), 
-								 "builtin", 
-								 null, 
-								 false,
-								 getClass().getClassLoader().getResourceAsStream("builtin.pyc") != null,
-								 false,
-								 null,
-								 IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("builtin.pyc")));
+						mp = new InternalJavaPathResolver().resolve("builtin", "");
 					} catch (Exception e1) {
 						throw new RuntimeException("Failed to initialize python!");
 					}
 					
-					if (getClass().getClassLoader().getResourceAsStream("builtin.pyc") == null){
-						PythonCompiler c = new PythonCompiler();
+					if (!mp.isPrecompiled()){
 						try {
-							builtin = c.doCompile(ParserGenerator.parse(mp).file_input(), new ModuleInfo() { 
-								@Override public ModuleProvider getIncludeProvider() { return null ; }
-								@Override public String getName() { return "<builtin>"; }
-								@Override public String getFileName() { return getName(); }
-							}, null);
+							
+							ModuleObject mo = new ModuleObject(mp, true);
+							builtin = mo.frame;
+							
+							try {
+								if (mp.isAllowPrecompilation()){
+									ModuleDefinition md = new ModuleDefinition(mo);
+									md.writeToStream(mp.getPrecompilationTarget());
+								}
+							} catch (Exception e2){
+								// pass
+							}
+							
 						} catch (Exception e1) {
 							throw new RuntimeException("Failed to initialize python!");
 						}	
 					} else {
 						try {
-							ModuleObject mo = new ModuleDefinition(mp.getCompiledSource()).toModule(mp);
+							ModuleDefinition md;
+							ModuleObject mo = (md = new ModuleDefinition(mp.getCompiledSource())).toModule(mp);
 							builtin = mo.frame;
+							
+							try {
+								if (mp.isAllowPrecompilation())
+									md.writeToStream(mp.getPrecompilationTarget());
+							} catch (Exception e2){
+								// pass
+							}
+							
 						} catch (Exception e1) {
 							throw new RuntimeException("Failed to initialize python!");
 						}

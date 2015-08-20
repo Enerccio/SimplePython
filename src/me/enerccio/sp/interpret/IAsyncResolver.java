@@ -21,34 +21,27 @@ import java.util.concurrent.Semaphore;
 
 import me.enerccio.sp.runtime.ModuleProvider;
 
-public abstract class AsyncResolver implements PythonDataSourceResolver, IAsyncResolver {
+public interface IAsyncResolver {
 	
-	private ModuleProvider p;
-	
-	@Override
-	public ModuleProvider resolve(String name, String resolvePath) {
-		Semaphore s = new Semaphore(0);
+	public static class ResolveModuleAsync {
+		public String name;
+		public String resolvePath;
+		public Semaphore s;
 		
-		ResolveModuleAsync rma = new ResolveModuleAsync();
-		rma.s = s;
-		rma.name = name;
-		rma.resolvePath = resolvePath;
-		
-		getProviderAsync(rma);
-		
-		try {
-			s.acquire();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
+		public void finishLoading(ModuleProvider o, IAsyncResolver r){
+			r.setModuleProvider(o);
+			s.release();
 		}
 		
-		return p;
+		public String getName(){
+			return name;
+		}
+		
+		public String getResolvePath(){
+			return resolvePath;
+		}
 	}
 	
-	@Override
-	public void setModuleProvider(ModuleProvider o){
-		p = o;
-	}
-
-	public abstract void getProviderAsync(ResolveModuleAsync resolve);
+	void getProviderAsync(ResolveModuleAsync resolve);
+	void setModuleProvider(ModuleProvider o);
 }

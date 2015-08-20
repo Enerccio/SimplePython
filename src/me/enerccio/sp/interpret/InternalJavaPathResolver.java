@@ -28,7 +28,8 @@ import me.enerccio.sp.utils.StaticTools.IOUtils;
  * @author Enerccio
  *
  */
-public class InternalJavaPathResolver implements PythonDataSourceResolver {
+public class InternalJavaPathResolver extends CachingResolver {
+	private static final String INTERNAL_JAVA_PATH_RESOLVER = "INTERNAL_JAVA_PATH_RESOLVER";
 
 	public InternalJavaPathResolver(){
 		
@@ -39,27 +40,12 @@ public class InternalJavaPathResolver implements PythonDataSourceResolver {
 		if (name.contains("."))
 			return null;
 		try {
-			InputStream iss = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".pyc");
-			return doResolvePyc(iss, name+".pyc", name);
+			InputStream iss = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".py");
+			return resolveWithCache(name, name+".py", resolvePath, false, IOUtils.toByteArray(iss), INTERNAL_JAVA_PATH_RESOLVER);
 		} catch (Exception e) {
-			try {
-				InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".py");
-				return doResolve(is, name+".py", name);
-			} catch (Exception e2){
-				
-			}
 			return null;
 		}
 	}
 
-	private ModuleProvider doResolvePyc(InputStream is, String fname, String mname) throws Exception {
-		if (is == null) return null;
-		return new ModuleProvider(mname, null, fname, "", false, true, false, null, IOUtils.toByteArray(is));
-	}
-
-	private ModuleProvider doResolve(InputStream is, String fname, String mname) throws Exception {
-		if (is == null) return null;
-		return new ModuleProvider(mname, IOUtils.toByteArray(is), fname, "", false, false, false, null, null);
-	}
 
 }

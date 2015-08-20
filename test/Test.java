@@ -19,6 +19,7 @@ public class Test {
 			
 			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();
+//			System.in.read();
 			if (x.getField("test") != null)
 				SimplePython.executeFunction("x", "test");
 
