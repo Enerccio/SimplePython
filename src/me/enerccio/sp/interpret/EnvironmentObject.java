@@ -20,10 +20,12 @@ package me.enerccio.sp.interpret;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -39,7 +41,65 @@ public class EnvironmentObject extends PythonObject {
 	private List<InternalDict> environments = new ArrayList<InternalDict>();
 	
 	public EnvironmentObject(){
-		super(true);
+		super(false);
+	}
+	
+	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
+	
+	static {
+		try {
+			sfields.putAll(PythonObject.getSFields());
+			sfields.put("__len__", JavaMethodObject.noArgMethod(EnvironmentObject.class, "numberOfEnvironments"));
+			sfields.put("__getitem__", new JavaMethodObject(EnvironmentObject.class, "getEnv", int.class));
+			sfields.put("resolve_local", new JavaMethodObject(EnvironmentObject.class, "resolveLocal", String.class));
+			sfields.put("resolve_nonlocal", new JavaMethodObject(EnvironmentObject.class, "resolveNonLocal", String.class));
+			sfields.put("resolve_global", new JavaMethodObject(EnvironmentObject.class, "resolveGlobal", String.class));
+		} catch (Exception e) {
+			throw new RuntimeException("Fuck", e);
+		}
+	}
+	
+	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+	
+	@Override
+	public Set<String> getGenHandleNames() {
+		return sfields.keySet();
+	}
+
+	@Override
+	protected Map<String, JavaMethodObject> getGenHandles() {
+		return sfields;
+	}
+	
+	public int numberOfEnvironments(){
+		return environments.size();
+	}
+	
+	public PythonObject resolveLocal(String key){
+		PythonObject value = get(key, false, false);
+		if (value == null)
+			throw new NameError("key '" + key + "' has no local binding");
+		return value;
+	}
+	
+	public PythonObject resolveNonLocal(String key){
+		PythonObject value = get(key, false, false);
+		if (value == null)
+			throw new NameError("key '" + key + "' has no non-local binding");
+		return value;
+	}
+	
+	public PythonObject resolveGlobal(String key){
+		PythonObject value = get(key, false, false);
+		if (value == null)
+			throw new NameError("key '" + key + "' has no global binding");
+		return value;
+	}
+	
+	public PythonObject getEnv(int idx){
+		if (idx < 0 || idx >= environments.size())
+			throw new IndexError("__getitem__(): index out of bounds");
+		return (PythonObject) environments.get(idx);
 	}
 	
 	/**
@@ -173,15 +233,5 @@ public class EnvironmentObject extends PythonObject {
 			return environments.get(0);
 		else
 			return environments.get(environments.size()-2);
-	}
-
-	@Override
-	public Set<String> getGenHandleNames() {
-		return PythonObject.sfields.keySet();
-	}
-
-	@Override
-	protected Map<String, JavaMethodObject> getGenHandles() {
-		return PythonObject.sfields;
 	}
 }

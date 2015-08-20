@@ -110,6 +110,7 @@ import me.enerccio.sp.types.types.ClassMethodTypeObject;
 import me.enerccio.sp.types.types.CompiledBlockTypeObject;
 import me.enerccio.sp.types.types.ComplexTypeObject;
 import me.enerccio.sp.types.types.DictTypeObject;
+import me.enerccio.sp.types.types.EnvironmentTypeObject;
 import me.enerccio.sp.types.types.FloatTypeObject;
 import me.enerccio.sp.types.types.FrameTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
@@ -467,6 +468,7 @@ public class PythonRuntime {
 	public static final String STATICFUNCTION = "staticfunction";
 	
 	/** Some basic types */
+	public static final TypeObject ENVIRONMENT_TYPE = new EnvironmentTypeObject();
 	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject.get();
 	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
@@ -550,6 +552,7 @@ public class PythonRuntime {
 					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
 					globals.put(FrameTypeObject.FRAME_CALL, new FrameTypeObject());
+					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL, ENVIRONMENT_TYPE);
 					
 					
 					ModuleData mp;
@@ -947,6 +950,8 @@ public class PythonRuntime {
 	}
 	
 	public static ClassObject getType(PythonObject py) {
+		if (py instanceof EnvironmentObject)
+			return ENVIRONMENT_TYPE;
 		if (py instanceof PythonBytecode)
 			return BYTECODE_TYPE;
 		if (py instanceof NumberObject) {
