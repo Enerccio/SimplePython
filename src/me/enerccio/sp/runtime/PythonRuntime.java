@@ -57,10 +57,13 @@ import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
 import me.enerccio.sp.external.PrintOutputStream;
+import me.enerccio.sp.external.PythonDatagramSocket;
 import me.enerccio.sp.external.PythonMutex;
+import me.enerccio.sp.external.PythonServerSocket;
 import me.enerccio.sp.external.PythonSystem;
 import me.enerccio.sp.external.PythonTerminator;
 import me.enerccio.sp.external.PythonThread;
+import me.enerccio.sp.external.SocketHelper;
 import me.enerccio.sp.external.ThreadInfo;
 import me.enerccio.sp.external.WebbrowserController;
 import me.enerccio.sp.interpret.CompiledBlockObject;
@@ -177,6 +180,9 @@ public class PythonRuntime {
 		addAlias(PythonMutex.class.getName(), 			"__jmutex__");
 		addAlias(PythonSystem.class.getName(), 			"__system__");
 		addAlias(WebbrowserController.class.getName(), 	"__webbrowser__");
+		addAlias(PythonServerSocket.class.getName(), 	"__serversocket__");
+		addAlias(SocketHelper.class.getName(), 			"__sockethelper__");
+		addAlias(PythonDatagramSocket.class.getName(), 	"__udpsocket__");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */

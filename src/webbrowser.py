@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
+__all__ = ["OPEN_NEW", "OPEN_NEW_TAB", "OPEN_DEFAULT", "Error", "open", "open_new", "open_new_tab", "get", "register"]
+
 OPEN_DEFAULT = 0
 OPEN_NEW = 1
 OPEN_NEW_TAB = 2
@@ -113,5 +115,3 @@ def register(name, constructor, instance=None):
         __mappings[name] = instance
     else:
         __mappings[name] = constructor()
-    
-__all__ = [OPEN_NEW, OPEN_NEW_TAB, OPEN_DEFAULT, Error, open, open_new, open_new_tab, get, register]

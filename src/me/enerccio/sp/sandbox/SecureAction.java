@@ -50,4 +50,12 @@ public enum SecureAction {
 	 * when webbrowser is requested by python
 	 */
 	WEBBROWSER,
+	/**
+	 * When socket networking is requested by python
+	 */
+	SOCKET,
+	/**
+	 * When socket server networking is requested (also SOCKET is checked first)
+	 */
+	SOCKET_SERVER,
 }

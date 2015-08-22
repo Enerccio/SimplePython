@@ -44,6 +44,12 @@ public class Coerce {
 		
 		// 1st, return array if requested
 		if (clazz.isArray()) {
+			// specific type if array is byte[] to make it a string
+			if (clazz.getComponentType() == byte.class){
+				if (o instanceof StringObject)
+					return (X) ((StringObject) o).value.getBytes();
+			}
+			
 			ListObject lo = ListTypeObject.make_list(o);
 			X rv = (X)Array.newInstance(clazz.getComponentType(), lo.len());
 			for (int i=0; i<lo.len(); i++) {
@@ -176,6 +182,9 @@ public class Coerce {
 				lo.objects.add(i == null ? NoneObject.NONE : toPython(i, i.getClass()));
 			}
 			return lo;
+		}
+		if (cls.isArray() && cls.getComponentType() == byte.class){
+			return new StringObject(new String((byte[]) o));
 		}
 		if (o instanceof Map){
 			Map<?, ?> map = (Map<?, ?>)o;
