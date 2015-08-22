@@ -18,7 +18,6 @@
 package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
