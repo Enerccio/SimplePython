@@ -46,9 +46,5 @@ public abstract class CallableObject extends PythonObject {
 	public boolean truthValue() {
 		return true;
 	}
-	
-	public PythonObject executeAndGetResult(TupleObject args, KwArgs kwargs){
-		return PythonInterpreter.interpreter.get().execute(true, this, kwargs, args.getObjects());
-	}
 
 }

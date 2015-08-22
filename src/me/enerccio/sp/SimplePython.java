@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -310,5 +311,16 @@ public class SimplePython {
 	 */
 	public static void unloadModule(String pythonPath){
 		r.unloadModule(pythonPath);
+	}
+	
+	/**
+	 * Executes the object, which must be callable or python instance with __call__
+	 * @param object callable
+	 * @param kwargs keyword arguments
+	 * @param args arguments
+	 * @return result of the call
+	 */
+	public static PythonObject execute(PythonObject object, KwArgs kwargs, PythonObject... args){
+		return PythonInterpreter.interpreter.get().execute(true, object, kwargs, args);
 	}
 }
