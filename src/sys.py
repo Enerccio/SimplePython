@@ -20,10 +20,10 @@ License along with this library.
 
 __all__ = ["stdout", "stderr", "exit", "current_time"]
 
-stdout = javainstance("sysoutstream", False)
-stderr = javainstance("sysoutstream", True)
+stdout = javainstance("__sysoutstream__", False)
+stderr = javainstance("__sysoutstream__", True)
 
-__system = javainstance("system")
+__system = javainstance("__system__")
 
 def exit(status=0):
     raise SystemExit(status)

@@ -310,7 +310,7 @@ class Formatter(object):
         self.vformat(format_string, args, kwargs)
         
     def vformat(self, format_string, args, kwargs):
-        return (javainstance("formatter", self.get_value, self.check_unused_args, self.format_field)
+        return (javainstance("__formatter__", self.get_value, self.check_unused_args, self.format_field)
                     .doFormat(format_string, args, kwargs))
     
     def get_value(self, key, args, kwargs):

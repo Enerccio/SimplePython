@@ -62,6 +62,7 @@ import me.enerccio.sp.external.PythonSystem;
 import me.enerccio.sp.external.PythonTerminator;
 import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.external.ThreadInfo;
+import me.enerccio.sp.external.WebbrowserController;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -166,15 +167,16 @@ public class PythonRuntime {
 		addFactory("me.enerccio.sp.external", WrapAnnotationFactory.class);
 		addResolver(ijpr);
 		
-		addAlias(FileStream.class.getName(), "filestream");
-		addAlias(PrintOutputStream.class.getName(), "sysoutstream");
-		addAlias(PythonThread.class.getName(), "jthread");
-		addAlias(FormatterAccessor.class.getName(), "formatter");
-		addAlias(PythonTerminator.class.getName(), "terminator");
-		addAlias(Disassembler.class.getName(), "disassembler");
-		addAlias(ThreadInfo.class.getName(), "threadinfo");
-		addAlias(PythonMutex.class.getName(), "jmutex");
-		addAlias(PythonSystem.class.getName(), "system");
+		addAlias(FileStream.class.getName(), 			"__filestream__");
+		addAlias(PrintOutputStream.class.getName(), 	"__sysoutstream__");
+		addAlias(PythonThread.class.getName(), 			"__jthread__");
+		addAlias(FormatterAccessor.class.getName(), 	"__formatter__");
+		addAlias(PythonTerminator.class.getName(), 		"__terminator__");
+		addAlias(Disassembler.class.getName(), 			"__disassembler__");
+		addAlias(ThreadInfo.class.getName(), 			"__threadinfo__");
+		addAlias(PythonMutex.class.getName(), 			"__jmutex__");
+		addAlias(PythonSystem.class.getName(), 			"__system__");
+		addAlias(WebbrowserController.class.getName(), 	"__webbrowser__");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */

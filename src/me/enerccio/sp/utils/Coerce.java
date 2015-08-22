@@ -36,7 +36,7 @@ public class Coerce {
 	}
 
 	/** Coerces PythonObject to specified java class, if possible */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <X> X toJava(PythonObject o, Class<X> clazz) throws CastFailedException {
 		// 0th, can't do null
 		if (o == null)
@@ -69,6 +69,25 @@ public class Coerce {
 			Class<?> ptype = ((PointerObject) o).getObject().getClass();
 			if (clazz.isAssignableFrom(ptype))
 				return clazz.cast(((PointerObject) o).getObject());
+		}
+		
+		if (clazz.isEnum()){
+			if (o instanceof NumberObject){
+				int ord = ((NumberObject)o).intValue();
+				Object[] enums = clazz.getEnumConstants();
+				if (ord < 0 || ord > enums.length)
+					throw new CastFailedException("enum ord less than 0 or more than " + enums.length + " of enum " + clazz);
+				return (X) enums[ord];
+			}
+			
+			if (o instanceof StringObject){
+				String str = ((StringObject) o).value;
+				try {
+					return (X) Enum.valueOf((Class<? extends Enum>)clazz, str);
+				} catch (IllegalArgumentException e){
+					throw new CastFailedException("'" + str + "' does not correspond to any enum in " + clazz);
+				}
+			}
 		}
 		
 		// 5th, use Coercion class

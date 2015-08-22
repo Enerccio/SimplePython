@@ -20,12 +20,12 @@ License along with this library.
 
 __all__ = ["Thread"]
 
-_threadinfo = javainstance("threadinfo")
+_threadinfo = javainstance("__threadinfo__")
 
 class Thread(object):
     def __init__(self, name=None, thread=None, daemon=False):
         if thread is None:
-            self.__jthread = javainstance("jthread", self, name)
+            self.__jthread = javainstance("__jthread__", self, name)
         else:
             self.__jthread = thread
         self.__jthread.setDaemon(daemon)

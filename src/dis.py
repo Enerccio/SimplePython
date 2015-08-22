@@ -30,7 +30,7 @@ def dis(object):
         
 
 def dis_compiled_block(cb):
-    dass = javainstance("disassembler", cb.co_code, cb.co_consts, cb.co_debug)
+    dass = javainstance("__disassembler__", cb.co_code, cb.co_consts, cb.co_debug)
     last_lineno = -1
     for bytecode in dass:
         s = ""

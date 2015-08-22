@@ -45,5 +45,9 @@ public enum SecureAction {
 	/**
 	 * checked when compile is called in python
 	 */
-	RUNTIME_COMPILE
+	RUNTIME_COMPILE,
+	/**
+	 * when webbrowser is requested by python
+	 */
+	WEBBROWSER,
 }

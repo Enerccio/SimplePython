@@ -32,7 +32,7 @@ __all__ = (["Mutex"] +
 class Mutex(object):
     def __init__(self):
         super(Mutex, self).__init__()
-        self.__jmutex = javainstance("jmutex")
+        self.__jmutex = javainstance("__jmutex__")
         
     def acquire(self, timeout=None, units=MILLISECONDS):
         if timeout is None:

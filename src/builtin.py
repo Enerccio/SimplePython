@@ -120,7 +120,7 @@ class file(object):
         self.mode = mode
         self.closed = False
         
-        self.__data_stream = javainstance("filestream", self.name, self.mode)
+        self.__data_stream = javainstance("__filestream__", self.name, self.mode)
         self.encoding = self.__data_stream.encoding()
     
     def __enter__(self):

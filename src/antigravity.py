@@ -2,7 +2,7 @@
 SimplePython - embeddable python interpret in java
 Copyright (c) Peter Vanusanik, All rights reserved.
  
- os module
+antigravity module
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,6 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.
 """
 
-__all__ = ["SEEK_SET", "SEEK_CUR", "SEEK_END", "_exit"]
+import webbrowser
 
-SEEK_SET = 0
-SEEK_CUR = 1
-SEEK_END = 2
-
-def _exit(status=0):
-    javainstance("__terminator__", status)
+webbrowser.open("http://xkcd.com/353/")
