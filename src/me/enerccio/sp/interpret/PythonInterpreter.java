@@ -216,7 +216,7 @@ public class PythonInterpreter extends PythonObject {
 			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
 			if (callableArg == null)
 				throw new TypeError(callable.toString() + " is not callable");
-			return returnee = execute(false, callableArg, kwargs, args);
+			return returnee = execute(internalCall, callableArg, kwargs, args);
 		}
 	}
 
