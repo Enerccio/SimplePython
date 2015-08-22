@@ -20,7 +20,7 @@ package me.enerccio.sp.external;
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
+import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;

@@ -25,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 
 import me.enerccio.sp.errors.IOError;
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
+import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.StringObject;
 

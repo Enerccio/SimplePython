@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.JFrame;
 
 import me.enerccio.sp.SimplePython;
-import me.enerccio.sp.interpret.PythonPathResolver;
+import me.enerccio.sp.interpret.FilesystemResolver;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.pointer.WrapPublicFactory;
 import me.enerccio.sp.utils.Coerce;
@@ -23,7 +23,7 @@ public class Example extends JFrame {
 		SimplePython.addAlias(ButtonQuitEvent.class, "btnq_event");
 		SimplePython.addAlias(ButtonTestEvent.class, "btnt_event");
 		SimplePython.addFactory("", WrapPublicFactory.class);
-		SimplePython.addResolver(PythonPathResolver.make(new File("").getAbsolutePath()));
+		SimplePython.addResolver(new FilesystemResolver(new File("").getAbsolutePath()));
 		SimplePython.getModule("example1");
 	}
 	

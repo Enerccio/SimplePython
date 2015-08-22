@@ -74,7 +74,7 @@ import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
-import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
+import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.ModuleObject.ModuleData;

@@ -18,7 +18,7 @@
 package me.enerccio.sp.external;
 
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
+import me.enerccio.sp.sandbox.SecureAction;
 
 public class PythonTerminator {
 

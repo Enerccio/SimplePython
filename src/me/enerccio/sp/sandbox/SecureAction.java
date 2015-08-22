@@ -17,25 +17,33 @@
  */
 package me.enerccio.sp.sandbox;
 
-import me.enerccio.sp.errors.SandboxViolationError;
-
-public abstract class PythonSecurityManager {
-	
-	public static final PythonSecurityManager DISABLE_ALL = new PythonSecurityManager(){
-
-		@Override
-		public boolean actionAllowed(SecureAction a,
-				Object... additionalDeciders) {
-			return false;
-		}
-		
-	};
-
-	public void checkSandbox(SecureAction a, String callName, Object... additionalDeciders){
-		if (!actionAllowed(a, additionalDeciders)){
-			throw new SandboxViolationError(callName+"(): not allowed");
-		}
-	}
-	
-	public abstract boolean actionAllowed(SecureAction a, Object... additionalDeciders);
+public enum SecureAction {
+	/**
+	 * checked when script wants to open file
+	 */
+	OPEN_FILE, 
+	/**
+	 * checked when new java instance is created via python
+	 */
+	JAVA_INSTANCE_CREATION,
+	/**
+	 * checked when new thread is created
+	 */
+	NEW_THREAD, 
+	/**
+	 * checked when python wants to terminate java
+	 */
+	TERMINATE_JAVA,
+	/**
+	 * checked when python wants to disassemble python code
+	 */
+	DISASSEMBLY, 
+	/**
+	 * checked when eval is called in python
+	 */
+	RUNTIME_EVAL, 
+	/**
+	 * checked when compile is called in python
+	 */
+	RUNTIME_COMPILE
 }

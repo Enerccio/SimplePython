@@ -27,7 +27,7 @@ import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
-import me.enerccio.sp.sandbox.PythonSecurityManager.SecureAction;
+import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.mappings.DictObject;
