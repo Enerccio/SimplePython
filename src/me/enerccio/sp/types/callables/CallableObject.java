@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.callables;
 
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -44,6 +45,10 @@ public abstract class CallableObject extends PythonObject {
 	@Override
 	public boolean truthValue() {
 		return true;
+	}
+	
+	public PythonObject executeAndGetResult(TupleObject args, KwArgs kwargs){
+		return PythonInterpreter.interpreter.get().execute(true, this, kwargs, args.getObjects());
 	}
 
 }
