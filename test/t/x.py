@@ -1,6 +1,8 @@
-import hw
+print 4
+print -4
+
+from __future__ import print_function
 
 def test():
-    print hw.value
-    hw.value = 5
-    print hw.do_something(hw.value)
+    x = print
+    print(x)

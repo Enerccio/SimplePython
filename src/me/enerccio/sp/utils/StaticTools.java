@@ -246,18 +246,20 @@ public class StaticTools {
 
 		/**
 		 * Parses module provider into pythonParser
+		 * @param r 
 		 * 
 		 * @param provider
 		 * @return
 		 * @throws IOException
 		 * @throws Exception
 		 */
-		public static pythonParser parse(ModuleData data) throws IOException {
+		public static pythonParser parse(ModuleData data, Ref<pythonLexer> r) throws IOException {
 			ANTLRInputStream is = new ANTLRInputStream(data.getResolver().read(
 					data));
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener(data.getFileName()));
+			r.set(lexer);
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 
@@ -337,11 +339,12 @@ public class StaticTools {
 		 *            source
 		 * @return parse tree
 		 */
-		public static pythonParser parseStringInput(String src) {
+		public static pythonParser parseStringInput(String src, Ref<pythonLexer> r) {
 			ANTLRInputStream is = new ANTLRInputStream(src);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
+			r.set(lexer);
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 
@@ -359,11 +362,12 @@ public class StaticTools {
 		 *            name of the file
 		 * @return parse tree
 		 */
-		public static pythonParser parseCompileFunction(String src, String value) {
+		public static pythonParser parseCompileFunction(String src, String value, Ref<pythonLexer> r) {
 			ANTLRInputStream is = new ANTLRInputStream(src);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener(value));
+			r.set(lexer);
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 
@@ -379,11 +383,12 @@ public class StaticTools {
 		 *            input
 		 * @return parse tree
 		 */
-		public static pythonParser parseEval(String code) {
+		public static pythonParser parseEval(String code, Ref<pythonLexer> r) {
 			ANTLRInputStream is = new ANTLRInputStream(code);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener("<eval>"));
+			r.set(lexer);
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
 

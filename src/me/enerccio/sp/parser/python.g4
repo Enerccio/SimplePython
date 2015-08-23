@@ -38,6 +38,12 @@ grammar python;
 
 tokens { INDENT, DEDENT }
 
+@header {
+import java.util.*;
+import me.enerccio.sp.compiler.Futures;
+import me.enerccio.sp.errors.SyntaxError;
+}
+
 @lexer::members {
 
   // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
@@ -57,6 +63,8 @@ tokens { INDENT, DEDENT }
     super.setToken(t);
     tokens.offer(t);
   }
+  
+  public Set<Futures> futures = new HashSet<Futures>();
 
   @Override
   public Token nextToken() {
@@ -83,8 +91,19 @@ tokens { INDENT, DEDENT }
       // Put the EOF back on the token stream.
       this.emit(commonToken(pythonParser.EOF, "<EOF>"));
     }
-
+ 
     Token next = super.nextToken();
+    
+    if (next.getType() == FUTURE){
+		Token tn = super.nextToken();
+		resolveFuture(tn);
+		next = super.nextToken();
+	}
+    
+    if (next.getText().equals("print") && futures.contains(Futures.PRINT_FUNCTION)) {
+    	CommonToken t = (CommonToken)next;
+    	t.setType(NAME);
+    }
 
     if (next.getChannel() == Token.DEFAULT_CHANNEL) {
       // Keep track of the last token on the default channel.
@@ -92,6 +111,17 @@ tokens { INDENT, DEDENT }
     }
 
     return tokens.isEmpty() ? next : tokens.poll();
+  }
+  
+  private void resolveFuture(Token t){
+  	String fidx = t.getText();
+  	switch (fidx) {
+	case "print_function":
+		futures.add(Futures.PRINT_FUNCTION);
+		break;
+	default:
+		throw new SyntaxError("unknown future: " + fidx);
+	}
   }
 
   private Token createDedent() {
@@ -239,9 +269,8 @@ augassign:
 ;
 
 print_stmt:
- 'print' (( (test (',' test)* endp?)? |
+ PRINT ( (test (',' test)* endp?)? |
                       push test ((',' test)+ endp?)?)
-          | '(' arglist? ')' )
 ;
 
 push:
@@ -297,7 +326,11 @@ import_from:
 ;
 
 future_stmt:
- 'from __future__ import' nname (',' nname)* ','?
+ FUTURE nname
+;
+
+FUTURE:
+  'from __future__ import'
 ;
 
 star:
@@ -471,7 +504,6 @@ atom:
  | nname
  | number
  | string+
- | 'print'
 ;
 
 bracket_atom:
@@ -607,6 +639,7 @@ integer:
  * lexer rules
  */
 
+PRINT: 'print';
 DEF : 'def';
 RETURN : 'return';
 RAISE : 'raise';

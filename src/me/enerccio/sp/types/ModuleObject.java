@@ -28,6 +28,7 @@ import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -36,6 +37,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
+import me.enerccio.sp.utils.Ref;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -65,10 +67,11 @@ public class ModuleObject extends PythonObject {
 		Utils.putPublic(this, __NAME__, new StringObject(data.getName()));
 
 		try {
-			pythonParser p = ParserGenerator.parse(data);
+			Ref<pythonLexer> r = new Ref<pythonLexer>();
+			pythonParser p = ParserGenerator.parse(data, r);
 			File_inputContext fcx = p.file_input();
 			if (fcx != null) {
-				frame = new PythonCompiler()
+				frame = new PythonCompiler(r)
 						.doCompile(fcx, data, compilingBT ? null
 								: PythonRuntime.runtime.getGlobals());
 			}

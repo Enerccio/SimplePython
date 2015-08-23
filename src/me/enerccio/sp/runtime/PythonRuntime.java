@@ -78,6 +78,7 @@ import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
@@ -137,6 +138,7 @@ import me.enerccio.sp.types.types.TypeTypeObject;
 import me.enerccio.sp.types.types.XRangeTypeObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.Ref;
 import me.enerccio.sp.utils.StaticTools.DiamondResolver;
 import me.enerccio.sp.utils.StaticTools.IOUtils;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -868,11 +870,12 @@ public class PythonRuntime {
 		CompiledBlockObject block;
 
 		if (source instanceof StringObject) {
-			PythonCompiler c = new PythonCompiler();
+			Ref<pythonLexer> r = new Ref<pythonLexer>();
+			PythonCompiler c = new PythonCompiler(r);
 			String src = ((StringObject) source).value;
 
 			block = c.doCompile(
-					ParserGenerator.parseCompileFunction(src, filename.value)
+					ParserGenerator.parseCompileFunction(src, filename.value, r)
 							.file_input(), filename.value);
 		} else if (isderived(source, AST)) {
 			ListObject lo = (ListObject) PythonInterpreter.interpreter.get()
@@ -976,8 +979,9 @@ public class PythonRuntime {
 
 		CompiledBlockObject block;
 
-		PythonCompiler c = new PythonCompiler();
-		block = c.doCompileEval(ParserGenerator.parseEval(code).eval_input());
+		Ref<pythonLexer> r = new Ref<pythonLexer>();
+		PythonCompiler c = new PythonCompiler(r);
+		block = c.doCompileEval(ParserGenerator.parseEval(code, r).eval_input());
 
 		UserFunctionObject fnc = new UserFunctionObject();
 

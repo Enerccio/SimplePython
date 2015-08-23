@@ -24,6 +24,7 @@ import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.PythonObject;
@@ -32,6 +33,7 @@ import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.Ref;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 
 /**
@@ -104,10 +106,11 @@ public class FunctionTypeObject extends TypeObject {
 			throw new TypeError(" function(): wrong types of arguments");
 		}
 
-		PythonCompiler c = new PythonCompiler();
+		Ref<pythonLexer> r = new Ref<pythonLexer>();
+		PythonCompiler c = new PythonCompiler(r);
 
 		return c.doCompile(
-				ParserGenerator.parseStringInput(src).string_input(), maps,
+				ParserGenerator.parseStringInput(src, r).string_input(), maps,
 				aas, vararg, kwararg, defaults, dict);
 	}
 

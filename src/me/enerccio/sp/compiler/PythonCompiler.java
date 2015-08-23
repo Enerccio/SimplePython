@@ -32,6 +32,7 @@ import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.ModuleResolver;
+import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser.And_exprContext;
 import me.enerccio.sp.parser.pythonParser.And_testContext;
 import me.enerccio.sp.parser.pythonParser.ArglistContext;
@@ -132,6 +133,7 @@ import me.enerccio.sp.types.types.ListTypeObject;
 import me.enerccio.sp.types.types.ObjectTypeObject;
 import me.enerccio.sp.types.types.SliceTypeObject;
 import me.enerccio.sp.types.types.TupleTypeObject;
+import me.enerccio.sp.utils.Ref;
 import me.enerccio.sp.utils.Utils;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -210,14 +212,17 @@ public class PythonCompiler {
 			return false;
 		}
 	};
+	
+	public PythonCompiler(Ref<pythonLexer> l){
+		this.lexer = l;
+	}
 
 	private PythonBytecode cb;
 	private VariableStack stack = new VariableStack();
 	private Stack<String> compilingClass = new Stack<String>();
 	private Stack<String> compilingFunction = new Stack<String>();
 	private Stack<String> docstring = new Stack<String>();
-
-	private Set<Futures> futures = new HashSet<Futures>();
+	Ref<pythonLexer> lexer;
 
 	private ModuleData module = null;
 
@@ -1398,18 +1403,7 @@ public class PythonCompiler {
 
 	private void compileFuture(Future_stmtContext future_stmt,
 			List<PythonBytecode> bytecode) {
-		for (NnameContext future : future_stmt.nname())
-			compileFuture(future.getText(), bytecode);
-	}
-
-	private void compileFuture(String fidx, List<PythonBytecode> bytecode) {
-		switch (fidx) {
-		case "print_function":
-			futures.add(Futures.PRINT_FUNCTION);
-			break;
-		default:
-			throw new SyntaxError("unknown future: " + fidx);
-		}
+		// pass
 	}
 
 	private void compile(Exec_stmtContext ctx, List<PythonBytecode> bytecode) {
@@ -1627,22 +1621,12 @@ public class PythonCompiler {
 
 	private void compile(Print_stmtContext ctx, List<PythonBytecode> bytecode) {
 
-		if (futures.contains(Futures.PRINT_FUNCTION)) {
-			compilePrintFunction(ctx, bytecode);
-			return;
-		}
-
 		int st = ctx.push() == null ? 0 : 1;
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 		cb.stringValue = "print_function";
 
 		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 		cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
-
-		if (ctx.arglist() != null) {
-			throw new SyntaxError(
-					"print is statement, did you forget to import from futures?");
-		}
 
 		for (int i = st; i < ctx.test().size(); i++) {
 			compile(ctx.test(i), bytecode);
@@ -1669,29 +1653,6 @@ public class PythonCompiler {
 
 		cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 		cb.intValue = 4;
-
-		addBytecode(bytecode, Bytecode.POP, ctx.stop);
-	}
-
-	private void compilePrintFunction(Print_stmtContext ctx,
-			List<PythonBytecode> bytecode) {
-		if (ctx.arglist() == null)
-			throw new SyntaxError(
-					"print is now a function, did you forget not to import from futures?");
-
-		cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
-		cb.stringValue = "print_function_fnc";
-
-		if (ctx.arglist() == null) {
-			cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
-			cb.intValue = 0;
-		} else {
-			CallArgsData args = compileArguments(ctx.arglist(), bytecode);
-			cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
-			cb.intValue = args.normalArgCount;
-			if (args.hasArgExpansion)
-				cb.intValue = -1 * (cb.intValue + 1);
-		}
 
 		addBytecode(bytecode, Bytecode.POP, ctx.stop);
 	}
@@ -2295,6 +2256,11 @@ public class PythonCompiler {
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.nname() != null) {
 			String name = ctx.nname().getText();
+			if (name.equals("print")){
+				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
+				cb.stringValue = "print_function_fnc";
+				return;
+			}
 			if (stack.typeOfVariable(name) == VariableType.GLOBAL)
 				cb = addBytecode(bytecode, Bytecode.LOADGLOBAL, ctx.start);
 			else if (stack.typeOfVariable(name) == VariableType.DYNAMIC)
@@ -2361,14 +2327,6 @@ public class PythonCompiler {
 			compile(ctx.listmaker(), bytecode, ctx.getStart());
 		} else if (ctx.getText().startsWith("{")) {
 			compile(ctx.dictorsetmaker(), bytecode, ctx.getStart());
-		} else if (ctx.getText().equals("print")) {
-			if (futures.contains(Futures.PRINT_FUNCTION)) {
-				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
-				cb.stringValue = "print_function_fnc";
-			} else {
-				throw new SyntaxError(
-						"invalid syntax print not a function (did you forget future import?)");
-			}
 		}
 	}
 
