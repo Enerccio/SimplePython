@@ -215,5 +215,11 @@ public class ModuleObject extends PythonObject {
 		 * Returns true if module is package
 		 */
 		boolean isPackage();
+		
+		/**
+		 * Returns true if this module is actually hidden java
+		 * @return
+		 */
+		boolean isJavaClass();
 	}
 }

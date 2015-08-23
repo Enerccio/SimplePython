@@ -57,5 +57,9 @@ public enum SecureAction {
 	/**
 	 * When socket server networking is requested (also SOCKET is checked first)
 	 */
-	SOCKET_SERVER,
+	SOCKET_SERVER, 
+	/**
+	 * When importing .pyj files
+	 */
+	JAVA_MODULE,
 }

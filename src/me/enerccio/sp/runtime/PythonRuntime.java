@@ -83,6 +83,7 @@ import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
+import me.enerccio.sp.types.ProxyModule;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
@@ -416,6 +417,10 @@ public class PythonRuntime {
 		ModuleObject mo;
 		try {
 			mo = getCompiled(data, false);
+			if (mo == null){
+				throw new ImportError("failed to load module '" + name
+						+ "' with resolve path '" + moduleResolvePath.value + "'");
+			}
 		} catch (Exception e) {
 			throw new ImportError("failed to load module '" + name
 					+ "' with resolve path '" + moduleResolvePath.value + "'",
@@ -459,7 +464,13 @@ public class PythonRuntime {
 				e.printStackTrace();
 			}
 		}
-		ModuleObject mo = new ModuleObject(data, loadingBuiltins);
+		ModuleObject mo = null;
+		
+		if (data.isJavaClass()){
+			mo = loadJavaProxy(data);
+		} else {
+			mo = new ModuleObject(data, loadingBuiltins);
+		}
 		OutputStream pyco = data.getResolver().cachedWrite(data);
 		if (pyco != null) {
 			try {
@@ -470,6 +481,34 @@ public class PythonRuntime {
 			}
 		}
 		return mo;
+	}
+	
+	/**
+	 * @param data
+	 * @return
+	 */
+	private ModuleObject loadJavaProxy(ModuleData data) {
+		checkSandboxAction("__import__", SecureAction.JAVA_MODULE, data);
+		try {
+			ModuleObject mo = new ProxyModule(loadJavaProxyObject(data), data);
+			return mo;
+		} catch (Throwable e){
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private PythonClassLoader loader = new PythonClassLoader(getClass().getClassLoader());
+
+	private Object loadJavaProxyObject(ModuleData data) throws Exception {
+		String pp = data.getPackageResolve();
+		if (pp == "")
+			pp = data.getName();
+		else
+			pp = pp + "." + data.getName();
+		Class<?> cls = loader.load(pp, data.getResolver().read(data));
+		Object jdata = cls.newInstance();
+		return jdata;
 	}
 
 	/**
@@ -672,6 +711,11 @@ public class PythonRuntime {
 							@Override
 							public String getFileName() {
 								return "builtin.py";
+							}
+
+							@Override
+							public boolean isJavaClass() {
+								return false;
 							};
 						};
 						ModuleObject mo = getCompiled(mp, true);
@@ -743,6 +787,9 @@ public class PythonRuntime {
 	 * use manually.
 	 */
 	public static InputStream cachedRead(ModuleData data) {
+		if (data.isJavaClass())
+			return null;
+		
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
 		long lastMod = data.getResolver().lastModified(data);
 		for (File f : SimplePython.pycCaches) {
@@ -766,6 +813,9 @@ public class PythonRuntime {
 	 * use manually.
 	 */
 	public static OutputStream cachedWrite(ModuleData data) {
+		if (data.isJavaClass())
+			return null;
+		
 		if (SimplePython.pycCaches.isEmpty())
 			return null;
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";

@@ -45,6 +45,7 @@ public class FilesystemResolver implements ModuleResolver {
 	public ModuleData resolve(String name, String resolvePath) {
 		String pp = resolvePath.replace(".", File.separator);
 		File path = new File(new File(rootPath, pp), name + ".py");
+		File jpath = new File(new File(rootPath, pp), name + ".pyj");
 		if (!path.exists())
 			path = new File(new File(rootPath, pp), name);
 		if (path.exists()) {
@@ -52,7 +53,15 @@ public class FilesystemResolver implements ModuleResolver {
 				File init = new File(path, "__init__.py");
 				if (init.exists() && !init.isDirectory()) {
 					try {
-						return new MI(name, path, resolvePath, true);
+						return new MI(name, path, resolvePath, true, false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				File jinit = new File(path, "__init__.pyj");
+				if (jinit.exists() && !jinit.isDirectory()) {
+					try {
+						return new MI(name, path, resolvePath, true, true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -60,11 +69,20 @@ public class FilesystemResolver implements ModuleResolver {
 			} else {
 				try {
 					if (path.getName().endsWith(".py")) {
-						return new MI(name, path, resolvePath, true);
+						return new MI(name, path, resolvePath, true, false);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			}
+		}
+		if (jpath.exists()){
+			try {
+				if (jpath.isFile()) {
+					return new MI(name, jpath, resolvePath, true, true);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		return null;
@@ -85,12 +103,14 @@ public class FilesystemResolver implements ModuleResolver {
 		private File file;
 		private String resolvePath;
 		private boolean isPackage;
+		private boolean isJava;
 
-		MI(String name, File file, String resolvePath, boolean isPackage) {
+		MI(String name, File file, String resolvePath, boolean isPackage, boolean isJava) {
 			this.name = name;
 			this.file = file;
 			this.resolvePath = resolvePath;
 			this.isPackage = isPackage;
+			this.isJava = isJava;
 		}
 
 		@Override
@@ -116,6 +136,11 @@ public class FilesystemResolver implements ModuleResolver {
 		@Override
 		public boolean isPackage() {
 			return isPackage;
+		}
+
+		@Override
+		public boolean isJavaClass() {
+			return isJava;
 		}
 	}
 

@@ -173,6 +173,11 @@ public class PythonCompiler {
 		public boolean isPackage() {
 			return false;
 		}
+
+		@Override
+		public boolean isJavaClass() {
+			return false;
+		}
 	};
 	private static final ModuleData EVAL_FUNCTIONS = new ModuleData() {
 		@Override
@@ -197,6 +202,11 @@ public class PythonCompiler {
 
 		@Override
 		public boolean isPackage() {
+			return false;
+		}
+
+		@Override
+		public boolean isJavaClass() {
 			return false;
 		}
 	};
@@ -302,6 +312,11 @@ public class PythonCompiler {
 
 			@Override
 			public boolean isPackage() {
+				return false;
+			}
+
+			@Override
+			public boolean isJavaClass() {
 				return false;
 			}
 		};

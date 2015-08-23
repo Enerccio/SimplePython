@@ -112,6 +112,11 @@ public class InternalJavaPathResolver implements ModuleResolver {
 		public boolean isPackage() {
 			return false;
 		}
+
+		@Override
+		public boolean isJavaClass() {
+			return false;
+		}
 	}
 
 	@Override

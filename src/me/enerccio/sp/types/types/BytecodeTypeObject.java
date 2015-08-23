@@ -103,6 +103,11 @@ public class BytecodeTypeObject extends TypeObject {
 		public boolean isPackage() {
 			return false;
 		}
+
+		@Override
+		public boolean isJavaClass() {
+			return false;
+		}
 	};
 
 	@Override

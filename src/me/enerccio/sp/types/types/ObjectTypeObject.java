@@ -72,6 +72,11 @@ public class ObjectTypeObject extends TypeObject {
 		public boolean isPackage() {
 			return false;
 		}
+
+		@Override
+		public boolean isJavaClass() {
+			return false;
+		}
 	};
 	public static final String OBJECT_CALL = "object";
 	public static final String __CONTAINS__ = "__contains__";

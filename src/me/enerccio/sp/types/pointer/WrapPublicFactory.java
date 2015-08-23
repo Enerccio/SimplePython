@@ -19,6 +19,7 @@ package me.enerccio.sp.types.pointer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class WrapPublicFactory extends WrapBaseFactory implements
 	protected List<Pair<Field, Boolean>> getFields(Class<?> clazz) {
 		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
 		for (Field f : clazz.getFields())
-			fl.add(Pair.makePair(f, false));
+			fl.add(Pair.makePair(f, Modifier.isFinal(f.getModifiers())));
 		return fl;
 	}
 }

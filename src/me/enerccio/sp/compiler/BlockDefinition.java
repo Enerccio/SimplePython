@@ -144,6 +144,11 @@ public class BlockDefinition {
 			public boolean isPackage() {
 				return mi.isPackage();
 			}
+
+			@Override
+			public boolean isJavaClass() {
+				return false;
+			}
 		};
 
 		di.module = mf;
