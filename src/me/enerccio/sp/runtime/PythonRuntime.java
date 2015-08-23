@@ -56,6 +56,7 @@ import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.external.Disassembler;
 import me.enerccio.sp.external.FileStream;
 import me.enerccio.sp.external.FormatterAccessor;
+import me.enerccio.sp.external.JavaRandom;
 import me.enerccio.sp.external.PrintOutputStream;
 import me.enerccio.sp.external.PythonDatagramSocket;
 import me.enerccio.sp.external.PythonMutex;
@@ -183,6 +184,7 @@ public class PythonRuntime {
 		addAlias(PythonServerSocket.class.getName(), 	"__serversocket__");
 		addAlias(SocketHelper.class.getName(), 			"__sockethelper__");
 		addAlias(PythonDatagramSocket.class.getName(), 	"__udpsocket__");
+		addAlias(JavaRandom.class.getName(), 			"__random__");
 	}
 	
 	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
