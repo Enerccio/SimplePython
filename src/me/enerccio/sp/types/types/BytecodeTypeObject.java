@@ -35,9 +35,9 @@ import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
-
 /**
  * bytecode()
+ * 
  * @author Enerccio
  *
  */
@@ -49,56 +49,79 @@ public class BytecodeTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "bytecode";
 	}
-	
 
 	@Override
-	public void newObject(){
+	public void newObject() {
 		super.newObject();
-		
+
 		try {
-			Utils.putPublic(this, "names", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "names")));
-			Utils.putPublic(this, "numbers", new MethodPropertyObject("names", JavaMethodObject.noArgMethod(this, "numbers")));
+			Utils.putPublic(this, "names", new MethodPropertyObject("names",
+					JavaMethodObject.noArgMethod(this, "names")));
+			Utils.putPublic(this, "numbers", new MethodPropertyObject("names",
+					JavaMethodObject.noArgMethod(this, "numbers")));
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException("kurva", e);
 		}
 	}
-	
-	public Map<String, Integer> names(){
+
+	public Map<String, Integer> names() {
 		Map<String, Integer> tMap = new TreeMap<String, Integer>();
 		for (Bytecode b : Bytecode.values())
 			tMap.put(b.name(), b.id);
 		return tMap;
 	}
-	
-	public Map<Integer, String> numbers(){
+
+	public Map<Integer, String> numbers() {
 		Map<Integer, String> tMap = new TreeMap<Integer, String>();
 		for (Bytecode b : Bytecode.values())
 			tMap.put(b.id, b.name());
 		return tMap;
 	}
-	
+
 	private static ModuleData mook = new ModuleData() {
-		@Override public String getName() { return "<generated-module>"; }
-		@Override public String getFileName() { return "<generated-module>"; }
-		@Override public ModuleResolver getResolver() { return null; }
-		@Override public String getPackageResolve() { return ""; }
-		@Override public boolean isPackage() { return false; }
+		@Override
+		public String getName() {
+			return "<generated-module>";
+		}
+
+		@Override
+		public String getFileName() {
+			return "<generated-module>";
+		}
+
+		@Override
+		public ModuleResolver getResolver() {
+			return null;
+		}
+
+		@Override
+		public String getPackageResolve() {
+			return "";
+		}
+
+		@Override
+		public boolean isPackage() {
+			return false;
+		}
 	};
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (args.len() == 0)
-			throw new TypeError("bytecode(): incorrect number of parameters, must be >0");
-		
+			throw new TypeError(
+					"bytecode(): incorrect number of parameters, must be >0");
+
 		try {
 			NumberObject byteNum = (NumberObject) args.getObjects()[0];
-			
-			Bytecode b = Bytecode.fromNumber((int) byteNum.intValue());
+
+			Bytecode b = Bytecode.fromNumber(byteNum.intValue());
 			if (b == null)
-				throw new TypeError("bytecode(): unknown bytecode number " + byteNum);
-			PythonBytecode bytecode = Bytecode.makeBytecode(b, null, null, mook);
+				throw new TypeError("bytecode(): unknown bytecode number "
+						+ byteNum);
+			PythonBytecode bytecode = Bytecode
+					.makeBytecode(b, null, null, mook);
 			bytecode.newObject();
-			
+
 			switch (b) {
 			case ACCEPT_ITER:
 				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
@@ -111,7 +134,8 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case DEL:
 				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
-				bytecode.booleanValue = Coerce.toJava(args.get(2), boolean.class);
+				bytecode.booleanValue = Coerce.toJava(args.get(2),
+						boolean.class);
 				break;
 			case DELATTR:
 				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
@@ -285,14 +309,14 @@ public class BytecodeTypeObject extends TypeObject {
 			default:
 				break;
 			}
-			
+
 			bytecode.newObject();
 			return bytecode;
-		} catch (CastFailedException e){
+		} catch (CastFailedException e) {
 			throw new TypeError("bytecode(): incorrect type of arguments");
-		} catch (ArrayIndexOutOfBoundsException e){
+		} catch (ArrayIndexOutOfBoundsException e) {
 			throw new TypeError("bytecode(): incorrect number of arguments");
 		}
-		
+
 	}
 }

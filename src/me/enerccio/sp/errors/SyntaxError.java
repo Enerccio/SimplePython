@@ -21,7 +21,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 
 public class SyntaxError extends BasePythonError {
 	private static final long serialVersionUID = 9845123L;
-	
+
 	public SyntaxError(String message) {
 		super(PythonRuntime.SYNTAX_ERROR, message);
 	}

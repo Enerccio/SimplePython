@@ -26,6 +26,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * tuple()
+ * 
  * @author Enerccio
  *
  */
@@ -42,21 +43,21 @@ public class TupleTypeObject extends TypeObject {
 	public static PythonObject make_tuple(TupleObject args, KwArgs kwargs) {
 		return args;
 	}
-	
+
 	public static TupleObject make_tuple(PythonObject o) {
 		TupleObject lo;
 		if (o instanceof SequenceObject)
-			lo = TupleObject.fromSequence((SequenceObject)o);
-		 else
+			lo = TupleObject.fromSequence((SequenceObject) o);
+		else
 			lo = TupleObject.fromIterator(o);
 		return lo;
 	}
 
-	
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		;
 		if (args.len() == 0) {
 			ListObject lo = new ListObject();

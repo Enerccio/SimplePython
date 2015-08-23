@@ -28,6 +28,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * str()
+ * 
  * @author Enerccio
  *
  */
@@ -41,24 +42,28 @@ public class StringTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 1)
 			throw new TypeError("str(): incorrect number of parameters");
-		
+
 		PythonObject o = args.getObjects()[0];
-		if (o instanceof ClassInstanceObject){
+		if (o instanceof ClassInstanceObject) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
-			Utils.run("getattr", args.getObjects()[0], new StringObject("__str__"));
-			PythonObject ret = PythonInterpreter.interpreter.get().executeAll(cfc);
-			return PythonInterpreter.interpreter.get().execute(false, ret, null);
+			Utils.run("getattr", args.getObjects()[0], new StringObject(
+					"__str__"));
+			PythonObject ret = PythonInterpreter.interpreter.get().executeAll(
+					cfc);
+			return PythonInterpreter.interpreter.get()
+					.execute(false, ret, null);
 		} else
 			return new StringObject(o.toString());
 	}
-	
+
 	@Override
-	public void newObject(){
+	public void newObject() {
 		super.newObject();
 	}
 }

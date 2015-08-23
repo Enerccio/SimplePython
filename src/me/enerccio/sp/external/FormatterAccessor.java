@@ -28,14 +28,17 @@ public class FormatterAccessor {
 	private CallableObject getValue;
 	private CallableObject checkUnused;
 	private CallableObject formatField;
-	public FormatterAccessor(CallableObject getValue, CallableObject checkUnused, CallableObject formatField){
+
+	public FormatterAccessor(CallableObject getValue,
+			CallableObject checkUnused, CallableObject formatField) {
 		this.getValue = getValue;
 		this.checkUnused = checkUnused;
 		this.formatField = formatField;
 	}
-	
+
 	@WrapMethod
-	public String doFormat(String formatString, TupleObject to, Dictionary dict){
-		return new Formatter(to, dict, getValue, checkUnused, formatField).format(formatString).doConsume();
+	public String doFormat(String formatString, TupleObject to, Dictionary dict) {
+		return new Formatter(to, dict, getValue, checkUnused, formatField)
+				.format(formatString).doConsume();
 	}
 }

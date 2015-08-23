@@ -20,22 +20,24 @@ package me.enerccio.sp.sandbox;
 import me.enerccio.sp.errors.SandboxViolationError;
 
 public abstract class PythonSecurityManager {
-	
-	public static final PythonSecurityManager DISABLE_ALL = new PythonSecurityManager(){
+
+	public static final PythonSecurityManager DISABLE_ALL = new PythonSecurityManager() {
 
 		@Override
 		public boolean actionAllowed(SecureAction a,
 				Object... additionalDeciders) {
 			return false;
 		}
-		
+
 	};
 
-	public void checkSandbox(SecureAction a, String callName, Object... additionalDeciders){
-		if (!actionAllowed(a, additionalDeciders)){
-			throw new SandboxViolationError(callName+"(): not allowed");
+	public void checkSandbox(SecureAction a, String callName,
+			Object... additionalDeciders) {
+		if (!actionAllowed(a, additionalDeciders)) {
+			throw new SandboxViolationError(callName + "(): not allowed");
 		}
 	}
-	
-	public abstract boolean actionAllowed(SecureAction a, Object... additionalDeciders);
+
+	public abstract boolean actionAllowed(SecureAction a,
+			Object... additionalDeciders);
 }

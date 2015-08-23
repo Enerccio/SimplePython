@@ -44,52 +44,55 @@ public class Disassembler {
 	private ByteBuffer readBuff;
 	@WrapField(readOnly = true)
 	public int last_bytecode_pos;
-	
-	public Disassembler(String code, DictObject mappings, TreeMap<Integer, DebugInformation> dmap){
-		PythonRuntime.runtime.checkSandboxAction("disassembler", SecureAction.DISASSEMBLY, code, mappings, dmap);
+
+	public Disassembler(String code, DictObject mappings,
+			TreeMap<Integer, DebugInformation> dmap) {
+		PythonRuntime.runtime.checkSandboxAction("disassembler",
+				SecureAction.DISASSEMBLY, code, mappings, dmap);
 		this.data = getCode(code);
 		this.mappings = mappings;
 		this.debug = dmap;
 		this.readBuff = ByteBuffer.wrap(data);
 	}
-	
+
 	private byte[] getCode(String code) {
 		if (code.startsWith("\\x"))
 			code = code.substring(2);
 		String[] spl = code.split("\\\\x");
 		byte[] arr = new byte[spl.length];
-		for (int i=0; i<spl.length; i++)
+		for (int i = 0; i < spl.length; i++)
 			arr[i] = (byte) (Short.parseShort(spl[i], 16) & 0xFF);
 		return arr;
 	}
 
 	@WrapMethod
-	public Disassembler __iter__(){
+	public Disassembler __iter__() {
 		return this;
 	}
-	
+
 	@WrapMethod
-	public synchronized PythonObject next(){
+	public synchronized PythonObject next() {
 		try {
 			return doGetNext();
-		} catch (BufferUnderflowException e){
+		} catch (BufferUnderflowException e) {
 			throw new StopIteration();
 		}
 	}
-	
-	private PythonObject doGetNext(){
+
+	private PythonObject doGetNext() {
 		if (readBuff.remaining() == 0)
 			throw new StopIteration();
-		
+
 		last_bytecode_pos = readBuff.position();
 		DebugInformation d = debug.get(debug.floorKey(last_bytecode_pos));
-		
+
 		Bytecode b = Bytecode.fromNumber(((short) (readBuff.get() & 0xff)));
-		PythonBytecode bytecode = Bytecode.makeBytecode(b, null, d.function, d.module);
+		PythonBytecode bytecode = Bytecode.makeBytecode(b, null, d.function,
+				d.module);
 		bytecode.debugCharacter = d.charno;
 		bytecode.debugLine = d.lineno;
 		bytecode.newObject();
-		
+
 		try {
 			switch (b) {
 			case ACCEPT_ITER:
@@ -129,29 +132,43 @@ public class Disassembler {
 			case SETATTR:
 			case LOAD_FUTURE:
 			case GETATTR:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), String.class);
 				break;
 			case MAKE_FUTURE:
 			case KWARG:
 				String[] arr = new String[readBuff.getInt()];
-				for (int i=0; i<arr.length; i++) {
-					arr[i] = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				for (int i = 0; i < arr.length; i++) {
+					arr[i] = Coerce.toJava(mappings.doGet(NumberObject
+							.valueOf(readBuff.getInt())), String.class);
 				}
 				bytecode.object = arr;
 				break;
 			case YIELD:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
-				bytecode.intValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), int.class);
+				bytecode.stringValue = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), String.class);
+				bytecode.intValue = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), int.class);
 				break;
 			case IMPORT:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
-				bytecode.object = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), String.class);
+				bytecode.object = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), String.class);
 				break;
 			case PUSH:
-				bytecode.value = mappings.doGet(NumberObject.valueOf(readBuff.getInt()));
+				bytecode.value = mappings.doGet(NumberObject.valueOf(readBuff
+						.getInt()));
 				break;
 			case DEL:
-				bytecode.stringValue = Coerce.toJava(mappings.doGet(NumberObject.valueOf(readBuff.getInt())), String.class);
+				bytecode.stringValue = Coerce
+						.toJava(mappings.doGet(NumberObject.valueOf(readBuff
+								.getInt())), String.class);
 				bytecode.booleanValue = readBuff.getInt() == 1;
 				break;
 			case ISINSTANCE:
@@ -189,10 +206,10 @@ public class Disassembler {
 			case RARROW:
 				break;
 			}
-		} catch (CastFailedException e){
+		} catch (CastFailedException e) {
 			throw new TypeError("bytecode internal failure", e);
 		}
-		
+
 		return bytecode;
 	}
 }

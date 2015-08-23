@@ -25,28 +25,29 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Ellipsis object
+ * 
  * @author Enerccio
  *
  */
 public class EllipsisObject extends PythonObject {
 	private static final long serialVersionUID = 70L;
-	
+
 	public static final EllipsisObject ELLIPSIS = new EllipsisObject();
 
-	private EllipsisObject(){
+	private EllipsisObject() {
 		super(false);
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 	@Override
 	protected String doToString() {
 		return "...";
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

@@ -31,61 +31,71 @@ import me.enerccio.sp.utils.Pair;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * Base wrapping factory. Handles wrapping methods into JavaCongruentAggregatorObjects. 
- * Which methods to wrap are decided by the getMethods method.
+ * Base wrapping factory. Handles wrapping methods into
+ * JavaCongruentAggregatorObjects. Which methods to wrap are decided by the
+ * getMethods method.
+ * 
  * @author Enerccio
  *
  */
 public abstract class WrapBaseFactory implements PointerFactory {
 	private static final long serialVersionUID = -4111009373007823950L;
-	
-	private static Map<String, List<Method>> cache = Collections.synchronizedMap(new HashMap<String, List<Method>>());
-	private static Map<String, List<Pair<Field, Boolean>>> fcache = Collections.synchronizedMap(new HashMap<String, List<Pair<Field, Boolean>>>());
+
+	private static Map<String, List<Method>> cache = Collections
+			.synchronizedMap(new HashMap<String, List<Method>>());
+	private static Map<String, List<Pair<Field, Boolean>>> fcache = Collections
+			.synchronizedMap(new HashMap<String, List<Pair<Field, Boolean>>>());
 
 	@Override
 	public final PointerObject doInitialize(Object instance, Class<?> clazz) {
 		PointerObject o = new PointerObject(instance);
-		
+
 		if (!cache.containsKey(clazz.getCanonicalName()))
-			synchronized (cache){
-				if (!cache.containsKey(clazz.getCanonicalName())){
+			synchronized (cache) {
+				if (!cache.containsKey(clazz.getCanonicalName())) {
 					List<Method> ml = getMethods(clazz);
 					cache.put(clazz.getCanonicalName(), ml);
 				}
 			}
-		
+
 		if (!fcache.containsKey(clazz.getCanonicalName()))
-			synchronized (fcache){
-				if (!fcache.containsKey(clazz.getCanonicalName())){
+			synchronized (fcache) {
+				if (!fcache.containsKey(clazz.getCanonicalName())) {
 					List<Pair<Field, Boolean>> ml = getFields(clazz);
 					fcache.put(clazz.getCanonicalName(), ml);
 				}
 			}
-		
-		synchronized (cache){
+
+		synchronized (cache) {
 			Map<String, JavaCongruentAggregatorObject> mm = new HashMap<String, JavaCongruentAggregatorObject>();
-			
-			for (Method m : cache.get(clazz.getCanonicalName())){
+
+			for (Method m : cache.get(clazz.getCanonicalName())) {
 				String name = m.getName();
-				if (!mm.containsKey(name)){
-					JavaCongruentAggregatorObject co = new JavaCongruentAggregatorObject(name);
+				if (!mm.containsKey(name)) {
+					JavaCongruentAggregatorObject co = new JavaCongruentAggregatorObject(
+							name);
 					mm.put(name, co);
 				}
 				mm.get(name).methods.add(new JavaMethodObject(instance, m));
 			}
-			
-			for (String name : mm.keySet()){
+
+			for (String name : mm.keySet()) {
 				Utils.putPublic(o, name, mm.get(name));
 			}
-			
-			for (Pair<Field, Boolean> fd : fcache.get(clazz.getCanonicalName())){
-				Utils.putPublic(o, fd.getFirst().getName(), new FieldPropertyObject(instance, fd.getFirst(), fd.getSecond()));
+
+			for (Pair<Field, Boolean> fd : fcache.get(clazz.getCanonicalName())) {
+				Utils.putPublic(
+						o,
+						fd.getFirst().getName(),
+						new FieldPropertyObject(instance, fd.getFirst(), fd
+								.getSecond()));
 			}
 		}
-		
+
 		return o;
 	}
 
 	protected abstract List<Method> getMethods(Class<?> clazz);
+
 	protected abstract List<Pair<Field, Boolean>> getFields(Class<?> clazz);
 }

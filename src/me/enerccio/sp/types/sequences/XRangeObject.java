@@ -35,14 +35,15 @@ import me.enerccio.sp.types.iterators.XRangeIterator;
 /**
  * xrange implementation
  */
-public class XRangeObject extends PythonObject implements SimpleIDAccessor, InternallyIterable  {
+public class XRangeObject extends PythonObject implements SimpleIDAccessor,
+		InternallyIterable {
 	private static final long serialVersionUID = -543998207864616108L;
 	public static final String __REVERSED__ = "__reversed__";
 	public static final String __CONTAINS__ = ContainerObject.__CONTAINS__;
 	public static final String __LEN__ = ContainerObject.__LEN__;
 	public static final String __ITER__ = SequenceObject.__ITER__;
 	public static final String __GETITEM__ = SequenceObject.__GETITEM__;
-			
+
 	private int start, end, step;
 
 	public XRangeObject(boolean internalUse, int start, int end, int step) {
@@ -51,22 +52,32 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 		this.end = end;
 		this.step = step;
 	}
-	
-	private static Map<String, JavaMethodObject> sfields = Collections.synchronizedMap(new HashMap<String, JavaMethodObject>());
-	
+
+	private static Map<String, JavaMethodObject> sfields = Collections
+			.synchronizedMap(new HashMap<String, JavaMethodObject>());
+
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put(__REVERSED__,	new JavaMethodObject(XRangeObject.class, "__reversed__"));
-			sfields.put(__CONTAINS__,	new JavaMethodObject(XRangeObject.class, "__contains__", PythonObject.class));
-			sfields.put(__LEN__,		new JavaMethodObject(XRangeObject.class, "__len__")); 
-			sfields.put(__ITER__,		JavaMethodObject.noArgMethod(XRangeObject.class, "__iter__")); 
-			sfields.put(__GETITEM__,	new JavaMethodObject(XRangeObject.class, "valueAt", int.class)); 
-		} catch (Exception e){
+			sfields.put(__REVERSED__, new JavaMethodObject(XRangeObject.class,
+					"__reversed__"));
+			sfields.put(__CONTAINS__, new JavaMethodObject(XRangeObject.class,
+					"__contains__", PythonObject.class));
+			sfields.put(__LEN__, new JavaMethodObject(XRangeObject.class,
+					"__len__"));
+			sfields.put(__ITER__, JavaMethodObject.noArgMethod(
+					XRangeObject.class, "__iter__"));
+			sfields.put(__GETITEM__, new JavaMethodObject(XRangeObject.class,
+					"valueAt", int.class));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -76,12 +87,12 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
 	}
-	
+
 	@Override
 	protected String doToString() {
 		StringBuilder sb = new StringBuilder();
@@ -101,8 +112,10 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 
 	public PythonObject get(PythonObject key) {
 		if (NumberObject.isInteger(key))
-			return NumberObject.valueOf(start + step * ((NumberObject)key).intValue());
-		throw new TypeError("sequence index must be integer, not '" + key.getType() + "'");
+			return NumberObject.valueOf(start + step
+					* ((NumberObject) key).intValue());
+		throw new TypeError("sequence index must be integer, not '"
+				+ key.getType() + "'");
 	}
 
 	@Override
@@ -110,10 +123,10 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 		XRangeIterator rv = new XRangeIterator(start, end, step);
 		return rv;
 	}
-	
+
 	public PythonObject __reversed__(TupleObject t, KwArgs kw) {
 		t.notExpectingArgs(kw);
-		XRangeIterator rv = new XRangeIterator(end - 1, start - 1, - step);
+		XRangeIterator rv = new XRangeIterator(end - 1, start - 1, -step);
 		return rv;
 	}
 
@@ -121,7 +134,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 		t.notExpectingArgs(kw);
 		return NumberObject.valueOf(len());
 	}
-	
+
 	public PythonObject __contains__(PythonObject o) {
 		return BoolObject.FALSE;
 	}
@@ -135,7 +148,7 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor, Inte
 	public PythonObject valueAt(int idx) {
 		return get(NumberObject.valueOf(idx));
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return len() > 0;

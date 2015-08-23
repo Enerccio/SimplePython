@@ -45,17 +45,21 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class StaticTools {
-	
+
 	/**
 	 * Resolves diamons via L3 algorithm.
+	 * 
 	 * @author Enerccio
 	 *
 	 */
 	public static class DiamondResolver {
-		private DiamondResolver(){}
+		private DiamondResolver() {
+		}
 
 		/**
-		 * Resolves type hierarchy diamonds via L3. Returns linearized list of types. 
+		 * Resolves type hierarchy diamonds via L3. Returns linearized list of
+		 * types.
+		 * 
 		 * @param clo
 		 * @return
 		 */
@@ -72,30 +76,29 @@ public class StaticTools {
 			if (ll.size() == 1)
 				return merged;
 			List<List<ClassObject>> mergeList = new ArrayList<List<ClassObject>>();
-			for (int i=1; i<ll.size(); i++)
+			for (int i = 1; i < ll.size(); i++)
 				mergeList.add(linearize(asListOfClasses(ll.get(i))));
 			for (ClassObject o : merge(mergeList, ll.subList(1, ll.size())))
 				merged.add(o);
 			return merged;
 		}
 
-		private static List<ClassObject> merge(List<List<ClassObject>> mergeList,
-				List<ClassObject> subList) {
+		private static List<ClassObject> merge(
+				List<List<ClassObject>> mergeList, List<ClassObject> subList) {
 			mergeList.add(subList);
-			
+
 			List<ClassObject> m = new ArrayList<ClassObject>();
-			while (true){
+			while (true) {
 				List<ClassObject> suitable = null;
-				
-				outer:
-				for (List<ClassObject> testee : mergeList){
+
+				outer: for (List<ClassObject> testee : mergeList) {
 					if (testee.size() == 0)
 						continue;
 					suitable = testee;
 					ClassObject head = testee.get(0);
 					for (List<ClassObject> tested : mergeList)
 						if (testee != tested)
-							if (tails(tested).contains(head)){
+							if (tails(tested).contains(head)) {
 								suitable = null;
 								continue outer;
 							}
@@ -108,7 +111,7 @@ public class StaticTools {
 							throw new TypeError("unsuitable class hierarchy!");
 					return m;
 				}
-				
+
 				ClassObject head = suitable.get(0);
 				m.add(head);
 				for (List<ClassObject> cllist : mergeList)
@@ -125,7 +128,8 @@ public class StaticTools {
 		private static List<ClassObject> asListOfClasses(ClassObject clo) {
 			List<ClassObject> cl = new ArrayList<ClassObject>();
 			cl.add(clo);
-			for (PythonObject o : ((TupleObject) clo.getEditableFields().get(ClassObject.__BASES__).object).getObjects())
+			for (PythonObject o : ((TupleObject) clo.getEditableFields().get(
+					ClassObject.__BASES__).object).getObjects())
 				cl.add((ClassObject) o);
 			return cl;
 		}
@@ -133,78 +137,95 @@ public class StaticTools {
 
 	/**
 	 * IO utilities
+	 * 
 	 * @author Enerccio
 	 *
 	 */
 	public static class IOUtils {
-		private IOUtils(){}
+		private IOUtils() {
+		}
 
 		/**
 		 * Converts InputStream into byte array
-		 * @param input InputStream to grab the data from
+		 * 
+		 * @param input
+		 *            InputStream to grab the data from
 		 * @return byte[] from the InputStream
 		 * @throws IOException
 		 */
 		public static byte[] toByteArray(InputStream input) throws IOException {
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
-		    copy(input, output);
-		    return output.toByteArray();
+			copy(input, output);
+			return output.toByteArray();
 		}
 
 		/**
 		 * Copies input into output
-		 * @param input is input
-		 * @param output os output
+		 * 
+		 * @param input
+		 *            is input
+		 * @param output
+		 *            os output
 		 * @return number of bytes copies
 		 * @throws IOException
 		 */
-		public static long copy(InputStream input, OutputStream output) throws IOException {
+		public static long copy(InputStream input, OutputStream output)
+				throws IOException {
 			return copy(input, output, new byte[4096]);
 		}
 
 		/**
 		 * Same as copy, but with variable sized buffer
-		 * @param input is input
-		 * @param output os output
-		 * @param buffer buffer array
+		 * 
+		 * @param input
+		 *            is input
+		 * @param output
+		 *            os output
+		 * @param buffer
+		 *            buffer array
 		 * @return number of bytes copies
 		 * @throws IOException
 		 */
-		public static long copy(InputStream input, OutputStream output, byte[] buffer) throws IOException {
+		public static long copy(InputStream input, OutputStream output,
+				byte[] buffer) throws IOException {
 			long count = 0L;
-		    int n = 0;
-		    while (-1 != (n = input.read(buffer))) {
-		      output.write(buffer, 0, n);
-		      count += n;
-		    }
-		    return count;
+			int n = 0;
+			while (-1 != (n = input.read(buffer))) {
+				output.write(buffer, 0, n);
+				count += n;
+			}
+			return count;
 		}
 
-		public static byte[] toByteArray(InputStream input, int c) throws IOException {
+		public static byte[] toByteArray(InputStream input, int c)
+				throws IOException {
 			if (c == 0)
 				return new byte[0];
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			byte[] buffer = new byte[2048];
 			long count = 0L;
-		    int n = 0;
-		    while (-1 != (n = input.read(buffer, 0, (int)(c-count)))) {
-		      if (n == 0)
-		    	  return bos.toByteArray();
-		      bos.write(buffer, 0, n);
-		      count += n;
-		    }
+			int n = 0;
+			while (-1 != (n = input.read(buffer, 0, (int) (c - count)))) {
+				if (n == 0)
+					return bos.toByteArray();
+				bos.write(buffer, 0, n);
+				count += n;
+			}
 			return bos.toByteArray();
 		}
 	}
-	
+
 	/**
-	 * ParserGenerator generates various parse trees from three grammars (python, format, formatter)
+	 * ParserGenerator generates various parse trees from three grammars
+	 * (python, format, formatter)
+	 * 
 	 * @author Enerccio
 	 *
 	 */
 	public static class ParserGenerator {
-		private ParserGenerator(){}
-		
+		private ParserGenerator() {
+		}
+
 		public static class ThrowingErrorListener extends BaseErrorListener {
 			private String source;
 
@@ -217,47 +238,53 @@ public class StaticTools {
 					Object offendingSymbol, int line, int charPositionInLine,
 					String msg, RecognitionException e)
 					throws ParseCancellationException {
-				throw new ParseCancellationException("file " + source + " line "
-						+ line + ":" + charPositionInLine + " " + msg);
+				throw new ParseCancellationException("file " + source
+						+ " line " + line + ":" + charPositionInLine + " "
+						+ msg);
 			}
 		}
 
 		/**
 		 * Parses module provider into pythonParser
+		 * 
 		 * @param provider
 		 * @return
-		 * @throws IOException 
+		 * @throws IOException
 		 * @throws Exception
 		 */
-		public static pythonParser parse(ModuleData data) throws IOException{
-			ANTLRInputStream is = new ANTLRInputStream(data.getResolver().read(data));
+		public static pythonParser parse(ModuleData data) throws IOException {
+			ANTLRInputStream is = new ANTLRInputStream(data.getResolver().read(
+					data));
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener(data.getFileName()));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
-			
+
 			parser.removeErrorListeners();
-			parser.addErrorListener(new ThrowingErrorListener(data.getFileName()));
+			parser.addErrorListener(new ThrowingErrorListener(data
+					.getFileName()));
 			return parser;
 		}
-		
+
 		/**
 		 * parses input stream into pythonParser
+		 * 
 		 * @param provider
 		 * @param srcFile
 		 * @return
-		 * @throws IOException 
+		 * @throws IOException
 		 * @throws Exception
 		 */
-		public static pythonParser parse(InputStream provider, String srcFile) throws IOException{
+		public static pythonParser parse(InputStream provider, String srcFile)
+				throws IOException {
 			ANTLRInputStream is = new ANTLRInputStream(provider);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener(srcFile));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener(srcFile));
 			return parser;
@@ -265,7 +292,9 @@ public class StaticTools {
 
 		/**
 		 * Parser for format
-		 * @param value format expression
+		 * 
+		 * @param value
+		 *            format expression
 		 * @return parse tree
 		 */
 		public static formatParser parseFormat(String value) {
@@ -275,7 +304,7 @@ public class StaticTools {
 			lexer.addErrorListener(new ThrowingErrorListener("<input string>"));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			formatParser parser = new formatParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener("<input string>"));
 			return parser;
@@ -283,17 +312,19 @@ public class StaticTools {
 
 		/**
 		 * Parser for formatter
-		 * @param value formatter expression
+		 * 
+		 * @param value
+		 *            formatter expression
 		 * @return parse tree
 		 */
-		public static formatterParser parseFormatter(String value){
+		public static formatterParser parseFormatter(String value) {
 			ANTLRInputStream is = new ANTLRInputStream(value);
 			formatterLexer lexer = new formatterLexer(is);
 			lexer.removeErrorListeners();
 			lexer.addErrorListener(new ThrowingErrorListener("<input string>"));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			formatterParser parser = new formatterParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener("<input string>"));
 			return parser;
@@ -301,7 +332,9 @@ public class StaticTools {
 
 		/**
 		 * Parses string output, used in function()
-		 * @param src source
+		 * 
+		 * @param src
+		 *            source
 		 * @return parse tree
 		 */
 		public static pythonParser parseStringInput(String src) {
@@ -311,7 +344,7 @@ public class StaticTools {
 			lexer.addErrorListener(new ThrowingErrorListener("<generated>"));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener("<generated>"));
 			return parser;
@@ -319,8 +352,11 @@ public class StaticTools {
 
 		/**
 		 * Prepares the parser for compile function
-		 * @param src text source
-		 * @param value name of the file
+		 * 
+		 * @param src
+		 *            text source
+		 * @param value
+		 *            name of the file
 		 * @return parse tree
 		 */
 		public static pythonParser parseCompileFunction(String src, String value) {
@@ -330,7 +366,7 @@ public class StaticTools {
 			lexer.addErrorListener(new ThrowingErrorListener(value));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener(value));
 			return parser;
@@ -338,7 +374,9 @@ public class StaticTools {
 
 		/**
 		 * Prepares parser for eval input
-		 * @param code input
+		 * 
+		 * @param code
+		 *            input
 		 * @return parse tree
 		 */
 		public static pythonParser parseEval(String code) {
@@ -348,11 +386,11 @@ public class StaticTools {
 			lexer.addErrorListener(new ThrowingErrorListener("<eval>"));
 			CommonTokenStream stream = new CommonTokenStream(lexer);
 			pythonParser parser = new pythonParser(stream);
-			
+
 			parser.removeErrorListeners();
 			parser.addErrorListener(new ThrowingErrorListener("<eval>"));
 			return parser;
 		}
-		
+
 	}
 }

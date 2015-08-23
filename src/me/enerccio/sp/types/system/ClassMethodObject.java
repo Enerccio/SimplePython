@@ -31,17 +31,18 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * ClassMethod python object
+ * 
  * @author Enerccio
  *
  */
 public class ClassMethodObject extends CallableObject {
 	private static final long serialVersionUID = -7257861263236746558L;
 	public static final String __FUNC__ = "__FUNC__";
-	
+
 	public ClassMethodObject() {
-		
+
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
@@ -51,22 +52,26 @@ public class ClassMethodObject extends CallableObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("type", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("type", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("type", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("type", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
 
 	@Override
 	protected String doToString() {
-		return "<class method of " + fields.get(__FUNC__).object.toString() + ">";
+		return "<class method of " + fields.get(__FUNC__).object.toString()
+				+ ">";
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
@@ -79,6 +84,7 @@ public class ClassMethodObject extends CallableObject {
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
-		return ((CallableObject)fields.get(__FUNC__).object).call(args, kwargs);
+		return ((CallableObject) fields.get(__FUNC__).object)
+				.call(args, kwargs);
 	}
 }

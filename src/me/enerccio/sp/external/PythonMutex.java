@@ -24,36 +24,36 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
 public class PythonMutex {
-	
+
 	private ReentrantLock m;
-	
-	public PythonMutex(){
+
+	public PythonMutex() {
 		m = new ReentrantLock();
 	}
-	
+
 	@WrapMethod
-	public void acquire(){
+	public void acquire() {
 		m.lock();
 	}
 
 	@WrapMethod
-	public void try_acquire(){
+	public void try_acquire() {
 		m.tryLock();
 	}
-	
+
 	@WrapMethod
-	public void try_acquire_timeout(long ms, String unit){
+	public void try_acquire_timeout(long ms, String unit) {
 		try {
 			m.tryLock(ms, TimeUnit.valueOf(unit));
 		} catch (InterruptedException e) {
 			throw new TypeError("jmutext(): interrupted");
-		} catch (IllegalArgumentException e){
+		} catch (IllegalArgumentException e) {
 			throw new TypeError("jmuted(): wrong unit type '" + unit + "'");
 		}
 	}
-	
+
 	@WrapMethod
-	public void release(){
+	public void release() {
 		m.unlock();
 	}
 }

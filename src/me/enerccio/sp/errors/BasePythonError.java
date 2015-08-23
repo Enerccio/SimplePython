@@ -13,5 +13,4 @@ public class BasePythonError extends PythonException {
 		super(type, message, cause);
 	}
 
-	
 }

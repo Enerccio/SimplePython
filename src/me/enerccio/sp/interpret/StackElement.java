@@ -10,9 +10,9 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 /** Container for stack data */
 public class StackElement extends PythonObject {
 	private static final long serialVersionUID = -3288411350030175582L;
-	public static final StackElement SYSTEM_FRAME = new StackElement(); 
+	public static final StackElement SYSTEM_FRAME = new StackElement();
 	public static final StackElement LAST_FRAME = new StackElement();
-	
+
 	public final ModuleData module;
 	public final int line;
 	public final int character;
@@ -22,12 +22,12 @@ public class StackElement extends PythonObject {
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
 	}
-	
+
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	private StackElement() {
 		super(false);
 		line = character = -1;
@@ -35,7 +35,8 @@ public class StackElement extends PythonObject {
 		function = "<module>";
 	}
 
-	public StackElement(ModuleData module, String function, int line, int character) {
+	public StackElement(ModuleData module, String function, int line,
+			int character) {
 		super(false);
 		this.module = module;
 		this.line = line;
@@ -50,6 +51,7 @@ public class StackElement extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<" + module.getName() + " at line " + line + " " + character + ">"; 
+		return "<" + module.getName() + " at line " + line + " " + character
+				+ ">";
 	}
 }

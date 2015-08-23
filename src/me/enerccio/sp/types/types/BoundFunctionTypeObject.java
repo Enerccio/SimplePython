@@ -28,6 +28,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * boundfunction()
+ * 
  * @author Enerccio
  *
  */
@@ -41,21 +42,25 @@ public class BoundFunctionTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 3)
-			throw new TypeError("boundfunction(): wrong mumber of parameters, requires 2, got " + args.len());
-		
+			throw new TypeError(
+					"boundfunction(): wrong mumber of parameters, requires 2, got "
+							+ args.len());
+
 		UserFunctionObject fnc;
 		ClassObject accessor;
 		try {
 			fnc = (UserFunctionObject) args.valueAt(0);
 			accessor = (ClassObject) args.valueAt(1);
-		} catch (ClassCastException e){
-			throw new TypeError("boundfunction(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be a type");
+		} catch (ClassCastException e) {
+			throw new TypeError(
+					"boundfunction(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be a type");
 		}
-		
+
 		BoundHandleObject bh = new BoundHandleObject();
 		Utils.putPublic(bh, BoundHandleObject.FUNC, fnc);
 		Utils.putPublic(bh, BoundHandleObject.ACCESSOR, accessor);

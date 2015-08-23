@@ -42,23 +42,28 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Python list representation.
+ * 
  * @author Enerccio
  *
  */
-public class ListObject extends MutableSequenceObject implements SimpleIDAccessor, InternallyIterable  {
+public class ListObject extends MutableSequenceObject implements
+		SimpleIDAccessor, InternallyIterable {
 	private static final long serialVersionUID = 16L;
 
-	public ListObject(){
+	public ListObject() {
 		super(false);
 	}
-	
+
 	public ListObject(SequenceObject o) {
 		super(false);
-		for (int i = 0; i<o.len(); i++)
+		for (int i = 0; i < o.len(); i++)
 			append(o.get(NumberObject.valueOf(i)));
 	}
-	
-	/** If passed object is iterable or has __GETITEM__ defined, creates list filled with objects in this list */ 
+
+	/**
+	 * If passed object is iterable or has __GETITEM__ defined, creates list
+	 * filled with objects in this list
+	 */
 	public ListObject(PythonObject o) {
 		super(false);
 		PythonObject iter = o.get(__ITER__, null);
@@ -68,9 +73,10 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 				// Use iter() function to grab iterator
 				iterator = Utils.run("iter", o);
 			} else {
-				iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
+				iterator = PythonInterpreter.interpreter.get().execute(true,
+						iter, null);
 				if (iterator instanceof InternalIterator) {
-					InternalIterator ii = (InternalIterator)iterator;
+					InternalIterator ii = (InternalIterator) iterator;
 					PythonObject item = ii.next();
 					while (item != null) {
 						append(item);
@@ -81,17 +87,21 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 			}
 			PythonObject next = iterator.get("next", null);
 			if (next == null)
-				throw new TypeError("iterator of " + o.toString() + " has no next() method");
+				throw new TypeError("iterator of " + o.toString()
+						+ " has no next() method");
 			while (true) {
-				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
+				PythonObject item = PythonInterpreter.interpreter.get()
+						.execute(true, next, null);
 				append(item);
 			}
-		} catch (StopIteration e){
+		} catch (StopIteration e) {
 			return;
 		} catch (PythonExecutionException e) {
-			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+			if (PythonRuntime.isinstance(e.getException(),
+					PythonRuntime.STOP_ITERATION).truthValue())
 				; // nothing
-			else if (PythonRuntime.isinstance(e.getException(), PythonRuntime.INDEX_ERROR).truthValue())
+			else if (PythonRuntime.isinstance(e.getException(),
+					PythonRuntime.INDEX_ERROR).truthValue())
 				; // still nothing
 			else
 				throw e;
@@ -99,16 +109,21 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(MutableSequenceObject.getSFields());
-			sfields.put("append", new JavaMethodObject(ListObject.class, "append", PythonObject.class));
-		} catch (Exception e){
+			sfields.put("append", new JavaMethodObject(ListObject.class,
+					"append", PythonObject.class));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -118,87 +133,91 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
 	}
-	
-	public synchronized PythonObject append(PythonObject value){
+
+	public synchronized PythonObject append(PythonObject value) {
 		objects.add(value);
 		return this;
 	}
-	
-	public List<PythonObject> objects = Collections.synchronizedList(new ArrayList<PythonObject>());
-	
+
+	public List<PythonObject> objects = Collections
+			.synchronizedList(new ArrayList<PythonObject>());
+
+	@Override
 	public PythonObject add(PythonObject b) {
 		if (b instanceof ListObject) {
 			ListObject l = new ListObject();
 			for (PythonObject o : objects)
 				l.objects.add(o);
-			for (PythonObject o : ((ListObject)b).objects)
+			for (PythonObject o : ((ListObject) b).objects)
 				l.objects.add(o);
 			return l;
 		}
-		throw new TypeError("can only concatenate list (not '" + b.toString() + "') to list");
+		throw new TypeError("can only concatenate list (not '" + b.toString()
+				+ "') to list");
 	}
-	
+
 	@Override
 	public int len() {
 		return objects.size();
 	}
-	
+
 	@Override
 	protected String doToString() {
 		return objects.toString();
 	}
 
 	@Override
-	public int hashCode(){
+	public int hashCode() {
 		return super.hashCode();
 	}
 
 	@Override
 	public PythonObject get(int i) {
-		if (i >= objects.size() || i<-(objects.size()))
-			throw new IndexError("Incorrect index, expected (" + -objects.size() + ", " + objects.size() + "), got " + i);
+		if (i >= objects.size() || i < -(objects.size()))
+			throw new IndexError("Incorrect index, expected ("
+					+ -objects.size() + ", " + objects.size() + "), got " + i);
 		return objects.get(morphAround(i, objects.size()));
 	}
-	
+
 	@Override
 	public PythonObject get(PythonObject key) {
-		if (key instanceof SliceObject){
+		if (key instanceof SliceObject) {
 			ListObject lo = new ListObject();
-			
+
 			int[] slicedata = getSliceData(objects.size(), key);
 			int sav = slicedata[0];
 			int sov = slicedata[1];
 			int stv = slicedata[2];
 			boolean reverse = slicedata[3] == 1;
-			
-			synchronized (objects){
+
+			synchronized (objects) {
 				if (sav <= sov)
-					for (int i=sav; i<sov; i+=stv)
+					for (int i = sav; i < sov; i += stv)
 						lo.objects.add(objects.get(i));
 				else
-					for (int i=sov; i<sav; i+=stv)
+					for (int i = sov; i < sav; i += stv)
 						lo.objects.add(objects.get(i));
 				if (reverse)
-					synchronized (lo.objects){
+					synchronized (lo.objects) {
 						Collections.reverse(lo.objects);
 					}
 			}
-			
+
 			return lo;
-		} else 
-		return doGet(this, key);
+		} else
+			return doGet(this, key);
 	}
 
 	@Override
 	public PythonObject __iter__() {
 		return new OrderedSequenceIterator(this);
 	}
-	
+
 	@Override
 	public PythonObject valueAt(int idx) {
 		return objects.get(idx);
@@ -206,19 +225,20 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 
 	@Override
 	public PythonObject set(PythonObject key, PythonObject value) {
-		
+
 		if (NumberObject.isInteger(key)) {
-			int i = ((NumberObject)key).intValue();
-			if (i >= len() || i<-(len()))
-				throw new IndexError("incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+			int i = ((NumberObject) key).intValue();
+			if (i >= len() || i < -(len()))
+				throw new IndexError("incorrect index, expected (" + -len()
+						+ ", " + len() + "), got " + i);
 			int idx = morphAround(i, len());
 			objects.set(idx, value);
-		} else if (key instanceof SliceObject){
-			
+		} else if (key instanceof SliceObject) {
+
 		} else {
 			throw new TypeError("key must be int or slice");
 		}
-		
+
 		return this;
 	}
 
@@ -229,32 +249,34 @@ public class ListObject extends MutableSequenceObject implements SimpleIDAccesso
 
 	@Override
 	public synchronized void deleteKey(PythonObject key) {
-		if (key instanceof SliceObject){
+		if (key instanceof SliceObject) {
 			throw new NotImplementedException();
 		}
 		PythonObject idx = key;
 		if (!NumberObject.isInteger(idx))
 			throw new TypeError("Index must be int");
-		int i = ((NumberObject)idx).intValue();
-		if (i >= len() || i<-(len()))
-			throw new IndexError("Incorrect index, expected (" + -len() + ", " + len() + "), got " + i);
+		int i = ((NumberObject) idx).intValue();
+		if (i >= len() || i < -(len()))
+			throw new IndexError("Incorrect index, expected (" + -len() + ", "
+					+ len() + "), got " + i);
 		objects.remove((morphAround(i, len())));
 	}
 
 	@Override
 	public PythonObject mul(PythonObject b) {
-		if (b instanceof NumberObject && NumberObject.isInteger(b)){
-			NumberObject no = (NumberObject)b;
+		if (b instanceof NumberObject && NumberObject.isInteger(b)) {
+			NumberObject no = (NumberObject) b;
 			int cnt = no.intValue();
 			ListObject ret = new ListObject();
-			synchronized (objects){
-				for (int i=0; i<cnt; i++){
+			synchronized (objects) {
+				for (int i = 0; i < cnt; i++) {
 					ret.objects.addAll(objects);
 				}
 			}
 			return ret;
 		}
-		throw new TypeError("unsupported operand type(s) for *: '" + this + "' and '" + b + "'");
+		throw new TypeError("unsupported operand type(s) for *: '" + this
+				+ "' and '" + b + "'");
 	}
 
 	@Override

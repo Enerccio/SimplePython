@@ -25,6 +25,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * slice()
+ * 
  * @author Enerccio
  *
  */
@@ -38,12 +39,15 @@ public class SliceTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 3)
-			throw new TypeError("slice(): incorrect number of parameters, must be 3");
-		
-		return new SliceObject(args.valueAt(0), args.valueAt(1), args.valueAt(2));
+			throw new TypeError(
+					"slice(): incorrect number of parameters, must be 3");
+
+		return new SliceObject(args.valueAt(0), args.valueAt(1),
+				args.valueAt(2));
 	}
 }

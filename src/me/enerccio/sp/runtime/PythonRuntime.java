@@ -142,57 +142,73 @@ import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * Represents global python runtime. Contains globals and global functions. Contains loaded root modules too.
+ * Represents global python runtime. Contains globals and global functions.
+ * Contains loaded root modules too.
+ * 
  * @author Enerccio
  *
  */
 public class PythonRuntime {
-	public static int PREALOCATED_INTEGERS = 512;	// Goes from -PREALOCATED_INTEGERS to PREALOCATED_INTEGERS  
-	public static boolean USE_BIGNUM_LONG = false;	// True to use BigNum as backend for python 'long' number 
-	public static boolean USE_DOUBLE_FLOAT = false;	// True to use double as backend for python 'float' number
-	public static boolean USE_INT_ONLY = false;		// True to disable long completely; long(x) will return int and int arithmetic may throw TypeError on overflow  
+	public static int PREALOCATED_INTEGERS = 512; // Goes from
+													// -PREALOCATED_INTEGERS to
+													// PREALOCATED_INTEGERS
+	public static boolean USE_BIGNUM_LONG = false; // True to use BigNum as
+													// backend for python 'long'
+													// number
+	public static boolean USE_DOUBLE_FLOAT = false; // True to use double as
+													// backend for python
+													// 'float' number
+	public static boolean USE_INT_ONLY = false; // True to disable long
+												// completely; long(x) will
+												// return int and int arithmetic
+												// may throw TypeError on
+												// overflow
 	private PythonSecurityManager manager;
 	private InternalJavaPathResolver ijpr = new InternalJavaPathResolver();
-	
-	public void setSecurityManager(PythonSecurityManager manager){
+
+	public void setSecurityManager(PythonSecurityManager manager) {
 		this.manager = manager;
 	}
-	
-	public void checkSandboxAction(String call, SecureAction a, Object... additionalDeciders){
+
+	public void checkSandboxAction(String call, SecureAction a,
+			Object... additionalDeciders) {
 		if (this.manager != null)
 			this.manager.checkSandbox(a, call, additionalDeciders);
 	}
-	
+
 	/** PythonRuntime is a singleton */
 	public static final PythonRuntime runtime = new PythonRuntime();
-	
-	private PythonRuntime(){
+
+	private PythonRuntime() {
 		addFactory("", WrapNoMethodsFactory.class);
 		addFactory("me.enerccio.sp.external", WrapAnnotationFactory.class);
 		addResolver(ijpr);
-		
-		addAlias(FileStream.class.getName(), 			"__filestream__");
-		addAlias(PrintOutputStream.class.getName(), 	"__sysoutstream__");
-		addAlias(PythonThread.class.getName(), 			"__jthread__");
-		addAlias(FormatterAccessor.class.getName(), 	"__formatter__");
-		addAlias(PythonTerminator.class.getName(), 		"__terminator__");
-		addAlias(Disassembler.class.getName(), 			"__disassembler__");
-		addAlias(ThreadInfo.class.getName(), 			"__threadinfo__");
-		addAlias(PythonMutex.class.getName(), 			"__jmutex__");
-		addAlias(PythonSystem.class.getName(), 			"__system__");
-		addAlias(WebbrowserController.class.getName(), 	"__webbrowser__");
-		addAlias(PythonServerSocket.class.getName(), 	"__serversocket__");
-		addAlias(SocketHelper.class.getName(), 			"__sockethelper__");
-		addAlias(PythonDatagramSocket.class.getName(), 	"__udpsocket__");
-		addAlias(JavaRandom.class.getName(), 			"__random__");
+
+		addAlias(FileStream.class.getName(), "__filestream__");
+		addAlias(PrintOutputStream.class.getName(), "__sysoutstream__");
+		addAlias(PythonThread.class.getName(), "__jthread__");
+		addAlias(FormatterAccessor.class.getName(), "__formatter__");
+		addAlias(PythonTerminator.class.getName(), "__terminator__");
+		addAlias(Disassembler.class.getName(), "__disassembler__");
+		addAlias(ThreadInfo.class.getName(), "__threadinfo__");
+		addAlias(PythonMutex.class.getName(), "__jmutex__");
+		addAlias(PythonSystem.class.getName(), "__system__");
+		addAlias(WebbrowserController.class.getName(), "__webbrowser__");
+		addAlias(PythonServerSocket.class.getName(), "__serversocket__");
+		addAlias(SocketHelper.class.getName(), "__sockethelper__");
+		addAlias(PythonDatagramSocket.class.getName(), "__udpsocket__");
+		addAlias(JavaRandom.class.getName(), "__random__");
 	}
-	
-	/** Map containing root modules, ie modules that were accessed from the root of any of resolvers */
+
+	/**
+	 * Map containing root modules, ie modules that were accessed from the root
+	 * of any of resolvers
+	 */
 	public Map<String, ModuleContainer> root = new TreeMap<String, ModuleContainer>();
 	private List<ModuleResolver> resolvers = new ArrayList<ModuleResolver>();
 	/** object identifier key generator */
-	private volatile long key = Long.MIN_VALUE; 
-	
+	private volatile long key = Long.MIN_VALUE;
+
 	/* related to serialization */
 	private CyclicBarrier awaitBarrierEntry;
 	private CyclicBarrier awaitBarrierExit;
@@ -217,34 +233,38 @@ public class PythonRuntime {
 	public static ClassObject IMPORT_ERROR;
 	public static ClassObject SANDBOX_ERROR;
 	public static ClassObject AST;
-	
+
 	/**
 	 * Waits until creation of new interprets is possible
+	 * 
 	 * @throws InterruptedException
 	 */
-	public void waitForNewInterpretAvailability() throws InterruptedException{
+	public void waitForNewInterpretAvailability() throws InterruptedException {
 		if (!allowedNewInterpret)
 			Thread.sleep(10);
 	}
-	
+
 	/**
 	 * Sets the sys.stdout to wrapper to this stream
+	 * 
 	 * @param os
 	 */
-	public void setSystemOut(OutputStream os){
+	public void setSystemOut(OutputStream os) {
 		out = os;
 	}
-	
+
 	/**
 	 * Sets the sys.stderr to wrapper to this stream
+	 * 
 	 * @param os
 	 */
-	public void setSystemErr(OutputStream os){
+	public void setSystemErr(OutputStream os) {
 		err = os;
 	}
-	
+
 	/**
 	 * Interpret waits here if saving is happening
+	 * 
 	 * @param i
 	 * @throws InterruptedException
 	 */
@@ -260,26 +280,28 @@ public class PythonRuntime {
 			throw new InterruptedException(e.getMessage());
 		}
 	}
-	
+
 	/**
-	 * Serializes runtime 
+	 * Serializes runtime
+	 * 
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized String serializeRuntime() throws Exception{
+	public synchronized String serializeRuntime() throws Exception {
 		allowedNewInterpret = false;
 		int numInterprets = PythonInterpreter.interpreters.size();
-		awaitBarrierEntry = new CyclicBarrier(numInterprets + 1); // include self
+		awaitBarrierEntry = new CyclicBarrier(numInterprets + 1); // include
+																	// self
 		awaitBarrierExit = new CyclicBarrier(numInterprets + 1); // include self
 		isSaving = true;
-		
+
 		awaitBarrierEntry.await();
 		String content = doSerializeRuntime();
 		awaitBarrierExit.await();
-		
+
 		return content;
 	}
-	
+
 	private String doSerializeRuntime() {
 		// TODO Auto-generated method stub
 		return null;
@@ -287,35 +309,38 @@ public class PythonRuntime {
 
 	/**
 	 * Adds data source resolver
+	 * 
 	 * @param resolver
 	 */
-	public synchronized void addResolver(ModuleResolver resolver){
+	public synchronized void addResolver(ModuleResolver resolver) {
 		resolvers.add(resolver);
 	}
-	
+
 	/**
 	 * Called by every object to grab it's link key
+	 * 
 	 * @param o
 	 */
-	public void newInstanceInitialization(PythonObject o){
+	public void newInstanceInitialization(PythonObject o) {
 		o.linkName = key++;
 	}
-	
+
 	public void unloadModule(String key) {
-		String name = key.substring(key.lastIndexOf('.') == 0 ? 0 : key.lastIndexOf('.')+1);
-		String modulePath =  key.substring(0, key.lastIndexOf('.'));
-		if (modulePath.equals("")){
+		String name = key.substring(key.lastIndexOf('.') == 0 ? 0 : key
+				.lastIndexOf('.') + 1);
+		String modulePath = key.substring(0, key.lastIndexOf('.'));
+		if (modulePath.equals("")) {
 			if (root.containsKey(name))
 				root.remove(name);
 		} else {
 			ModuleContainer c = null;
-			for (String pathElement : modulePath.split("\\.")){
+			for (String pathElement : modulePath.split("\\.")) {
 				if (c == null)
 					c = root.get(pathElement);
 				else
 					c = c.subpackages.get(pathElement);
 			}
-			if (c != null){
+			if (c != null) {
 				if (c.submodules.containsKey(name))
 					c.submodules.remove(name);
 				if (c.subpackages.containsKey(name))
@@ -323,79 +348,84 @@ public class PythonRuntime {
 			}
 		}
 	}
-	
+
 	/** Returns module with given name */
 	public synchronized ModuleObject getModule(String key) {
 		String[] submodules = key.split("\\.");
-		
+
 		ModuleObject r = null;
 		String path = "";
-		for (String sm : submodules){
+		for (String sm : submodules) {
 			r = getModule(sm, new StringObject(path, true));
 			path = aggregatePath(path, sm);
 		}
-		
+
 		if (r == null)
 			throw new ImportError("unknown module with path '" + key + "'");
 		return r;
 	}
-	
+
 	private String aggregatePath(String path, String sm) {
 		if (path.equals(""))
 			return sm;
 		return path + "." + sm;
 	}
-	
+
 	public static class ModuleContainer {
 		public ModuleObject module;
 		public Map<String, ModuleObject> submodules = new TreeMap<String, ModuleObject>();
 		public Map<String, ModuleContainer> subpackages = new TreeMap<String, ModuleContainer>();
 	}
-	
+
 	/**
 	 * returns module with name and resolve path
+	 * 
 	 * @param name
 	 * @param moduleResolvePath
 	 * @return
 	 */
-	public synchronized ModuleObject getModule(String name, StringObject moduleResolvePath){
+	public synchronized ModuleObject getModule(String name,
+			StringObject moduleResolvePath) {
 		if (moduleResolvePath == null)
 			moduleResolvePath = new StringObject("", true);
-		
+
 		String modulePath = moduleResolvePath.value;
-		if (modulePath.equals("")){
+		if (modulePath.equals("")) {
 			if (root.containsKey(name))
 				return root.get(name).module;
 		} else {
 			ModuleContainer c = null;
-			for (String pathElement : modulePath.split("\\.")){
+			for (String pathElement : modulePath.split("\\.")) {
 				if (c == null)
 					c = root.get(pathElement);
 				else
 					c = c.subpackages.get(pathElement);
 			}
-			if (c != null){
+			if (c != null) {
 				if (c.submodules.containsKey(name))
 					return c.submodules.get(name);
 				if (c.subpackages.containsKey(name))
 					return c.subpackages.get(name).module;
 			}
 		}
-		
+
 		ModuleData data = resolveModule(name, moduleResolvePath);
 		if (data == null)
-			throw new ImportError("unknown module '" + name + "' with resolve path '" + moduleResolvePath.value + "'");
+			throw new ImportError("unknown module '" + name
+					+ "' with resolve path '" + moduleResolvePath.value + "'");
 		ModuleObject mo;
 		try {
 			mo = getCompiled(data, false);
 		} catch (Exception e) {
-			throw new ImportError("failed to load module '" + name + "' with resolve path '" + moduleResolvePath.value + "'", e);
+			throw new ImportError("failed to load module '" + name
+					+ "' with resolve path '" + moduleResolvePath.value + "'",
+					e);
 		}
-		
-		if (!modulePath.equals("")){
+
+		if (!modulePath.equals("")) {
 			String[] submodules = modulePath.split("\\.");
 			ModuleContainer c = null;
-			for (String pathElement : submodules){
+			for (String pathElement : submodules) {
 				if (c == null)
 					c = root.get(pathElement);
 				else
@@ -413,20 +443,22 @@ public class PythonRuntime {
 			newCont.module = mo;
 			root.put(name, newCont);
 		}
-		
+
 		mo.initModule();
 		return mo;
 	}
-	
-	private ModuleObject getCompiled(ModuleData data, boolean loadingBuiltins) throws IOException, Exception {
+
+	private ModuleObject getCompiled(ModuleData data, boolean loadingBuiltins)
+			throws IOException, Exception {
 		InputStream pyc = data.getResolver().cachedRead(data);
 		if (pyc != null) {
 			try {
-				return new ModuleDefinition(IOUtils.toByteArray(pyc)).toModule(data);
+				return new ModuleDefinition(IOUtils.toByteArray(pyc))
+						.toModule(data);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} 
+		}
 		ModuleObject mo = new ModuleObject(data, loadingBuiltins);
 		OutputStream pyco = data.getResolver().cachedWrite(data);
 		if (pyco != null) {
@@ -442,15 +474,17 @@ public class PythonRuntime {
 
 	/**
 	 * resolve the actual module
+	 * 
 	 * @param name
 	 * @param moduleResolvePath
 	 * @return
 	 */
 	private ModuleData resolveModule(String name, StringObject moduleResolvePath) {
 		ModuleData data = null;
-		for (ModuleResolver resolver : resolvers){
+		for (ModuleResolver resolver : resolvers) {
 			data = resolver.resolve(name, moduleResolvePath.value);
-			if (data != null) break;
+			if (data != null)
+				break;
 		}
 		return data;
 	}
@@ -476,10 +510,11 @@ public class PythonRuntime {
 	public static final String COMPILE = "compile";
 	public static final String EVAL = "eval";
 	public static final String STATICFUNCTION = "staticfunction";
-	
+
 	/** Some basic types */
 	public static final TypeObject ENVIRONMENT_TYPE = new EnvironmentTypeObject();
-	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject.get();
+	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject
+			.get();
 	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
 	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
 	public static final TypeObject NONE_TYPE = NoneObject.TYPE;
@@ -496,96 +531,161 @@ public class PythonRuntime {
 	public static final TypeObject LONG_TYPE = new LongTypeObject();
 	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject LIST_TYPE = new ListTypeObject();
-	
+
 	static {
 		OBJECT_TYPE.newObject();
 	}
-	
+
 	/**
 	 * Generates globals. This is only done once but then cloned
+	 * 
 	 * @return
 	 */
 	public StringDictObject getGlobals() {
 		if (globals == null)
-			synchronized (this){
-				if (globals == null){
+			synchronized (this) {
+				if (globals == null) {
 					buildingGlobals.set(true);
 					globals = new StringDictObject();
 					buildingGlobals.set(false);
-					
+
 					EnvironmentObject e = new EnvironmentObject();
 					e.add(globals);
-					
+
 					globals.put(NoneTypeObject.NONE_TYPE_CALL, NONE_TYPE);
 					globals.put("None", NoneObject.NONE);
 					globals.put("True", BoolObject.TRUE);
 					globals.put("False", BoolObject.FALSE);
 					globals.put("globals", globals);
-					globals.put(APPLY, Utils.staticMethodCall(PythonRuntime.class, APPLY, PythonObject.class, ListObject.class));
-					globals.put(GETATTR, Utils.staticMethodCall(PythonRuntime.class, GETATTR, PythonObject.class, String.class));
-					globals.put(HASATTR, Utils.staticMethodCall(PythonRuntime.class, HASATTR, PythonObject.class, String.class));
-					globals.put(DELATTR, Utils.staticMethodCall(PythonRuntime.class, DELATTR, PythonObject.class, String.class));
-					globals.put(SETATTR, Utils.staticMethodCall(PythonRuntime.class, SETATTR, PythonObject.class, String.class, PythonObject.class));
-					globals.put(ISINSTANCE, Utils.staticMethodCall(PythonRuntime.class, ISINSTANCE, PythonObject.class, PythonObject.class));
+					globals.put(APPLY, Utils.staticMethodCall(
+							PythonRuntime.class, APPLY, PythonObject.class,
+							ListObject.class));
+					globals.put(GETATTR, Utils.staticMethodCall(
+							PythonRuntime.class, GETATTR, PythonObject.class,
+							String.class));
+					globals.put(HASATTR, Utils.staticMethodCall(
+							PythonRuntime.class, HASATTR, PythonObject.class,
+							String.class));
+					globals.put(DELATTR, Utils.staticMethodCall(
+							PythonRuntime.class, DELATTR, PythonObject.class,
+							String.class));
+					globals.put(SETATTR, Utils.staticMethodCall(
+							PythonRuntime.class, SETATTR, PythonObject.class,
+							String.class, PythonObject.class));
+					globals.put(ISINSTANCE, Utils.staticMethodCall(
+							PythonRuntime.class, ISINSTANCE,
+							PythonObject.class, PythonObject.class));
 					globals.put(CLASSMETHOD, new ClassMethodTypeObject());
 					globals.put(STATICMETHOD, new StaticMethodTypeObject());
-					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class, IS, PythonObject.class, PythonObject.class));
-					globals.put(MRO, Utils.staticMethodCall(PythonRuntime.class, MRO, ClassObject.class));
-					globals.put(CHR, Utils.staticMethodCall(PythonRuntime.class, CHR, int.class));
-					globals.put(ORD, Utils.staticMethodCall(PythonRuntime.class, ORD, StringObject.class));
-					globals.put(DIR, Utils.staticMethodCall(true, PythonRuntime.class, DIR, TupleObject.class, KwArgs.class));
-					globals.put(LOCALS, Utils.staticMethodCall(PythonRuntime.class, LOCALS));
-					globals.put(GLOBALS, Utils.staticMethodCall(PythonRuntime.class, GLOBALS));
-					globals.put(EXEC, Utils.staticMethodCall(PythonRuntime.class, EXEC, PythonObject.class, InternalDict.class, InternalDict.class));
-					globals.put(COMPILE, Utils.staticMethodCall(PythonRuntime.class, COMPILE, PythonObject.class, StringObject.class));
-					globals.put(EVAL, Utils.staticMethodCall(true, PythonRuntime.class, EVAL, TupleObject.class, KwArgs.class));
-					globals.put(STATICFUNCTION, Utils.staticMethodCall(true, PythonRuntime.class, STATICFUNCTION, TupleObject.class, KwArgs.class));
+					globals.put(IS, Utils.staticMethodCall(PythonRuntime.class,
+							IS, PythonObject.class, PythonObject.class));
+					globals.put(MRO, Utils.staticMethodCall(
+							PythonRuntime.class, MRO, ClassObject.class));
+					globals.put(CHR, Utils.staticMethodCall(
+							PythonRuntime.class, CHR, int.class));
+					globals.put(ORD, Utils.staticMethodCall(
+							PythonRuntime.class, ORD, StringObject.class));
+					globals.put(DIR, Utils.staticMethodCall(true,
+							PythonRuntime.class, DIR, TupleObject.class,
+							KwArgs.class));
+					globals.put(LOCALS,
+							Utils.staticMethodCall(PythonRuntime.class, LOCALS));
+					globals.put(GLOBALS, Utils.staticMethodCall(
+							PythonRuntime.class, GLOBALS));
+					globals.put(EXEC, Utils.staticMethodCall(
+							PythonRuntime.class, EXEC, PythonObject.class,
+							InternalDict.class, InternalDict.class));
+					globals.put(COMPILE, Utils.staticMethodCall(
+							PythonRuntime.class, COMPILE, PythonObject.class,
+							StringObject.class));
+					globals.put(EVAL, Utils.staticMethodCall(true,
+							PythonRuntime.class, EVAL, TupleObject.class,
+							KwArgs.class));
+					globals.put(STATICFUNCTION, Utils.staticMethodCall(true,
+							PythonRuntime.class, STATICFUNCTION,
+							TupleObject.class, KwArgs.class));
 					globals.put(TypeTypeObject.TYPE_CALL, TYPE_TYPE);
 					globals.put(StringTypeObject.STRING_CALL, STRING_TYPE);
 					globals.put(TupleTypeObject.TUPLE_CALL, TUPLE_TYPE);
-					globals.put(TupleTypeObject.MAKE_TUPLE_CALL, Utils.staticMethodCall(true, TupleTypeObject.class, "make_tuple", TupleObject.class, KwArgs.class));
+					globals.put(TupleTypeObject.MAKE_TUPLE_CALL, Utils
+							.staticMethodCall(true, TupleTypeObject.class,
+									"make_tuple", TupleObject.class,
+									KwArgs.class));
 					globals.put(ListTypeObject.LIST_CALL, LIST_TYPE);
-					globals.put(ListTypeObject.MAKE_LIST_CALL, Utils.staticMethodCall(true, ListTypeObject.class, "make_list", TupleObject.class, KwArgs.class));
+					globals.put(ListTypeObject.MAKE_LIST_CALL, Utils
+							.staticMethodCall(true, ListTypeObject.class,
+									"make_list", TupleObject.class,
+									KwArgs.class));
 					globals.put(DictTypeObject.DICT_CALL, DICT_TYPE);
 					globals.put(IntTypeObject.INT_CALL, INT_TYPE);
 					globals.put(BoolTypeObject.BOOL_CALL, BOOL_TYPE);
 					globals.put(ObjectTypeObject.OBJECT_CALL, OBJECT_TYPE);
-					globals.put(FloatTypeObject.FLOAT_CALL, new FloatTypeObject());
+					globals.put(FloatTypeObject.FLOAT_CALL,
+							new FloatTypeObject());
 					globals.put(FunctionTypeObject.FUNCTION_CALL, FUNCTION_TYPE);
 					globals.put(BytecodeTypeObject.BYTECODE_CALL, BYTECODE_TYPE);
-					globals.put(SliceTypeObject.SLICE_CALL, new SliceTypeObject());
-					globals.put(JavaInstanceTypeObject.JAVA_CALL, new JavaInstanceTypeObject());
-					globals.put(MethodTypeObject.METHOD_CALL, new MethodTypeObject());
-					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL, JAVA_CALLABLE_TYPE);
-					globals.put(ComplexTypeObject.COMPLEX_CALL, new ComplexTypeObject());
-					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL, new BoundFunctionTypeObject());
-					globals.put(XRangeTypeObject.XRANGE_CALL, new XRangeTypeObject());
-					globals.put(CompiledBlockTypeObject.COMPILED_CALL, new CompiledBlockTypeObject());
-					globals.put(FrameTypeObject.FRAME_CALL, new FrameTypeObject());
-					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL, ENVIRONMENT_TYPE);
-					
-					
+					globals.put(SliceTypeObject.SLICE_CALL,
+							new SliceTypeObject());
+					globals.put(JavaInstanceTypeObject.JAVA_CALL,
+							new JavaInstanceTypeObject());
+					globals.put(MethodTypeObject.METHOD_CALL,
+							new MethodTypeObject());
+					globals.put(JavaCallableTypeObject.JAVACALLABLE_CALL,
+							JAVA_CALLABLE_TYPE);
+					globals.put(ComplexTypeObject.COMPLEX_CALL,
+							new ComplexTypeObject());
+					globals.put(BoundFunctionTypeObject.BOUND_FUNCTION_CALL,
+							new BoundFunctionTypeObject());
+					globals.put(XRangeTypeObject.XRANGE_CALL,
+							new XRangeTypeObject());
+					globals.put(CompiledBlockTypeObject.COMPILED_CALL,
+							new CompiledBlockTypeObject());
+					globals.put(FrameTypeObject.FRAME_CALL,
+							new FrameTypeObject());
+					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL,
+							ENVIRONMENT_TYPE);
+
 					ModuleData mp;
 					CompiledBlockObject builtin;
 					try {
 						mp = new ModuleData() {
-							@Override public boolean isPackage() { return false; }
-							@Override public ModuleResolver getResolver() { return ijpr; }
-							@Override public String getPackageResolve() { return ""; }
-							@Override public String getName() { return "builtin"; }
-							@Override public String getFileName() { return "builtin.py"; };
+							@Override
+							public boolean isPackage() {
+								return false;
+							}
+
+							@Override
+							public ModuleResolver getResolver() {
+								return ijpr;
+							}
+
+							@Override
+							public String getPackageResolve() {
+								return "";
+							}
+
+							@Override
+							public String getName() {
+								return "builtin";
+							}
+
+							@Override
+							public String getFileName() {
+								return "builtin.py";
+							};
 						};
 						ModuleObject mo = getCompiled(mp, true);
 						builtin = mo.frame;
 					} catch (Exception e1) {
-						throw new RuntimeException("Failed to initialize python!");
+						throw new RuntimeException(
+								"Failed to initialize python!");
 					}
-					
+
 					PythonInterpreter i = PythonInterpreter.interpreter.get();
 					i.setArgs(new StringDictObject());
 					i.executeBytecode(builtin);
-					
-					while (true){
+
+					while (true) {
 						ExecutionResult r = i.executeOnce();
 						if (r == ExecutionResult.OK)
 							continue;
@@ -593,44 +693,54 @@ public class PythonRuntime {
 							break;
 						if (r == ExecutionResult.EOF)
 							continue;
-						throw new RuntimeException("Failed to initialize python!");
+						throw new RuntimeException(
+								"Failed to initialize python!");
 					}
-					
-					ERROR			= (ClassObject)globals.getItem("Error");
-					ATTRIBUTE_ERROR	= (ClassObject)globals.getItem("AttributeError");
-					NAME_ERROR		= (ClassObject)globals.getItem("NameError");
-					STOP_ITERATION	= (ClassObject)globals.getItem("StopIteration");
-					GENERATOR_EXIT	= (ClassObject)globals.getItem("GeneratorExit");
-					INDEX_ERROR		= (ClassObject)globals.getItem("IndexError");
-					TYPE_ERROR		= (ClassObject)globals.getItem("TypeError");
-					IO_ERROR		= (ClassObject)globals.getItem("IOError");
-					SYNTAX_ERROR	= (ClassObject)globals.getItem("SyntaxError");
-					VALUE_ERROR		= (ClassObject)globals.getItem("ValueError");
-					KEY_ERROR		= (ClassObject)globals.getItem("KeyError");
-					NATIVE_ERROR	= (ClassObject)globals.getItem("NativeError");
-					INTERPRETER_ERROR = (ClassObject)globals.getItem("InterpreterError");
-					IMPORT_ERROR	= (ClassObject)globals.getItem("ImportError");
-					SANDBOX_ERROR	= (ClassObject)globals.getItem("SandboxViolationError");
-					RUNTIME_ERROR	= (ClassObject)globals.getItem("RuntimeError");
-					AST				= (ClassObject)globals.getItem("ast");
-					
+
+					ERROR = (ClassObject) globals.getItem("Error");
+					ATTRIBUTE_ERROR = (ClassObject) globals
+							.getItem("AttributeError");
+					NAME_ERROR = (ClassObject) globals.getItem("NameError");
+					STOP_ITERATION = (ClassObject) globals
+							.getItem("StopIteration");
+					GENERATOR_EXIT = (ClassObject) globals
+							.getItem("GeneratorExit");
+					INDEX_ERROR = (ClassObject) globals.getItem("IndexError");
+					TYPE_ERROR = (ClassObject) globals.getItem("TypeError");
+					IO_ERROR = (ClassObject) globals.getItem("IOError");
+					SYNTAX_ERROR = (ClassObject) globals.getItem("SyntaxError");
+					VALUE_ERROR = (ClassObject) globals.getItem("ValueError");
+					KEY_ERROR = (ClassObject) globals.getItem("KeyError");
+					NATIVE_ERROR = (ClassObject) globals.getItem("NativeError");
+					INTERPRETER_ERROR = (ClassObject) globals
+							.getItem("InterpreterError");
+					IMPORT_ERROR = (ClassObject) globals.getItem("ImportError");
+					SANDBOX_ERROR = (ClassObject) globals
+							.getItem("SandboxViolationError");
+					RUNTIME_ERROR = (ClassObject) globals
+							.getItem("RuntimeError");
+					AST = (ClassObject) globals.getItem("ast");
+
 					buildingGlobals.set(false);
 				}
 			}
-		
+
 		return globals;
 	}
-	
-	protected static PythonObject locals(){
-		return (PythonObject) PythonInterpreter.interpreter.get().environment().getLocals();
+
+	protected static PythonObject locals() {
+		return (PythonObject) PythonInterpreter.interpreter.get().environment()
+				.getLocals();
 	}
-	
-	protected static PythonObject globals(){
-		return (PythonObject) PythonInterpreter.interpreter.get().environment().getGlobals();
+
+	protected static PythonObject globals() {
+		return (PythonObject) PythonInterpreter.interpreter.get().environment()
+				.getGlobals();
 	}
-	
-	/** 
-	 * Provides default cache resolution. Used by ModuleResolver classes; Do not use manually.
+
+	/**
+	 * Provides default cache resolution. Used by ModuleResolver classes; Do not
+	 * use manually.
 	 */
 	public static InputStream cachedRead(ModuleData data) {
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
@@ -650,16 +760,18 @@ public class PythonRuntime {
 		}
 		return null;
 	}
-	
-	/** 
-	 * Provides default cache resolution. Used by ModuleResolver classes; Do not use manually.
+
+	/**
+	 * Provides default cache resolution. Used by ModuleResolver classes; Do not
+	 * use manually.
 	 */
 	public static OutputStream cachedWrite(ModuleData data) {
 		if (SimplePython.pycCaches.isEmpty())
 			return null;
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
 		try {
-			return new FileOutputStream(new File(SimplePython.pycCaches.get(0), pycname));
+			return new FileOutputStream(new File(SimplePython.pycCaches.get(0),
+					pycname));
 		} catch (Exception e) {
 			// Shouldn't happen
 			e.printStackTrace();
@@ -667,8 +779,11 @@ public class PythonRuntime {
 			return null;
 		}
 	}
-	
-	/** Returns hash of filename and module provider info. ".pyc" is not part of returned value */
+
+	/**
+	 * Returns hash of filename and module provider info. ".pyc" is not part of
+	 * returned value
+	 */
 	public static String getCacheHash(ModuleData data) {
 		MessageDigest md;
 		try {
@@ -680,254 +795,287 @@ public class PythonRuntime {
 		md.update(data.getFileName().getBytes());
 		md.update(data.getPackageResolve().getBytes());
 		md.update(data.getResolver().getResolverID().getBytes());
-		
+
 		StringBuffer hexString = new StringBuffer();
 		byte[] hash = md.digest();
 
-        for (int i = 0; i < hash.length; i++) {
-            if ((0xff & hash[i]) < 0x10) {
-                hexString.append("0"
-                        + Integer.toHexString((0xFF & hash[i])));
-            } else {
-                hexString.append(Integer.toHexString(0xFF & hash[i]));
-            }
-        }
-        
-        return hexString.toString();
-	}
-	
-	protected static PythonObject compile(PythonObject source, StringObject filename){
-		PythonRuntime.runtime.checkSandboxAction("compile", SecureAction.RUNTIME_COMPILE, source, filename);
-		
-		CompiledBlockObject block;
-		
-		if (source instanceof StringObject){
-			PythonCompiler c = new PythonCompiler();
-			String src = ((StringObject)source).value;
+		for (int i = 0; i < hash.length; i++) {
+			if ((0xff & hash[i]) < 0x10) {
+				hexString.append("0" + Integer.toHexString((0xFF & hash[i])));
+			} else {
+				hexString.append(Integer.toHexString(0xFF & hash[i]));
+			}
+		}
 
-			block = c.doCompile(ParserGenerator.parseCompileFunction(src, filename.value).file_input(), filename.value);
-		} else if (isderived(source, AST)){
-			ListObject lo = (ListObject)PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("get_bytecode")), null);
+		return hexString.toString();
+	}
+
+	protected static PythonObject compile(PythonObject source,
+			StringObject filename) {
+		PythonRuntime.runtime.checkSandboxAction("compile",
+				SecureAction.RUNTIME_COMPILE, source, filename);
+
+		CompiledBlockObject block;
+
+		if (source instanceof StringObject) {
+			PythonCompiler c = new PythonCompiler();
+			String src = ((StringObject) source).value;
+
+			block = c.doCompile(
+					ParserGenerator.parseCompileFunction(src, filename.value)
+							.file_input(), filename.value);
+		} else if (isderived(source, AST)) {
+			ListObject lo = (ListObject) PythonInterpreter.interpreter.get()
+					.execute(
+							true,
+							Utils.run("getattr", source, new StringObject(
+									"get_bytecode")), null);
 			// mundane check
 			List<PythonBytecode> pbl = new ArrayList<PythonBytecode>();
-			for (PythonObject o : lo.objects){
+			for (PythonObject o : lo.objects) {
 				if (!(o instanceof PythonBytecode))
-					throw new TypeError("compile(): returned bytecode from ast was not of type 'bytecode', but instead of type '" + Utils.run("typename", o) + "'");
-				pbl.add((PythonBytecode)o);
+					throw new TypeError(
+							"compile(): returned bytecode from ast was not of type 'bytecode', but instead of type '"
+									+ Utils.run("typename", o) + "'");
+				pbl.add((PythonBytecode) o);
 			}
 			block = new CompiledBlockObject(pbl);
 		} else {
-			PythonObject str = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", source, new StringObject("read_all")), null);
-			block = (CompiledBlockObject)  Utils.run("compile", str, filename);
+			PythonObject str = PythonInterpreter.interpreter.get().execute(
+					true,
+					Utils.run("getattr", source, new StringObject("read_all")),
+					null);
+			block = (CompiledBlockObject) Utils.run("compile", str, filename);
 		}
-		
+
 		return block;
 	}
-	
-	protected static PythonObject exec_function(PythonObject code, InternalDict locals, InternalDict globals){
-		PythonRuntime.runtime.checkSandboxAction("exec", SecureAction.RUNTIME_EVAL, code);
-		
-		if (locals == null){
+
+	protected static PythonObject exec_function(PythonObject code,
+			InternalDict locals, InternalDict globals) {
+		PythonRuntime.runtime.checkSandboxAction("exec",
+				SecureAction.RUNTIME_EVAL, code);
+
+		if (locals == null) {
 			locals = (InternalDict) Utils.run("locals");
 		}
-		if (globals == null){
+		if (globals == null) {
 			globals = (InternalDict) Utils.run("globals");
 		}
-		
+
 		CompiledBlockObject block;
-		
-		if (code instanceof CompiledBlockObject){
+
+		if (code instanceof CompiledBlockObject) {
 			block = (CompiledBlockObject) code;
 		} else {
-			block = (CompiledBlockObject) Utils.run("compile", code, new StringObject("<exec-source>"));
+			block = (CompiledBlockObject) Utils.run("compile", code,
+					new StringObject("<exec-source>"));
 		}
-		
+
 		UserFunctionObject fnc = new UserFunctionObject();
-		
-		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
+
+		String functionName = "eval/exec-function-"
+				+ (++PythonCompiler.genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
-		
+
 		fnc.block = block;
-		
-		fnc.setClosure(Arrays.asList(new InternalDict[]{locals, globals, runtime.getGlobals()}));
+
+		fnc.setClosure(Arrays.asList(new InternalDict[] { locals, globals,
+				runtime.getGlobals() }));
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
-		
+
 		PythonInterpreter.interpreter.get().execute(true, fnc, null);
-		
+
 		return NoneObject.NONE;
 	}
-	
-	protected static PythonObject eval(TupleObject to, KwArgs kwargs){
+
+	protected static PythonObject eval(TupleObject to, KwArgs kwargs) {
 		if (kwargs != null)
 			kwargs.checkEmpty("eval");
 		if (to.len() < 1 || to.len() > 3)
-			throw new TypeError("eval(): requires 1 to 3 arguments, got " + to.len());
+			throw new TypeError("eval(): requires 1 to 3 arguments, got "
+					+ to.len());
 		try {
 			String s = Coerce.toJava(to.get(0), String.class);
 			InternalDict d1 = null;
-			if (to.len()>1)
+			if (to.len() > 1)
 				d1 = Coerce.toJava(to.get(1), InternalDict.class);
 			InternalDict d2 = null;
-			if (to.len()>2)
+			if (to.len() > 2)
 				d1 = Coerce.toJava(to.get(2), InternalDict.class);
-			
+
 			return eval_function(s, d1, d2);
-		} catch (CastFailedException e){
-			throw new TypeError("eval(): wrong types of arguments to eval, first argument must be 'str', remaining two arguments must be 'dict' objects");
+		} catch (CastFailedException e) {
+			throw new TypeError(
+					"eval(): wrong types of arguments to eval, first argument must be 'str', remaining two arguments must be 'dict' objects");
 		}
 	}
-	
-	protected static PythonObject eval_function(String code, InternalDict locals, InternalDict globals){
-		PythonRuntime.runtime.checkSandboxAction("eval", SecureAction.RUNTIME_EVAL, code);
-		
-		if (locals == null){
+
+	protected static PythonObject eval_function(String code,
+			InternalDict locals, InternalDict globals) {
+		PythonRuntime.runtime.checkSandboxAction("eval",
+				SecureAction.RUNTIME_EVAL, code);
+
+		if (locals == null) {
 			locals = (InternalDict) Utils.run("locals");
 		}
-		if (globals == null){
+		if (globals == null) {
 			globals = (InternalDict) Utils.run("globals");
 		}
-		
+
 		CompiledBlockObject block;
-		
+
 		PythonCompiler c = new PythonCompiler();
 		block = c.doCompileEval(ParserGenerator.parseEval(code).eval_input());
-		
+
 		UserFunctionObject fnc = new UserFunctionObject();
-		
-		String functionName = "eval/exec-function-" + (++PythonCompiler.genFunc);
+
+		String functionName = "eval/exec-function-"
+				+ (++PythonCompiler.genFunc);
 		Utils.putPublic(fnc, "__name__", new StringObject(functionName));
-		
+
 		fnc.block = block;
-		
-		fnc.setClosure(Arrays.asList(new InternalDict[]{locals, globals, runtime.getGlobals()}));
+
+		fnc.setClosure(Arrays.asList(new InternalDict[] { locals, globals,
+				runtime.getGlobals() }));
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
-		
+
 		return PythonInterpreter.interpreter.get().execute(true, fnc, null);
 	}
-	
-	public static List<String> dir(TupleObject to, KwArgs kwargs){
+
+	public static List<String> dir(TupleObject to, KwArgs kwargs) {
 		if (kwargs != null)
 			kwargs.checkEmpty("dir");
 		if (to.len() > 1)
-			throw new TypeError("dir(): requires 1 or 0 arguments, got " + to.len());
-		
+			throw new TypeError("dir(): requires 1 or 0 arguments, got "
+					+ to.len());
+
 		PythonObject o;
 		if (to.len() == 1)
 			o = to.get(0);
 		else
 			o = Utils.run("locals");
-		
+
 		Set<String> fields = new TreeSet<String>();
-		
-		synchronized (o){
-			synchronized (o.getEditableFields()){
+
+		synchronized (o) {
+			synchronized (o.getEditableFields()) {
 				fields.addAll(o.getEditableFields().keySet());
 				fields.addAll(o.getGenHandleNames());
-				
-				if (o.getEditableFields().containsKey("__dict__")){
+
+				if (o.getEditableFields().containsKey("__dict__")) {
 					PythonObject dd = o.getEditableFields().get("__dict__").object;
-					if (dd instanceof InternalDict){
-						synchronized (dd){
-							InternalDict d = (InternalDict)dd;
-							synchronized (d){
+					if (dd instanceof InternalDict) {
+						synchronized (dd) {
+							InternalDict d = (InternalDict) dd;
+							synchronized (d) {
 								for (String pp : d.keySet())
 									fields.add(pp);
-								}
 							}
 						}
 					}
 				}
 			}
-		
-		if (o.get("__dir__", null) != null){
-			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(true, o.get("__dir__", null), null);
+		}
+
+		if (o.get("__dir__", null) != null) {
+			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(
+					true, o.get("__dir__", null), null);
 			if (!(dirCall instanceof ListObject))
 				throw new TypeError("dir(): __dir__ must return list");
 			ListObject lo = (ListObject) dirCall;
-			synchronized (lo.objects){
-				for (PythonObject po : lo.objects){
+			synchronized (lo.objects) {
+				for (PythonObject po : lo.objects) {
 					if (!(po instanceof StringObject))
-						throw new TypeError("dir(): __dir__ returned other elements in a list than str");
-					fields.add(((StringObject)po).value);
+						throw new TypeError(
+								"dir(): __dir__ returned other elements in a list than str");
+					fields.add(((StringObject) po).value);
 				}
 			}
 		}
-		
+
 		return new ArrayList<String>(fields);
 	}
-	
-	protected static PythonObject staticfunction(TupleObject args, KwArgs kwargs){
+
+	protected static PythonObject staticfunction(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
 			kwargs.checkEmpty("staticmethod");
-		
+
 		if (args.len() < 2)
 			throw new TypeError("staticmethod(): requires at least 2 arguments");
-		
+
 		String typename, name;
-		
+
 		try {
 			typename = Coerce.toJava(args.get(0), String.class);
 			name = Coerce.toJava(args.get(1), String.class);
 		} catch (CastFailedException e) {
-			throw new TypeError("staticmethod(): first two arguments must be strings");
+			throw new TypeError(
+					"staticmethod(): first two arguments must be strings");
 		}
-		
-		TupleObject slice = (TupleObject) args.get(new SliceObject(Coerce.toPython(2), Coerce.toPython(args.len()), Coerce.toPython(1)));
-		PythonObject o = PythonRuntime.runtime.getJavaClass(true, typename, null, null, slice.getObjects());
+
+		TupleObject slice = (TupleObject) args.get(new SliceObject(Coerce
+				.toPython(2), Coerce.toPython(args.len()), Coerce.toPython(1)));
+		PythonObject o = PythonRuntime.runtime.getJavaClass(true, typename,
+				null, null, slice.getObjects());
 		return o.get(name, null);
 	}
-	
-	protected static PythonObject apply(PythonObject callable, ListObject args){
+
+	protected static PythonObject apply(PythonObject callable, ListObject args) {
 		PythonInterpreter.interpreter.get().checkOverflow();
-		
+
 		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects, true);
-		PythonInterpreter.interpreter.get().execute(false, callable, null, a.getObjects());
+		PythonInterpreter.interpreter.get().execute(false, callable, null,
+				a.getObjects());
 		return PythonInterpreter.interpreter.get().executeAll(cfc);
 	}
-	
-	protected static PythonObject chr(int v){
+
+	protected static PythonObject chr(int v) {
 		if (v < 0 || v > 255)
 			throw new ValueError("chr(): value outside range");
-		return new StringObject(Character.toString((char)v));
+		return new StringObject(Character.toString((char) v));
 	}
-	
-	protected static PythonObject ord(StringObject i){
+
+	protected static PythonObject ord(StringObject i) {
 		String s = i.value;
 		if (s.length() != 1)
-			throw new ValueError("ord(): string must be single character length");
+			throw new ValueError(
+					"ord(): string must be single character length");
 		return NumberObject.valueOf(s.charAt(0));
 	}
-	
-	protected static PythonObject mro(ClassObject clazz){
+
+	protected static PythonObject mro(ClassObject clazz) {
 		List<ClassObject> ll = DiamondResolver.resolveDiamonds(clazz);
 		Collections.reverse(ll);
 		TupleObject to = (TupleObject) Utils.list2tuple(ll, false);
 		return to;
 	}
-	
-	protected static PythonObject is(PythonObject a, PythonObject b){
+
+	protected static PythonObject is(PythonObject a, PythonObject b) {
 		return BoolObject.fromBoolean(a == b);
 	}
-	
-	public static PythonObject isinstance(PythonObject testee, PythonObject clazz){
-		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE : BoolObject.FALSE;
+
+	public static PythonObject isinstance(PythonObject testee,
+			PythonObject clazz) {
+		return doIsInstance(testee, clazz, false) ? BoolObject.TRUE
+				: BoolObject.FALSE;
 	}
-	
+
 	/** Returns true if testee is ClassObject derived from clazz */
-	public static boolean isderived(PythonObject testee, ClassObject clazz){
+	public static boolean isderived(PythonObject testee, ClassObject clazz) {
 		if (!(testee instanceof ClassObject))
 			return false;
 		if (testee.equals(clazz))
 			return true;
 		SequenceObject lst;
 		try {
-			lst = (SequenceObject)testee.get("__bases__", null);
+			lst = (SequenceObject) testee.get("__bases__", null);
 			if (lst == null)
 				return false;
-			for (int i=0; i<lst.len(); i++)
+			for (int i = 0; i < lst.len(); i++)
 				if (isderived(lst.get(i), clazz))
 					return true;
 		} catch (ClassCastException e) {
@@ -936,14 +1084,15 @@ public class PythonRuntime {
 		return false;
 	}
 
-	public static boolean doIsInstance(PythonObject testee, PythonObject clazz, boolean skipIgnore) {
-		if (clazz instanceof ClassObject){
-			ClassObject cls = (ClassObject)testee.get("__class__", null);
-			return isderived((ClassObject)cls, (ClassObject)clazz);
+	public static boolean doIsInstance(PythonObject testee, PythonObject clazz,
+			boolean skipIgnore) {
+		if (clazz instanceof ClassObject) {
+			ClassObject cls = (ClassObject) testee.get("__class__", null);
+			return isderived(cls, (ClassObject) clazz);
 		}
-		
-		if (clazz instanceof TupleObject){
-			for (PythonObject o : ((TupleObject) clazz).getObjects()){
+
+		if (clazz instanceof TupleObject) {
+			for (PythonObject o : ((TupleObject) clazz).getObjects()) {
 				if (skipIgnore && !(o instanceof ClassObject))
 					continue;
 				if (doIsInstance(testee, o, skipIgnore))
@@ -951,37 +1100,40 @@ public class PythonRuntime {
 			}
 			return false;
 		}
-		
+
 		if (clazz instanceof TypeObject) {
 			clazz.equals(getType(testee));
 		}
-		
-		throw new TypeError("isinstance() arg 2 must be a class, type, or tuple of classes and types");
+
+		throw new TypeError(
+				"isinstance() arg 2 must be a class, type, or tuple of classes and types");
 	}
-	
+
 	public static ClassObject getType(PythonObject py) {
 		if (py instanceof EnvironmentObject)
 			return ENVIRONMENT_TYPE;
 		if (py instanceof PythonBytecode)
 			return BYTECODE_TYPE;
 		if (py instanceof NumberObject) {
-			switch (((NumberObject)py).getNumberType()) {
-				case BOOL:
-					return PythonRuntime.BOOL_TYPE;
-				case COMPLEX:
-					return (ClassObject)Utils.getGlobal(ComplexTypeObject.COMPLEX_CALL);
-				case FLOAT:
-					return PythonRuntime.FLOAT_TYPE;
-				case INT:
-					return PythonRuntime.INT_TYPE;
-				case LONG:
-					return PythonRuntime.LONG_TYPE;
-				}
+			switch (((NumberObject) py).getNumberType()) {
+			case BOOL:
+				return PythonRuntime.BOOL_TYPE;
+			case COMPLEX:
+				return (ClassObject) Utils
+						.getGlobal(ComplexTypeObject.COMPLEX_CALL);
+			case FLOAT:
+				return PythonRuntime.FLOAT_TYPE;
+			case INT:
+				return PythonRuntime.INT_TYPE;
+			case LONG:
+				return PythonRuntime.LONG_TYPE;
+			}
 		}
 		if (py instanceof ListObject)
 			return PythonRuntime.LIST_TYPE;
 		if (py instanceof ClassInstanceObject) {
-			PythonObject o = (ClassObject)((ClassInstanceObject)py).get(ClassObject.__CLASS__, py);
+			PythonObject o = ((ClassInstanceObject) py).get(
+					ClassObject.__CLASS__, py);
 			if (o == null)
 				return OBJECT_TYPE;
 			return (ClassObject) o;
@@ -991,7 +1143,7 @@ public class PythonRuntime {
 		if (py == NoneObject.NONE)
 			return NoneObject.TYPE;
 		if (py instanceof SliceObject)
-			return (ClassObject)Utils.getGlobal(SliceTypeObject.SLICE_CALL);
+			return (ClassObject) Utils.getGlobal(SliceTypeObject.SLICE_CALL);
 		if (py instanceof TupleObject)
 			return PythonRuntime.TUPLE_TYPE;
 		if (py instanceof DictObject || py instanceof StringDictObject)
@@ -999,57 +1151,67 @@ public class PythonRuntime {
 		if (py instanceof StringObject)
 			return PythonRuntime.STRING_TYPE;
 		if (py instanceof PointerObject)
-			return (ClassObject)Utils.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
+			return (ClassObject) Utils
+					.getGlobal(JavaInstanceTypeObject.JAVA_CALL);
 		if (py instanceof UserFunctionObject)
 			return FUNCTION_TYPE;
 		if (py instanceof UserMethodObject)
 			return METHOD_TYPE;
-		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject || py instanceof JavaCongruentAggregatorObject)
+		if (py instanceof JavaMethodObject || py instanceof JavaFunctionObject
+				|| py instanceof JavaCongruentAggregatorObject)
 			return JAVA_CALLABLE_TYPE;
 		if (py instanceof BoundHandleObject)
 			return BOUND_FUNCTION_TYPE;
 		if (py instanceof CompiledBlockObject)
 			return COMPILED_BLOCK_TYPE;
 		if (py instanceof FrameObject)
-			return (ClassObject)Utils.getGlobal(FrameTypeObject.FRAME_CALL);
-		
+			return (ClassObject) Utils.getGlobal(FrameTypeObject.FRAME_CALL);
+
 		return OBJECT_TYPE;
 	}
-	
-	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>(){
+
+	private static final ThreadLocal<Stack<PythonObject>> accessorGetattr = new ThreadLocal<Stack<PythonObject>>() {
 
 		@Override
 		protected Stack<PythonObject> initialValue() {
 			return new Stack<PythonObject>();
 		}
-		
+
 	};
-	
-	public static PythonObject getattr(PythonObject o, String attribute){
+
+	public static PythonObject getattr(PythonObject o, String attribute) {
 		return getattr(o, attribute, false);
 	}
-	
-	protected static PythonObject getattr(PythonObject o, String attribute, boolean skip) {
-		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)){
-				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTRIBUTE__, true);
-				if (getattr != null && !(o instanceof ClassObject))
-					return PythonInterpreter.interpreter.get().execute(false, getattr, null, new StringObject(attribute));
+
+	protected static PythonObject getattr(PythonObject o, String attribute,
+			boolean skip) {
+		if (!attribute.equals(ClassInstanceObject.__GETATTRIBUTE__)) {
+			PythonObject getattr = getattr(o,
+					ClassInstanceObject.__GETATTRIBUTE__, true);
+			if (getattr != null && !(o instanceof ClassObject))
+				return PythonInterpreter.interpreter.get().execute(false,
+						getattr, null, new StringObject(attribute));
 		}
-		
-		PythonObject value = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext());
-		if (value == null){
+
+		PythonObject value = o.get(attribute, PythonInterpreter.interpreter
+				.get().getLocalContext());
+		if (value == null) {
 			if (skip == true)
 				return null;
-			
-			if (accessorGetattr.get().size() != 0 && accessorGetattr.get().peek() == o){
+
+			if (accessorGetattr.get().size() != 0
+					&& accessorGetattr.get().peek() == o) {
 				throw new NoGetattrException();
 			}
 			accessorGetattr.get().push(o);
 			try {
-				PythonObject getattr = getattr(o, ClassInstanceObject.__GETATTR__);
-				value = PythonInterpreter.interpreter.get().execute(false, getattr, null, new StringObject(attribute));
+				PythonObject getattr = getattr(o,
+						ClassInstanceObject.__GETATTR__);
+				value = PythonInterpreter.interpreter.get().execute(false,
+						getattr, null, new StringObject(attribute));
 			} catch (NoGetattrException e) {
-				throw new AttributeError(String.format("%s object has no attribute '%s'", o, attribute));
+				throw new AttributeError(String.format(
+						"%s object has no attribute '%s'", o, attribute));
 			} finally {
 
 				accessorGetattr.get().pop();
@@ -1057,108 +1219,145 @@ public class PythonRuntime {
 		}
 		return value;
 	}
-	
+
 	protected static PythonObject hasattr(PythonObject o, String attribute) {
-		PythonObject value = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext());
+		PythonObject value = o.get(attribute, PythonInterpreter.interpreter
+				.get().getLocalContext());
 		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
 	}
-	
+
 	protected static PythonObject delattr(PythonObject o, String attribute) {
 		return setattr(o, attribute, null);
 	}
-	
-	public static PythonObject setattr(PythonObject o, String attribute, PythonObject v){
-		if (o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null && v != null){
-			return PythonInterpreter.interpreter.get().execute(false, o.get("__setattr__", PythonInterpreter.interpreter.get().getLocalContext()),
-					null, new StringObject(attribute), v);
-		} else if (o.get("__delattr__", PythonInterpreter.interpreter.get().getLocalContext()) != null && v == null){
-			return PythonInterpreter.interpreter.get().execute(false, o.get("__delattr__", PythonInterpreter.interpreter.get().getLocalContext()),
-					null, new StringObject(attribute));
+
+	public static PythonObject setattr(PythonObject o, String attribute,
+			PythonObject v) {
+		if (o.get("__setattr__", PythonInterpreter.interpreter.get()
+				.getLocalContext()) != null
+				&& v != null) {
+			return PythonInterpreter.interpreter.get().execute(
+					false,
+					o.get("__setattr__", PythonInterpreter.interpreter.get()
+							.getLocalContext()), null,
+					new StringObject(attribute), v);
+		} else if (o.get("__delattr__", PythonInterpreter.interpreter.get()
+				.getLocalContext()) != null
+				&& v == null) {
+			return PythonInterpreter.interpreter.get().execute(
+					false,
+					o.get("__delattr__", PythonInterpreter.interpreter.get()
+							.getLocalContext()), null,
+					new StringObject(attribute));
 		}
 		PythonObject field;
-		if ((field = o.get(attribute, PythonInterpreter.interpreter.get().getLocalContext())) == null && v != null)
-			o.create(attribute, attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE : AccessRestrictions.PUBLIC, PythonInterpreter.interpreter.get().getLocalContext());
-		if (field != null && field instanceof PropertyObject){
+		if ((field = o.get(attribute, PythonInterpreter.interpreter.get()
+				.getLocalContext())) == null
+				&& v != null)
+			o.create(
+					attribute,
+					attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE
+							: AccessRestrictions.PUBLIC,
+					PythonInterpreter.interpreter.get().getLocalContext());
+		if (field != null && field instanceof PropertyObject) {
 			if (v == null)
-				throw new AttributeError("attribute '" + attribute + "' is a property and can't be deleted");
-			
-			((PropertyObject)field).set(v);
+				throw new AttributeError("attribute '" + attribute
+						+ "' is a property and can't be deleted");
+
+			((PropertyObject) field).set(v);
 			return NoneObject.NONE;
 		}
-		o.set(attribute, PythonInterpreter.interpreter.get().getLocalContext(), v);
+		o.set(attribute, PythonInterpreter.interpreter.get().getLocalContext(),
+				v);
 		return NoneObject.NONE;
 	}
-	
+
 	/*
 	 * How to add new classes to the system.
 	 * 
-	 * First, if allowAutowraps is true, SP will try to wrap all classes returned from java (or asked to instantiate via javainstance() type)
-	 * You can specify packages to disallow this autowrapping by using addExcludePackageOrClass method.
+	 * First, if allowAutowraps is true, SP will try to wrap all classes
+	 * returned from java (or asked to instantiate via javainstance() type) You
+	 * can specify packages to disallow this autowrapping by using
+	 * addExcludePackageOrClass method.
 	 * 
-	 * To provide which wrapping factory to be used, use addFactory method. This is hierarchical. To set for root package, use addFactory with empty string.
-	 * Otherwise specify package (or class) from which the runtime will apply your specified PointerFactory.
+	 * To provide which wrapping factory to be used, use addFactory method. This
+	 * is hierarchical. To set for root package, use addFactory with empty
+	 * string. Otherwise specify package (or class) from which the runtime will
+	 * apply your specified PointerFactory.
 	 * 
 	 * Example:
 	 * 
-	 * addFactory("", WrapNoMethodsFactory.class)
-	 * addFactory("org", WrapPublicFactory.class)
-	 * addFactory("org.i.dont.trust.thispackage", WrapAnnotationFactory.class)
+	 * addFactory("", WrapNoMethodsFactory.class) addFactory("org",
+	 * WrapPublicFactory.class) addFactory("org.i.dont.trust.thispackage",
+	 * WrapAnnotationFactory.class)
 	 * 
-	 * if set up like this, every class outside org package will have no methods available in python, all classes in org except for org.i.dont.trust.thispackage
-	 * will have all public methods available in python, and classes in org.i.dont.trust.thispackage will only have methods with annotation available. 
+	 * if set up like this, every class outside org package will have no methods
+	 * available in python, all classes in org except for
+	 * org.i.dont.trust.thispackage will have all public methods available in
+	 * python, and classes in org.i.dont.trust.thispackage will only have
+	 * methods with annotation available.
 	 * 
 	 * You can also set up aliases for classes using addAlias.
 	 * 
-	 * addAlias("com.example.Class", "example") will alias example into com.example.Class. in python user can:
-	 * 		
-	 * 		x = javainstance("example") 
+	 * addAlias("com.example.Class", "example") will alias example into
+	 * com.example.Class. in python user can:
 	 * 
-	 * instead of 
-	 * 		
-	 * 		x = javainstance("com.example.Class") 
+	 * x = javainstance("example")
+	 * 
+	 * instead of
+	 * 
+	 * x = javainstance("com.example.Class")
 	 */
-	
+
 	private FactoryResolver factories = new FactoryResolver();
 	private boolean allowAutowraps;
 	private List<String> excludedPackages = new ArrayList<String>();
-	private Map<String, String> aliases = Collections.synchronizedMap(new HashMap<String, String>());
-	private Map<String, PointerFinalizer> augumentors = Collections.synchronizedMap(new TreeMap<String, PointerFinalizer>());
-	
+	private Map<String, String> aliases = Collections
+			.synchronizedMap(new HashMap<String, String>());
+	private Map<String, PointerFinalizer> augumentors = Collections
+			.synchronizedMap(new TreeMap<String, PointerFinalizer>());
+
 	/**
 	 * Adds this package into excluded
+	 * 
 	 * @param packageOrClass
 	 */
-	public synchronized void addExcludePackageOrClass(String packageOrClass){
+	public synchronized void addExcludePackageOrClass(String packageOrClass) {
 		excludedPackages.add(packageOrClass);
 	}
-	
-	public synchronized void addPointerFinalizer(String name, PointerFinalizer augumentor){
+
+	public synchronized void addPointerFinalizer(String name,
+			PointerFinalizer augumentor) {
 		augumentors.put(name, augumentor);
 	}
-	
+
 	/**
 	 * Adds alias to the fullname
+	 * 
 	 * @param fullName
 	 * @param alias
 	 */
-	public synchronized void addAlias(String fullName, String alias){
+	public synchronized void addAlias(String fullName, String alias) {
 		aliases.put(alias, fullName);
 	}
-	
+
 	/**
-	 * whether classes should be autowrapped automatically or only pre wrapped classes allowed
+	 * whether classes should be autowrapped automatically or only pre wrapped
+	 * classes allowed
+	 * 
 	 * @param allowAutowraps
 	 */
-	public synchronized void setAllowAutowraps(boolean allowAutowraps){
+	public synchronized void setAllowAutowraps(boolean allowAutowraps) {
 		this.allowAutowraps = allowAutowraps;
-	}	
-	
+	}
+
 	/**
 	 * Adds factory for current package path
+	 * 
 	 * @param packagePath
 	 * @param clazz
 	 */
-	public void addFactory(String packagePath, Class<? extends PointerFactory> clazz) {
+	public void addFactory(String packagePath,
+			Class<? extends PointerFactory> clazz) {
 		try {
 			doAddFactory(packagePath, clazz.newInstance());
 		} catch (Exception e) {
@@ -1172,88 +1371,101 @@ public class PythonRuntime {
 
 	/**
 	 * Returns pointer object for the class
-	 * @param cls class name
-	 * @param pointedObject null or object (if provided, it gets autowrapped)
+	 * 
+	 * @param cls
+	 *            class name
+	 * @param pointedObject
+	 *            null or object (if provided, it gets autowrapped)
 	 * @param args
 	 * @return
 	 */
-	public PythonObject getJavaClass(boolean staticMethodMaker, String cls, Object pointedObject, KwArgs kwargs, PythonObject... args) {
+	public PythonObject getJavaClass(boolean staticMethodMaker, String cls,
+			Object pointedObject, KwArgs kwargs, PythonObject... args) {
 		if (!aliases.containsKey(cls) && !allowAutowraps)
-			throw new TypeError("javainstance(): unknown java type '" + cls + "'. Type is not wrapped");
+			throw new TypeError("javainstance(): unknown java type '" + cls
+					+ "'. Type is not wrapped");
 		if (!aliases.containsKey(cls))
-				synchronized (aliases){
-					for (String s : excludedPackages)
-						if (cls.startsWith(s))
-							throw new TypeError("package '" + s + "' is not allowed for automatic wrapping");
-					aliases.put(cls, cls);
-				}
-		
+			synchronized (aliases) {
+				for (String s : excludedPackages)
+					if (cls.startsWith(s))
+						throw new TypeError("package '" + s
+								+ "' is not allowed for automatic wrapping");
+				aliases.put(cls, cls);
+			}
+
 		cls = aliases.get(cls);
-		
+
 		Class<?> clazz;
 		try {
 			clazz = Class.forName(cls);
 		} catch (ClassNotFoundException e1) {
 			throw new TypeError("javainstance(): unknown java type " + cls);
 		}
-		
+
 		Object o;
 		if (pointedObject != null || staticMethodMaker)
 			o = pointedObject;
 		else {
 			Object[] jargs = new Object[args.length + (kwargs != null ? 1 : 0)];
-			
+
 			Constructor<?> selected = null;
-			outer:
-			for (Constructor<?> c : clazz.getConstructors()){
+			outer: for (Constructor<?> c : clazz.getConstructors()) {
 				Class<?>[] types = c.getParameterTypes();
 				if (types.length != jargs.length)
 					continue;
-				
-				int i=0;
-				for (PythonObject oo : args){
+
+				int i = 0;
+				for (PythonObject oo : args) {
 					try {
 						jargs[i] = Coerce.toJava(oo, types[i]);
 						++i;
-					} catch (CastFailedException e){
+					} catch (CastFailedException e) {
 						continue outer;
 					}
 				}
-				
-				if (kwargs != null){
+
+				if (kwargs != null) {
 					if (!types[i].isAssignableFrom(kwargs.getClass()))
 						continue;
 					jargs[i] = kwargs;
 				}
-				
+
 				selected = c;
 				break;
 			}
-			
+
 			if (selected == null)
-				throw new TypeError("javainstance(): no compatibile constructor for type " + cls + " found ");
-			
+				throw new TypeError(
+						"javainstance(): no compatibile constructor for type "
+								+ cls + " found ");
+
 			try {
 				o = selected.newInstance(jargs);
-			} catch (PythonExecutionException e){
+			} catch (PythonExecutionException e) {
 				throw e;
-			} catch (InvocationTargetException e){
+			} catch (InvocationTargetException e) {
 				if (e.getTargetException() instanceof PythonExecutionException)
-					throw (RuntimeException)e.getTargetException();
+					throw (RuntimeException) e.getTargetException();
 				if (e.getTargetException() instanceof BasePythonError)
-					throw Utils.throwException(((PythonException)e.getTargetException()).type, ((PythonException)e.getTargetException()).message, e.getTargetException());
-				throw new TypeError("javainstance(): failed java constructor call");
+					throw Utils.throwException(
+							((PythonException) e.getTargetException()).type,
+							((PythonException) e.getTargetException()).message,
+							e.getTargetException());
+				throw new TypeError(
+						"javainstance(): failed java constructor call");
 			} catch (Exception e) {
-				throw new TypeError("javainstance(): failed java constructor call");
+				throw new TypeError(
+						"javainstance(): failed java constructor call");
 			}
 		}
-		
+
 		PointerFactory factory = getFactory(cls);
-		if (factory == null){
-			throw new TypeError("javainstance(): no available factory for class " + cls);
+		if (factory == null) {
+			throw new TypeError(
+					"javainstance(): no available factory for class " + cls);
 		}
 		PointerObject ptr = factory.doInitialize(o, clazz);
-		if (augumentors.containsKey(clazz.getName())){
+		if (augumentors.containsKey(clazz.getName())) {
 			return augumentors.get(clazz.getName()).finalizePointer(ptr);
 		} else
 			return ptr;
@@ -1261,7 +1473,9 @@ public class PythonRuntime {
 
 	/**
 	 * Returns factory for the class
-	 * @param cls fully qualified class name
+	 * 
+	 * @param cls
+	 *            fully qualified class name
 	 * @return
 	 */
 	private PointerFactory getFactory(String cls) {
@@ -1274,6 +1488,7 @@ public class PythonRuntime {
 
 	/**
 	 * Returns factory for the path components
+	 * 
 	 * @param c
 	 * @return
 	 */
@@ -1283,24 +1498,26 @@ public class PythonRuntime {
 
 	/**
 	 * Returns python's "object" type
+	 * 
 	 * @return
 	 */
 	public synchronized ClassObject getObject() {
-		ObjectTypeObject o = (ObjectTypeObject) globals.doGet(ObjectTypeObject.OBJECT_CALL);
+		ObjectTypeObject o = (ObjectTypeObject) globals
+				.doGet(ObjectTypeObject.OBJECT_CALL);
 		return o;
 	}
 
 	public OutputStream getOut() {
 		return out;
 	}
-	
+
 	public OutputStream getErr() {
 		return err;
 	}
 
 	private AtomicBoolean buildingGlobals = new AtomicBoolean(false);
+
 	public boolean buildingGlobals() {
 		return buildingGlobals.get();
 	}
 }
-

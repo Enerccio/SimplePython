@@ -40,10 +40,12 @@ public class PythonDatagramSocket implements Closeable {
 	private DatagramSocket socket;
 	private ClassObject errorType;
 	private ClassObject timeoutType;
+
 	public PythonDatagramSocket(ClassObject errorType, ClassObject timeoutType) {
 		PythonRuntime.runtime.checkSandboxAction("socket", SecureAction.SOCKET);
-		PythonRuntime.runtime.checkSandboxAction("socket", SecureAction.SOCKET_SERVER);
-		
+		PythonRuntime.runtime.checkSandboxAction("socket",
+				SecureAction.SOCKET_SERVER);
+
 		this.errorType = errorType;
 		this.timeoutType = timeoutType;
 		try {
@@ -52,7 +54,7 @@ public class PythonDatagramSocket implements Closeable {
 			throw Utils.throwException(errorType, "failed to open socket", e);
 		}
 	}
-	
+
 	@WrapMethod
 	@Override
 	public void close() {
@@ -62,54 +64,59 @@ public class PythonDatagramSocket implements Closeable {
 			throw Utils.throwException(errorType, "failed to close socket", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public void timeout(int timeout){
+	public void timeout(int timeout) {
 		try {
 			socket.setSoTimeout(timeout);
 		} catch (Exception e) {
-			throw Utils.throwException(errorType, "failed to set socket timeout", e);
+			throw Utils.throwException(errorType,
+					"failed to set socket timeout", e);
 		}
 	}
 
 	@WrapMethod
-	public void bindTo(String addr, int port){
+	public void bindTo(String addr, int port) {
 		try {
 			socket.close();
 			socket = new DatagramSocket(port, InetAddress.getByName(addr));
 		} catch (Exception e) {
-			throw Utils.throwException(errorType, "failed to set server socket timeout", e);
+			throw Utils.throwException(errorType,
+					"failed to set server socket timeout", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public void sendto(byte[] message, TupleObject to){
+	public void sendto(byte[] message, TupleObject to) {
 		String addr = Coerce.argument(to, 0, "sendto", String.class);
 		int port = Coerce.argument(to, 1, "sendto", int.class);
 		DatagramPacket sendPacket;
 		try {
-			sendPacket = new DatagramPacket(message, message.length, InetAddress.getByName(addr), port);
+			sendPacket = new DatagramPacket(message, message.length,
+					InetAddress.getByName(addr), port);
 		} catch (UnknownHostException e) {
 			throw Utils.throwException(errorType, "failed to get address", e);
 		}
-	    try {
+		try {
 			socket.send(sendPacket);
 		} catch (IOException e) {
 			throw Utils.throwException(errorType, "failed to send message", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public PythonObject recv(int bufs){
+	public PythonObject recv(int bufs) {
 		DatagramPacket dp = new DatagramPacket(new byte[bufs], bufs);
 		try {
 			socket.receive(dp);
-		} catch (SocketTimeoutException e){
+		} catch (SocketTimeoutException e) {
 			throw Utils.throwException(timeoutType, "timeout", e);
 		} catch (IOException e) {
 			throw Utils.throwException(errorType, "failed to recv message", e);
 		}
-		return new TupleObject(false, Coerce.toPython(Arrays.copyOfRange(dp.getData(), 0, dp.getLength()), byte[].class), 
-				new StringObject(dp.getAddress().getHostAddress()));
+		return new TupleObject(false, Coerce.toPython(
+				Arrays.copyOfRange(dp.getData(), 0, dp.getLength()),
+				byte[].class), new StringObject(dp.getAddress()
+				.getHostAddress()));
 	}
 }

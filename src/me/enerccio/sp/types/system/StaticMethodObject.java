@@ -31,17 +31,18 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * StaticMethod python object
+ * 
  * @author Enerccio
  *
  */
 public class StaticMethodObject extends CallableObject {
 	private static final long serialVersionUID = -7257861263236747558L;
 	public static final String __FUNC__ = "__FUNC__";
-	
+
 	public StaticMethodObject() {
-		
+
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
@@ -51,22 +52,26 @@ public class StaticMethodObject extends CallableObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("typename", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
-	
+
 	@Override
 	protected String doToString() {
-		return "<static method of " + fields.get(__FUNC__).object.toString() + ">";
+		return "<static method of " + fields.get(__FUNC__).object.toString()
+				+ ">";
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
@@ -76,9 +81,10 @@ public class StaticMethodObject extends CallableObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
-		return ((CallableObject)fields.get(__FUNC__).object).call(args, kwargs);
+		return ((CallableObject) fields.get(__FUNC__).object)
+				.call(args, kwargs);
 	}
 }

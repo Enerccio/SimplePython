@@ -29,6 +29,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * method()
+ * 
  * @author Enerccio
  *
  */
@@ -42,12 +43,15 @@ public class MethodTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 3)
-			throw new TypeError("method(): wrong mumber of parameters, requires 3, got " + args.len());
-		
+			throw new TypeError(
+					"method(): wrong mumber of parameters, requires 3, got "
+							+ args.len());
+
 		UserFunctionObject fnc;
 		ClassInstanceObject inst;
 		ClassObject accessor;
@@ -55,10 +59,11 @@ public class MethodTypeObject extends TypeObject {
 			fnc = (UserFunctionObject) args.valueAt(0);
 			inst = (ClassInstanceObject) args.valueAt(1);
 			accessor = (ClassObject) args.valueAt(2);
-		} catch (ClassCastException e){
-			throw new TypeError("method(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be instance");
+		} catch (ClassCastException e) {
+			throw new TypeError(
+					"method(): wrong types of parameters. Parameter 1 must be function and parameter 2 must be instance");
 		}
-		
+
 		UserMethodObject mo = new UserMethodObject();
 		Utils.putPublic(mo, UserMethodObject.FUNC, fnc);
 		Utils.putPublic(mo, UserMethodObject.SELF, inst);

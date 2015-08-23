@@ -27,44 +27,49 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * float()
+ * 
  * @author Enerccio
  *
  */
 public class FloatTypeObject extends TypeObject {
 	private static final long serialVersionUID = -8799583211649909780L;
 	public static final String FLOAT_CALL = "float";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "float";
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 1)
 			throw new TypeError("foat(): Incorrect number of parameters");
-		
+
 		PythonObject a = args.valueAt(0);
-		
+
 		if (a instanceof NumberObject) {
 			if (PythonRuntime.USE_DOUBLE_FLOAT)
-				return NumberObject.valueOf(((NumberObject)a).doubleValue());
+				return NumberObject.valueOf(((NumberObject) a).doubleValue());
 			else
-				return NumberObject.valueOf(((NumberObject)a).floatValue());
+				return NumberObject.valueOf(((NumberObject) a).floatValue());
 		}
 
 		PythonObject __int__ = a.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 			PythonInterpreter.interpreter.get().execute(false, __int__, null);
-			PythonObject o = PythonInterpreter.interpreter.get().executeAll(cfc);
+			PythonObject o = PythonInterpreter.interpreter.get()
+					.executeAll(cfc);
 			if (o instanceof NumberObject) {
 				if (PythonRuntime.USE_DOUBLE_FLOAT)
-					return NumberObject.valueOf(((NumberObject)o).doubleValue());
+					return NumberObject.valueOf(((NumberObject) o)
+							.doubleValue());
 				else
-					return NumberObject.valueOf(((NumberObject)o).floatValue());
+					return NumberObject
+							.valueOf(((NumberObject) o).floatValue());
 			} else {
 				throw new TypeError("float(): __int__ did not returned number");
 			}

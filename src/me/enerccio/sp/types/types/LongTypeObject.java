@@ -27,6 +27,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * int()
+ * 
  * @author Enerccio
  *
  */
@@ -34,8 +35,8 @@ public class LongTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4178003762513900453L;
 	public static final String LONG_CALL = "long";
 
-	public LongTypeObject(){
-		
+	public LongTypeObject() {
+
 	}
 
 	@Override
@@ -44,7 +45,7 @@ public class LongTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		PythonObject base = kwargs.consume("base");
 		kwargs.checkEmpty("long");
 		if (args.len() < 1)
@@ -54,28 +55,32 @@ public class LongTypeObject extends TypeObject {
 		PythonObject obj = args.get(0);
 		if (args.len() == 2) {
 			if (base != null)
-				throw new TypeError("long() got duplicate value for argument 'base'");
+				throw new TypeError(
+						"long() got duplicate value for argument 'base'");
 			base = args.get(1);
 		}
 		if (base != null) {
 			if (!NumberObject.isInteger(base))
 				throw new TypeError("long() base argument must be integer");
 			if (!(obj instanceof StringObject))
-				throw new TypeError("long() can't convert non-string with explicit base");
-			return NumberObject.valueOf(Long.valueOf(obj.toString(), ((NumberObject)base).intValue()));
+				throw new TypeError(
+						"long() can't convert non-string with explicit base");
+			return NumberObject.valueOf(Long.valueOf(obj.toString(),
+					((NumberObject) base).intValue()));
 		}
-		
+
 		if (obj instanceof StringObject)
 			return NumberObject.valueOf(Long.valueOf(obj.toString()));
 		if (obj instanceof NumberObject)
-			return NumberObject.valueOf(((NumberObject)obj).longValue());
+			return NumberObject.valueOf(((NumberObject) obj).longValue());
 		PythonObject __int__ = obj.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 			PythonInterpreter.interpreter.get().execute(false, __int__, null);
 			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
-		
-		throw new TypeError("long() can't convert " + obj.toString() + " to long");
+
+		throw new TypeError("long() can't convert " + obj.toString()
+				+ " to long");
 	}
 }

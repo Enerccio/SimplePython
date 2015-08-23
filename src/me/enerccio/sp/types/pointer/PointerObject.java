@@ -27,18 +27,20 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * PointerObject is wrapped java object with methods accessibe all according to factory which created it
+ * PointerObject is wrapped java object with methods accessibe all according to
+ * factory which created it
+ * 
  * @author Enerccio
  *
  */
 public class PointerObject extends PythonObject {
 	private static final long serialVersionUID = 25L;
-	
-	public PointerObject(Object o){
+
+	public PointerObject(Object o) {
 		super(false);
 		pointed = o;
 	}
-	
+
 	private Object pointed;
 
 	@Override
@@ -49,9 +51,9 @@ public class PointerObject extends PythonObject {
 	public Object getObject() {
 		return pointed;
 	}
-	
+
 	@Override
-	public int getId(){
+	public int getId() {
 		if (pointed == null)
 			return 0;
 		return pointed.hashCode();
@@ -61,22 +63,25 @@ public class PointerObject extends PythonObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("typename", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
 
 	@Override
 	protected String doToString() {
 		return "<pointer object to " + pointed.toString() + ">";
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

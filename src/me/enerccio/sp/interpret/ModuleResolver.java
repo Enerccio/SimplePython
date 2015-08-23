@@ -24,54 +24,62 @@ import java.io.OutputStream;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 
 /**
- * This interface is for customizing where will python look for resolving imports
+ * This interface is for customizing where will python look for resolving
+ * imports
+ * 
  * @author Enerccio
  *
  */
 public interface ModuleResolver {
 	/**
-	 * Constructs module data for the requested name and requested path.
-	 * Returns null if name does not corresponds to any module.
+	 * Constructs module data for the requested name and requested path. Returns
+	 * null if name does not corresponds to any module.
 	 * 
-	 * This may be called repeatedly to resolve module in nested packages.
-	 * For example, to get module 'utils.scripts.protocols.http', following
-	 * sequence will be called:
+	 * This may be called repeatedly to resolve module in nested packages. For
+	 * example, to get module 'utils.scripts.protocols.http', following sequence
+	 * will be called:
 	 * 
-	 * utils     = resolve("utils", "");
-	 * scripts   = resolve("scripts", utils.getResolvePath());
-	 * protocols = resolve("protocols", scripts.getResolvePath());
-	 * http      = resolve("http", protocols.getResolvePath());
+	 * utils = resolve("utils", ""); scripts = resolve("scripts",
+	 * utils.getResolvePath()); protocols = resolve("protocols",
+	 * scripts.getResolvePath()); http = resolve("http",
+	 * protocols.getResolvePath());
 	 * 
 	 * assuming that utils, scripts and protocols are valid packages.
 	 * 
-	 * @param name module name without package nor any filename extension
-	 * @param resolvePath package that above name is relative to
+	 * @param name
+	 *            module name without package nor any filename extension
+	 * @param resolvePath
+	 *            package that above name is relative to
 	 * @return null or ModuleData
 	 */
 	ModuleData resolve(String name, String resolvePath);
 
-	
 	InputStream read(ModuleData data) throws IOException;
 
 	/**
-	 * Returns last modification time of module.
-	 * Use System.MAX_LONG if nothing better is available.
+	 * Returns last modification time of module. Use System.MAX_LONG if nothing
+	 * better is available.
 	 */
 	long lastModified(ModuleData data);
 
-	/** 
-	 * Returns input stream for cached (compiled) module or null if cache is not supported or available.
-	 * Use PythonRuntime.cachedRead method to use default caching method.
+	/**
+	 * Returns input stream for cached (compiled) module or null if cache is not
+	 * supported or available. Use PythonRuntime.cachedRead method to use
+	 * default caching method.
 	 */
 	InputStream cachedRead(ModuleData data);
-	
-	/** 
-	 * Returns output stream to write compiled module to or null if cache is not supported.
-	 * Use PythonRuntime.cachedRead method to use default caching method.
+
+	/**
+	 * Returns output stream to write compiled module to or null if cache is not
+	 * supported. Use PythonRuntime.cachedRead method to use default caching
+	 * method.
 	 */
 	OutputStream cachedWrite(ModuleData data);
 
-	/** Returns any random string that should be same as long as resolver works in same way */
+	/**
+	 * Returns any random string that should be same as long as resolver works
+	 * in same way
+	 */
 	String getResolverID();
-	
+
 }

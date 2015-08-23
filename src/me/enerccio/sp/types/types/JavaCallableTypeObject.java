@@ -19,12 +19,13 @@ package me.enerccio.sp.types.types;
 
 /**
  * javamethod()
+ * 
  * @author Enerccio
  *
  */
 public class JavaCallableTypeObject extends TypeObject {
 	private static final long serialVersionUID = 7480637583186194657L;
-	private static TypeObject singleton = null; 
+	private static TypeObject singleton = null;
 	public static final String JAVACALLABLE_CALL = "javamethod";
 
 	public JavaCallableTypeObject() {
@@ -32,13 +33,13 @@ public class JavaCallableTypeObject extends TypeObject {
 			throw new RuntimeException("Creating 2nd instance of singleton!");
 		singleton = this;
 	}
-	
+
 	public static TypeObject get() {
 		if (singleton == null)
 			singleton = new JavaCallableTypeObject();
 		return singleton;
 	}
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "javamethod";

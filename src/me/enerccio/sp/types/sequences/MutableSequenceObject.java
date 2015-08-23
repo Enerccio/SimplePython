@@ -28,6 +28,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Mutable Sequences, provides __setitem__ method
+ * 
  * @author Enerccio
  *
  */
@@ -37,22 +38,28 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	public static final String REMOVE = "remove";
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(SequenceObject.getSFields());
-			sfields.put(__SETITEM__, new JavaMethodObject(MutableSequenceObject.class, "set", PythonObject.class, PythonObject.class));
-			sfields.put(REMOVE, new JavaMethodObject(MutableSequenceObject.class, "remove", PythonObject.class));
-		} catch (Exception e){
+			sfields.put(__SETITEM__, new JavaMethodObject(
+					MutableSequenceObject.class, "set", PythonObject.class,
+					PythonObject.class));
+			sfields.put(REMOVE, new JavaMethodObject(
+					MutableSequenceObject.class, "remove", PythonObject.class));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
-	
-	public MutableSequenceObject(boolean internalUse){
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
+	public MutableSequenceObject(boolean internalUse) {
 		super(internalUse);
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -62,17 +69,19 @@ public abstract class MutableSequenceObject extends SequenceObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
 	}
-	
+
 	public abstract PythonObject set(PythonObject key, PythonObject value);
+
 	public abstract PythonObject remove(PythonObject o);
-	
+
 	@Override
-	public int getId(){
-		throw new TypeError("unhashable type '" + Utils.run("typename", this) + "'");
+	public int getId() {
+		throw new TypeError("unhashable type '" + Utils.run("typename", this)
+				+ "'");
 	}
 }

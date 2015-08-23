@@ -27,12 +27,14 @@ import me.enerccio.sp.types.properties.FieldPropertyObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * PythonBytecode is PythonObject representing single instruction of the interpret.
+ * PythonBytecode is PythonObject representing single instruction of the
+ * interpret.
+ * 
  * @author Enerccio
  *
  */
 public class PythonBytecode extends PythonObject {
-	
+
 	/**
 	 * 
 	 */
@@ -49,44 +51,55 @@ public class PythonBytecode extends PythonObject {
 	public String stringValue;
 	public Object object;
 	public boolean booleanValue;
-	
-	public PythonBytecode(){
+
+	public PythonBytecode() {
 		super(true);
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		String str = super.toString();
-		return str.replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r");
+		return str.replace("\n", "\\n").replace("\t", "\\t")
+				.replace("\r", "\\r");
 	}
-	
+
 	@Override
-	public void newObject(){
+	public void newObject() {
 		super.newObject();
-		
+
 		try {
-			Utils.putPublic(this, "int_value", new FieldPropertyObject(this, PythonBytecode.class, "intValue", true));
-			Utils.putPublic(this, "value", new FieldPropertyObject(this, PythonBytecode.class, "value", true));
-			Utils.putPublic(this, "string_value", new FieldPropertyObject(this, PythonBytecode.class, "stringValue", true));
-			Utils.putPublic(this, "object", new FieldPropertyObject(this, PythonBytecode.class, "object", true));
-			Utils.putPublic(this, "bool_value", new FieldPropertyObject(this, PythonBytecode.class, "booleanValue", true));
-			Utils.putPublic(this, "_lineno", new FieldPropertyObject(this, PythonBytecode.class, "debugLine", true));
-			Utils.putPublic(this, "_charno", new FieldPropertyObject(this, PythonBytecode.class, "debugCharacter", true));
-			Utils.putPublic(this, "_function", new FieldPropertyObject(this, PythonBytecode.class, "debugFunction", true));
+			Utils.putPublic(this, "int_value", new FieldPropertyObject(this,
+					PythonBytecode.class, "intValue", true));
+			Utils.putPublic(this, "value", new FieldPropertyObject(this,
+					PythonBytecode.class, "value", true));
+			Utils.putPublic(this, "string_value", new FieldPropertyObject(this,
+					PythonBytecode.class, "stringValue", true));
+			Utils.putPublic(this, "object", new FieldPropertyObject(this,
+					PythonBytecode.class, "object", true));
+			Utils.putPublic(this, "bool_value", new FieldPropertyObject(this,
+					PythonBytecode.class, "booleanValue", true));
+			Utils.putPublic(this, "_lineno", new FieldPropertyObject(this,
+					PythonBytecode.class, "debugLine", true));
+			Utils.putPublic(this, "_charno", new FieldPropertyObject(this,
+					PythonBytecode.class, "debugCharacter", true));
+			Utils.putPublic(this, "_function", new FieldPropertyObject(this,
+					PythonBytecode.class, "debugFunction", true));
 		} catch (NoSuchFieldException | SecurityException e) {
 			throw new RuntimeException("yellow sky", e);
 		}
 	}
-	
+
 	protected Bytecode bytecode;
+
 	/**
 	 * Returns type of the bytecode
+	 * 
 	 * @return
 	 */
-	public Bytecode getOpcode(){
+	public Bytecode getOpcode() {
 		return bytecode;
 	}
-	
+
 	public static class Nop extends PythonBytecode {
 		/**
 		 * 
@@ -97,7 +110,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.NOP;
 		}
 	}
-	
+
 	public static class MakeFirst extends PythonBytecode {
 		/**
 		 * 
@@ -108,7 +121,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.MAKE_FIRST;
 		}
 	}
-	
+
 	public static class TestFuture extends PythonBytecode {
 		/**
 		 * 
@@ -118,25 +131,25 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.TEST_FUTURE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 
 	}
-	
+
 	public static class BinaryOperator extends PythonBytecode {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 438692838991066014L;
 
-		public BinaryOperator(Bytecode b){
+		public BinaryOperator(Bytecode b) {
 			bytecode = b;
 		}
 	}
-	
+
 	public static class Del extends PythonBytecode {
 		/**
 		 * 
@@ -146,13 +159,14 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DEL;
 		}
-		
+
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s) - %s", getOpcode().toString(), stringValue, booleanValue);
+			return String.format("%s(%s) - %s", getOpcode().toString(),
+					stringValue, booleanValue);
 		}
 	}
-	
+
 	public static class DelAttr extends PythonBytecode {
 		/**
 		 * 
@@ -162,13 +176,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DELATTR;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class ResolveClosure extends PythonBytecode {
 		/**
 		 * 
@@ -179,7 +193,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.RESOLVE_CLOSURE;
 		}
 	}
-	
+
 	public static class LoadBuiltin extends PythonBytecode {
 		/**
 		 * 
@@ -187,15 +201,15 @@ public class PythonBytecode extends PythonObject {
 		private static final long serialVersionUID = 4386928314919066014L;
 
 		{
-			bytecode = Bytecode. LOADBUILTIN;
+			bytecode = Bytecode.LOADBUILTIN;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class OpenLocals extends PythonBytecode {
 		/**
 		 * 
@@ -206,7 +220,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.OPEN_LOCALS;
 		}
 	}
-	
+
 	public static class PushLocals extends PythonBytecode {
 		/**
 		 * 
@@ -217,7 +231,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_LOCALS;
 		}
 	}
-	
+
 	public static class Yield extends PythonBytecode {
 		/**
 		 * 
@@ -227,13 +241,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.YIELD;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class SaveLocal extends PythonBytecode {
 		/**
 		 * 
@@ -243,13 +257,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SAVE_LOCAL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class Raise extends PythonBytecode {
 		/**
 		 * 
@@ -259,7 +273,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.RAISE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s", getOpcode().toString());
@@ -276,33 +290,35 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.RERAISE;
 		}
 	}
-	
+
 	public static class TruthValue extends PythonBytecode {
 		private static final long serialVersionUID = -8816781867691872127L;
 
 		{
 			bytecode = Bytecode.TRUTH_VALUE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			if (intValue == 1)
-				return String.format("%s (1 - negated)", getOpcode().toString());
+				return String
+						.format("%s (1 - negated)", getOpcode().toString());
 			else
 				return String.format("%s", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class AcceptIter extends PythonBytecode {
 		private static final long serialVersionUID = 6332909908617239072L;
 
 		{
 			bytecode = Bytecode.ACCEPT_ITER;
 		}
-		
+
 		@Override
 		protected String doToString() {
-			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
+			return String.format("%s (or jump to %s)", getOpcode().toString(),
+					intValue);
 		}
 	}
 
@@ -312,13 +328,14 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.GET_ITER;
 		}
-		
+
 		@Override
 		protected String doToString() {
-			return String.format("%s (or jump to %s)", getOpcode().toString(), intValue);
+			return String.format("%s (or jump to %s)", getOpcode().toString(),
+					intValue);
 		}
 	}
-	
+
 	public static class SetupLoop extends PythonBytecode {
 		private static final long serialVersionUID = 7845189234841211899L;
 
@@ -328,7 +345,8 @@ public class PythonBytecode extends PythonObject {
 
 		@Override
 		protected String doToString() {
-			return String.format("%s (jump to %s with javaiterator)", getOpcode().toString(), intValue);
+			return String.format("%s (jump to %s with javaiterator)",
+					getOpcode().toString(), intValue);
 		}
 	}
 
@@ -342,7 +360,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_ENVIRONMENT;
 		}
 	}
-	
+
 	public static class PushLocalContext extends PythonBytecode {
 		/**
 		 * 
@@ -353,7 +371,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_LOCAL_CONTEXT;
 		}
 	}
-	
+
 	public static class Return extends PythonBytecode {
 		/**
 		 * 
@@ -367,12 +385,14 @@ public class PythonBytecode extends PythonObject {
 		@Override
 		protected String doToString() {
 			if (intValue == 1)
-				return String.format("%s (%s - returns value)", getOpcode().toString(), intValue);
-			return String.format("%s (%s - exits frame)", getOpcode().toString(), intValue);
+				return String.format("%s (%s - returns value)", getOpcode()
+						.toString(), intValue);
+			return String.format("%s (%s - exits frame)", getOpcode()
+					.toString(), intValue);
 		}
 
 	}
-	
+
 	public static class Pop extends PythonBytecode {
 		/**
 		 * 
@@ -383,7 +403,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.POP;
 		}
 	}
-	
+
 	public static class Push extends PythonBytecode {
 		/**
 		 * 
@@ -393,11 +413,12 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.PUSH;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			try {
-				return String.format("%s(%s)", getOpcode().toString(), value.toString());
+				return String.format("%s(%s)", getOpcode().toString(),
+						value.toString());
 			} catch (Exception e) {
 				return String.format("%s(%s)", getOpcode().toString(), e);
 			}
@@ -413,7 +434,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.CALL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
@@ -426,26 +447,26 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.RCALL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class KCall extends PythonBytecode {
 		private static final long serialVersionUID = 9058117934717120328L;
 
 		{
 			bytecode = Bytecode.KCALL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class ECall extends PythonBytecode {
 		private static final long serialVersionUID = 9058117934717120328L;
 
@@ -453,7 +474,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.ECALL;
 		}
 	}
-	
+
 	public static class Goto extends PythonBytecode {
 		/**
 		 * 
@@ -463,13 +484,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.GOTO;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class JumpIfTrue extends PythonBytecode {
 		/**
 		 * 
@@ -479,13 +500,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.JUMPIFTRUE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class JumpIfNone extends PythonBytecode {
 		/**
 		 * 
@@ -495,7 +516,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.JUMPIFNONE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
@@ -512,7 +533,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.ISINSTANCE;
 		}
 	}
-	
+
 	public static class JumpIfNoReturn extends PythonBytecode {
 		/**
 		 * 
@@ -522,7 +543,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.JUMPIFNORETURN;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
@@ -538,13 +559,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.JUMPIFFALSE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class Load extends PythonBytecode {
 		/**
 		 * 
@@ -554,7 +575,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.LOAD;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
@@ -571,13 +592,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.LOADGLOBAL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class LoadDynamic extends PythonBytecode {
 		/**
 		 * 
@@ -587,14 +608,14 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.LOADDYNAMIC;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 
 	}
-	
+
 	public static class Save extends PythonBytecode {
 		/**
 		 * 
@@ -604,13 +625,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SAVE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class SaveGlobal extends PythonBytecode {
 		/**
 		 * 
@@ -620,13 +641,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SAVEGLOBAL;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class SaveDynamic extends PythonBytecode {
 		/**
 		 * 
@@ -636,13 +657,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SAVEDYNAMIC;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class Dup extends PythonBytecode {
 		/**
 		 * 
@@ -652,17 +673,18 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.DUP;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			if (intValue == 0)
 				return String.format("%s", getOpcode().toString());
 			else
-				return String.format("%s (copies %s-th from top)", getOpcode().toString(), intValue);
+				return String.format("%s (copies %s-th from top)", getOpcode()
+						.toString(), intValue);
 		}
-		
+
 	}
-	
+
 	public static class PushFrame extends PythonBytecode {
 		/**
 		 * 
@@ -672,7 +694,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.PUSH_FRAME;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
@@ -689,7 +711,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.PUSH_EXCEPTION;
 		}
 	}
-	
+
 	public static class Import extends PythonBytecode {
 		/**
 		 * 
@@ -699,14 +721,15 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.IMPORT;
 		}
-		
+
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s, %s)", getOpcode().toString(), (String)object, stringValue);
+			return String.format("%s(%s, %s)", getOpcode().toString(),
+					object, stringValue);
 		}
-		
+
 	}
-	
+
 	public static class SwapStack extends PythonBytecode {
 		/**
 		 * 
@@ -727,13 +750,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.KWARG;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			if (object == null)
 				return String.format("%s(%s)", getOpcode().toString(), null);
 			StringBuilder sb = new StringBuilder();
-			for (String s : (String[])object) {
+			for (String s : (String[]) object) {
 				sb.append(s);
 				sb.append(", ");
 			}
@@ -741,7 +764,7 @@ public class PythonBytecode extends PythonObject {
 				sb.delete(sb.length() - 2, sb.length());
 			return String.format("%s(%s)", getOpcode().toString(), sb);
 		}
-	}	
+	}
 
 	public static class LoadFuture extends PythonBytecode {
 		/**
@@ -753,7 +776,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.LOAD_FUTURE;
 		}
 	}
-	
+
 	public static class MakeFuture extends PythonBytecode {
 		/**
 		 * 
@@ -763,13 +786,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.MAKE_FUTURE;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			if (object == null)
 				return String.format("%s(%s)", getOpcode().toString(), null);
 			StringBuilder sb = new StringBuilder();
-			for (String s : (String[])object) {
+			for (String s : (String[]) object) {
 				sb.append(s);
 				sb.append(", ");
 			}
@@ -777,17 +800,17 @@ public class PythonBytecode extends PythonObject {
 				sb.delete(sb.length() - 2, sb.length());
 			return String.format("%s(%s)", getOpcode().toString(), sb);
 		}
-	}	
-	
+	}
+
 	public static class UnpackKwArg extends PythonBytecode {
 		private static final long serialVersionUID = -985151216623131210L;
 
 		{
 			bytecode = Bytecode.UNPACK_KWARG;
 		}
-		
-	}	
-	
+
+	}
+
 	public static class UnpackSequence extends PythonBytecode {
 		/**
 		 * 
@@ -803,7 +826,7 @@ public class PythonBytecode extends PythonObject {
 			return String.format("%s(%s)", getOpcode().toString(), intValue);
 		}
 	}
-	
+
 	public static class ResolveArgs extends PythonBytecode {
 		/**
 		 * 
@@ -814,7 +837,7 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.RESOLVE_ARGS;
 		}
 	}
-	
+
 	public static class GetAttr extends PythonBytecode {
 		/**
 		 * 
@@ -824,13 +847,13 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.GETATTR;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
 		}
 	}
-	
+
 	public static class SetAttr extends PythonBytecode {
 		/**
 		 * 
@@ -840,7 +863,7 @@ public class PythonBytecode extends PythonObject {
 		{
 			bytecode = Bytecode.SETATTR;
 		}
-		
+
 		@Override
 		protected String doToString() {
 			return String.format("%s(%s)", getOpcode().toString(), stringValue);
@@ -856,7 +879,7 @@ public class PythonBytecode extends PythonObject {
 	protected String doToString() {
 		return getOpcode().toString();
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

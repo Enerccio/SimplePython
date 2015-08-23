@@ -36,12 +36,13 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Represents user function (compiled).
+ * 
  * @author Enerccio
  *
  */
 public class UserFunctionObject extends CallableObject {
 	private static final long serialVersionUID = 22L;
-	
+
 	/** Bytecode of this function */
 	public CompiledBlockObject block;
 	/** Arguments this function has */
@@ -53,24 +54,26 @@ public class UserFunctionObject extends CallableObject {
 
 	public boolean isKvararg = false;
 	public String kvararg;
-	
-	public UserFunctionObject(){
-		
+
+	public UserFunctionObject() {
+
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
-		
+
 		try {
-			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, "call"));
-		} catch (NoSuchMethodException e){
+			Utils.putPublic(this, CallableObject.__CALL__,
+					new JavaMethodObject(this, "call"));
+		} catch (NoSuchMethodException e) {
 			// will not happen
 		}
 	};
-	
+
 	/**
 	 * Calls this function. Will insert onto frame stack and returns None.
+	 * 
 	 * @param args
 	 * @return
 	 */
@@ -80,55 +83,62 @@ public class UserFunctionObject extends CallableObject {
 		args = refillArgs(args, kwargs);
 		int argc = args.len();
 		int rargs = this.args.size();
-		
+
 		if (argc < rargs)
-			throw new TypeError(fields.get("__name__").object + "(): incorrect amount of arguments, expected at least " + rargs + ", got " + args.len());
-		
+			throw new TypeError(fields.get("__name__").object
+					+ "(): incorrect amount of arguments, expected at least "
+					+ rargs + ", got " + args.len());
+
 		if (!isVararg && argc > rargs)
-			throw new TypeError(fields.get("__name__").object + "(): incorrect amount of arguments, expected at most " + rargs + ", got " + args.len());
-			
+			throw new TypeError(fields.get("__name__").object
+					+ "(): incorrect amount of arguments, expected at most "
+					+ rargs + ", got " + args.len());
+
 		InternalDict a = new StringDictObject();
-		
+
 		List<PythonObject> vargs = new ArrayList<PythonObject>();
-		for (int i=0; i<Math.max(oargs.len(), args.len()); i++){
+		for (int i = 0; i < Math.max(oargs.len(), args.len()); i++) {
 			if (i < this.args.size())
 				a.putVariable(this.args.get(i), args.getObjects()[i]);
 			else
 				vargs.add(oargs.getObjects()[i]);
 		}
-		
-		if (isVararg){
+
+		if (isVararg) {
 			TupleObject t = (TupleObject) Utils.list2tuple(vargs, false);
 			a.putVariable(vararg, t);
 		}
-		
-		if (isKvararg){
+
+		if (isKvararg) {
 			DictObject kwdict = args.convertKwargs(kwargs);
 			a.putVariable(kvararg, kwdict);
 		}
-		
+
 		PythonInterpreter.interpreter.get().setArgs(a);
 		PythonInterpreter.interpreter.get().setClosure(closure);
 		PythonInterpreter.interpreter.get().executeBytecode(block);
-		
+
 		return NoneObject.NONE; // returns immediately
 	}
 
 	/**
 	 * Adds variables from defaults
+	 * 
 	 * @param args
 	 * @return
 	 */
 	public TupleObject refillArgs(TupleObject args, KwArgs kwargs) {
 		InternalDict m = (InternalDict) fields.get("function_defaults").object;
 		PythonObject[] pl = new PythonObject[this.args.size()];
-		for (int i=0; i<pl.length; i++) {
+		for (int i = 0; i < pl.length; i++) {
 			String key = this.args.get(i);
 			if (i < args.len()) {
 				// Argument passed in tuple
 				pl[i] = args.get(i);
 				if (kwargs != null && kwargs.contains(key))
-					throw new TypeError(fields.get("__name__").object + "() got multiple values for keyword argument '" + key + "'");
+					throw new TypeError(fields.get("__name__").object
+							+ "() got multiple values for keyword argument '"
+							+ key + "'");
 			} else if ((kwargs != null) && (kwargs.contains(key))) {
 				// Argument passed in kwargs
 				pl[i] = kwargs.consume(key);
@@ -137,18 +147,21 @@ public class UserFunctionObject extends CallableObject {
 				pl[i] = m.getVariable(key);
 			} else {
 				// Missing argument
-				throw new TypeError(fields.get("__name__").object + "() required argument '" + key + "' missing");
+				throw new TypeError(fields.get("__name__").object
+						+ "() required argument '" + key + "' missing");
 			}
 		}
 		if (kwargs != null && !isKvararg)
 			kwargs.checkEmpty(fields.get("__name__").object + "()");
-		return new TupleObject(true, pl); // pl.toArray(new PythonObject[pl.size()]));
+		return new TupleObject(true, pl); // pl.toArray(new
+											// PythonObject[pl.size()]));
 	}
 
 	@Override
 	protected String doToString() {
 		if (fields.get("__location__") != null)
-			return "<function " + fields.get("__name__").object + " at " + fields.get("__location__").object.toString()  + ">";
+			return "<function " + fields.get("__name__").object + " at "
+					+ fields.get("__location__").object.toString() + ">";
 		return "<function " + fields.get("__name__").object + ">";
 	}
 
@@ -158,14 +171,15 @@ public class UserFunctionObject extends CallableObject {
 	}
 
 	private List<InternalDict> closure;
+
 	public void setClosure(List<InternalDict> closure) {
 		this.closure = closure;
 	}
-	
-	public List<InternalDict> getClosure(){
+
+	public List<InternalDict> getClosure() {
 		return closure;
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

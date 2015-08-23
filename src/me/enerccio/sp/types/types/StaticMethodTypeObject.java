@@ -27,32 +27,34 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * bool()
+ * 
  * @author Enerccio
  *
  */
 public class StaticMethodTypeObject extends TypeObject {
 	private static final long serialVersionUID = 6840091655610067377L;
 	public static final String STATIC_METHOD_CALL = "staticmethod";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "staticmethod";
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 1)
 			throw new TypeError("staticmethod(): requires 1 argument");
 		PythonObject o = args.get(0);
-		if (!(o instanceof UserFunctionObject)){
-			throw new TypeError("staticmethod(): argument must be a python function");
+		if (!(o instanceof UserFunctionObject)) {
+			throw new TypeError(
+					"staticmethod(): argument must be a python function");
 		}
 		StaticMethodObject smo = new StaticMethodObject();
 		Utils.putPublic(smo, StaticMethodObject.__FUNC__, o);
 		return smo;
 	}
 
-	
 }

@@ -23,52 +23,54 @@ import java.util.Stack;
 
 /**
  * Stack that contains variable's scope
+ * 
  * @author Enerccio
  *
  */
 public class VariableStack {
-	
+
 	public enum VariableType {
 		LOCAL, GLOBAL, DYNAMIC
 	}
-	
+
 	private static class VariableStackElement {
 		private Map<String, VariableType> variables = new HashMap<String, VariableType>();
 	}
 
 	private Stack<VariableStackElement> stack = new Stack<VariableStackElement>();
-	
+
 	/**
 	 * Inserts new layer to the stack
 	 */
-	public void push(){
+	public void push() {
 		stack.add(new VariableStackElement());
 	}
-	
+
 	/**
 	 * Removes layer from the stack
 	 */
-	public void pop(){
+	public void pop() {
 		stack.pop();
 	}
-	
+
 	/**
 	 * Sets variable as global in current scope
+	 * 
 	 * @param variable
 	 */
-	public void addGlobal(String variable){
+	public void addGlobal(String variable) {
 		stack.peek().variables.put(variable, VariableType.GLOBAL);
 	}
-	
-	public void addDynamic(String variable){
+
+	public void addDynamic(String variable) {
 		stack.peek().variables.put(variable, VariableType.DYNAMIC);
 	}
-	
-	public VariableType typeOfVariable(String variable){
+
+	public VariableType typeOfVariable(String variable) {
 		VariableStackElement e = stack.peek();
 		if (e.variables.containsKey(variable))
 			return e.variables.get(variable);
 		return VariableType.LOCAL;
 	}
-	
+
 }

@@ -69,24 +69,30 @@ public class Formatter {
 	private CallableObject checkUnused;
 	private CallableObject formatField;
 	private Set<PythonObject> used = new HashSet<PythonObject>();
-	
-	public Formatter(TupleObject to, Dictionary kwargs, CallableObject getValue, CallableObject checkUnused, CallableObject formatField) {
-		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.asStringDict());
+
+	public Formatter(TupleObject to, Dictionary kwargs,
+			CallableObject getValue, CallableObject checkUnused,
+			CallableObject formatField) {
+		dataMap = new HashMap<String, PythonObject>(
+				kwargs == null ? new HashMap<String, PythonObject>()
+						: kwargs.asStringDict());
 		indexMap = new ArrayList<PythonObject>(Arrays.asList(to.getObjects()));
 		this.getValue = getValue;
 		this.checkUnused = checkUnused;
 		this.formatField = formatField;
 	}
-	
+
 	public Formatter(TupleObject to, KwArgs kwargs) {
-		dataMap = new HashMap<String, PythonObject>(kwargs == null ? new HashMap<String, PythonObject>() : kwargs.getAll());
+		dataMap = new HashMap<String, PythonObject>(
+				kwargs == null ? new HashMap<String, PythonObject>()
+						: kwargs.getAll());
 		indexMap = new ArrayList<PythonObject>(Arrays.asList(to.getObjects()));
 	}
 
 	public Formatter format(String value) {
 		try {
 			p = ParserGenerator.parseFormatter(value);
-		} catch (Exception e){
+		} catch (Exception e) {
 			throw new SyntaxError("format(): failed to parse input ", e);
 		}
 		return this;
@@ -102,9 +108,9 @@ public class Formatter {
 			StringBuilder bd = new StringBuilder();
 			format(bd);
 			return bd.toString();
-		} catch (PythonExecutionException e){
+		} catch (PythonExecutionException e) {
 			throw e;
-		} catch (Exception e){
+		} catch (Exception e) {
 			throw new ValueError("format(): failed parsing format string", e);
 		}
 	}
@@ -117,11 +123,13 @@ public class Formatter {
 		for (SegmentContext s : segments.segment())
 			format(target, s);
 		if (checkUnused != null)
-			PythonInterpreter.interpreter.get().execute(true, checkUnused, null, Coerce.toPython(used), Coerce.toPython(indexMap), Coerce.toPython(dataMap));
+			PythonInterpreter.interpreter.get().execute(true, checkUnused,
+					null, Coerce.toPython(used), Coerce.toPython(indexMap),
+					Coerce.toPython(dataMap));
 	}
 
 	private void format(StringBuilder target, SegmentContext s) {
-		if (s.text() != null){
+		if (s.text() != null) {
 			format(target, s.text());
 		} else {
 			format(target, s.replacement_field());
@@ -132,28 +140,29 @@ public class Formatter {
 		target.append(text.getText().replace("{{", "{").replace("}}", "}"));
 	}
 
-	private void format(StringBuilder target,
-			Replacement_fieldContext ctx) {
+	private void format(StringBuilder target, Replacement_fieldContext ctx) {
 		PythonObject dataSegment = getDataSegment(ctx.field_name());
-		if (ctx.conversion() != null){
-			if (ctx.conversion().conversionType().getText().equals("s")){
+		if (ctx.conversion() != null) {
+			if (ctx.conversion().conversionType().getText().equals("s")) {
 				dataSegment = Utils.run("str", dataSegment);
 			}
 		}
-		if (ctx.format_spec() != null){
+		if (ctx.format_spec() != null) {
 			format(target, dataSegment, ctx.format_spec());
-		} else 
+		} else
 			target.append(dataSegment);
 	}
-	
+
 	private void format(StringBuilder target, PythonObject dataSegment,
 			Format_specContext format_spec) {
 		String formatSpec = parseFormatSpec(format_spec);
-		if (formatField != null){
-			target.append(PythonInterpreter.interpreter.get().execute(true, formatField, null, dataSegment, 
+		if (formatField != null) {
+			target.append(PythonInterpreter.interpreter.get().execute(true,
+					formatField, null, dataSegment,
 					Coerce.toPython(formatSpec, String.class)));
 		} else
-			target.append(Utils.run("format", dataSegment, new StringObject(formatSpec)));
+			target.append(Utils.run("format", dataSegment, new StringObject(
+					formatSpec)));
 	}
 
 	private String parseFormatSpec(Format_specContext ctx) {
@@ -164,7 +173,7 @@ public class Formatter {
 	}
 
 	private void format(StringBuilder target, Format_spec_elementContext s) {
-		if (s.text_fspec() != null){
+		if (s.text_fspec() != null) {
 			format(target, s.text_fspec());
 		} else {
 			format(target, s.replacement_field_lite());
@@ -175,41 +184,43 @@ public class Formatter {
 		target.append(text.getText());
 	}
 
-	private void format(StringBuilder target,
-			Replacement_field_liteContext ctx) {
+	private void format(StringBuilder target, Replacement_field_liteContext ctx) {
 		PythonObject dataSegment = getDataSegment(ctx.field_name_lite());
 		target.append(dataSegment.toString());
 	}
 
 	private PythonObject getDataSegment(Field_name_liteContext field_name_lite) {
-		if (field_name_lite == null){
+		if (field_name_lite == null) {
 			return getIndexed(noClauseCounter++);
 		}
 		PythonObject base = getDataSegment(field_name_lite.arg_name_lite());
-		for (Accessor_liteContext ac : field_name_lite.accessor_lite()){
-			if (ac.attribute_name_lite() != null){
-				base = Utils.run("getattr", base, new StringObject(ac.getText().substring(1)));
+		for (Accessor_liteContext ac : field_name_lite.accessor_lite()) {
+			if (ac.attribute_name_lite() != null) {
+				base = Utils.run("getattr", base, new StringObject(ac.getText()
+						.substring(1)));
 			} else {
-				base = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", base, new StringObject("__getitem__")), 
-						null, getElementIndex(ac.element_index_lite()));
+				base = PythonInterpreter.interpreter.get().execute(
+						true,
+						Utils.run("getattr", base, new StringObject(
+								"__getitem__")), null,
+						getElementIndex(ac.element_index_lite()));
 			}
 		}
 		return base;
 	}
 
-	private PythonObject getElementIndex(
-			Element_index_liteContext ei) {
+	private PythonObject getElementIndex(Element_index_liteContext ei) {
 		String text = ei.getText();
 		try {
-		 	return NumberObject.valueOf(Integer.parseInt(text));
-		} catch (NumberFormatException e){
+			return NumberObject.valueOf(Integer.parseInt(text));
+		} catch (NumberFormatException e) {
 			// pass
 		}
 		return new StringObject(ei.index_string_lite().getText());
 	}
 
 	private PythonObject getDataSegment(Arg_name_liteContext arg_name) {
-		if (arg_name.finteger() != null){
+		if (arg_name.finteger() != null) {
 			return getIndexed(getInteger(arg_name.finteger()));
 		} else {
 			return getTexted(arg_name.getText());
@@ -219,7 +230,7 @@ public class Formatter {
 	private int getInteger(FintegerContext ic) {
 		String numberValue = ic.getText();
 		BigInteger bi = null;
-		
+
 		if (ic.FZERO() != null)
 			bi = new BigInteger("0", 10);
 		if (ic.FBIN_INTEGER() != null)
@@ -230,21 +241,25 @@ public class Formatter {
 			bi = new BigInteger(numberValue, 10);
 		if (ic.FHEX_INTEGER() != null)
 			bi = new BigInteger(numberValue, 16);
-		
-		return (int)bi.longValue();
+
+		return (int) bi.longValue();
 	}
 
 	private PythonObject getDataSegment(Field_nameContext field_name) {
-		if (field_name == null){
+		if (field_name == null) {
 			return getIndexed(noClauseCounter++);
 		}
 		PythonObject base = getDataSegment(field_name.arg_name());
-		for (AccessorContext ac : field_name.accessor()){
-			if (ac.attribute_name() != null){
-				base = Utils.run("getattr", base, new StringObject(ac.getText().substring(1)));
+		for (AccessorContext ac : field_name.accessor()) {
+			if (ac.attribute_name() != null) {
+				base = Utils.run("getattr", base, new StringObject(ac.getText()
+						.substring(1)));
 			} else {
-				base = PythonInterpreter.interpreter.get().execute(true, Utils.run("getattr", base, new StringObject("__getitem__")), 
-						null, getElementIndex(ac.element_index()));
+				base = PythonInterpreter.interpreter.get().execute(
+						true,
+						Utils.run("getattr", base, new StringObject(
+								"__getitem__")), null,
+						getElementIndex(ac.element_index()));
 			}
 		}
 		return base;
@@ -253,15 +268,15 @@ public class Formatter {
 	private PythonObject getElementIndex(Element_indexContext ei) {
 		String text = ei.getText();
 		try {
-		 	return NumberObject.valueOf(Integer.parseInt(text));
-		} catch (NumberFormatException e){
+			return NumberObject.valueOf(Integer.parseInt(text));
+		} catch (NumberFormatException e) {
 			// pass
 		}
 		return new StringObject(ei.index_string().getText());
 	}
 
 	private PythonObject getDataSegment(Arg_nameContext arg_name) {
-		if (arg_name.integer() != null){
+		if (arg_name.integer() != null) {
 			return getIndexed(getInteger(arg_name.integer()));
 		} else {
 			return getTexted(arg_name.getText());
@@ -271,7 +286,7 @@ public class Formatter {
 	private int getInteger(IntegerContext ic) {
 		String numberValue = ic.getText();
 		BigInteger bi = null;
-		
+
 		if (ic.ZERO() != null)
 			bi = new BigInteger("0", 10);
 		if (ic.BIN_INTEGER() != null)
@@ -282,27 +297,31 @@ public class Formatter {
 			bi = new BigInteger(numberValue, 10);
 		if (ic.HEX_INTEGER() != null)
 			bi = new BigInteger(numberValue, 16);
-		
-		return (int)bi.longValue();
+
+		return (int) bi.longValue();
 	}
 
 	private PythonObject getIndexed(int i) {
 		used.add(NumberObject.valueOf(i));
-		if (getValue != null){
-			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(i), 
-					Coerce.toPython(indexMap, indexMap.getClass()), Coerce.toPython(dataMap, dataMap.getClass()));
+		if (getValue != null) {
+			return PythonInterpreter.interpreter.get().execute(true, getValue,
+					null, Coerce.toPython(i),
+					Coerce.toPython(indexMap, indexMap.getClass()),
+					Coerce.toPython(dataMap, dataMap.getClass()));
 		}
-		
+
 		if (i < indexMap.size())
 			return indexMap.get(i);
 		throw new IndexError("index " + i + " outside the range");
 	}
-	
+
 	private PythonObject getTexted(String key) {
 		used.add(new StringObject(key));
-		if (getValue != null){
-			return PythonInterpreter.interpreter.get().execute(true, getValue, null, Coerce.toPython(key, String.class), 
-					Coerce.toPython(indexMap, indexMap.getClass()), Coerce.toPython(dataMap, dataMap.getClass()));
+		if (getValue != null) {
+			return PythonInterpreter.interpreter.get().execute(true, getValue,
+					null, Coerce.toPython(key, String.class),
+					Coerce.toPython(indexMap, indexMap.getClass()),
+					Coerce.toPython(dataMap, dataMap.getClass()));
 		}
 		if (dataMap.containsKey(key))
 			return dataMap.get(key);

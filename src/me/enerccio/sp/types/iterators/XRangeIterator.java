@@ -34,7 +34,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	private static final long serialVersionUID = -543998207864616108L;
 	public static final String __ITER__ = SequenceObject.__ITER__;
 	public static final String NEXT = GeneratorObject.NEXT;
-			
+
 	private int i, end, step;
 
 	public XRangeIterator(int start, int end, int step) {
@@ -43,19 +43,25 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 		this.end = end;
 		this.step = step;
 	}
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put(__ITER__,	JavaMethodObject.noArgMethod(XRangeIterator.class, "__iter__"));
-			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(XRangeIterator.class, "next"));
-		} catch (Exception e){
+			sfields.put(__ITER__, JavaMethodObject.noArgMethod(
+					XRangeIterator.class, "__iter__"));
+			sfields.put(NEXT,
+					JavaMethodObject.noArgMethod(XRangeIterator.class, "next"));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -65,12 +71,12 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
 	}
-	
+
 	@Override
 	protected String doToString() {
 		return "<rangeiterator object at " + this.getId() + ">";
@@ -80,7 +86,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	public PythonObject __iter__() {
 		return this;
 	}
-	
+
 	@Override
 	public PythonObject nextInternal() {
 		if (step > 0) {
@@ -96,7 +102,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 		i += step;
 		return rv;
 	}
-	
+
 	@Override
 	public PythonObject next() {
 		PythonObject rv = nextInternal();

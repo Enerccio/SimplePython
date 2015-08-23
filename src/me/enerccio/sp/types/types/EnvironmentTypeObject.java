@@ -26,16 +26,17 @@ import me.enerccio.sp.types.sequences.TupleObject;
 public class EnvironmentTypeObject extends TypeObject {
 	private static final long serialVersionUID = -5475655736158235162L;
 	public static final String ENVIRONMENT_CALL = "environment";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "environment";
 	}
-	
+
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (args.len() > 0)
-			throw new TypeError("environment(): requiring 0 arguments, got " + args.len());
+			throw new TypeError("environment(): requiring 0 arguments, got "
+					+ args.len());
 		if (kwargs != null)
 			kwargs.checkEmpty("environment");
 		return PythonInterpreter.interpreter.get().environment();

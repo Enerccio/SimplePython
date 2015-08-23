@@ -23,10 +23,14 @@ import me.enerccio.sp.types.PythonObject;
 
 public interface InternalDict {
 
-	boolean 	 containsVariable(String vName);
+	boolean containsVariable(String vName);
+
 	PythonObject getVariable(String vName);
-	void		 putVariable(String vName, PythonObject v);
-	void 		 remove(String vname);
-	Set<String>  keySet();
-	
+
+	void putVariable(String vName, PythonObject v);
+
+	void remove(String vname);
+
+	Set<String> keySet();
+
 }

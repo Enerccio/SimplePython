@@ -45,27 +45,28 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	private InternalDict closure;
 	private volatile FutureStatus status = FutureStatus.RUNNING;
 	private Semaphore monitor = new Semaphore(0);
-	
+
 	public PythonFutureObject(UserFunctionObject fc, List<String> closureCopy,
 			EnvironmentObject environment) {
 		super(false);
 		futureCall = fc;
 		closure = new StringDictObject();
-		for (String key : closureCopy){
+		for (String key : closureCopy) {
 			PythonObject var = environment.get(key, false, false);
 			if (var.get("__onfuture__", null) != null)
-				var = PythonInterpreter.interpreter.get().execute(true, var.get("__onfuture__", null), null);
+				var = PythonInterpreter.interpreter.get().execute(true,
+						var.get("__onfuture__", null), null);
 			closure.putVariable(key, var);
 		}
 		startNewFuture();
 	}
 
 	@Override
-	public PythonObject getValue(){
+	public PythonObject getValue() {
 		if (isReady())
 			return doGetValue();
-		
-		while (true){
+
+		while (true) {
 			if (isReady())
 				break;
 			try {
@@ -75,24 +76,27 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 				return null;
 			}
 		}
-		
+
 		return doGetValue();
 	}
-	
+
 	private void startNewFuture() {
 		Thread t = new Thread("future-call-thread") {
 			@Override
-			public void run(){
+			public void run() {
 				futureCall.call(new TupleObject(true), null);
-				PythonInterpreter.interpreter.get().getCurrentClosure().add(0, closure);
+				PythonInterpreter.interpreter.get().getCurrentClosure()
+						.add(0, closure);
 				try {
 					result = PythonInterpreter.interpreter.get().executeAll(0);
 					status = FutureStatus.FINISHED;
-				} catch (PythonExecutionException e){
+				} catch (PythonExecutionException e) {
 					exception = e.getException();
 					status = FutureStatus.FAILED;
-				} catch (PythonException e){
-					exception = ((PythonExecutionException)Utils.throwException(PythonRuntime.ERROR, "failed future call", e)).getException();
+				} catch (PythonException e) {
+					exception = ((PythonExecutionException) Utils
+							.throwException(PythonRuntime.ERROR,
+									"failed future call", e)).getException();
 					status = FutureStatus.FAILED;
 				}
 				monitor.release();
@@ -125,7 +129,8 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	protected String doToString() {
-		return "<future-call of " + futureCall.toString() + ", state = " + status.toString() + ">";
+		return "<future-call of " + futureCall.toString() + ", state = "
+				+ status.toString() + ">";
 	}
 
 	@Override

@@ -47,7 +47,7 @@ public class CompiledBlockObject extends PythonObject {
 	public static final String CO_CONSTS = "co_consts";
 	public static final String CO_DEBUG = "co_debug";
 
-	public CompiledBlockObject(List<PythonBytecode> bytecode){
+	public CompiledBlockObject(List<PythonBytecode> bytecode) {
 		super(false);
 		mmap = new HashMap<Integer, PythonObject>();
 		try {
@@ -60,9 +60,10 @@ public class CompiledBlockObject extends PythonObject {
 		}
 		finishCB();
 	}
-	
+
 	public void finishCB() {
-		Utils.putPublic(this, CO_CODE, new StringObject(Utils.asString(compiled)));
+		Utils.putPublic(this, CO_CODE,
+				new StringObject(Utils.asString(compiled)));
 		Utils.putPublic(this, CO_CONSTS, new DictObject(mmap));
 		Utils.putPublic(this, CO_DEBUG, new PointerObject(dmap));
 	}
@@ -71,7 +72,7 @@ public class CompiledBlockObject extends PythonObject {
 		super(false);
 		this.compiled = compiled;
 		this.mmap = mmap;
-		
+
 	}
 
 	public CompiledBlockObject(byte[] compiled) {
@@ -84,6 +85,7 @@ public class CompiledBlockObject extends PythonObject {
 		public int lineno, charno;
 		public ModuleData module;
 		public String function;
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -94,6 +96,7 @@ public class CompiledBlockObject extends PythonObject {
 			result = prime * result + module.hashCode();
 			return result;
 		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -114,36 +117,40 @@ public class CompiledBlockObject extends PythonObject {
 			return true;
 		}
 	}
-	
+
 	private byte[] compiled;
 	public Map<Integer, PythonObject> mmap;
 	public NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
-	
-	public byte[] getBytedata(){
+
+	public byte[] getBytedata() {
 		return compiled;
 	}
-	
-	public synchronized PythonObject getConstant(int c){
+
+	public synchronized PythonObject getConstant(int c) {
 		return mmap.get(c);
 	}
-	
-	public synchronized DebugInformation getDebugInformation(int c){
+
+	public synchronized DebugInformation getDebugInformation(int c) {
 		return dmap.get(dmap.floorKey(c));
 	}
-	
+
 	@Override
 	public synchronized PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
-		if (key.equals(CO_CODE) || key.equals(CO_CONSTS) || key.equals(CO_DEBUG))
-			throw new AttributeError("'" + Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+		if (key.equals(CO_CODE) || key.equals(CO_CONSTS)
+				|| key.equals(CO_DEBUG))
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
-	
-	@Override
-	public synchronized void create(String key, me.enerccio.sp.types.AccessRestrictions restrictions, PythonObject currentContext) {
-		
-	}
 
+	@Override
+	public synchronized void create(String key,
+			me.enerccio.sp.types.AccessRestrictions restrictions,
+			PythonObject currentContext) {
+
+	}
 
 	@Override
 	public boolean truthValue() {
@@ -152,42 +159,45 @@ public class CompiledBlockObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<compiled-block at 0x"+Integer.toHexString(hashCode()) + ">";
+		return "<compiled-block at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
-	public static synchronized String dis(CompiledBlockObject block){
+	public static synchronized String dis(CompiledBlockObject block) {
 		return dis(block, false, 0);
 	}
-	
-	public static synchronized String dis(CompiledBlockObject block, boolean single, int offset) {
+
+	public static synchronized String dis(CompiledBlockObject block,
+			boolean single, int offset) {
 		StringBuilder bdd = new StringBuilder();
-		
+
 		ByteBuffer b = ByteBuffer.wrap(block.getBytedata());
 		DebugInformation d = null;
 		int c;
 		int ord = 0;
 		b.position(offset);
-		
-		while (b.hasRemaining()){
+
+		while (b.hasRemaining()) {
 			StringBuilder bd = new StringBuilder();
 			int pos = b.position();
 			Bytecode opcode = Bytecode.fromNumber(((short) (b.get() & 0xff)));
-			
-			bd.append(String.format("{fc: %s, ac: %s} ", PythonInterpreter.interpreter.get().currentFrame.size(), PythonInterpreter.interpreter.get().getAccessCount()));
-			
-			if (d == null || !d.equals(block.getDebugInformation(pos))){
+
+			bd.append(String.format("{fc: %s, ac: %s} ",
+					PythonInterpreter.interpreter.get().currentFrame.size(),
+					PythonInterpreter.interpreter.get().getAccessCount()));
+
+			if (d == null || !d.equals(block.getDebugInformation(pos))) {
 				d = block.getDebugInformation(pos);
-				bd.append(String.format("<at %s %-7.7s> ",
-					d.module.getName(), " " + d.lineno + ":" + d.charno));	
+				bd.append(String.format("<at %s %-7.7s> ", d.module.getName(),
+						" " + d.lineno + ":" + d.charno));
 			}
-			
+
 			if (!single)
 				bd.append(String.format("%-5.5s", (ord++)));
 			bd.append(String.format("%-5.5s", (pos)));
 			bd.append(String.format("%-9.9s ", (opcode)));
-			
+
 			final String FORMAT = "%-25.25s";
-			switch (opcode){
+			switch (opcode) {
 			case CALL:
 			case DUP:
 			case ECALL:
@@ -203,14 +213,16 @@ public class CompiledBlockObject extends PythonObject {
 				bd.append(String.format(FORMAT, b.getInt()));
 				break;
 			case PUSH_FRAME:
-				bd.append(String.format(FORMAT, b.getInt() + ", copy " + b.getInt() + " elements"));
+				bd.append(String.format(FORMAT,
+						b.getInt() + ", copy " + b.getInt() + " elements"));
 				break;
 			case ACCEPT_ITER:
 			case GET_ITER:
 				bd.append(String.format(FORMAT, "or jump to " + b.getInt()));
 				break;
 			case SETUP_LOOP:
-				bd.append(String.format(FORMAT, "or jump to " + b.getInt() + " with javaiterator"));
+				bd.append(String.format(FORMAT, "or jump to " + b.getInt()
+						+ " with javaiterator"));
 				break;
 			case TRUTH_VALUE:
 				c = b.getInt();
@@ -229,8 +241,9 @@ public class CompiledBlockObject extends PythonObject {
 			case DEL:
 				c = b.getInt();
 				boolean isGlobal = b.getInt() == 1;
-				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
-				if (isGlobal){
+				bd.append(String.format(FORMAT,
+						String.format("%s (id %s)", block.getConstant(c), c)));
+				if (isGlobal) {
 					bd.append(String.format(" - global"));
 				}
 				break;
@@ -251,10 +264,13 @@ public class CompiledBlockObject extends PythonObject {
 			case LOAD_FUTURE:
 			case YIELD:
 				c = b.getInt();
-				bd.append(String.format(FORMAT, String.format("%s (id %s)" , block.getConstant(c), c)));
+				bd.append(String.format(FORMAT,
+						String.format("%s (id %s)", block.getConstant(c), c)));
 				break;
 			case IMPORT:
-				bd.append(String.format(FORMAT, (c = b.getInt()) + " - " + block.getConstant(c) + "   " + (c = b.getInt()) + " - " + block.getConstant(c)));
+				bd.append(String.format(FORMAT, (c = b.getInt()) + " - "
+						+ block.getConstant(c) + "   " + (c = b.getInt())
+						+ " - " + block.getConstant(c)));
 				break;
 			case ISINSTANCE:
 			case NOP:
@@ -295,15 +311,16 @@ public class CompiledBlockObject extends PythonObject {
 			case KWARG:
 				c = b.getInt();
 				List<String> kwargs = new ArrayList<String>();
-				for (int i=0; i<c; i++)
+				for (int i = 0; i < c; i++)
 					kwargs.add(block.getConstant(b.getInt()).toString());
-				bd.append(String.format(FORMAT, String.format("%s (id %s)" , c, kwargs)));
+				bd.append(String.format(FORMAT,
+						String.format("%s (id %s)", c, kwargs)));
 				break;
 			}
-			
+
 			if (single)
 				return bd.toString();
-			
+
 			bd.append("\n");
 			String ss = bd.toString();
 			ss = ss.substring(0, Math.min(ss.length(), 140));
@@ -312,33 +329,35 @@ public class CompiledBlockObject extends PythonObject {
 				ss += "\n";
 			bdd.append(ss);
 		}
-		
+
 		return bdd.toString();
 	}
-	
 
 	private static ThreadLocal<Integer> kkey = new ThreadLocal<Integer>();
+
 	public static byte[] compile(List<PythonBytecode> bytecode,
-			Map<Integer, PythonObject> mmap, NavigableMap<Integer, DebugInformation> dmap) throws Exception {
+			Map<Integer, PythonObject> mmap,
+			NavigableMap<Integer, DebugInformation> dmap) throws Exception {
 		Map<PythonObject, Integer> rmap = new HashMap<PythonObject, Integer>();
 		Map<Integer, Integer> rmapMap = new TreeMap<Integer, Integer>();
 		Map<Integer, Integer> jumpMap = new TreeMap<Integer, Integer>();
-		
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream w = new DataOutputStream(baos);
-		
+
 		DebugInformation d = null;
 		kkey.set(0);
 		PythonBytecode last = bytecode.get(bytecode.size() - 1);
 		if (last.getOpcode() != Bytecode.NOP)
-			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, null, null, last.debugModule));
-		
+			bytecode.add(Bytecode.makeBytecode(Bytecode.NOP, null, null,
+					last.debugModule));
+
 		int itc = 0;
-		for (PythonBytecode b : bytecode){
+		for (PythonBytecode b : bytecode) {
 			int ii = baos.size();
 			rmapMap.put(itc, ii);
-			
-			if (d == null || notEqual(d, b)){
+
+			if (d == null || notEqual(d, b)) {
 				d = new DebugInformation();
 				d.charno = b.debugCharacter;
 				d.lineno = b.debugLine;
@@ -346,10 +365,10 @@ public class CompiledBlockObject extends PythonObject {
 				d.module = b.debugModule;
 				dmap.put(ii, d);
 			}
-			
+
 			w.writeByte(b.getOpcode().id);
-			
-			switch(b.getOpcode()){
+
+			switch (b.getOpcode()) {
 			case ACCEPT_ITER:
 				jumpMap.put(itc, b.intValue);
 				w.writeInt(b.intValue);
@@ -361,7 +380,8 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(b.intValue);
 				break;
 			case YIELD:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				w.writeInt(b.intValue);
 				break;
 			case ECALL:
@@ -372,15 +392,18 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(0);
 				break;
 			case GETATTR:
-				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE
+						: new StringObject(b.stringValue), mmap, rmap));
 				break;
 			case GOTO:
 				jumpMap.put(itc, b.intValue);
 				w.writeInt(0);
 				break;
 			case IMPORT:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
-				w.writeInt(insertValue(new StringObject((String)b.object), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
+				w.writeInt(insertValue(new StringObject((String) b.object),
+						mmap, rmap));
 				break;
 			case ISINSTANCE:
 				break;
@@ -404,22 +427,28 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(b.intValue);
 				break;
 			case LOAD:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case LOADGLOBAL:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case LOADDYNAMIC:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case LOADBUILTIN:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case LOAD_FUTURE:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case TEST_FUTURE:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case NOP:
 				break;
@@ -448,7 +477,7 @@ public class CompiledBlockObject extends PythonObject {
 			case PUSH_FRAME:
 				jumpMap.put(itc, b.intValue);
 				w.writeInt(b.intValue);
-				w.writeInt(b.object == null ? 0 : (Integer)b.object);
+				w.writeInt(b.object == null ? 0 : (Integer) b.object);
 				break;
 			case PUSH_LOCAL_CONTEXT:
 				break;
@@ -468,26 +497,33 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(b.intValue);
 				break;
 			case DEL:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				w.writeInt(b.booleanValue ? 1 : 0);
 				break;
 			case DELATTR:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case SAVE:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case SAVEGLOBAL:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case SAVEDYNAMIC:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case SAVE_LOCAL:
-				w.writeInt(insertValue(new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(new StringObject(b.stringValue), mmap,
+						rmap));
 				break;
 			case SETATTR:
-				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE : new StringObject(b.stringValue), mmap, rmap));
+				w.writeInt(insertValue(b.stringValue == null ? NoneObject.NONE
+						: new StringObject(b.stringValue), mmap, rmap));
 				break;
 			case SETUP_LOOP:
 				jumpMap.put(itc, b.intValue);
@@ -544,39 +580,41 @@ public class CompiledBlockObject extends PythonObject {
 			case RARROW:
 				break;
 			}
-			
+
 			++itc;
 		}
-		
+
 		byte[] data = baos.toByteArray();
 		ByteBuffer b = ByteBuffer.wrap(data);
-		
-		for (Integer ppos : jumpMap.keySet()){
+
+		for (Integer ppos : jumpMap.keySet()) {
 			Integer jumpval = jumpMap.get(ppos);
 			Integer location = rmapMap.get(jumpval);
 			Integer wloc = rmapMap.get(ppos) + 1;
 			b.position(wloc);
 			b.putInt(location);
 		}
-		
+
 		return data;
 	}
 
 	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
 		return d.charno != b.debugCharacter || d.lineno != b.debugLine
-				 || !d.module.equals(b.debugModule)  || !d.function.equals(b.debugFunction) ;
+				|| !d.module.equals(b.debugModule)
+				|| !d.function.equals(b.debugFunction);
 	}
 
-	private static int insertValue(PythonObject v, Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {
+	private static int insertValue(PythonObject v,
+			Map<Integer, PythonObject> mmap, Map<PythonObject, Integer> rmap) {
 		if (rmap.containsKey(v))
 			return rmap.get(v);
 		int key = kkey.get();
-		kkey.set(key+1);
+		kkey.set(key + 1);
 		rmap.put(v, key);
 		mmap.put(key, v);
 		return key;
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

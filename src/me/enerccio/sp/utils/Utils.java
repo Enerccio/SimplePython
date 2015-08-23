@@ -41,7 +41,6 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 public class Utils {
 
-	
 	/**
 	 * Adds object to the left of the array, ie x + [a, b] => [x, a, b]
 	 * 
@@ -63,38 +62,50 @@ public class Utils {
 	public static PythonObject get(PythonObject container, String field) {
 		return run("getattr", container, new StringObject(field));
 	}
-	
-	public static PythonObject set(PythonObject container, String field, PythonObject value){
+
+	public static PythonObject set(PythonObject container, String field,
+			PythonObject value) {
 		return run("setattr", container, new StringObject(field), value);
 	}
 
-	/** Executes builtin with specified parameters and waits until it finishes */ 
+	/** Executes builtin with specified parameters and waits until it finishes */
 	public static PythonObject run(String function, PythonObject... args) {
-		return PythonInterpreter.interpreter.get().executeCall(true, function, args);
+		return PythonInterpreter.interpreter.get().executeCall(true, function,
+				args);
 	}
 
 	/**
 	 * throws exception of that type, that text and that cause
+	 * 
 	 * @param type
 	 * @param text
 	 * @return
 	 */
-	public static RuntimeException throwException(ClassObject type, String text, Throwable cause) {
-		return new PythonExecutionException(type.call(new TupleObject(true, new StringObject(text)), KwArgs.EMPTY), cause);
+	public static RuntimeException throwException(ClassObject type,
+			String text, Throwable cause) {
+		return new PythonExecutionException(type.call(new TupleObject(true,
+				new StringObject(text)), KwArgs.EMPTY), cause);
 	}
 
 	/**
 	 * puts value into field of this object publicly
-	 * @param target object
-	 * @param key name of the field
-	 * @param value public or private
+	 * 
+	 * @param target
+	 *            object
+	 * @param key
+	 *            name of the field
+	 * @param value
+	 *            public or private
 	 */
-	public static void putPublic(PythonObject target, String key, PythonObject value) {
-		target.getEditableFields().put(key, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+	public static void putPublic(PythonObject target, String key,
+			PythonObject value) {
+		target.getEditableFields().put(key,
+				new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
 	}
 
 	/**
 	 * returns top of the stack or null if empty
+	 * 
 	 * @param stack
 	 * @return
 	 */
@@ -107,30 +118,40 @@ public class Utils {
 
 	/**
 	 * Wraps the method into python object
-	 * @param noTypeConversion whether or not to do type conversion
-	 * @param clazz class of which method to wrap
-	 * @param method method name
-	 * @param signature method signature
+	 * 
+	 * @param noTypeConversion
+	 *            whether or not to do type conversion
+	 * @param clazz
+	 *            class of which method to wrap
+	 * @param method
+	 *            method name
+	 * @param signature
+	 *            method signature
 	 * @return wrapped method
 	 */
-	public static PythonObject staticMethodCall(boolean noTypeConversion, Class<?> clazz,
-			String method, Class<?>... signature) {
+	public static PythonObject staticMethodCall(boolean noTypeConversion,
+			Class<?> clazz, String method, Class<?>... signature) {
 		try {
-			return new JavaFunctionObject(clazz.getDeclaredMethod(method, signature), noTypeConversion);
-		} catch (NoSuchMethodException e){
+			return new JavaFunctionObject(clazz.getDeclaredMethod(method,
+					signature), noTypeConversion);
+		} catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * Wraps the method into python object
-	 * @param clazz class of which method to wrap
-	 * @param method method name
-	 * @param signature method signature
+	 * 
+	 * @param clazz
+	 *            class of which method to wrap
+	 * @param method
+	 *            method name
+	 * @param signature
+	 *            method signature
 	 * @return wrapped method
 	 */
-	public static PythonObject staticMethodCall(Class<?> clazz,
-			String method, Class<?>... signature) {
+	public static PythonObject staticMethodCall(Class<?> clazz, String method,
+			Class<?>... signature) {
 		return staticMethodCall(false, clazz, method, signature);
 	}
 
@@ -141,16 +162,18 @@ public class Utils {
 		if (pythonObject instanceof TupleObject)
 			pa.addAll(Arrays.asList(((TupleObject) pythonObject).getObjects()));
 		else
-			pa.addAll(((ListObject)pythonObject).objects);
-		return (ArrayList<PythonBytecode>)(Object)pa;
+			pa.addAll(((ListObject) pythonObject).objects);
+		return (ArrayList<PythonBytecode>) (Object) pa;
 	}
 
 	public static boolean equals(PythonObject a, PythonObject b) {
 		return a.equals(b);
 	}
 
-	public static PythonObject list2tuple(List<? extends PythonObject> list, boolean internalUse) {
-		return new TupleObject(internalUse, list.toArray(new PythonObject[list.size()]));
+	public static PythonObject list2tuple(List<? extends PythonObject> list,
+			boolean internalUse) {
+		return new TupleObject(internalUse, list.toArray(new PythonObject[list
+				.size()]));
 	}
 
 	public static <T> List<T> reverse(List<T> l) {
@@ -165,20 +188,22 @@ public class Utils {
 		@SuppressWarnings("unchecked")
 		T[] copy = (T[]) Array.newInstance(objects.getClass()
 				.getComponentType(), objects.length - 1);
-		for (int i=1; i<objects.length; i++)
-			copy[i-1] = objects[i];
+		for (int i = 1; i < objects.length; i++)
+			copy[i - 1] = objects[i];
 		return copy;
 	}
 
 	/**
 	 * Returns global variable
+	 * 
 	 * @param variable
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
 		if (PythonInterpreter.interpreter.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return PythonInterpreter.interpreter.get().environment().get(variable, true, false);
+		return PythonInterpreter.interpreter.get().environment()
+				.get(variable, true, false);
 	}
 
 	public static String asString(byte[] compiled) {

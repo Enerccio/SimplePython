@@ -21,7 +21,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 
 public class ImportError extends BasePythonError {
 	private static final long serialVersionUID = 54215546315414L;
-	
+
 	public ImportError(String message) {
 		super(PythonRuntime.IMPORT_ERROR, message);
 	}

@@ -23,16 +23,16 @@ import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.Utils;
 
-
 public class SocketHelper {
 
 	private ClassObject errorType;
+
 	public SocketHelper(ClassObject errorType) {
 		this.errorType = errorType;
 	}
-	
+
 	@WrapMethod
-	public String gethostname(){
+	public String gethostname() {
 		try {
 			return InetAddress.getLocalHost().getHostAddress();
 		} catch (Exception e) {

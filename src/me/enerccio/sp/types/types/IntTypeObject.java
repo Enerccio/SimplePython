@@ -27,6 +27,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * int()
+ * 
  * @author Enerccio
  *
  */
@@ -34,8 +35,8 @@ public class IntTypeObject extends TypeObject {
 	private static final long serialVersionUID = -4178003762513900453L;
 	public static final String INT_CALL = "int";
 
-	public IntTypeObject(){
-		
+	public IntTypeObject() {
+
 	}
 
 	@Override
@@ -43,13 +44,12 @@ public class IntTypeObject extends TypeObject {
 		return "int";
 	}
 
-
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		PythonObject base = null;
-		if (kwargs != null){
+		if (kwargs != null) {
 			base = kwargs.consume("base");
-			kwargs.checkEmpty("int");	
+			kwargs.checkEmpty("int");
 		}
 		if (args.len() < 1)
 			return NumberObject.valueOf(0l);
@@ -58,28 +58,31 @@ public class IntTypeObject extends TypeObject {
 		PythonObject obj = args.get(0);
 		if (args.len() == 2) {
 			if (base != null)
-				throw new TypeError("int() got duplicate value for argument 'base'");
+				throw new TypeError(
+						"int() got duplicate value for argument 'base'");
 			base = args.get(1);
 		}
 		if (base != null) {
 			if (!NumberObject.isInteger(base))
 				throw new TypeError("int() base argument must be integer");
 			if (!(obj instanceof StringObject))
-				throw new TypeError("int() can't convert non-string with explicit base");
-			return NumberObject.valueOf(Integer.valueOf(obj.toString(), ((NumberObject)base).intValue()));
+				throw new TypeError(
+						"int() can't convert non-string with explicit base");
+			return NumberObject.valueOf(Integer.valueOf(obj.toString(),
+					((NumberObject) base).intValue()));
 		}
-		
+
 		if (obj instanceof StringObject)
 			return NumberObject.valueOf(Integer.valueOf(obj.toString()));
 		if (obj instanceof NumberObject)
-			return NumberObject.valueOf(((NumberObject)obj).intValue());
+			return NumberObject.valueOf(((NumberObject) obj).intValue());
 		PythonObject __int__ = obj.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
 			int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 			PythonInterpreter.interpreter.get().execute(false, __int__, null);
 			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
-		
+
 		throw new TypeError("int() can't convert " + obj.toString() + " to int");
 	}
 }

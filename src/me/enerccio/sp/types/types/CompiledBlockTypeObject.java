@@ -45,24 +45,29 @@ public class CompiledBlockTypeObject extends TypeObject {
 		if (varArgs != null)
 			varArgs.checkEmpty("compiled_block");
 		if (o.len() != 2)
-			throw new TypeError("compiled_block(): expected 2 arguments, got " + o.len());
+			throw new TypeError("compiled_block(): expected 2 arguments, got "
+					+ o.len());
 		try {
 			String s = Coerce.toJava(o.get(0), String.class);
 			@SuppressWarnings("unchecked")
-			Map<PythonObject, PythonObject> mm = (Map<PythonObject, PythonObject>) Coerce.toJava(o.get(1), Map.class);
+			Map<PythonObject, PythonObject> mm = Coerce
+					.toJava(o.get(1), Map.class);
 			Map<Integer, PythonObject> consts = new HashMap<Integer, PythonObject>();
-			for (PythonObject key : mm.keySet()){
+			for (PythonObject key : mm.keySet()) {
 				if (!NumberObject.isInteger(key))
 					throw new CastFailedException("blah");
-				consts.put(((NumberObject)key).intValue(), mm.get(key));
+				consts.put(((NumberObject) key).intValue(), mm.get(key));
 			}
-			PythonRuntime.runtime.checkSandboxAction("compiled_block", SecureAction.RUNTIME_COMPILE, s, consts);
-			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(), consts);
+			PythonRuntime.runtime.checkSandboxAction("compiled_block",
+					SecureAction.RUNTIME_COMPILE, s, consts);
+			CompiledBlockObject co = new CompiledBlockObject(s.getBytes(),
+					consts);
 			co.finishCB();
 			return co;
-		} catch (CastFailedException e){
-			throw new TypeError("compiled_block(): first argument must be 'str' object and second argument must be 'dict' object containing 'str'->object pairs");
-		} 
+		} catch (CastFailedException e) {
+			throw new TypeError(
+					"compiled_block(): first argument must be 'str' object and second argument must be 'dict' object containing 'str'->object pairs");
+		}
 	}
 
 }

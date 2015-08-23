@@ -27,6 +27,7 @@ import me.enerccio.sp.types.ModuleObject.ModuleData;
 
 /**
  * PathResolver which searches root of the jar/java path for .spy.
+ * 
  * @author Enerccio
  *
  */
@@ -38,11 +39,12 @@ public class InternalJavaPathResolver implements ModuleResolver {
 		if (name.contains("."))
 			return null;
 		try {
-			InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(name + ".py");
+			InputStream is = PythonRuntime.runtime.getClass().getClassLoader()
+					.getResourceAsStream(name + ".py");
 			if (is == null)
 				return null;
 			return new MI(name, is);
-		} catch (Exception e2){
+		} catch (Exception e2) {
 			return null;
 		}
 	}
@@ -50,9 +52,10 @@ public class InternalJavaPathResolver implements ModuleResolver {
 	@Override
 	public InputStream read(ModuleData data) {
 		if (data instanceof MI)
-			if (((MI)data).is != null)
-					return ((MI)data).is;
-		return getClass().getClassLoader().getResourceAsStream(data.getFileName());
+			if (((MI) data).is != null)
+				return ((MI) data).is;
+		return getClass().getClassLoader().getResourceAsStream(
+				data.getFileName());
 	}
 
 	@Override
@@ -62,7 +65,8 @@ public class InternalJavaPathResolver implements ModuleResolver {
 		try {
 			l = url.openConnection().getLastModified();
 			return (l == 0) ? Long.MAX_VALUE : l;
-		} catch (IOException e) { }
+		} catch (IOException e) {
+		}
 		return Long.MAX_VALUE;
 	}
 
@@ -78,7 +82,7 @@ public class InternalJavaPathResolver implements ModuleResolver {
 			this.name = name;
 			this.is = null;
 		}
-		
+
 		MI(String name, InputStream is) {
 			this.name = name;
 			this.is = is;
@@ -112,7 +116,8 @@ public class InternalJavaPathResolver implements ModuleResolver {
 
 	@Override
 	public InputStream cachedRead(ModuleData data) {
-		InputStream is = PythonRuntime.runtime.getClass().getClassLoader().getResourceAsStream(data.getFileName() + "c");
+		InputStream is = PythonRuntime.runtime.getClass().getClassLoader()
+				.getResourceAsStream(data.getFileName() + "c");
 		if (is == null)
 			return PythonRuntime.cachedRead(data);
 		return is;

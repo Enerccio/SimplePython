@@ -22,7 +22,9 @@ import java.util.HashMap;
 import me.enerccio.sp.types.PythonObject;
 
 /**
- * HashMap for the PythonProxy->PythoObject that looks like PythonPython->PythonPython
+ * HashMap for the PythonProxy->PythoObject that looks like
+ * PythonPython->PythonPython
+ * 
  * @author Enerccio
  *
  * @param <T>
@@ -54,5 +56,5 @@ public class HashHashMap<T> extends HashMap<PythonProxy, T> {
 			return super.remove(key);
 		return super.remove(new PythonProxy((PythonObject) key));
 	}
-	
+
 }

@@ -29,34 +29,34 @@ import me.enerccio.sp.utils.Coerce;
 
 public interface KwArgs {
 	public static final KwArgs EMPTY = new KwArgs.HashMapKWArgs();
-	
-	/** 
-	 * Removes argument from list and returns its value. 
-	 * Returns null if argument is not found
+
+	/**
+	 * Removes argument from list and returns its value. Returns null if
+	 * argument is not found
 	 */
 	public PythonObject consume(String arg);
 
-	/** 
-	 * Removes argument from list and returns its value as instance of specified class.
-	 * Returns null if argument is not found.
-	 * Throws TypeError if value cannot be converted. 
+	/**
+	 * Removes argument from list and returns its value as instance of specified
+	 * class. Returns null if argument is not found. Throws TypeError if value
+	 * cannot be converted.
 	 */
 	public <T> T consume(String arg, Class<T> cls);
 
-	/** 
-	 * Removes argument from list and returns its value as String. 
-	 * Returns null if argument is not found.
+	/**
+	 * Removes argument from list and returns its value as String. Returns null
+	 * if argument is not found.
 	 */
 	public String consumeString(String arg);
 
-	/** 
-	 * Check if kwarg list is empty and throws exception if not.
-	 * Passed name is used as function name in error message.  
+	/**
+	 * Check if kwarg list is empty and throws exception if not. Passed name is
+	 * used as function name in error message.
 	 */
 	public void checkEmpty(String arg);
 
-	/** 
-	 * Throws exception if there is any kwarg in list.  
+	/**
+	 * Throws exception if there is any kwarg in list.
 	 */
 	public void notExpectingKWArgs();
 
@@ -64,11 +64,11 @@ public interface KwArgs {
 	 * Returns true if argument is defined
 	 */
 	public boolean contains(String string);
-	
+
 	public Map<String, PythonObject> getAll();
 
-
-	static class HashMapKWArgs extends HashMap<String, PythonObject>  implements KwArgs {
+	static class HashMapKWArgs extends HashMap<String, PythonObject> implements
+			KwArgs {
 		private static final long serialVersionUID = 7370108455070437208L;
 
 		@Override
@@ -82,12 +82,13 @@ public interface KwArgs {
 				try {
 					return Coerce.toJava(remove(arg), cls);
 				} catch (CastFailedException e) {
-					throw new TypeError("cannot convert value for argument '" + arg + "'", e);
+					throw new TypeError("cannot convert value for argument '"
+							+ arg + "'", e);
 				}
 			}
 			return null;
 		}
-		
+
 		@Override
 		public String consumeString(String arg) {
 			if (containsKey(arg))
@@ -100,7 +101,8 @@ public interface KwArgs {
 			if (size() == 0)
 				return;
 			String key = keySet().iterator().next();
-			throw new TypeError(name + " got an unexpected keyword argument '" + key + "'");
+			throw new TypeError(name + " got an unexpected keyword argument '"
+					+ key + "'");
 		}
 
 		@Override
@@ -121,13 +123,12 @@ public interface KwArgs {
 		@Override
 		public DictObject toDict() {
 			DictObject dict = new DictObject();
-			for (String key : new HashSet<String>(keySet())){
+			for (String key : new HashSet<String>(keySet())) {
 				dict.put(key, consume(key));
 			}
 			return dict;
 		}
 	}
-
 
 	public DictObject toDict();
 }

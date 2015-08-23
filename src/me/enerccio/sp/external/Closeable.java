@@ -20,5 +20,5 @@ package me.enerccio.sp.external;
 public interface Closeable {
 
 	void close();
-	
+
 }

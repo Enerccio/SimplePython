@@ -29,16 +29,19 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 
 /**
- * Aggreagtes methods with same name of the java class into single callable, that will call applicable methods based on the 
- * arguments used.
+ * Aggreagtes methods with same name of the java class into single callable,
+ * that will call applicable methods based on the arguments used.
+ * 
  * @author Enerccio
  *
  */
 public class JavaCongruentAggregatorObject extends CallableObject {
 	private static final long serialVersionUID = -8330175039684193277L;
-	
+
 	private String name;
-	public Set<JavaMethodObject> methods = Collections.synchronizedSet(new HashSet<JavaMethodObject>());
+	public Set<JavaMethodObject> methods = Collections
+			.synchronizedSet(new HashSet<JavaMethodObject>());
+
 	public JavaCongruentAggregatorObject(String n) {
 		name = n;
 	}
@@ -48,7 +51,7 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 		for (JavaMethodObject mo : methods)
 			try {
 				return mo.doCall(args, kwargs);
-			} catch (PointerMethodIncompatibleException e){
+			} catch (PointerMethodIncompatibleException e) {
 				if (methods.size() == 1)
 					throw new TypeError(e.getMessage(), e);
 			}

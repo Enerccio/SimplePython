@@ -39,7 +39,8 @@ import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * Python object representing module 
+ * Python object representing module
+ * 
  * @author Enerccio
  *
  */
@@ -57,54 +58,58 @@ public class ModuleObject extends PythonObject {
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
 
-
 	public ModuleObject(ModuleData data, boolean compilingBT) {
 		super(false);
 		this.data = data;
 
 		Utils.putPublic(this, __NAME__, new StringObject(data.getName()));
-		
+
 		try {
 			pythonParser p = ParserGenerator.parse(data);
 			File_inputContext fcx = p.file_input();
-			if (fcx != null){
-				frame = new PythonCompiler().doCompile(fcx, data, compilingBT ? null : PythonRuntime.runtime.getGlobals());
+			if (fcx != null) {
+				frame = new PythonCompiler()
+						.doCompile(fcx, data, compilingBT ? null
+								: PythonRuntime.runtime.getGlobals());
 			}
 		} catch (Exception e) {
-			throw new SyntaxError("failed to parse source code of " + data.getFileName(), e);
+			throw new SyntaxError("failed to parse source code of "
+					+ data.getFileName(), e);
 		}
 	}
-	
+
 	public ModuleObject(ModuleData data) {
 		super(false);
 		this.data = data;
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 	public ModuleData getModuleData() {
 		return data;
 	}
-	
+
 	public void injectGlobal(String key, PythonObject value) {
 		globals.put(key, value);
 	}
-	
+
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (key.equals(__NAME__) || key.equals(__DICT__))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object attribute '" + key + "' is read only");
 		if (fields.containsKey(key))
 			return super.set(key, localContext, value);
 		else {
 			if (!globals.contains(key))
-				throw new AttributeError("'" + 
-						Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
+				throw new AttributeError("'"
+						+ Utils.run("str", Utils.run("typename", this))
+						+ "' object has no attribute '" + key + "'");
 			if (value == null)
 				globals.backingMap.remove(key);
 			else
@@ -112,7 +117,6 @@ public class ModuleObject extends PythonObject {
 		}
 		return NoneObject.NONE;
 	}
-	
 
 	@Override
 	public synchronized PythonObject get(String key, PythonObject localContext) {
@@ -124,10 +128,11 @@ public class ModuleObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<Module " + get(__NAME__, this).toString() + " at 0x" + Integer.toHexString(hashCode()) + ">";
+		return "<Module " + get(__NAME__, this).toString() + " at 0x"
+				+ Integer.toHexString(hashCode()) + ">";
 	}
 
-	/** 
+	/**
 	 * Initializes the module.
 	 */
 	public void initModule() {
@@ -135,36 +140,38 @@ public class ModuleObject extends PythonObject {
 		isInited = true;
 	}
 
-	/** 
+	/**
 	 * Initializes the module by executing it's bytecode
 	 */
 	private void doInitModule() {
 		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
 		PythonInterpreter.interpreter.get().executeBytecode(frame);
-		
-		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame.getLast();
-		
+
+		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame
+				.getLast();
+
 		InternalDict args = new StringDictObject();
 		args.putVariable(__THISMODULE__, this);
 		args.putVariable(__NAME__, new StringObject(data.getName()));
-		
+
 		PythonInterpreter.interpreter.get().setArgs(args);
-		
+
 		PythonInterpreter.interpreter.get().executeAll(cfc);
-		
+
 		globals = (StringDictObject) newFrame.environment.getLocals();
 		Utils.putPublic(this, __DICT__, globals);
 	}
 
 	/**
 	 * Returns field from this module's dict (globals)
+	 * 
 	 * @param string
 	 * @return
 	 */
 	public PythonObject getField(String string) {
 		return globals.doGet(string);
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
@@ -178,32 +185,34 @@ public class ModuleObject extends PythonObject {
 	public CompiledBlockObject getFrame() {
 		return frame;
 	}
-	
+
 	/** Provides informations about module */
 	public static interface ModuleData {
-		/** 
-		 * Returns module resolver used to load this module. May return null for some very special cases. 
+		/**
+		 * Returns module resolver used to load this module. May return null for
+		 * some very special cases.
 		 */
 		ModuleResolver getResolver();
 
 		/**
-		 * Returns module name, including package, if possible. Used by trace and dis method.
+		 * Returns module name, including package, if possible. Used by trace
+		 * and dis method.
 		 */
 		String getName();
 
 		/**
-		 * Returns module filename. For modules not generated from file, this may return same as getName()
+		 * Returns module filename. For modules not generated from file, this
+		 * may return same as getName()
 		 */
 		String getFileName();
 
-		
 		/**
 		 * Returns weirdest shit...
 		 */
 		String getPackageResolve();
 
 		/**
-		 * Returns true if module is package 
+		 * Returns true if module is package
 		 */
 		boolean isPackage();
 	}

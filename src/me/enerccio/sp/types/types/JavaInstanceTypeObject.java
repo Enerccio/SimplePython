@@ -28,6 +28,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * javainstance()
+ * 
  * @author Enerccio
  *
  */
@@ -41,23 +42,25 @@ public class JavaInstanceTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() < 1)
 			throw new TypeError("javainstance(): requires at least 1 parameter");
-		
+
 		PythonObject clsName = args.valueAt(0);
-		
+
 		if (!(clsName instanceof StringObject))
 			throw new TypeError("javainstance():  first argument must be str");
-		
-		String cls = ((StringObject)clsName).value;
-		
-		PythonRuntime.runtime.checkSandboxAction("javainstance", SecureAction.JAVA_INSTANCE_CREATION, cls);
-		
-		return PythonRuntime.runtime.getJavaClass(false, cls, null, kwargs, Utils.removeFirst(args.getObjects()));
+
+		String cls = ((StringObject) clsName).value;
+
+		PythonRuntime.runtime.checkSandboxAction("javainstance",
+				SecureAction.JAVA_INSTANCE_CREATION, cls);
+
+		return PythonRuntime.runtime.getJavaClass(false, cls, null, kwargs,
+				Utils.removeFirst(args.getObjects()));
 	}
 
-	
 }

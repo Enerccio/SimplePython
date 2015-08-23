@@ -26,6 +26,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * list()
+ * 
  * @author Enerccio
  *
  */
@@ -41,25 +42,25 @@ public class ListTypeObject extends TypeObject {
 
 	public static PythonObject make_list(TupleObject args, KwArgs kwargs) {
 		ListObject lo = new ListObject();
-		for (int i=0; i<args.len(); i++)
+		for (int i = 0; i < args.len(); i++)
 			lo.append(args.get(i));
 		return lo;
 	}
-	
+
 	public static ListObject make_list(PythonObject o) {
 		ListObject lo;
 		if (o instanceof SequenceObject)
-			lo = new ListObject((SequenceObject)o);
-		 else
+			lo = new ListObject((SequenceObject) o);
+		else
 			lo = new ListObject(o);
 		return lo;
 	}
 
-	
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		;
 		if (args.len() == 0) {
 			ListObject lo = new ListObject();

@@ -27,6 +27,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Represents slice object. Can be created via slice() function
+ * 
  * @author Enerccio
  *
  */
@@ -35,12 +36,15 @@ public class SliceObject extends PythonObject {
 	public static final String START_ACCESSOR = "start";
 	public static final String STOP_ACCESSOR = "stop";
 	public static final String STEP_ACCESSOR = "step";
-	
-	public SliceObject(PythonObject start, PythonObject end, PythonObject step){
+
+	public SliceObject(PythonObject start, PythonObject end, PythonObject step) {
 		super(false);
-		fields.put(START_ACCESSOR, new AugumentedPythonObject(start, AccessRestrictions.PUBLIC));
-		fields.put(STOP_ACCESSOR, new AugumentedPythonObject(end, AccessRestrictions.PUBLIC));
-		fields.put(STEP_ACCESSOR, new AugumentedPythonObject(step, AccessRestrictions.PUBLIC));
+		fields.put(START_ACCESSOR, new AugumentedPythonObject(start,
+				AccessRestrictions.PUBLIC));
+		fields.put(STOP_ACCESSOR, new AugumentedPythonObject(end,
+				AccessRestrictions.PUBLIC));
+		fields.put(STEP_ACCESSOR, new AugumentedPythonObject(step,
+				AccessRestrictions.PUBLIC));
 	}
 
 	@Override

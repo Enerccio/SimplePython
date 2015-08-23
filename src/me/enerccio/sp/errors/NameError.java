@@ -21,7 +21,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 
 public class NameError extends BasePythonError {
 	private static final long serialVersionUID = 54215546315414L;
-	
+
 	public NameError(String message) {
 		super(PythonRuntime.NAME_ERROR, message);
 	}

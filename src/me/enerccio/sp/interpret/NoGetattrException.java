@@ -18,7 +18,9 @@
 package me.enerccio.sp.interpret;
 
 /**
- * Raised when getattr has not found any attribute and there is also no __getattr__
+ * Raised when getattr has not found any attribute and there is also no
+ * __getattr__
+ * 
  * @author Enerccio
  *
  */

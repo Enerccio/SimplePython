@@ -36,7 +36,8 @@ import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
-public class StringDictObject extends ContainerObject implements InternalDict, Dictionary {
+public class StringDictObject extends ContainerObject implements InternalDict,
+		Dictionary {
 	private static final long serialVersionUID = 200L;
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __SETITEM__ = "__setitem__";
@@ -45,22 +46,29 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	public StringDictObject() {
 		super(false);
 	}
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(ContainerObject.getSFields());
-			sfields.put(__GETITEM__,	new JavaMethodObject(StringDictObject.class, "getItem"));
-			sfields.put(__SETITEM__,	new JavaMethodObject(StringDictObject.class, "setItem")); 
-			sfields.put("keys",			new JavaMethodObject(StringDictObject.class, "keys")); 
-			sfields.put("values",		new JavaMethodObject(StringDictObject.class, "values"));
-		} catch (NoSuchMethodException e){
+			sfields.put(__GETITEM__, new JavaMethodObject(
+					StringDictObject.class, "getItem"));
+			sfields.put(__SETITEM__, new JavaMethodObject(
+					StringDictObject.class, "setItem"));
+			sfields.put("keys", new JavaMethodObject(StringDictObject.class,
+					"keys"));
+			sfields.put("values", new JavaMethodObject(StringDictObject.class,
+					"values"));
+		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
-	
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -70,72 +78,80 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	public Map<String, PythonObject> backingMap = new HashMap<String, PythonObject>();
-	
+
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("typename", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
 
 	// Internal use only
 	public synchronized boolean contains(String key) {
-		synchronized (backingMap){
+		synchronized (backingMap) {
 			return backingMap.containsKey(key);
 		}
 	}
 
 	public synchronized void put(String key, PythonObject value) {
-		synchronized (backingMap){
+		synchronized (backingMap) {
 			backingMap.put(key, value);
 		}
 	}
-	
+
+	@Override
 	public synchronized PythonObject getItem(String key) {
 		return backingMap.get(key);
 	}
-	
-	public synchronized PythonObject getItem(TupleObject a, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty(__GETITEM__);
+
+	public synchronized PythonObject getItem(TupleObject a, KwArgs kwargs) {
+		if (kwargs != null)
+			kwargs.checkEmpty(__GETITEM__);
 		if (a.len() != 1)
 			throw new TypeError("__getitem__(): requires 1 parameter");
 		PythonObject key = a.getObjects()[0];
 		if (!(key instanceof StringObject))
-			throw new TypeError("__getitem__(): internal string dict only allows string keys");
-		synchronized (backingMap){
-			if (!backingMap.containsKey(((StringObject)key).value))
+			throw new TypeError(
+					"__getitem__(): internal string dict only allows string keys");
+		synchronized (backingMap) {
+			if (!backingMap.containsKey(((StringObject) key).value))
 				throw new KeyError("Unknown key " + key);
-			return backingMap.get(((StringObject)key).value);
+			return backingMap.get(((StringObject) key).value);
 		}
 	}
-	
-	public synchronized PythonObject setItem(TupleObject a, KwArgs kwargs){
-		if (kwargs != null) kwargs.checkEmpty(__SETITEM__);
+
+	public synchronized PythonObject setItem(TupleObject a, KwArgs kwargs) {
+		if (kwargs != null)
+			kwargs.checkEmpty(__SETITEM__);
 		if (a.len() != 2)
 			throw new TypeError("__setitem__(): requires 2 parameters");
 		PythonObject key = a.getObjects()[0];
 		PythonObject value = a.getObjects()[1];
 		if (!(key instanceof StringObject))
-			throw new TypeError("__setitem__(): internal string dict only allows string keys");
-		
-		synchronized (backingMap){
-			return backingMap.put(((StringObject)key).value, value);
+			throw new TypeError(
+					"__setitem__(): internal string dict only allows string keys");
+
+		synchronized (backingMap) {
+			return backingMap.put(((StringObject) key).value, value);
 		}
 	}
-	
+
 	@Override
 	public int len() {
-		synchronized (backingMap){
+		synchronized (backingMap) {
 			return backingMap.size();
 		}
 	}
@@ -143,9 +159,10 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	public synchronized PythonObject doGet(String str) {
 		return backingMap.get(str);
 	}
-	
+
 	public PythonObject keys(TupleObject t, KwArgs kwargs) {
-		if (kwargs != null) kwargs.checkEmpty("keys");
+		if (kwargs != null)
+			kwargs.checkEmpty("keys");
 		ListObject o = new ListObject();
 		synchronized (backingMap) {
 			for (String k : backingMap.keySet())
@@ -153,7 +170,7 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 		}
 		return o;
 	}
-	
+
 	public Set<String> keys() {
 		Set<String> rv = new HashSet<>();
 		synchronized (backingMap) {
@@ -163,9 +180,9 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 		return rv;
 	}
 
-	
 	public PythonObject values(TupleObject t, KwArgs kwargs) {
-		if (kwargs != null) kwargs.checkEmpty("values");
+		if (kwargs != null)
+			kwargs.checkEmpty("values");
 		ListObject o = new ListObject();
 		synchronized (backingMap) {
 			for (PythonObject k : backingMap.values())
@@ -173,47 +190,51 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 		}
 		return o;
 	}
-	
-	private static ThreadLocal<Set<StringDictObject>> printMap = new ThreadLocal<Set<StringDictObject>>(){
+
+	private static ThreadLocal<Set<StringDictObject>> printMap = new ThreadLocal<Set<StringDictObject>>() {
 
 		@Override
 		protected Set<StringDictObject> initialValue() {
 			return new HashSet<StringDictObject>();
 		}
-		
+
 	};
+
 	@Override
 	protected String doToString() {
 		if (printMap.get().contains(this))
 			return "...";
-		else try {
-			printMap.get().add(this);
-			return backingMap.toString();
-		} finally {
-			printMap.get().remove(this);
-		}
+		else
+			try {
+				printMap.get().add(this);
+				return backingMap.toString();
+			} finally {
+				printMap.get().remove(this);
+			}
 	}
 
 	public StringDictObject cloneMap() {
 		StringDictObject c = new StringDictObject();
-		synchronized (backingMap){
+		synchronized (backingMap) {
 			c.backingMap.putAll(backingMap);
 		}
 		return c;
 	}
-	
+
 	@Override
-	public int getId(){
-		throw new TypeError("unhashable type '" + Utils.run("typename", this) + "'");
+	public int getId() {
+		throw new TypeError("unhashable type '" + Utils.run("typename", this)
+				+ "'");
 	}
 
 	@Override
 	public boolean containsItem(PythonObject o) {
-		synchronized (backingMap){
+		synchronized (backingMap) {
 			return backingMap.containsKey(o);
 		}
 	}
 
+	@Override
 	public HashMap<String, PythonObject> asStringDict() {
 		HashMap<String, PythonObject> strDict = new HashMap<String, PythonObject>();
 		strDict.putAll(backingMap);
@@ -223,17 +244,18 @@ public class StringDictObject extends ContainerObject implements InternalDict, D
 	@Override
 	public synchronized void deleteKey(PythonObject key) {
 		if (!backingMap.containsKey(key))
-			throw new KeyError("__delkey__(): unknown key '" + key.toString() + "'");
+			throw new KeyError("__delkey__(): unknown key '" + key.toString()
+					+ "'");
 		backingMap.remove(key);
 	}
 
 	public synchronized Map<PythonObject, PythonObject> asRegularDict() {
 		Map<PythonObject, PythonObject> map = new HashMap<PythonObject, PythonObject>();
-		
-		for (String s : backingMap.keySet()){
+
+		for (String s : backingMap.keySet()) {
 			map.put(new StringObject(s), backingMap.get(s));
 		}
-		
+
 		return map;
 	}
 

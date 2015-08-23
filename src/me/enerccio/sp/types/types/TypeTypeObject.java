@@ -31,37 +31,40 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * type()
+ * 
  * @author Enerccio
  *
  */
 public class TypeTypeObject extends TypeObject {
 	private static final long serialVersionUID = -9154234544871833082L;
 	public static final String TYPE_CALL = "type";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "type";
 	}
-	
+
 	@Override
 	public ClassObject getType() {
 		return this;
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() == 1)
 			return PythonRuntime.getType(args.getObjects()[0]);
 		else if (args.len() == 3)
-			return newClassType(args.getObjects()[0], args.getObjects()[1], args.getObjects()[2]);
-		
+			return newClassType(args.getObjects()[0], args.getObjects()[1],
+					args.getObjects()[2]);
+
 		throw new TypeError(" type(): incorrect number of parameters");
 	}
 
-	private PythonObject newClassType(PythonObject name,
-			PythonObject bases, PythonObject dict) {
+	private PythonObject newClassType(PythonObject name, PythonObject bases,
+			PythonObject dict) {
 		if (!(name instanceof StringObject))
 			throw new TypeError("type(): name must be a string");
 		if (!(bases instanceof TupleObject))
@@ -73,13 +76,13 @@ public class TypeTypeObject extends TypeObject {
 		Utils.putPublic(type, ClassObject.__NAME__, name);
 		Utils.putPublic(type, ClassObject.__BASES__, bases);
 		Utils.putPublic(type, ClassObject.__DICT__, dict);
-		
-		synchronized (dict){
-			InternalDict d = (InternalDict)dict;
-			synchronized (d){
-				for (String key : d.keySet()){
+
+		synchronized (dict) {
+			InternalDict d = (InternalDict) dict;
+			synchronized (d) {
+				for (String key : d.keySet()) {
 					PythonObject o = d.getVariable(key);
-					if (o instanceof UserFunctionObject){
+					if (o instanceof UserFunctionObject) {
 						BoundHandleObject bh = new BoundHandleObject();
 						Utils.putPublic(bh, BoundHandleObject.ACCESSOR, type);
 						Utils.putPublic(bh, BoundHandleObject.FUNC, o);
@@ -88,7 +91,7 @@ public class TypeTypeObject extends TypeObject {
 				}
 			}
 		}
-		
+
 		return type;
 	}
 }

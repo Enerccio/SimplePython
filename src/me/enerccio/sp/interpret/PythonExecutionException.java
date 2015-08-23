@@ -30,7 +30,9 @@ import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 
 /**
- * Represents exception raised in SimplePython or java code that wants to raise SimplePython's exception
+ * Represents exception raised in SimplePython or java code that wants to raise
+ * SimplePython's exception
+ * 
  * @author Enerccio
  *
  */
@@ -38,45 +40,61 @@ public class PythonExecutionException extends RuntimeException {
 	private static final long serialVersionUID = -1679058226367596212L;
 	private PythonObject exception;
 
-	public PythonExecutionException(PythonObject o){
-		super(getMessage(o), o.getEditableFields().containsKey("__exception__") ? (Throwable)((PointerObject)o.getEditableFields().get("__exception__").object).getObject() : null);
+	public PythonExecutionException(PythonObject o) {
+		super(
+				getMessage(o),
+				o.getEditableFields().containsKey("__exception__") ? (Throwable) ((PointerObject) o
+						.getEditableFields().get("__exception__").object)
+						.getObject() : null);
 		this.setException(o);
 		init();
 	}
-	
-	public PythonExecutionException(PythonObject o, Throwable cause){
+
+	public PythonExecutionException(PythonObject o, Throwable cause) {
 		super(getMessage(o), cause);
 		this.setException(o);
-		o.getEditableFields().put("__exception__", new AugumentedPythonObject(new PointerObject(cause), AccessRestrictions.PUBLIC));
+		o.getEditableFields().put(
+				"__exception__",
+				new AugumentedPythonObject(new PointerObject(cause),
+						AccessRestrictions.PUBLIC));
 		init();
 	}
-	
+
 	private void init() {
 		StackTraceElement[] el = getStackTrace();
-		
+
 		try {
-			List<StackTraceElement> stl = new ArrayList<StackTraceElement>(Arrays.asList(el));
+			List<StackTraceElement> stl = new ArrayList<StackTraceElement>(
+					Arrays.asList(el));
 			PythonObject stack = exception.get("stack", null);
 			if (stack != null) {
-				List<PythonObject> pstack = new ArrayList<PythonObject>(((ListObject)stack).objects);
+				List<PythonObject> pstack = new ArrayList<PythonObject>(
+						((ListObject) stack).objects);
 				Collections.reverse(pstack);
 				for (PythonObject o : pstack) {
 					if (!(o instanceof StackElement))
 						// Shouldn't actually happen
 						continue;
-					StackElement se = (StackElement)o;
-					stl.add(0, new StackTraceElement(se.module.getName(), se.function, se.module.getFileName(), se.line));
+					StackElement se = (StackElement) o;
+					stl.add(0, new StackTraceElement(se.module.getName(),
+							se.function, se.module.getFileName(), se.line));
 				}
 			}
 			setStackTrace(stl.toArray(new StackTraceElement[stl.size()]));
-		} catch (Exception e){
+		} catch (Exception e) {
 			setStackTrace(el);
 		}
 	}
 
 	public static String getMessage(PythonObject o) {
-		if (o.getEditableFields().containsKey("__message__") && o.getEditableFields().containsKey("__class__"))
-			return o.getEditableFields().get("__class__").object.getEditableFields().get(ClassObject.__NAME__).object.toString() + ": " + o.getEditableFields().get("__message__").object.toString();
+		if (o.getEditableFields().containsKey("__message__")
+				&& o.getEditableFields().containsKey("__class__"))
+			return o.getEditableFields().get("__class__").object
+					.getEditableFields().get(ClassObject.__NAME__).object
+					.toString()
+					+ ": "
+					+ o.getEditableFields().get("__message__").object
+							.toString();
 		if (o.getEditableFields().containsKey("__message__"))
 			return o.getEditableFields().get("__message__").object.toString();
 		return o.toString();
@@ -87,11 +105,13 @@ public class PythonExecutionException extends RuntimeException {
 	}
 
 	public void setException(PythonObject exception) {
-		this.exception = exception; // exception.fields.get("stack").object.toString().replace(">,", ">,\n")
+		this.exception = exception; // exception.fields.get("stack").object.toString().replace(">,",
+									// ">,\n")
 	}
 
 	public boolean noStackGeneration;
+
 	public void noStackGeneration(boolean b) {
 		this.noStackGeneration = b;
-	}	
+	}
 }

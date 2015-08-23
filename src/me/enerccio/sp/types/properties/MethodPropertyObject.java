@@ -25,23 +25,25 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
-public class MethodPropertyObject extends PythonObject implements PropertyObject {
+public class MethodPropertyObject extends PythonObject implements
+		PropertyObject {
 	private static final long serialVersionUID = 8102333533134900507L;
 	private String name;
 	private JavaMethodObject getter;
 	private JavaMethodObject setter;
-	
-	public MethodPropertyObject(String name, JavaMethodObject getter){
+
+	public MethodPropertyObject(String name, JavaMethodObject getter) {
 		this(name, getter, null);
 	}
-	
-	public MethodPropertyObject(String name, JavaMethodObject getter, JavaMethodObject setter) {
+
+	public MethodPropertyObject(String name, JavaMethodObject getter,
+			JavaMethodObject setter) {
 		super(false);
 		this.name = name;
 		this.getter = getter;
 		this.setter = setter;
 	}
-	
+
 	public MethodPropertyObject() {
 		super(false);
 	}
@@ -65,10 +67,11 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 
 	@Override
 	protected String doToString() {
-		return "<" + (setter == null ? "read-only " : " " ) + "property '" + name + "' at 0x" + Integer.toHexString(hashCode()) + ">";
+		return "<" + (setter == null ? "read-only " : " ") + "property '"
+				+ name + "' at 0x" + Integer.toHexString(hashCode()) + ">";
 	}
 
-	public MethodPropertyObject bindTo(Object self){
+	public MethodPropertyObject bindTo(Object self) {
 		MethodPropertyObject mpo = new MethodPropertyObject();
 		mpo.name = name;
 		mpo.getter = getter.cloneWithThis(self);
@@ -76,7 +79,7 @@ public class MethodPropertyObject extends PythonObject implements PropertyObject
 			mpo.setter = setter.cloneWithThis(self);
 		return mpo;
 	}
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();

@@ -20,22 +20,22 @@ package me.enerccio.sp.external;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
 public class ThreadInfo extends Thread {
-	
-	public ThreadInfo(){
-		
+
+	public ThreadInfo() {
+
 	}
-	
+
 	@WrapMethod
-	public PythonThread current_thread(){
+	public PythonThread current_thread() {
 		return new PythonThread(Thread.currentThread());
 	}
-	
+
 	@WrapMethod
-	public void wait_time(long millis, int nanos){
+	public void wait_time(long millis, int nanos) {
 		try {
 			Thread.sleep(millis, nanos);
-		} catch (InterruptedException e){
-			
+		} catch (InterruptedException e) {
+
 		}
 	}
 }

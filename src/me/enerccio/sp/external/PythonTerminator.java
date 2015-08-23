@@ -22,9 +22,10 @@ import me.enerccio.sp.sandbox.SecureAction;
 
 public class PythonTerminator {
 
-	public PythonTerminator(int returnCode){
-		PythonRuntime.runtime.checkSandboxAction("_exit", SecureAction.TERMINATE_JAVA, returnCode);
+	public PythonTerminator(int returnCode) {
+		PythonRuntime.runtime.checkSandboxAction("_exit",
+				SecureAction.TERMINATE_JAVA, returnCode);
 		Runtime.getRuntime().exit(returnCode);
 	}
-	
+
 }

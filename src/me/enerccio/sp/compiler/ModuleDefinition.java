@@ -32,24 +32,27 @@ public class ModuleDefinition {
 	private static final int pycHeader = 0xDEADBABE;
 	private static final int version = 0;
 
-	public ModuleDefinition(byte[] inputData) throws Exception{
-		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(inputData));
+	public ModuleDefinition(byte[] inputData) throws Exception {
+		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(
+				inputData));
 		int header = dis.readInt();
 		if (header != pycHeader)
-			throw new RuntimeException("unknown header " + header + ", expected " + pycHeader);
+			throw new RuntimeException("unknown header " + header
+					+ ", expected " + pycHeader);
 		int ver = dis.readInt();
 		if (version != ver)
 			throw new RuntimeException("mismatched version");
 		root = BlockDefinition.unpackTaggedData(dis);
 	}
 
-	public ModuleDefinition(ModuleObject mo){
-		root = Pair.makePair(DataTag.MODULE, (Object)Pair.makePair(DataTag.BLOCK, (Object)new BlockDefinition(mo.getFrame())));
+	public ModuleDefinition(ModuleObject mo) {
+		root = Pair.makePair(DataTag.MODULE, (Object) Pair.makePair(
+				DataTag.BLOCK, (Object) new BlockDefinition(mo.getFrame())));
 	}
-	
+
 	private Pair<DataTag, Object> root;
-	
-	public void writeToStream(OutputStream os) throws Exception{
+
+	public void writeToStream(OutputStream os) throws Exception {
 		if (os == null)
 			return;
 		DataOutputStream wr = new DataOutputStream(os);
@@ -62,7 +65,8 @@ public class ModuleDefinition {
 	@SuppressWarnings("unchecked")
 	public ModuleObject toModule(ModuleData data) {
 		ModuleObject mo = new ModuleObject(data);
-		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root.getSecond()).getSecond();
+		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root
+				.getSecond()).getSecond();
 		mo.frame = b.toFrame(data);
 		return mo;
 	}

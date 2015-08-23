@@ -29,8 +29,10 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
 
 /**
- * Python Function bound to certain type. This is here because of the private/public shenanigans and this bound handle
- * will set up correct context for bound objects
+ * Python Function bound to certain type. This is here because of the
+ * private/public shenanigans and this bound handle will set up correct context
+ * for bound objects
+ * 
  * @author Enerccio
  *
  */
@@ -39,22 +41,23 @@ public class BoundHandleObject extends PythonObject {
 	private static final long serialVersionUID = 6184279154550720464L;
 	public static final String FUNC = "__func__";
 	public static final String ACCESSOR = "__access__";
-	
+
 	public BoundHandleObject() {
 		super(false);
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
-		
+
 		try {
-			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, "call")); 
-		} catch (NoSuchMethodException e){
+			Utils.putPublic(this, CallableObject.__CALL__,
+					new JavaMethodObject(this, "call"));
+		} catch (NoSuchMethodException e) {
 			// will not happen
 		}
 	};
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
@@ -64,30 +67,32 @@ public class BoundHandleObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	/**
 	 * Calls this function. Will insert onto frame stack and returns None.
+	 * 
 	 * @param args
 	 * @return
 	 */
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		PythonObject callable = get(UserMethodObject.FUNC, null);
-		PythonObject accessor = fields.get(ACCESSOR) == null ? null : fields.get(ACCESSOR).object;
-		
+		PythonObject accessor = fields.get(ACCESSOR) == null ? null : fields
+				.get(ACCESSOR).object;
+
 		if (accessor == null)
 			accessor = NoneObject.NONE;
-		
+
 		TupleObject aargs = args;
-		
-		if (callable instanceof UserFunctionObject){
-			UserFunctionObject c = (UserFunctionObject)callable;
+
+		if (callable instanceof UserFunctionObject) {
+			UserFunctionObject c = (UserFunctionObject) callable;
 			PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
 			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
-			JavaFunctionObject c = (JavaFunctionObject)callable;
+			JavaFunctionObject c = (JavaFunctionObject) callable;
 			PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
 		}
-		
+
 		return NoneObject.NONE; // returns immediately
 	}
 
@@ -95,19 +100,21 @@ public class BoundHandleObject extends PythonObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (key.equals(FUNC) || key.equals(ACCESSOR))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
 
 	@Override
 	protected String doToString() {
-		return "<bound-function " + fields.get(FUNC).object + " of type " + fields.get(ACCESSOR).object + ">"; // TODO
+		return "<bound-function " + fields.get(FUNC).object + " of type "
+				+ fields.get(ACCESSOR).object + ">"; // TODO
 	}
 
 	@Override
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 }

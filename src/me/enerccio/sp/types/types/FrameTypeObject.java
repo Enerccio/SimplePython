@@ -29,16 +29,17 @@ import me.enerccio.sp.utils.Coerce;
 public class FrameTypeObject extends TypeObject {
 	private static final long serialVersionUID = -5475655736058235162L;
 	public static final String FRAME_CALL = "frame";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "frame";
 	}
-	
+
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (args.len() > 1)
-			throw new TypeError("frame(): requiring 0 or 1 arguments, got " + args.len());
+			throw new TypeError("frame(): requiring 0 or 1 arguments, got "
+					+ args.len());
 		if (kwargs != null)
 			kwargs.checkEmpty("frame");
 		PythonInterpreter i = PythonInterpreter.interpreter.get();

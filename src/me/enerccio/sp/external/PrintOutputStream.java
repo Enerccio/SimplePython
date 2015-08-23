@@ -27,24 +27,26 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 public class PrintOutputStream {
 
 	private boolean err;
-	public PrintOutputStream(boolean err){
+
+	public PrintOutputStream(boolean err) {
 		this.err = err;
 	}
-	
+
 	@WrapMethod
-	public synchronized void write(String data){
+	public synchronized void write(String data) {
 		@SuppressWarnings("resource")
-		OutputStream os = err ? PythonRuntime.runtime.getErr() : PythonRuntime.runtime.getOut();
+		OutputStream os = err ? PythonRuntime.runtime.getErr()
+				: PythonRuntime.runtime.getOut();
 		try {
 			os.write(data.getBytes());
 		} catch (IOException e) {
 			throw new IOError("failed to write to stream", e);
 		}
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		return "std" + (err ? "err" : "out") + " stream";
 	}
-	
+
 }

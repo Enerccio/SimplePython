@@ -27,7 +27,9 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 
 /**
- * PythonPath resolver. This is standard disk python path resolver. You provide path and SP will search there for .spy files and packages
+ * PythonPath resolver. This is standard disk python path resolver. You provide
+ * path and SP will search there for .spy files and packages
+ * 
  * @author Enerccio
  * @see FilesystemResolver#make(String)
  */
@@ -38,26 +40,26 @@ public class FilesystemResolver implements ModuleResolver {
 	public FilesystemResolver(String path) {
 		rootPath = new File(path);
 	}
-	
+
 	@Override
 	public ModuleData resolve(String name, String resolvePath) {
 		String pp = resolvePath.replace(".", File.separator);
 		File path = new File(new File(rootPath, pp), name + ".py");
 		if (!path.exists())
 			path = new File(new File(rootPath, pp), name);
-		if (path.exists()){
-			if (path.isDirectory()){
+		if (path.exists()) {
+			if (path.isDirectory()) {
 				File init = new File(path, "__init__.py");
 				if (init.exists() && !init.isDirectory()) {
 					try {
-						return new MI(name, path, resolvePath, true);  
+						return new MI(name, path, resolvePath, true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			} else {
 				try {
-					if (path.getName().endsWith(".py")){
+					if (path.getName().endsWith(".py")) {
 						return new MI(name, path, resolvePath, true);
 					}
 				} catch (Exception e) {
@@ -67,17 +69,17 @@ public class FilesystemResolver implements ModuleResolver {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public InputStream read(ModuleData data) throws IOException {
-		return new FileInputStream(((MI)data).file);
+		return new FileInputStream(((MI) data).file);
 	}
-	
+
 	@Override
 	public long lastModified(ModuleData data) {
-		return ((MI)data).file.lastModified();
+		return ((MI) data).file.lastModified();
 	}
-	
+
 	private class MI implements ModuleData {
 		private String name;
 		private File file;

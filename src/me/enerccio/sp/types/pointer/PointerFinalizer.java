@@ -20,7 +20,7 @@ package me.enerccio.sp.types.pointer;
 import me.enerccio.sp.types.PythonObject;
 
 public abstract class PointerFinalizer {
-	
+
 	public abstract PythonObject finalizePointer(PointerObject p);
-	
+
 }

@@ -30,6 +30,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Represents python methods
+ * 
  * @author Enerccio
  *
  */
@@ -38,18 +39,19 @@ public class UserMethodObject extends CallableObject {
 	public static final String SELF = "__self__";
 	public static final String FUNC = "__func__";
 	public static final String ACCESSOR = "__access__";
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
-		
+
 		try {
-			Utils.putPublic(this, CallableObject.__CALL__, new JavaMethodObject(this, "call")); 
-		} catch (NoSuchMethodException e){
+			Utils.putPublic(this, CallableObject.__CALL__,
+					new JavaMethodObject(this, "call"));
+		} catch (NoSuchMethodException e) {
 			// will not happen
 		}
 	};
-	
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return PythonObject.sfields.keySet();
@@ -59,46 +61,53 @@ public class UserMethodObject extends CallableObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	/**
 	 * Calls this method. Will insert onto frame stack and returns None.
+	 * 
 	 * @param args
 	 * @return
 	 */
+	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		PythonObject callable = get(UserMethodObject.FUNC, null);
 		PythonObject caller = get(UserMethodObject.SELF, null);
-		PythonObject accessor = fields.get(ACCESSOR) == null ? null : fields.get(ACCESSOR).object;
-		
+		PythonObject accessor = fields.get(ACCESSOR) == null ? null : fields
+				.get(ACCESSOR).object;
+
 		if (accessor == null)
 			accessor = NoneObject.NONE;
-		
-		TupleObject aargs = new TupleObject(true, Utils.pushLeft(caller, args.getObjects().clone()));
+
+		TupleObject aargs = new TupleObject(true, Utils.pushLeft(caller, args
+				.getObjects().clone()));
 		PythonObject v;
-		
-		if (callable instanceof UserFunctionObject){
-			UserFunctionObject c = (UserFunctionObject)callable;
+
+		if (callable instanceof UserFunctionObject) {
+			UserFunctionObject c = (UserFunctionObject) callable;
 			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
 			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
-			JavaFunctionObject c = (JavaFunctionObject)callable;
+			JavaFunctionObject c = (JavaFunctionObject) callable;
 			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
 		}
-		
+
 		return v; // returns immediately
 	}
 
 	@Override
-	public PythonObject set(String key, PythonObject localContext, PythonObject value) {
+	public PythonObject set(String key, PythonObject localContext,
+			PythonObject value) {
 		if (key.equals(SELF) || key.equals(FUNC) || key.equals(ACCESSOR))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object attribute '" + key + "' is read only");
 		return super.set(key, localContext, value);
 	}
 
 	@Override
 	protected String doToString() {
-		return "<method " + fields.get(FUNC).object + " of object " + fields.get(SELF).object + ">"; // TODO
+		return "<method " + fields.get(FUNC).object + " of object "
+				+ fields.get(SELF).object + ">"; // TODO
 	}
 
 	@Override

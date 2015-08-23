@@ -28,7 +28,7 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.Utils;
 
 public class WebbrowserController {
-	
+
 	private enum OpenType {
 		OPEN_DEFAULT, OPEN_NEW, OPEN_NEW_TAB
 	}
@@ -36,35 +36,41 @@ public class WebbrowserController {
 	private ClassObject error;
 	private BrowserLauncher launcher;
 	private String name;
-	
-	public WebbrowserController(String name, ClassObject error){
-		PythonRuntime.runtime.checkSandboxAction("webbrowser", SecureAction.WEBBROWSER);
+
+	public WebbrowserController(String name, ClassObject error) {
+		PythonRuntime.runtime.checkSandboxAction("webbrowser",
+				SecureAction.WEBBROWSER);
 		this.error = error;
 		this.name = name;
 		try {
-			this.launcher = new BrowserLauncher(null, new BrowserLauncherErrorHandler() {
-				
-				@Override
-				public void handleException(Exception arg0) {
-					throw Utils.throwException(WebbrowserController.this.error, "failure to open page", arg0);
-				}
-			});
+			this.launcher = new BrowserLauncher(null,
+					new BrowserLauncherErrorHandler() {
+
+						@Override
+						public void handleException(Exception arg0) {
+							throw Utils.throwException(
+									WebbrowserController.this.error,
+									"failure to open page", arg0);
+						}
+					});
 		} catch (BrowserLaunchingInitializingException e) {
-			throw Utils.throwException(error, "failure to create browser handler", e);
+			throw Utils.throwException(error,
+					"failure to create browser handler", e);
 		} catch (UnsupportedOperatingSystemException e) {
-			throw Utils.throwException(error, "failure to create browser handler", e);
+			throw Utils.throwException(error,
+					"failure to create browser handler", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public void open(String url, OpenType open, boolean autoraise){
-		synchronized (launcher){
-			if (open == OpenType.OPEN_DEFAULT){
+	public void open(String url, OpenType open, boolean autoraise) {
+		synchronized (launcher) {
+			if (open == OpenType.OPEN_DEFAULT) {
 				launcher.setNewWindowPolicy(false);
 			} else {
 				launcher.setNewWindowPolicy(true);
 			}
-			if (name == null){
+			if (name == null) {
 				launcher.openURLinBrowser(url);
 			} else {
 				launcher.openURLinBrowser(name, url);

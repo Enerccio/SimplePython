@@ -30,21 +30,20 @@ import me.enerccio.sp.utils.Coerce;
 
 public class FieldPropertyObject extends PythonObject implements PropertyObject {
 	private static final long serialVersionUID = 7523482748314799745L;
-	
+
 	private Field property;
 	private boolean readOnly;
 	private Object properter;
-	
-	public FieldPropertyObject(Class<?> clazz, String property, boolean readOnly) throws NoSuchFieldException, SecurityException{
+
+	public FieldPropertyObject(Class<?> clazz, String property, boolean readOnly)
+			throws NoSuchFieldException, SecurityException {
 		this(null, clazz, property, readOnly);
 	}
-	
-	
+
 	public FieldPropertyObject(Object object, Class<?> clazz, String property,
 			boolean readOnly) throws NoSuchFieldException, SecurityException {
 		this(object, clazz.getField(property), readOnly);
 	}
-
 
 	public FieldPropertyObject(Object object, Field field, boolean readOnly) {
 		super(false);
@@ -55,23 +54,26 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 	}
 
 	@Override
-	public void set(PythonObject value){
+	public void set(PythonObject value) {
 		if (readOnly)
-			throw new TypeError("field '" + property.getName() + "' is read-only");
+			throw new TypeError("field '" + property.getName()
+					+ "' is read-only");
 		try {
 			property.set(properter, Coerce.toJava(value, property.getType()));
 		} catch (IllegalArgumentException | IllegalAccessException
 				| CastFailedException e) {
-			throw new TypeError("failed to access property '" + property.getName() + "'", e);
+			throw new TypeError("failed to access property '"
+					+ property.getName() + "'", e);
 		}
 	}
-	
+
 	@Override
-	public PythonObject get(){
+	public PythonObject get() {
 		try {
 			return Coerce.toPython(property.get(properter), property.getType());
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new TypeError("failed to access property '" + property.getName() + "'", e);
+			throw new TypeError("failed to access property '"
+					+ property.getName() + "'", e);
 		}
 	}
 
@@ -82,7 +84,9 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 
 	@Override
 	protected String doToString() {
-		return "<" + (readOnly ? "read-only " : " " ) + "property '" + property.getName() + "' at 0x" + Integer.toHexString(hashCode()) + ">";
+		return "<" + (readOnly ? "read-only " : " ") + "property '"
+				+ property.getName() + "' at 0x"
+				+ Integer.toHexString(hashCode()) + ">";
 	}
 
 	@Override

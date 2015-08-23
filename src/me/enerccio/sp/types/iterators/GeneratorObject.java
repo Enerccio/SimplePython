@@ -40,27 +40,34 @@ public class GeneratorObject extends PythonObject {
 	private static final long serialVersionUID = -3004146816129145535L;
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	public static final String __ITER__ = SequenceObject.__ITER__;
-	public static final String NEXT =  "next";
-	public static final String SEND =  "send";
-	public static final String THROW =  "throw";
-	public static final String CLOSE =  "close";
-	public static final String __DEL__ =  "__del__";
+	public static final String NEXT = "next";
+	public static final String SEND = "send";
+	public static final String THROW = "throw";
+	public static final String CLOSE = "close";
+	public static final String __DEL__ = "__del__";
 
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put(__ITER__, 	JavaMethodObject.noArgMethod(GeneratorObject.class, "__iter__"));
-			sfields.put(NEXT, 		JavaMethodObject.noArgMethod(GeneratorObject.class, "next"));
-			sfields.put(SEND, 		new JavaMethodObject(GeneratorObject.class, "send", PythonObject.class));
-			sfields.put(THROW, 		new JavaMethodObject(GeneratorObject.class, "throwException", ClassObject.class, PythonObject.class));
-		} catch (Exception e){
+			sfields.put(__ITER__, JavaMethodObject.noArgMethod(
+					GeneratorObject.class, "__iter__"));
+			sfields.put(NEXT,
+					JavaMethodObject.noArgMethod(GeneratorObject.class, "next"));
+			sfields.put(SEND, new JavaMethodObject(GeneratorObject.class,
+					"send", PythonObject.class));
+			sfields.put(THROW, new JavaMethodObject(GeneratorObject.class,
+					"throwException", ClassObject.class, PythonObject.class));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -70,57 +77,60 @@ public class GeneratorObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
-	public GeneratorObject(String name, List<FrameObject> o){
+
+	public GeneratorObject(String name, List<FrameObject> o) {
 		super(false);
 		this.name = name;
 		this.storedFrames = o;
 	}
-	
+
 	private String name;
 	public List<FrameObject> storedFrames;
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
-		
+
 		PythonObject fnc = Utils.getGlobal("close_generator");
-		
+
 		PythonObject value = new UserMethodObject();
 		Utils.putPublic(value, UserMethodObject.SELF, this);
 		Utils.putPublic(value, UserMethodObject.FUNC, fnc);
 		Utils.putPublic(value, UserMethodObject.ACCESSOR, NoneObject.NONE);
-		
-		fields.put(CLOSE, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
-		fields.put(__DEL__, new AugumentedPythonObject(value, AccessRestrictions.PUBLIC));
+
+		fields.put(CLOSE, new AugumentedPythonObject(value,
+				AccessRestrictions.PUBLIC));
+		fields.put(__DEL__, new AugumentedPythonObject(value,
+				AccessRestrictions.PUBLIC));
 	}
-	
+
 	public PythonObject __iter__() {
 		return this;
 	}
-	
+
 	private volatile boolean nextCalled = false;
-	
+
 	public synchronized PythonObject next() {
 		nextCalled = true;
 		return send(NoneObject.NONE);
 	}
-	
-	
-	public synchronized  PythonObject send(PythonObject v) {
+
+	public synchronized PythonObject send(PythonObject v) {
 		if (!nextCalled && v != NoneObject.NONE)
-			throw new TypeError("send(): send called before first next called"); 
+			throw new TypeError("send(): send called before first next called");
 		for (FrameObject o : this.storedFrames)
 			PythonInterpreter.interpreter.get().currentFrame.add(o);
-		this.storedFrames.get(this.storedFrames.size()-1).sendValue = v;
+		this.storedFrames.get(this.storedFrames.size() - 1).sendValue = v;
 		return NoneObject.NONE;
 	}
-	
-	public synchronized  PythonObject throwException(ClassObject cls, PythonObject v) {
-		this.storedFrames.get(this.storedFrames.size()-1).exception = cls.call(new TupleObject(true, v), null); 
+
+	public synchronized PythonObject throwException(ClassObject cls,
+			PythonObject v) {
+		this.storedFrames.get(this.storedFrames.size() - 1).exception = cls
+				.call(new TupleObject(true, v), null);
 		return send(NoneObject.NONE);
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
@@ -128,7 +138,8 @@ public class GeneratorObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<generator object '" + name + "' at 0x" + Integer.toHexString(hashCode()) + ">";
+		return "<generator object '" + name + "' at 0x"
+				+ Integer.toHexString(hashCode()) + ">";
 	}
 
 }

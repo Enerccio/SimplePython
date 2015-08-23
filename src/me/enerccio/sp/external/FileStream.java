@@ -34,30 +34,33 @@ public class FileStream {
 	private RandomAccessFile file;
 	private String encoding;
 	private boolean bytestream;
-	public FileStream(String file, String mode){
-		PythonRuntime.runtime.checkSandboxAction("filestream", SecureAction.OPEN_FILE, file, mode);
-		
+
+	public FileStream(String file, String mode) {
+		PythonRuntime.runtime.checkSandboxAction("filestream",
+				SecureAction.OPEN_FILE, file, mode);
+
 		try {
 			init(file, mode);
-		} catch (Exception e){
+		} catch (Exception e) {
 			throw new IOError("failed to open file " + file, e);
 		}
 	}
-	
+
 	private void init(String file, String mode) throws Exception {
 		String m = mode.substring(0, 1);
-		if (mode.endsWith("b")){
+		if (mode.endsWith("b")) {
 			bytestream = true;
 		} else {
 			encoding = "utf-8";
 		}
 		try {
 			this.file = new RandomAccessFile(file, m);
-		} catch (FileNotFoundException e){
-			throw new IOError("open(): no such file or directory: '" + file + "'");
+		} catch (FileNotFoundException e) {
+			throw new IOError("open(): no such file or directory: '" + file
+					+ "'");
 		}
 	}
-	
+
 	@WrapMethod
 	public String encoding() {
 		return encoding;
@@ -71,23 +74,23 @@ public class FileStream {
 			throw new IOError("failed to close resource", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public FileDescriptor fileno(){
+	public FileDescriptor fileno() {
 		try {
 			return file.getFD();
 		} catch (IOException e) {
 			throw new IOError("io error", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public boolean isatty(){
+	public boolean isatty() {
 		return false;
 	}
-	
+
 	@WrapMethod
-	public StringObject read(int count){
+	public StringObject read(int count) {
 		byte[] data = new byte[count];
 		int rc;
 		try {
@@ -95,11 +98,11 @@ public class FileStream {
 		} catch (IOException e) {
 			throw new IOError("read failed", e);
 		}
-		
+
 		data = truncate(data, rc);
 		if (data.length == 0)
 			return new StringObject("");
-		
+
 		if (bytestream)
 			return new StringObject(new String(data));
 		else
@@ -109,13 +112,13 @@ public class FileStream {
 				throw new IOError("encoding error", e);
 			}
 	}
-	
+
 	private byte[] truncate(byte[] data, int rc) {
 		if (rc == -1)
 			return new byte[0];
-		
+
 		byte[] b = new byte[rc];
-		for (int i=0; i<rc; i++)
+		for (int i = 0; i < rc; i++)
 			b[i] = data[i];
 		return b;
 	}
@@ -123,9 +126,9 @@ public class FileStream {
 	@WrapMethod
 	public void seek(int pos, int whence) {
 		try {
-			if (whence == 0){
+			if (whence == 0) {
 				file.seek(pos);
-			} else if (whence == 1){
+			} else if (whence == 1) {
 				file.seek(file.getFilePointer() + pos);
 			} else {
 				file.seek(file.length() + pos);
@@ -134,18 +137,18 @@ public class FileStream {
 			throw new IOError("seek failed", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public long tell(){
+	public long tell() {
 		try {
 			return file.getFilePointer();
 		} catch (IOException e) {
 			throw new IOError("tell failed", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public void write(StringObject o){
+	public void write(StringObject o) {
 		try {
 			if (bytestream)
 				file.write(o.value.getBytes());

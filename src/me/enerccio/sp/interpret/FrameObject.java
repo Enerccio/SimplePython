@@ -30,37 +30,49 @@ import me.enerccio.sp.types.iterators.GeneratorObject;
 import me.enerccio.sp.types.sequences.ListObject;
 
 /**
- * FrameObject represents execution frame. Holds flags related to the execution and also pc + bytecode
+ * FrameObject represents execution frame. Holds flags related to the execution
+ * and also pc + bytecode
+ * 
  * @author Enerccio
  *
  */
 public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
-	
-	public FrameObject(){
+
+	public FrameObject() {
 		super(false);
 	}
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put("current_pos", JavaMethodObject.noArgMethod(FrameObject.class, "currentPos"));
-			sfields.put("current_stack", JavaMethodObject.noArgMethod(FrameObject.class, "currentStack"));
-			sfields.put("get_parent", JavaMethodObject.noArgMethod(FrameObject.class, "getParent"));
-			sfields.put("is_subframe", JavaMethodObject.noArgMethod(FrameObject.class, "isSubframe"));
-			sfields.put("get_bound_code", JavaMethodObject.noArgMethod(FrameObject.class, "getCompiled"));
-			sfields.put("get_bound_generator", JavaMethodObject.noArgMethod(FrameObject.class, "getGenerator"));
-			sfields.put("get_local_context", JavaMethodObject.noArgMethod(FrameObject.class, "getLocalContext"));
-			sfields.put("get_environment", JavaMethodObject.noArgMethod(FrameObject.class, "getEnvironment"));
+			sfields.put("current_pos", JavaMethodObject.noArgMethod(
+					FrameObject.class, "currentPos"));
+			sfields.put("current_stack", JavaMethodObject.noArgMethod(
+					FrameObject.class, "currentStack"));
+			sfields.put("get_parent", JavaMethodObject.noArgMethod(
+					FrameObject.class, "getParent"));
+			sfields.put("is_subframe", JavaMethodObject.noArgMethod(
+					FrameObject.class, "isSubframe"));
+			sfields.put("get_bound_code", JavaMethodObject.noArgMethod(
+					FrameObject.class, "getCompiled"));
+			sfields.put("get_bound_generator", JavaMethodObject.noArgMethod(
+					FrameObject.class, "getGenerator"));
+			sfields.put("get_local_context", JavaMethodObject.noArgMethod(
+					FrameObject.class, "getLocalContext"));
+			sfields.put("get_environment", JavaMethodObject.noArgMethod(
+					FrameObject.class, "getEnvironment"));
 		} catch (Exception e) {
 			throw new RuntimeException("Fuck", e);
 		}
 	}
-	
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
-	
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -70,53 +82,54 @@ public class FrameObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
-	public int currentPos(){
+
+	public int currentPos() {
 		return pc;
 	}
-	
-	public PythonObject currentStack(){
+
+	public PythonObject currentStack() {
 		ListObject lo = new ListObject();
 		for (PythonObject o : stack)
 			lo.objects.add(o);
 		return lo;
 	}
-	
-	public FrameObject getParent(){
+
+	public FrameObject getParent() {
 		return parentFrame;
 	}
-	
-	public boolean isSubframe(){
+
+	public boolean isSubframe() {
 		return parentFrame != null;
 	}
-	
-	public CompiledBlockObject getCompiled(){
+
+	public CompiledBlockObject getCompiled() {
 		return compiled;
 	}
-	
-	public GeneratorObject getGenerator(){
+
+	public GeneratorObject getGenerator() {
 		return ownedGenerator;
 	}
-	
-	public PythonObject getLocalContext(){
+
+	public PythonObject getLocalContext() {
 		return localContext;
 	}
-	
-	public EnvironmentObject getEnvironment(){
+
+	public EnvironmentObject getEnvironment() {
 		return environment;
 	}
-	
+
 	/**
-	 * Parent frame is null if this is normal frame, or reference to parent frame if this is a subframe
+	 * Parent frame is null if this is normal frame, or reference to parent
+	 * frame if this is a subframe
 	 */
 	public FrameObject parentFrame;
 	/** whether previous frame ended with return */
 	public boolean returnHappened;
-	/** whether this frame pushed local context or not*/
+	/** whether this frame pushed local context or not */
 
 	/** whether this frame wants to accept some value as return */
 	public boolean accepts_return;
-	
+
 	/** If python exception has happened, it will be stored here */
 	public PythonObject exception;
 	/** Bytecode of this frame */
@@ -152,8 +165,8 @@ public class FrameObject extends PythonObject {
 		++pc;
 		return Bytecode.fromNumber(((short) (dataStream.get() & 0xff)));
 	}
-	
-	public int nextInt(){
+
+	public int nextInt() {
 		pc += 4;
 		return dataStream.getInt();
 	}
@@ -174,7 +187,7 @@ public class FrameObject extends PythonObject {
 		f.yielding = yielding;
 		f.sendValue = sendValue;
 		f.stack = stack;
-		
+
 		return f;
 	}
 }

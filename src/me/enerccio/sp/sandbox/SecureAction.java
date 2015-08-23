@@ -21,7 +21,7 @@ public enum SecureAction {
 	/**
 	 * checked when script wants to open file
 	 */
-	OPEN_FILE, 
+	OPEN_FILE,
 	/**
 	 * checked when new java instance is created via python
 	 */
@@ -29,7 +29,7 @@ public enum SecureAction {
 	/**
 	 * checked when new thread is created
 	 */
-	NEW_THREAD, 
+	NEW_THREAD,
 	/**
 	 * checked when python wants to terminate java
 	 */
@@ -37,11 +37,11 @@ public enum SecureAction {
 	/**
 	 * checked when python wants to disassemble python code
 	 */
-	DISASSEMBLY, 
+	DISASSEMBLY,
 	/**
 	 * checked when eval is called in python
 	 */
-	RUNTIME_EVAL, 
+	RUNTIME_EVAL,
 	/**
 	 * checked when compile is called in python
 	 */

@@ -21,7 +21,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 
 public class IOError extends BasePythonError {
 	private static final long serialVersionUID = 9845123L;
-	
+
 	public IOError(String message) {
 		super(PythonRuntime.IO_ERROR, message);
 	}

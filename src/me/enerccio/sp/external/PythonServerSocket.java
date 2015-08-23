@@ -40,48 +40,57 @@ public class PythonServerSocket implements Closeable {
 	private ServerSocket socket;
 	private ClassObject errorType;
 	private ClassObject timeoutType;
-	public PythonServerSocket(ClassObject errorType, ClassObject timeoutType, String addr, int port, int backlog) {
-		PythonRuntime.runtime.checkSandboxAction("socket", SecureAction.SOCKET, addr, port);
-		PythonRuntime.runtime.checkSandboxAction("socket", SecureAction.SOCKET_SERVER, addr, port);
-		
+
+	public PythonServerSocket(ClassObject errorType, ClassObject timeoutType,
+			String addr, int port, int backlog) {
+		PythonRuntime.runtime.checkSandboxAction("socket", SecureAction.SOCKET,
+				addr, port);
+		PythonRuntime.runtime.checkSandboxAction("socket",
+				SecureAction.SOCKET_SERVER, addr, port);
+
 		this.errorType = errorType;
 		this.timeoutType = timeoutType;
 		try {
-			socket = ServerSocketFactory.getDefault().createServerSocket(port, backlog, InetAddress.getByName(addr));
+			socket = ServerSocketFactory.getDefault().createServerSocket(port,
+					backlog, InetAddress.getByName(addr));
 		} catch (Exception e) {
-			throw Utils.throwException(errorType, "failed to open server socket", e);
+			throw Utils.throwException(errorType,
+					"failed to open server socket", e);
 		}
 	}
-	
+
 	@WrapMethod
 	@Override
 	public void close() {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			throw Utils.throwException(errorType, "failed to close server socket", e);
+			throw Utils.throwException(errorType,
+					"failed to close server socket", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public void timeout(int timeout){
+	public void timeout(int timeout) {
 		try {
 			socket.setSoTimeout(timeout);
 		} catch (Exception e) {
-			throw Utils.throwException(errorType, "failed to set server socket timeout", e);
+			throw Utils.throwException(errorType,
+					"failed to set server socket timeout", e);
 		}
 	}
-	
+
 	@WrapMethod
-	public PythonObject accept(){
+	public PythonObject accept() {
 		PythonObject[] result = new PythonObject[2];
 		Socket s;
 		try {
 			s = socket.accept();
-		} catch (SocketTimeoutException e){
+		} catch (SocketTimeoutException e) {
 			throw Utils.throwException(timeoutType, "timeout", e);
 		} catch (IOException e) {
-			throw Utils.throwException(errorType, "server socket accept() failure", e);
+			throw Utils.throwException(errorType,
+					"server socket accept() failure", e);
 		}
 		result[0] = Coerce.toPython(s);
 		result[1] = new StringObject(s.getLocalAddress().getHostAddress());

@@ -19,13 +19,13 @@ package me.enerccio.sp.utils;
 
 public class Pair<T1, T2> {
 
-	public static <X, Y> Pair<X, Y> makePair(X x, Y y){
+	public static <X, Y> Pair<X, Y> makePair(X x, Y y) {
 		return new Pair<X, Y>(x, y);
 	}
-	
+
 	private final T1 t1;
 	private final T2 t2;
-	
+
 	public Pair(T1 t1, T2 t2) {
 		super();
 		this.t1 = t1;
@@ -76,7 +76,5 @@ public class Pair<T1, T2> {
 	public String toString() {
 		return "Pair [t1=" + t1 + ", t2=" + t2 + "]";
 	}
-	
-	
-	
+
 }

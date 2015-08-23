@@ -20,43 +20,61 @@ package me.enerccio.sp.types.base;
 import me.enerccio.sp.types.PythonObject;
 
 /**
- * Represents boolean. Cannot be instantiated. 
+ * Represents boolean. Cannot be instantiated.
+ * 
  * @author Enerccio
  *
  */
 public class BoolObject extends NumberObject {
 	private static final long serialVersionUID = 7L;
-	
+
 	/** Python True */
 	public static final BoolObject TRUE = new BoolObject(true);
 	/** Python False */
 	public static final BoolObject FALSE = new BoolObject(false);
-	
+
 	private final boolean value;
 	private final NumberObject intRepresentation;
-	
-	@Override public NumberType getNumberType() { return NumberType.BOOL; }
-	
-	private BoolObject(boolean v){
+
+	@Override
+	public NumberType getNumberType() {
+		return NumberType.BOOL;
+	}
+
+	private BoolObject(boolean v) {
 		this.value = v;
 		intRepresentation = NumberObject.valueOf(this.intValue());
 	}
-	
+
 	@Override
-	protected void registerObject(){
-		
+	protected void registerObject() {
+
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return value;
 	}
-	
 
-	@Override public int intValue() { return value ? 1 : 0; }
-	@Override public long longValue() { return value ? 1l : 0l; }
-	@Override public float floatValue() { return value ? 1.f : 0.f; }
-	@Override public double doubleValue() { return value ? 1.0 : 0.0; }
+	@Override
+	public int intValue() {
+		return value ? 1 : 0;
+	}
+
+	@Override
+	public long longValue() {
+		return value ? 1l : 0l;
+	}
+
+	@Override
+	public float floatValue() {
+		return value ? 1.f : 0.f;
+	}
+
+	@Override
+	public double doubleValue() {
+		return value ? 1.0 : 0.0;
+	}
 
 	public static PythonObject fromBoolean(Boolean ret) {
 		return ret ? TRUE : FALSE;
@@ -70,73 +88,73 @@ public class BoolObject extends NumberObject {
 	public PythonObject not() {
 		return value ? FALSE : TRUE;
 	}
-	
+
 	@Override
-	public PythonObject add(PythonObject b){
+	public PythonObject add(PythonObject b) {
 		return intRepresentation.add(b);
 	}
-	
+
 	@Override
-	public PythonObject sub(PythonObject b){
+	public PythonObject sub(PythonObject b) {
 		return intRepresentation.sub(b);
 	}
-	
+
 	@Override
-	public PythonObject mul(PythonObject b){
+	public PythonObject mul(PythonObject b) {
 		return intRepresentation.mul(b);
 
 	}
-	
+
 	@Override
-	public PythonObject div(PythonObject b){
+	public PythonObject div(PythonObject b) {
 		return intRepresentation.div(b);
 
 	}
-	
+
 	@Override
-	public PythonObject mod(PythonObject b){
+	public PythonObject mod(PythonObject b) {
 		return intRepresentation.mod(b);
 
 	}
-	
+
 	@Override
-	public PythonObject and(PythonObject b){
+	public PythonObject and(PythonObject b) {
 		return intRepresentation.and(b);
 
 	}
-	
+
 	@Override
-	public PythonObject or(PythonObject b){
+	public PythonObject or(PythonObject b) {
 		return intRepresentation.or(b);
 
 	}
-	
+
 	@Override
-	public PythonObject xor(PythonObject b){
+	public PythonObject xor(PythonObject b) {
 		return intRepresentation.xor(b);
 
 	}
-	
+
 	@Override
-	public PythonObject neg(){
+	public PythonObject neg() {
 		return intRepresentation.neg();
 	}
-	
+
 	@Override
-	public PythonObject pow(PythonObject b){
+	public PythonObject pow(PythonObject b) {
 		return intRepresentation.add(b);
 	}
-	
+
 	@Override
-	public PythonObject lshift(PythonObject b){
+	public PythonObject lshift(PythonObject b) {
 		return intRepresentation.lshift(b);
 	}
-	
+
 	@Override
-	public PythonObject rshift(PythonObject b){
+	public PythonObject rshift(PythonObject b) {
 		return intRepresentation.rshift(b);
 	}
-	
+
 	@Override
 	public PythonObject lt(PythonObject b) {
 		return intRepresentation.lt(b);
@@ -149,13 +167,15 @@ public class BoolObject extends NumberObject {
 
 	@Override
 	public PythonObject eq(PythonObject b) {
-		if (b == this) return BoolObject.TRUE;
+		if (b == this)
+			return BoolObject.TRUE;
 		return intRepresentation.eq(b);
 	}
 
 	@Override
 	public PythonObject ne(PythonObject b) {
-		if (b == this) return BoolObject.FALSE;
+		if (b == this)
+			return BoolObject.FALSE;
 		return intRepresentation.ne(b);
 
 	}

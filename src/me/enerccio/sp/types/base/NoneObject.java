@@ -32,6 +32,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Singleton None object
+ * 
  * @author Enerccio
  *
  */
@@ -40,24 +41,24 @@ public class NoneObject extends PythonObject {
 
 	public static final NoneObject NONE = new NoneObject();
 	public static final TypeObject TYPE = new NoneTypeObject();
-	
+
 	public NoneObject() {
 		super(false);
 	}
-	
+
 	@Override
 	public void newObject() {
 		if (PythonRuntime.NONE_TYPE != null)
 			super.newObject();
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return false;
 	}
-	
+
 	@Override
-	public ClassObject getType(){
+	public ClassObject getType() {
 		return TYPE;
 	}
 
@@ -65,10 +66,12 @@ public class NoneObject extends PythonObject {
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("typename", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
@@ -82,8 +85,9 @@ public class NoneObject extends PythonObject {
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
 
 	@Override

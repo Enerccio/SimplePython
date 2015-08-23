@@ -30,66 +30,68 @@ public class PythonThread implements Runnable {
 
 	private UserMethodObject call;
 	private Thread t;
-	
+
 	@WrapField(readOnly = true)
 	public boolean executed;
-	public PythonThread(ClassInstanceObject o, String name){
-		PythonRuntime.runtime.checkSandboxAction("jthread", SecureAction.NEW_THREAD);
-		
+
+	public PythonThread(ClassInstanceObject o, String name) {
+		PythonRuntime.runtime.checkSandboxAction("jthread",
+				SecureAction.NEW_THREAD);
+
 		t = new Thread(this);
 		setThreadName(name);
 		call = (UserMethodObject) SimplePython.getField(o, "execute");
 	}
-	
-	PythonThread(Thread t){
-		this.t = t; 
+
+	PythonThread(Thread t) {
+		this.t = t;
 	}
-	
+
 	@Override
 	public void run() {
 		executed = true;
-		
+
 		if (call != null)
 			PythonInterpreter.interpreter.get().execute(true, call, null);
 	};
-	
+
 	@WrapMethod
-	public void setDaemon(boolean daemon){
+	public void setDaemon(boolean daemon) {
 		t.setDaemon(daemon);
 	}
-	
+
 	@WrapMethod
-	public void threadStart(){
+	public void threadStart() {
 		t.start();
 	}
-	
+
 	@WrapMethod
-	public boolean threadRunning(){
+	public boolean threadRunning() {
 		return t.isAlive();
 	}
-	
+
 	@WrapMethod
-	public void setThreadName(String name){
+	public void setThreadName(String name) {
 		if (name != null)
 			t.setName(name);
 	}
-	
+
 	@WrapMethod
-	public String getThreadName(){
+	public String getThreadName() {
 		return t.getName();
 	}
-	
+
 	@WrapMethod
-	public void waitJoin(){
+	public void waitJoin() {
 		try {
 			t.join();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 	}
-	
+
 	@WrapMethod
-	public void interruptThread(){
+	public void interruptThread() {
 		t.interrupt();
 	}
 }

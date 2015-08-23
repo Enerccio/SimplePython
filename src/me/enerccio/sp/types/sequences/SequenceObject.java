@@ -38,36 +38,45 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Represents objects with __iter__, __getitem__ and __add__
+ * 
  * @author Enerccio
  *
  */
-public abstract class SequenceObject extends ContainerObject 
-		implements HasAddMethod, HasMulMethod {
+public abstract class SequenceObject extends ContainerObject implements
+		HasAddMethod, HasMulMethod {
 	private static final long serialVersionUID = 10L;
-	
+
 	public static final String __ITER__ = "__iter__";
 	public static final String __GETITEM__ = "__getitem__";
 	public static final String __ADD__ = "__add__";
 	public static final String __MUL__ = "__mul__";
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
-	public SequenceObject(boolean internalUse){
+
+	public SequenceObject(boolean internalUse) {
 		super(internalUse);
 	}
-	
+
 	static {
 		try {
 			sfields.putAll(ContainerObject.getSFields());
-			sfields.put(__ITER__, 		JavaMethodObject.noArgMethod(SequenceObject.class, "__iter__"));
-			sfields.put(__GETITEM__,	new JavaMethodObject(SequenceObject.class, "get", PythonObject.class));
-			sfields.put(__ADD__,		new JavaMethodObject(SequenceObject.class, "add", PythonObject.class));
-			sfields.put(__MUL__,		new JavaMethodObject(SequenceObject.class, "mul", PythonObject.class));
-		} catch (Exception e){
+			sfields.put(__ITER__, JavaMethodObject.noArgMethod(
+					SequenceObject.class, "__iter__"));
+			sfields.put(__GETITEM__, new JavaMethodObject(SequenceObject.class,
+					"get", PythonObject.class));
+			sfields.put(__ADD__, new JavaMethodObject(SequenceObject.class,
+					"add", PythonObject.class));
+			sfields.put(__MUL__, new JavaMethodObject(SequenceObject.class,
+					"mul", PythonObject.class));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -82,45 +91,57 @@ public abstract class SequenceObject extends ContainerObject
 	public void newObject() {
 		super.newObject();
 	}
-	
+
 	public abstract PythonObject get(PythonObject key);
+
 	public abstract PythonObject get(int i);
+
+	@Override
 	public abstract PythonObject add(PythonObject b);
+
+	@Override
 	public abstract PythonObject mul(PythonObject b);
-	
-	public abstract PythonObject __iter__(); 
+
+	public abstract PythonObject __iter__();
 
 	@Override
 	protected String doToString() {
 		return null;
 	}
-	
+
 	@Override
 	public PythonObject set(String key, PythonObject localContext,
 			PythonObject value) {
 		if (!fields.containsKey(key))
-			throw new AttributeError("'" + 
-					Utils.run("str", Utils.run("typename", this)) + "' object has no attribute '" + key + "'");
-		throw new AttributeError("'" + 
-				Utils.run("str", Utils.run("typename", this)) + "' object attribute '" + key + "' is read only");
+			throw new AttributeError("'"
+					+ Utils.run("str", Utils.run("typename", this))
+					+ "' object has no attribute '" + key + "'");
+		throw new AttributeError("'"
+				+ Utils.run("str", Utils.run("typename", this))
+				+ "' object attribute '" + key + "' is read only");
 	}
 
 	@Override
-	public void create(String key, AccessRestrictions restrictions, PythonObject localContext) {
-		
+	public void create(String key, AccessRestrictions restrictions,
+			PythonObject localContext) {
+
 	}
-	
+
 	/**
 	 * Converts slice object into int[4] object
+	 * 
 	 * @param size
 	 * @param key
 	 * @return
 	 */
-	protected int[] getSliceData(int size, PythonObject key){
-		PythonObject sa = key.getEditableFields().get(SliceObject.START_ACCESSOR).object;
-		PythonObject so = key.getEditableFields().get(SliceObject.STOP_ACCESSOR).object;
-		PythonObject st = key.getEditableFields().get(SliceObject.STEP_ACCESSOR).object;
-		
+	protected int[] getSliceData(int size, PythonObject key) {
+		PythonObject sa = key.getEditableFields().get(
+				SliceObject.START_ACCESSOR).object;
+		PythonObject so = key.getEditableFields()
+				.get(SliceObject.STOP_ACCESSOR).object;
+		PythonObject st = key.getEditableFields()
+				.get(SliceObject.STEP_ACCESSOR).object;
+
 		boolean saex = sa != NoneObject.NONE;
 		boolean soex = so != NoneObject.NONE;
 		boolean stex = st != NoneObject.NONE;
@@ -128,43 +149,44 @@ public abstract class SequenceObject extends ContainerObject
 		int sov = size;
 		int stv = 1;
 		if (saex)
-			sav = ((NumberObject)sa).intValue();
+			sav = ((NumberObject) sa).intValue();
 		if (soex)
-			sov = ((NumberObject)so).intValue();
+			sov = ((NumberObject) so).intValue();
 		if (stex)
-			stv = ((NumberObject)st).intValue();
-		
+			stv = ((NumberObject) st).intValue();
+
 		boolean reverse = false;
-		
+
 		if (sav < 0)
-			sav = Math.max(0, size-(-(sav+1)));
-		if (stv < 0){
+			sav = Math.max(0, size - (-(sav + 1)));
+		if (stv < 0) {
 			reverse = true;
 			stv = Math.abs(stv);
 		}
 		if (stv == 0)
 			throw new ValueError("slice step cannot be zero");
 		if (sov < 0)
-			sov = Math.max(0, size-(-(sov+1)));
-		
+			sov = Math.max(0, size - (-(sov + 1)));
+
 		sav = Math.max(sav, 0);
 		sov = Math.min(size, sov);
-		
-		return new int[]{sav, sov, stv, reverse ? 1 : 0};
+
+		return new int[] { sav, sov, stv, reverse ? 1 : 0 };
 	}
-	
+
 	public static PythonObject doGet(SimpleIDAccessor o, PythonObject idx) {
 		if (!NumberObject.isInteger(idx))
 			throw new TypeError("Index must be int");
-		int i = ((NumberObject)idx).intValue();
-		if (i >= o.len() || i<-(o.len()))
-			throw new IndexError("Incorrect index, expected (" + -o.len() + ", " + o.len() + "), got " + i);
+		int i = ((NumberObject) idx).intValue();
+		if (i >= o.len() || i < -(o.len()))
+			throw new IndexError("Incorrect index, expected (" + -o.len()
+					+ ", " + o.len() + "), got " + i);
 		return o.valueAt(morphAround(i, o.len()));
 	}
 
 	public static int morphAround(int i, int len) {
-		if (i<0)
-			return len-(Math.abs(i));
+		if (i < 0)
+			return len - (Math.abs(i));
 		return i;
 	}
 }

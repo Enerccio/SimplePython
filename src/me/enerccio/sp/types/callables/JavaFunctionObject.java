@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 /**
  * Java function wrapped into callable object.
+ * 
  * @author Enerccio
  *
  */
@@ -33,11 +34,11 @@ public class JavaFunctionObject extends JavaMethodObject {
 	}
 
 	/** Usable for static methods with default signature */
-	public JavaFunctionObject(Class<?> cls, String name) throws NoSuchMethodException, SecurityException {
+	public JavaFunctionObject(Class<?> cls, String name)
+			throws NoSuchMethodException, SecurityException {
 		super(cls, name);
 	}
 
-	
 	@Override
 	protected String doToString() {
 		return super.doToString();

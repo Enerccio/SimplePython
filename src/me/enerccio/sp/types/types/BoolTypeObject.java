@@ -25,22 +25,24 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * bool()
+ * 
  * @author Enerccio
  *
  */
 public class BoolTypeObject extends TypeObject {
 	private static final long serialVersionUID = 6840091655061000673L;
 	public static final String BOOL_CALL = "bool";
-	
+
 	@Override
 	public String getTypeIdentificator() {
 		return "bool";
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() > 1)
 			throw new TypeError("bool(): requires 0 or 1 arguments");
 		if (args.len() == 1)
@@ -48,5 +50,4 @@ public class BoolTypeObject extends TypeObject {
 		return BoolObject.FALSE;
 	}
 
-	
 }

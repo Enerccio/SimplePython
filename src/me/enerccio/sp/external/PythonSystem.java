@@ -20,14 +20,14 @@ package me.enerccio.sp.external;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
 public class PythonSystem extends Thread {
-	
-	public PythonSystem(){
-		
+
+	public PythonSystem() {
+
 	}
-	
+
 	@WrapMethod
-	public long current_time(){
+	public long current_time() {
 		return System.currentTimeMillis();
 	}
-	
+
 }

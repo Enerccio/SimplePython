@@ -23,19 +23,21 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * Callable objects that interpret can call
+ * 
  * @author Enerccio
  *
  */
 public abstract class CallableObject extends PythonObject {
 	private static final long serialVersionUID = 21L;
 	public static final String __CALL__ = "__call__";
-	
-	public CallableObject(){
+
+	public CallableObject() {
 		super(false);
 	}
-	
+
 	/**
 	 * Calls this object with arguments in a tuple.
+	 * 
 	 * @param args
 	 * @return
 	 */

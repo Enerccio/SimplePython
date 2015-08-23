@@ -31,19 +31,19 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	private volatile FutureStatus status = FutureStatus.RUNNING;
 	private Semaphore monitor = new Semaphore(0);
 	private PythonObject value = null;
-	
+
 	public JavaFutureObject() {
 		super(false);
 	}
 
 	@Override
-	public PythonObject getValue(){
+	public PythonObject getValue() {
 		synchronized (this) {
 			if (isReady())
 				return value;
 		}
-		
-		while (true){
+
+		while (true) {
 			synchronized (this) {
 				if (isReady())
 					break;
@@ -57,8 +57,8 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 		}
 		return value;
 	}
-	
-	public synchronized void setValue(PythonObject  value) {
+
+	public synchronized void setValue(PythonObject value) {
 		if (this.value != null)
 			throw new RuntimeException("JavaFuture already has a value");
 		this.value = value;

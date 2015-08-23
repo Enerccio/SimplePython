@@ -72,102 +72,118 @@ import me.enerccio.sp.utils.Utils;
  */
 public class PythonInterpreter extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
-	public static final boolean TRACE_ENABLED = System.getenv("SPY_TRACE_ENABLED") != null;
+	public static final boolean TRACE_ENABLED = System
+			.getenv("SPY_TRACE_ENABLED") != null;
 	public static final int MAX_DEEP_STACK;
-	
+
 	static {
 		if (System.getenv("DEEP_STACK_LIMIT") != null)
-			MAX_DEEP_STACK = Integer.parseInt(System.getenv("DEEP_STACK_LIMIT"));
+			MAX_DEEP_STACK = Integer
+					.parseInt(System.getenv("DEEP_STACK_LIMIT"));
 		else
 			MAX_DEEP_STACK = -1;
 	}
-	
+
 	private boolean handlingOverflow = false;
-	
+
 	public void checkOverflow() {
-		if (MAX_DEEP_STACK > 0){
-			if (currentFrame.size() > MAX_DEEP_STACK && !handlingOverflow){
+		if (MAX_DEEP_STACK > 0) {
+			if (currentFrame.size() > MAX_DEEP_STACK && !handlingOverflow) {
 				handlingOverflow = true;
 				throw new RuntimeError("maximum recursion depth exceeded");
-			} else if (currentFrame.size() < MAX_DEEP_STACK -1 ){
+			} else if (currentFrame.size() < MAX_DEEP_STACK - 1) {
 				handlingOverflow = false;
 			}
 		}
 	}
-	
+
 	/** Thread local accessor to the interpret */
-	public static final transient ThreadLocal<PythonInterpreter> interpreter = new ThreadLocal<PythonInterpreter>(){
+	public static final transient ThreadLocal<PythonInterpreter> interpreter = new ThreadLocal<PythonInterpreter>() {
 
 		@Override
 		protected PythonInterpreter initialValue() {
 			try {
 				PythonRuntime.runtime.waitForNewInterpretAvailability();
-			} catch (InterruptedException e){
-				
+			} catch (InterruptedException e) {
+
 			}
-			
+
 			PythonInterpreter i = new PythonInterpreter();
 			interpreters.add(i);
 			return i;
 		}
-		
+
 	};
-	
+
 	/** Collection of all interprets created */
-	public static final Set<PythonInterpreter> interpreters = Collections.synchronizedSet(new HashSet<PythonInterpreter>());
-	
-	public PythonInterpreter(){
+	public static final Set<PythonInterpreter> interpreters = Collections
+			.synchronizedSet(new HashSet<PythonInterpreter>());
+
+	public PythonInterpreter() {
 		super(true);
 		bind();
 	}
-	
+
 	/**
 	 * Binds the interpret to this thread
 	 */
-	public void bind(){
+	public void bind() {
 		interpreter.set(this);
 	}
-	
-	private EnvironmentObject nullEnv  = new EnvironmentObject();
+
+	private EnvironmentObject nullEnv = new EnvironmentObject();
 	{
 		nullEnv.add(PythonRuntime.runtime.getGlobals());
 	}
-	
-	/** current frame stack. Topmost element represents currently interpreted frame */
+
+	/**
+	 * current frame stack. Topmost element represents currently interpreted
+	 * frame
+	 */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
-	/** Number of times this interpret is accessed by itself. If >0, interpret can't be serialized */
+	/**
+	 * Number of times this interpret is accessed by itself. If >0, interpret
+	 * can't be serialized
+	 */
 	private volatile int accessCount = 0;
 	/** Represents currrently passed arguments to the function */
 	private InternalDict args = null;
 	/** Represents value returned by a call */
 	private PythonObject returnee;
 	private List<InternalDict> currentClosure;
-	
+
 	private final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
-	
+
 	/**
 	 * whether this interpret can be stopped at safe place or not
+	 * 
 	 * @return
 	 */
-	public boolean isInterpretStoppable(){
+	public boolean isInterpretStoppable() {
 		return accessCount == 0;
 	}
 
 	/**
-	 * executes single call identified by function in current environment and returns value, if any
-	 * @param internal 
+	 * executes single call identified by function in current environment and
+	 * returns value, if any
+	 * 
+	 * @param internal
 	 * @param function
 	 * @param data
 	 * @return
 	 */
-	public PythonObject executeCall(boolean internal, String function, PythonObject... data) {
+	public PythonObject executeCall(boolean internal, String function,
+			PythonObject... data) {
 		if (currentFrame.size() == 0)
-			return returnee = execute(internal, PythonRuntime.runtime.getGlobals().doGet(function), null, data);
-		return returnee = execute(internal, environment().getBuiltin(function), null, data);
+			return returnee = execute(internal, PythonRuntime.runtime
+					.getGlobals().doGet(function), null, data);
+		return returnee = execute(internal, environment().getBuiltin(function),
+				null, data);
 	}
 
 	/**
 	 * Returns current environment or null
+	 * 
 	 * @return
 	 */
 	public EnvironmentObject environment() {
@@ -175,9 +191,10 @@ public class PythonInterpreter extends PythonObject {
 			return nullEnv;
 		return currentFrame.getLast().environment;
 	}
-	
+
 	/**
 	 * Returns current local context or null
+	 * 
 	 * @return
 	 */
 	public PythonObject getLocalContext() {
@@ -190,30 +207,41 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	/**
-	 * Executes call to the callable. 
-	 * @param internalCall if true and call is to a python code, it will wait until that code will finish
-	 * @param callable callable
-	 * @param args arguments
+	 * Executes call to the callable.
+	 * 
+	 * @param internalCall
+	 *            if true and call is to a python code, it will wait until that
+	 *            code will finish
+	 * @param callable
+	 *            callable
+	 * @param args
+	 *            arguments
 	 * @return
 	 */
-	public PythonObject execute(boolean internalCall, PythonObject callable, KwArgs kwargs, PythonObject... args) {
-		if (callable instanceof CallableObject){
-			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject)) && internalCall){
+	public PythonObject execute(boolean internalCall, PythonObject callable,
+			KwArgs kwargs, PythonObject... args) {
+		if (callable instanceof CallableObject) {
+			if (((callable instanceof UserFunctionObject) || (callable instanceof UserMethodObject))
+					&& internalCall) {
 				int cfc = currentFrame.size();
-				((CallableObject)callable).call(new TupleObject(true, args), kwargs);
+				((CallableObject) callable).call(new TupleObject(true, args),
+						kwargs);
 				return executeAll(cfc);
 			} else if (internalCall) {
 				int cfc = currentFrame.size();
-				returnee = ((CallableObject)callable).call(new TupleObject(true, args), kwargs);
-				if (cfc < currentFrame.size()){
+				returnee = ((CallableObject) callable).call(new TupleObject(
+						true, args), kwargs);
+				if (cfc < currentFrame.size()) {
 					returnee = executeAll(cfc);
 				}
 				return returnee;
 			} else {
-				return returnee = ((CallableObject)callable).call(new TupleObject(true, args), kwargs);
+				return returnee = ((CallableObject) callable).call(
+						new TupleObject(true, args), kwargs);
 			}
 		} else {
-			PythonObject callableArg = callable.get(CallableObject.__CALL__, getLocalContext());
+			PythonObject callableArg = callable.get(CallableObject.__CALL__,
+					getLocalContext());
 			if (callableArg == null)
 				throw new TypeError(callable.toString() + " is not callable");
 			return returnee = execute(internalCall, callableArg, kwargs, args);
@@ -221,7 +249,9 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	/**
-	 * Returns exception of the topmost frame or null if either no frame is there or no exception has happened
+	 * Returns exception of the topmost frame or null if either no frame is
+	 * there or no exception has happened
+	 * 
 	 * @return
 	 */
 	public PythonObject exception() {
@@ -232,16 +262,19 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * invokes callable with args
+	 * 
 	 * @param callable
 	 * @param args
 	 * @return
 	 */
-	public PythonObject invoke(PythonObject callable, KwArgs kwargs, TupleObject args) {
+	public PythonObject invoke(PythonObject callable, KwArgs kwargs,
+			TupleObject args) {
 		return execute(false, callable, kwargs, args.getObjects());
 	}
 
 	/**
 	 * returns global value for variable key or null
+	 * 
 	 * @param key
 	 * @return
 	 */
@@ -251,24 +284,26 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Pushes new frame on the stack that contains this bytecode.
+	 * 
 	 * @param frame
 	 */
 	public void executeBytecode(CompiledBlockObject frame) {
 		checkOverflow();
-		
+
 		FrameObject n;
 		currentFrame.add(n = new FrameObject());
 		n.compiled = frame;
 		n.dataStream = frame.getBytedataAsNativeBuffer();
-		
-//		System.out.println(CompiledBlockObject.dis(frame));
+
+		// System.out.println(CompiledBlockObject.dis(frame));
 	}
 
 	/**
 	 * Executes single instruction
+	 * 
 	 * @return
 	 */
-	public ExecutionResult executeOnce(){
+	public ExecutionResult executeOnce() {
 		ExecutionResult r = doExecuteOnce();
 		if (r == ExecutionResult.EOF)
 			if (currentFrame.size() == 0)
@@ -282,16 +317,16 @@ public class PythonInterpreter extends PythonObject {
 		} catch (InterruptedException e) {
 			return ExecutionResult.INTERRUPTED;
 		}
-		
-		if (Thread.interrupted()){
+
+		if (Thread.interrupted()) {
 			return ExecutionResult.INTERRUPTED;
 		}
-		
-		if (exception() != null){
+
+		if (exception() != null) {
 			handleException(new PythonExecutionException(exception()));
 			return ExecutionResult.EOF;
 		}
-		
+
 		++accessCount;
 		try {
 			if (currentFrame.size() == 0)
@@ -299,7 +334,7 @@ public class PythonInterpreter extends PythonObject {
 			FrameObject o = currentFrame.getLast();
 			if (o == null)
 				return ExecutionResult.FINISHED;
-			if (o.pc >= o.compiled.getBytedata().length){
+			if (o.pc >= o.compiled.getBytedata().length) {
 				removeLastFrame();
 				returnee = null;
 				return ExecutionResult.EOF;
@@ -307,10 +342,10 @@ public class PythonInterpreter extends PythonObject {
 			try {
 				try {
 					return executeSingleInstruction(o);
-				} catch (BasePythonError e){
+				} catch (BasePythonError e) {
 					throw Utils.throwException(e.type, e.message, e);
 				}
-			} catch (PythonExecutionException e){
+			} catch (PythonExecutionException e) {
 				handleException(e);
 				return ExecutionResult.EOF;
 			}
@@ -321,6 +356,7 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Handles the exception chain.
+	 * 
 	 * @param e
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -328,11 +364,12 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject pe = e.getException();
 		currentFrame.peekLast().exception = pe;
 		PythonObject stack = pe.get("stack", null);
-		if (stack instanceof ListObject && !e.noStackGeneration){
-			ListObject s = (ListObject)stack;
+		if (stack instanceof ListObject && !e.noStackGeneration) {
+			ListObject s = (ListObject) stack;
 			s.objects.add(makeStack());
 			if (e.getCause() instanceof PythonException) {
-				((PythonException)e.getCause()).addPythonStack((List)s.objects);
+				((PythonException) e.getCause())
+						.addPythonStack((List) s.objects);
 			}
 		}
 		removeLastFrame();
@@ -340,12 +377,13 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Inserts current instruction into stack
+	 * 
 	 * @return
 	 */
 	private StackElement makeStack() {
 		FrameObject o = currentFrame.getLast();
 		if (o == null)
-			return StackElement.LAST_FRAME; 
+			return StackElement.LAST_FRAME;
 		DebugInformation dd = o.compiled.getDebugInformation(o.prevPc);
 		if (dd.lineno < 0)
 			return StackElement.SYSTEM_FRAME;
@@ -354,6 +392,7 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Creates new stack line element of the current stack
+	 * 
 	 * @return
 	 */
 	private String makeStackString() {
@@ -363,12 +402,15 @@ public class PythonInterpreter extends PythonObject {
 		DebugInformation dd = o.compiled.getDebugInformation(o.prevPc);
 		if (dd.lineno < 0)
 			return "<system-frame>";
-		return String.format("<at module %s, line %s, char %s>", dd.module, dd.lineno, dd.charno);
+		return String.format("<at module %s, line %s, char %s>", dd.module,
+				dd.lineno, dd.charno);
 	}
 
 	/**
 	 * Executes current instruction
-	 * @param o current frame
+	 * 
+	 * @param o
+	 *            current frame
 	 * @return execution result
 	 */
 	private ExecutionResult executeSingleInstruction(FrameObject o) {
@@ -377,19 +419,20 @@ public class PythonInterpreter extends PythonObject {
 		o.prevPc = spc;
 		Bytecode opcode = o.nextOpcode();
 		Stack<PythonObject> stack = o.stack;
-		
-		if (o.accepts_return){
+
+		if (o.accepts_return) {
 			o.accepts_return = false;
 			if (returnee == null)
 				stack.push(NoneObject.NONE);
 			else
 				stack.push(returnee);
 		}
-		
+
 		if (TRACE_ENABLED)
-			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + " " + printStack(stack));
-		
-		switch (opcode){
+			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc)
+					+ " " + printStack(stack));
+
+		switch (opcode) {
 		case NOP:
 			// do nothing
 			break;
@@ -404,19 +447,23 @@ public class PythonInterpreter extends PythonObject {
 			pushLocals(o, stack);
 			break;
 		case PUSH_ENVIRONMENT:
-			// pushes new environment onto environment stack. 
-			// also sets flag on the current frame to later pop the environment when frame itself is popped
+			// pushes new environment onto environment stack.
+			// also sets flag on the current frame to later pop the environment
+			// when frame itself is popped
 			pushEnvironment(o, stack);
 			break;
 		case CALL:
 			// calls the runnable with arguments
-			// values are gathered from the stack in reverse order, with lowest being the callable itself.
-			// if call(x)'s x is negative, it is vararg call, thus last argument must be a tuple that will be
+			// values are gathered from the stack in reverse order, with lowest
+			// being the callable itself.
+			// if call(x)'s x is negative, it is vararg call, thus last argument
+			// must be a tuple that will be
 			// expanded to fill the arguments
 			call(o, stack);
 			break;
 		case SETUP_LOOP:
-			// Grabs object from stack. It it is something that can be iterated internally, pushes
+			// Grabs object from stack. It it is something that can be iterated
+			// internally, pushes
 			// iterator back there. Otherwise, calls iter method.
 			setupLoop(o, stack);
 			break;
@@ -436,7 +483,7 @@ public class PythonInterpreter extends PythonObject {
 			ecall(o, stack);
 			break;
 		case KCALL:
-		case RCALL: 
+		case RCALL:
 			krcall(opcode, o, stack);
 			break;
 		case GOTO:
@@ -457,14 +504,15 @@ public class PythonInterpreter extends PythonObject {
 		case MAKE_FUTURE:
 			makeFuture(o, stack);
 			break;
-		case LOAD: 
+		case LOAD:
 			load(o, stack);
 			break;
 		case LOAD_FUTURE:
-			// pushes variable onto stack. If variable is future, it is not resolved
+			// pushes variable onto stack. If variable is future, it is not
+			// resolved
 			loadFuture(o, stack);
 			break;
-		case TEST_FUTURE: 
+		case TEST_FUTURE:
 			testFuture(o, stack);
 			break;
 		case LOADGLOBAL:
@@ -530,7 +578,7 @@ public class PythonInterpreter extends PythonObject {
 		case ISINSTANCE:
 			isinstance(o, stack);
 			break;
-		case RAISE: 
+		case RAISE:
 			raise(o, stack);
 			break;
 		case RERAISE:
@@ -553,22 +601,23 @@ public class PythonInterpreter extends PythonObject {
 		case LOADBUILTIN:
 			loadBuiltin(o, stack);
 			break;
-		case DEL: 
+		case DEL:
 			del(o, stack);
 			break;
 		default:
 			if (!mathHelper.mathOperation(this, o, stack, opcode))
-				throw new InterpreterError("unhandled bytecode " + opcode.toString());
+				throw new InterpreterError("unhandled bytecode "
+						+ opcode.toString());
 		}
-			
+
 		return ExecutionResult.OK;
 	}
-	
+
 	private void resolveClosure(FrameObject o, Stack<PythonObject> stack) {
-		UserFunctionObject fnc = (UserFunctionObject)stack.peek();
+		UserFunctionObject fnc = (UserFunctionObject) stack.peek();
 		fnc.setClosure(environment().toClosure());
 	}
-	
+
 	private void openLocals(FrameObject o, Stack<PythonObject> stack) {
 		// adds new dict to env as empty locals
 		EnvironmentObject env = currentFrame.getLast().environment;
@@ -583,10 +632,10 @@ public class PythonInterpreter extends PythonObject {
 
 	private void pushEnvironment(FrameObject o, Stack<PythonObject> stack) {
 		o.environment = new EnvironmentObject();
-		if (currentClosure != null){
+		if (currentClosure != null) {
 			o.environment.add(currentClosure);
 			currentClosure = null;
-		} else if (!PythonRuntime.runtime.buildingGlobals()){
+		} else if (!PythonRuntime.runtime.buildingGlobals()) {
 			o.environment.add(PythonRuntime.runtime.getGlobals());
 		}
 	}
@@ -598,24 +647,24 @@ public class PythonInterpreter extends PythonObject {
 		if (pbint < 0)
 			va = true;
 		PythonObject[] args = new PythonObject[argl];
-		
-		for (int i=args.length-1; i>=0; i--)
+
+		for (int i = args.length - 1; i >= 0; i--)
 			args[i] = stack.pop();
 		PythonObject runnable = stack.pop();
-		
-		if (va){
+
+		if (va) {
 			PythonObject[] va2 = args;
-			PythonObject iterable = va2[va2.length-1];
-			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(true, iterable), null);
-			
-			
+			PythonObject iterable = va2[va2.length - 1];
+			ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(
+					new TupleObject(true, iterable), null);
+
 			args = new PythonObject[va2.length - 1 + lo.objects.size()];
-			for (int i=0; i<va2.length - 1; i++)
+			for (int i = 0; i < va2.length - 1; i++)
 				args[i] = va2[i];
-			for (int i=0; i<lo.objects.size(); i++)
+			for (int i = 0; i < lo.objects.size(); i++)
 				args[i + va2.length - 1] = lo.objects.get(i);
 		}
-		
+
 		returnee = execute(false, runnable, o.kwargs, args);
 		o.kwargs = null;
 		o.accepts_return = true;
@@ -627,10 +676,10 @@ public class PythonInterpreter extends PythonObject {
 		int jv = o.nextInt();
 		if (value instanceof InternallyIterable) {
 			// TODO: Interface or something like that
-			stack.push(((InternallyIterable)value).__iter__());
+			stack.push(((InternallyIterable) value).__iter__());
 			o.pc = jv;
 		} else {
-			runnable = environment().get("iter", true, false);				
+			runnable = environment().get("iter", true, false);
 			returnee = execute(true, runnable, null, value);
 			o.accepts_return = true;
 		}
@@ -640,7 +689,8 @@ public class PythonInterpreter extends PythonObject {
 		FrameObject frame = (FrameObject) stack.pop();
 		int jv = o.nextInt();
 		if (frame.exception != null) {
-			if (PythonRuntime.isinstance(frame.exception, PythonRuntime.STOP_ITERATION).truthValue()) {
+			if (PythonRuntime.isinstance(frame.exception,
+					PythonRuntime.STOP_ITERATION).truthValue()) {
 				o.pc = jv;
 				o.exception = frame.exception = null;
 				return;
@@ -657,13 +707,14 @@ public class PythonInterpreter extends PythonObject {
 		int jv = o.nextInt();
 		PythonObject value = stack.peek();
 		if (value instanceof InternalIterator) {
-			value = ((InternalIterator)value).nextInternal();
+			value = ((InternalIterator) value).nextInternal();
 			if (value == null) {
 				// StopIteration is not actually thrown, only emulated
 				o.pc = jv;
 			} else {
 				o.stack.push(value);
-				o.pc += 5; // ACCEPT_ITER _always_ follows GET_ITER and this one will skip it.
+				o.pc += 5; // ACCEPT_ITER _always_ follows GET_ITER and this one
+							// will skip it.
 			}
 			return true;
 		}
@@ -672,7 +723,7 @@ public class PythonInterpreter extends PythonObject {
 
 	private void ecall(FrameObject o, Stack<PythonObject> stack) {
 		checkOverflow();
-		
+
 		PythonObject runnable = stack.peek();
 		FrameObject frame;
 		try {
@@ -690,15 +741,17 @@ public class PythonInterpreter extends PythonObject {
 		}
 	}
 
-	private void krcall(Bytecode opcode, FrameObject o, Stack<PythonObject> stack) {
+	private void krcall(Bytecode opcode, FrameObject o,
+			Stack<PythonObject> stack) {
 		PythonObject[] args = new PythonObject[o.nextInt()];
-		
-		for (int i=0; i<args.length; i++)
+
+		for (int i = 0; i < args.length; i++)
 			args[i] = stack.pop();
 		PythonObject runnable = stack.pop();
-		
+
 		returnee = execute(false, runnable, null, args);
-		o.accepts_return = (opcode == Bytecode.RCALL);	// KCALL ignores returned value
+		o.accepts_return = (opcode == Bytecode.RCALL); // KCALL ignores returned
+														// value
 	}
 
 	private void gotoOperation(FrameObject o, Stack<PythonObject> stack) {
@@ -727,59 +780,61 @@ public class PythonInterpreter extends PythonObject {
 		int jv = o.nextInt();
 		FrameObject frame = (FrameObject) stack.peek();
 		if (!frame.returnHappened)
-			// Frame ended without return, jump to specified label and keep frame on stack
+			// Frame ended without return, jump to specified label and keep
+			// frame on stack
 			o.pc = jv;
 	}
 
 	private void makeFuture(FrameObject o, Stack<PythonObject> stack) {
 		int jv = o.nextInt();
 		List<String> closureCopy = new ArrayList<String>();
-		for (int i=0; i<jv; i++) {
+		for (int i = 0; i < jv; i++) {
 			String name = o.compiled.getConstant(o.nextInt()).toString();
 			closureCopy.add(name);
 		}
-		stack.push(new PythonFutureObject((UserFunctionObject)stack.pop(), closureCopy, environment()));
+		stack.push(new PythonFutureObject((UserFunctionObject) stack.pop(),
+				closureCopy, environment()));
 	}
 
 	private void load(FrameObject o, Stack<PythonObject> stack) {
-		String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String svl = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		PythonObject value = environment().get(svl, false, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
-			value = ((FutureObject)value).getValue();
+			value = ((FutureObject) value).getValue();
 		stack.push(value);
 	}
-	
+
 	private void loadFuture(FrameObject o, Stack<PythonObject> stack) {
-		String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String svl = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		PythonObject value = environment().get(svl, false, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
-			if (((FutureObject)value).isReady())
-				value = ((FutureObject)value).getValue();
+			if (((FutureObject) value).isReady())
+				value = ((FutureObject) value).getValue();
 		stack.push(value);
 	}
 
 	private void testFuture(FrameObject o, Stack<PythonObject> stack) {
-		String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String svl = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		PythonObject value = environment().get(svl, false, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
-			stack.push(BoolObject.fromBoolean(((FutureObject)value).isReady()));
+			stack.push(BoolObject.fromBoolean(((FutureObject) value).isReady()));
 		else
 			stack.push(BoolObject.TRUE);
 	}
 
 	private void loadGlobal(FrameObject o, Stack<PythonObject> stack) {
-		String svl = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String svl = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		PythonObject value = environment().get(svl, true, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
-			value = ((FutureObject)value).getValue();
+			value = ((FutureObject) value).getValue();
 		stack.push(value);
 	}
 
@@ -792,25 +847,29 @@ public class PythonInterpreter extends PythonObject {
 		int jv = o.nextInt();
 		if (value instanceof NumberObject) {
 			if (jv == 1)
-				stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				stack.push(value.truthValue() ? BoolObject.FALSE
+						: BoolObject.TRUE);
 			else
-				stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+				stack.push(value.truthValue() ? BoolObject.TRUE
+						: BoolObject.FALSE);
 		} else if (value.get("__nonzero__", null) != null) {
 			PythonObject runnable = value.get("__nonzero__", null);
 			returnee = execute(true, runnable, null);
 			o.accepts_return = true;
 			if (jv == 1)
-				o.pc-=5;
+				o.pc -= 5;
 		} else if (value.get("__len__", null) != null) {
 			PythonObject runnable = value.get("__len__", null);
 			returnee = execute(true, runnable, null);
 			o.accepts_return = true;
-			o.pc-=5;
+			o.pc -= 5;
 		} else {
 			if (jv == 1)
-				stack.push(value.truthValue() ? BoolObject.FALSE : BoolObject.TRUE);
+				stack.push(value.truthValue() ? BoolObject.FALSE
+						: BoolObject.TRUE);
 			else
-				stack.push(value.truthValue() ? BoolObject.TRUE : BoolObject.FALSE);
+				stack.push(value.truthValue() ? BoolObject.TRUE
+						: BoolObject.FALSE);
 		}
 	}
 
@@ -832,7 +891,7 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private void save(FrameObject o, Stack<PythonObject> stack) {
-		String ss = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String ss = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		PythonObject v = stack.pop();
 		environment().set(ss, v, false, false);
 	}
@@ -842,21 +901,27 @@ public class PythonInterpreter extends PythonObject {
 		boolean doingNew = o.kwargs == null;
 		if (doingNew)
 			o.kwargs = new KwArgs.HashMapKWArgs();
-		for (int i=0; i<jv; i++) {
+		for (int i = 0; i < jv; i++) {
 			String key = o.compiled.getConstant(o.nextInt()).toString();
 			if (!doingNew)
 				if (o.kwargs.contains(key))
-					throw new TypeError("got multiple values for keyword argument '" + key + "'");
+					throw new TypeError(
+							"got multiple values for keyword argument '" + key
+									+ "'");
 			o.kwargs.put(key, stack.pop());
 		}
 	}
 
 	private void saveLocal(FrameObject o, Stack<PythonObject> stack) {
-		environment().getLocals().putVariable(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop());
+		environment().getLocals().putVariable(
+				((StringObject) o.compiled.getConstant(o.nextInt())).value,
+				stack.pop());
 	}
 
 	private void saveGlobal(FrameObject o, Stack<PythonObject> stack) {
-		environment().set(((StringObject)o.compiled.getConstant(o.nextInt())).value, stack.pop(), true, false);
+		environment().set(
+				((StringObject) o.compiled.getConstant(o.nextInt())).value,
+				stack.pop(), true, false);
 	}
 
 	private void dup(FrameObject o, Stack<PythonObject> stack) {
@@ -870,8 +935,8 @@ public class PythonInterpreter extends PythonObject {
 
 	private void importOperation(FrameObject o, Stack<PythonObject> stack) {
 		// import bytecode
-		String s1 = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
-		String s2 = ((StringObject)o.compiled.getConstant(o.nextInt())).value;
+		String s1 = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
+		String s2 = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
 		try {
 			pythonImport(environment(), s1, s2, null);
 		} catch (CastFailedException e1) {
@@ -890,7 +955,7 @@ public class PythonInterpreter extends PythonObject {
 	private void makeFirst(FrameObject o, Stack<PythonObject> stack) {
 		int nth = o.nextInt();
 		List<PythonObject> rest = new ArrayList<PythonObject>();
-		for (int i=0; i<nth; i++)
+		for (int i = 0; i < nth; i++)
 			rest.add(stack.pop());
 		PythonObject newHead = stack.pop();
 		Collections.reverse(rest);
@@ -903,13 +968,14 @@ public class PythonInterpreter extends PythonObject {
 		int cfc = currentFrame.size();
 		PythonObject seq = stack.pop();
 		int count = o.nextInt();
-		
-		ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(new TupleObject(true, seq), null);
+
+		ListObject lo = (ListObject) PythonRuntime.LIST_TYPE.call(
+				new TupleObject(true, seq), null);
 		if (lo.objects.size() > count)
 			throw new TypeError("too many values to unpack");
 		if (lo.objects.size() < count)
 			throw new TypeError("too few values to unpack");
-		
+
 		Collections.reverse(lo.objects);
 		for (PythonObject obj : lo.objects)
 			stack.push(obj);
@@ -920,8 +986,10 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject keysFn = value.get("keys", null);
 		PythonObject getItemFn = value.get("__getitem__", null);
 		if ((keysFn == null) || (getItemFn == null))
-			new TypeError("argument after ** must be a mapping, not " + value.toString());
-		PythonObject iterator = Utils.run("iter", execute(true, keysFn, null)).get(GeneratorObject.NEXT, null);
+			new TypeError("argument after ** must be a mapping, not "
+					+ value.toString());
+		PythonObject iterator = Utils.run("iter", execute(true, keysFn, null))
+				.get(GeneratorObject.NEXT, null);
 		if (o.kwargs == null)
 			o.kwargs = new KwArgs.HashMapKWArgs();
 		try {
@@ -930,8 +998,9 @@ public class PythonInterpreter extends PythonObject {
 				returnee = execute(true, getItemFn, null, key);
 				o.kwargs.put(key.toString(), returnee);
 			}
-		} catch (PythonExecutionException e){
-			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue()){
+		} catch (PythonExecutionException e) {
+			if (PythonRuntime.isinstance(e.getException(),
+					PythonRuntime.STOP_ITERATION).truthValue()) {
 				; // nothing
 			} else
 				throw e;
@@ -939,15 +1008,17 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private void pushLocalContext(FrameObject o, Stack<PythonObject> stack) {
-		// pushes value from stack into currentContex and makrs the push into frame
+		// pushes value from stack into currentContex and makrs the push into
+		// frame
 		o.localContext = stack.pop();
 	}
 
 	private void resolveArgs(FrameObject o, Stack<PythonObject> stack) {
 		// resolves args into locals
-		synchronized (this.args){
-			for (String key : this.args.keySet()){
-				environment().getLocals().putVariable(key, this.args.getVariable(key));
+		synchronized (this.args) {
+			for (String key : this.args.keySet()) {
+				environment().getLocals().putVariable(key,
+						this.args.getVariable(key));
 			}
 		}
 	}
@@ -955,11 +1026,12 @@ public class PythonInterpreter extends PythonObject {
 	private void getAttr(FrameObject o, Stack<PythonObject> stack) {
 		try {
 			PythonObject apo;
-			StringObject field = (StringObject) o.compiled.getConstant(o.nextInt());
-			PythonObject value = stack.pop();	// object to get attribute from
+			StringObject field = (StringObject) o.compiled.getConstant(o
+					.nextInt());
+			PythonObject value = stack.pop(); // object to get attribute from
 			if (value instanceof FutureObject)
 				value = ((FutureObject) value).getValue();
-			apo = value.get("__getattribute__", getLocalContext()); 
+			apo = value.get("__getattribute__", getLocalContext());
 			if (apo != null && !(value instanceof ClassObject)) {
 				// There is __getattribute__ defined, call it directly
 				returnee = execute(false, apo, null, field);
@@ -972,20 +1044,21 @@ public class PythonInterpreter extends PythonObject {
 					returnee = apo;
 					o.accepts_return = true;
 					return;
-				}				
+				}
 				// ... and if that fails, use __getattr__ if available
-				apo = value.get("__getattr__", getLocalContext()); 
+				apo = value.get("__getattr__", getLocalContext());
 				if (apo != null) {
 					// There is __getattribute__ defined, call it directly
 					returnee = execute(false, apo, null, field);
 					o.accepts_return = true;
 					return;
 				}
-				throw new AttributeError("" + value.getType() + " object has no attribute '" + field + "'");
+				throw new AttributeError("" + value.getType()
+						+ " object has no attribute '" + field + "'");
 			}
 		} finally {
-			if (returnee instanceof PropertyObject){
-				returnee = ((PropertyObject)returnee).get();
+			if (returnee instanceof PropertyObject) {
+				returnee = ((PropertyObject) returnee).get();
 			}
 		}
 	}
@@ -993,47 +1066,52 @@ public class PythonInterpreter extends PythonObject {
 	private void delAttr(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject runnable = environment().getBuiltin("delattr");
 		PythonObject[] args = new PythonObject[2];
-		args[1] = (StringObject)o.compiled.getConstant(o.nextInt());							// attribute
-		args[0] = stack.pop();																	// object
+		args[1] = o.compiled.getConstant(o.nextInt()); // attribute
+		args[0] = stack.pop(); // object
 		returnee = execute(false, runnable, null, args);
 	}
 
 	private void setAttr(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject runnable = environment().getBuiltin("setattr");
 		PythonObject[] args = new PythonObject[3];
-		// If argument for SETATTR is not set, attribute name is pop()ed from stack   
+		// If argument for SETATTR is not set, attribute name is pop()ed from
+		// stack
 		PythonObject po = o.compiled.getConstant(o.nextInt());
 		if (po == NoneObject.NONE) {
-			args[1] = stack.pop();	// attribute
-			args[0] = stack.pop();	// object
-			args[2] = stack.pop();	// value
+			args[1] = stack.pop(); // attribute
+			args[0] = stack.pop(); // object
+			args[2] = stack.pop(); // value
 		} else {
-			args[1] = (StringObject)po;		// attribute
-			args[0] = stack.pop();			// object
-			args[2] = stack.pop();			// value
-		} 
+			args[1] = po; // attribute
+			args[0] = stack.pop(); // object
+			args[2] = stack.pop(); // value
+		}
 		returnee = execute(false, runnable, null, args);
 	}
 
 	private void isinstance(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject type = stack.pop();
 		PythonObject value = stack.peek();
-		stack.push(BoolObject.fromBoolean(PythonRuntime.doIsInstance(value, type, true)));
+		stack.push(BoolObject.fromBoolean(PythonRuntime.doIsInstance(value,
+				type, true)));
 	}
 
 	private void raise(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject s = Utils.peek(stack);
 		if (s == null)
-			throw new TypeError("no exception is being handled but raise called");
+			throw new TypeError(
+					"no exception is being handled but raise called");
 		else if (PythonRuntime.isinstance(s, PythonRuntime.ERROR).truthValue()) {
 			// Throw exception normally
 			throw new PythonExecutionException(s);
-		} else  if (PythonRuntime.isderived(s, PythonRuntime.ERROR)) {
+		} else if (PythonRuntime.isderived(s, PythonRuntime.ERROR)) {
 			// Throw new exception instance
-			s = ((ClassObject)s).call(TupleObject.EMPTY, KwArgs.EMPTY);
+			s = ((ClassObject) s).call(TupleObject.EMPTY, KwArgs.EMPTY);
 			throw new PythonExecutionException(s);
 		} else
-			throw new TypeError("exceptions must be Error instance or class derived from Error, not " + s.toString());
+			throw new TypeError(
+					"exceptions must be Error instance or class derived from Error, not "
+							+ s.toString());
 	}
 
 	private void reraise(FrameObject o, Stack<PythonObject> stack) {
@@ -1047,7 +1125,7 @@ public class PythonInterpreter extends PythonObject {
 
 	private void pushFrame(FrameObject o, Stack<PythonObject> stack) {
 		checkOverflow();
-		
+
 		// inserts new subframe onto frame stack
 		o.accepts_return = true;
 		FrameObject nf = new FrameObject();
@@ -1058,12 +1136,12 @@ public class PythonInterpreter extends PythonObject {
 		nf.dataStream = ByteBuffer.wrap(nf.compiled.getBytedata());
 		nf.pc = o.nextInt();
 		currentFrame.add(nf);
-		
+
 		// moves x elements from original stack to new stack (used by WITH)
 		int popc = o.nextInt();
-		if (popc > 0){
+		if (popc > 0) {
 			List<PythonObject> po = new ArrayList<PythonObject>();
-			for (int i=0; i<popc; i++){
+			for (int i = 0; i < popc; i++) {
 				po.add(stack.pop());
 			}
 			Collections.reverse(po);
@@ -1083,16 +1161,16 @@ public class PythonInterpreter extends PythonObject {
 
 	private ExecutionResult yield(FrameObject o, Stack<PythonObject> stack) {
 		String name = ((StringObject) o.compiled.getConstant(o.nextInt())).value;
-		if (o.ownedGenerator == null){
+		if (o.ownedGenerator == null) {
 			List<FrameObject> ol = new ArrayList<FrameObject>();
 			FrameObject oo = o;
-			while (oo != null){
+			while (oo != null) {
 				ol.add(oo.cloneFrame());
 				oo = oo.parentFrame;
 			}
-			for (int i=0; i<ol.size(); i++)
-				if (i != ol.size()-1)
-					ol.get(i).parentFrame = ol.get(i+1);
+			for (int i = 0; i < ol.size(); i++)
+				if (i != ol.size() - 1)
+					ol.get(i).parentFrame = ol.get(i + 1);
 			ol.get(0).pc -= 5;
 			Collections.reverse(ol);
 			GeneratorObject generator = new GeneratorObject(name, ol);
@@ -1108,13 +1186,13 @@ public class PythonInterpreter extends PythonObject {
 			o.sendValue = null;
 			o.returnHappened = true;
 			PythonObject retVal = stack.pop();
-			returnee = retVal;	
+			returnee = retVal;
 			o.stack.push(sentValue);
-			
+
 			GeneratorObject generator = o.ownedGenerator;
 			List<FrameObject> ol = new ArrayList<FrameObject>();
 			FrameObject oo = o;
-			while (oo != null){
+			while (oo != null) {
 				ol.add(oo.cloneFrame());
 				oo = oo.parentFrame;
 			}
@@ -1122,7 +1200,7 @@ public class PythonInterpreter extends PythonObject {
 			generator.storedFrames = ol;
 			for (FrameObject fr : ol)
 				fr.ownedGenerator = generator;
-			
+
 			o.returnHappened = true;
 			o.yielding = true;
 			removeLastFrame();
@@ -1133,34 +1211,37 @@ public class PythonInterpreter extends PythonObject {
 	private void loadDynamic(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject value = null;
 		boolean found = false;
-		StringObject variable = (StringObject) o.compiled.getConstant(o.nextInt());
-		for (int i=currentFrame.size()-1; i>=0; i--){
+		StringObject variable = (StringObject) o.compiled.getConstant(o
+				.nextInt());
+		for (int i = currentFrame.size() - 1; i >= 0; i--) {
 			FrameObject oo = currentFrame.get(i);
 			InternalDict locals = oo.environment.getLocals();
-			if (locals.containsVariable(variable.value)){
+			if (locals.containsVariable(variable.value)) {
 				stack.push(locals.getVariable(variable.value));
 				found = true;
 				break;
 			}
 		}
 		if (!found)
-			throw new NameError("dynamic variable '" + variable.value + "' is undefined");
+			throw new NameError("dynamic variable '" + variable.value
+					+ "' is undefined");
 	}
 
 	private void saveDynamic(FrameObject o, Stack<PythonObject> stack) {
 		PythonObject value = stack.pop();
-		StringObject variable = (StringObject) o.compiled.getConstant(o.nextInt());
+		StringObject variable = (StringObject) o.compiled.getConstant(o
+				.nextInt());
 		boolean found = false;
-		for (int i=currentFrame.size()-1; i>=0; i--){
+		for (int i = currentFrame.size() - 1; i >= 0; i--) {
 			FrameObject oo = currentFrame.get(i);
 			InternalDict locals = oo.environment.getLocals();
-			if (locals.containsVariable(variable.value)){
+			if (locals.containsVariable(variable.value)) {
 				locals.putVariable(variable.value, value);
 				found = true;
 				break;
 			}
 		}
-		if (!found){
+		if (!found) {
 			InternalDict locals = o.environment.getLocals();
 			locals.putVariable(variable.value, value);
 		}
@@ -1182,18 +1263,18 @@ public class PythonInterpreter extends PythonObject {
 
 	private static String printStack(Stack<PythonObject> stack) {
 		StringBuilder bd = new StringBuilder();
-		
+
 		bd.append("[");
 		Object[] arr = stack.toArray();
-		for (Object o : arr){
-			String  s = o.toString();
+		for (Object o : arr) {
+			String s = o.toString();
 			if (s.length() > 40)
 				s = s.substring(0, 37) + "...";
 			bd.append(s);
 			bd.append("; ");
 		}
 		bd.append("]");
-		
+
 		return bd.toString();
 	}
 
@@ -1202,7 +1283,7 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	private void removeLastFrame() {
 		FrameObject o = this.currentFrame.removeLast();
-		if (o.parentFrame != null){
+		if (o.parentFrame != null) {
 			o.parentFrame.returnHappened = o.returnHappened;
 			o.parentFrame.yielding = o.yielding;
 			o.parentFrame.sendValue = o.sendValue;
@@ -1213,14 +1294,15 @@ public class PythonInterpreter extends PythonObject {
 				PythonObject e = o.exception;
 				if (e != null) {
 					if (e.get("__exception__", null) != null) {
-						Throwable t = (Throwable)((PointerObject)o.exception.get("__exception__", null)).getObject();
+						Throwable t = (Throwable) ((PointerObject) o.exception
+								.get("__exception__", null)).getObject();
 						if (t instanceof PythonException)
-							throw (PythonException)t;
+							throw (PythonException) t;
 						throw new PythonExecutionException(e, t);
 					} else {
 						PythonException pe = PythonException.translate(e);
 						if (pe != null) {
-							
+
 							throw pe;
 						}
 						throw new PythonExecutionException(e);
@@ -1233,35 +1315,36 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Imports based on the values on the Import bytecode
+	 * 
 	 * @param environment
 	 * @param variable
 	 * @param modulePath
 	 * @param target
-	 * @throws CastFailedException 
+	 * @throws CastFailedException
 	 */
 	private void pythonImport(EnvironmentObject environment, String variable,
 			String modulePath, PythonObject target) throws CastFailedException {
-		if (modulePath == null || modulePath.equals("")){
-			if (target == null){
-				synchronized (PythonRuntime.runtime){
+		if (modulePath == null || modulePath.equals("")) {
+			if (target == null) {
+				synchronized (PythonRuntime.runtime) {
 					target = PythonRuntime.runtime.getModule(variable, null);
 				}
-			} else if (!variable.equals("*")){
-				environment.set(variable, 
-						target,
-						true, false);
+			} else if (!variable.equals("*")) {
+				environment.set(variable, target, true, false);
 			} else {
-				InternalDict dict = (InternalDict) target.getEditableFields().get(ModuleObject.__DICT__).object;
-				synchronized (dict){
+				InternalDict dict = (InternalDict) target.getEditableFields()
+						.get(ModuleObject.__DICT__).object;
+				synchronized (dict) {
 					Set<String> importKeys = new HashSet<String>();
 					if (!dict.containsVariable("__all__"))
 						importKeys.addAll(dict.keySet());
 					else
-						importKeys.addAll((List<String>)Coerce.toJavaCollection(dict.getVariable("__all__"), List.class, String.class));
-					for (String key : importKeys){
-						environment.set(key, 
-								dict.getVariable(key),
-								true, false);
+						importKeys.addAll(Coerce
+								.toJavaCollection(dict.getVariable("__all__"),
+										List.class, String.class));
+					for (String key : importKeys) {
+						environment
+								.set(key, dict.getVariable(key), true, false);
 					}
 				}
 			}
@@ -1270,33 +1353,46 @@ public class PythonInterpreter extends PythonObject {
 			String mm = split[0];
 			modulePath = modulePath.replaceFirst(mm, "");
 			modulePath = modulePath.replaceFirst("\\.", "");
-			if (target == null){
+			if (target == null) {
 				target = environment.get(mm, false, false);
-				if (target == null || !(target instanceof ModuleObject)){
-					ModuleObject thisModule = (ModuleObject) environment.get("__thismodule__", true, false);
+				if (target == null || !(target instanceof ModuleObject)) {
+					ModuleObject thisModule = (ModuleObject) environment.get(
+							"__thismodule__", true, false);
 					target = null;
-					synchronized (PythonRuntime.runtime){
-						String resolvePath = thisModule == null ? null : thisModule.getModuleData().getPackageResolve();
+					synchronized (PythonRuntime.runtime) {
+						String resolvePath = thisModule == null ? null
+								: thisModule.getModuleData()
+										.getPackageResolve();
 						if (resolvePath == null)
-							target = PythonRuntime.runtime.root.get(mm) != null ? PythonRuntime.runtime.root.get(mm).module : null;
+							target = PythonRuntime.runtime.root.get(mm) != null ? PythonRuntime.runtime.root
+									.get(mm).module : null;
 						if (target == null)
-							target = PythonRuntime.runtime.getModule(mm, resolvePath == null ? null : new StringObject(resolvePath, true));
+							target = PythonRuntime.runtime.getModule(mm,
+									resolvePath == null ? null
+											: new StringObject(resolvePath,
+													true));
 					}
 				}
 			} else {
-				if (target instanceof ModuleObject){
-					ModuleObject mod = (ModuleObject)target;
-					PythonObject target2 = ((InternalDict)mod.getEditableFields().get(ModuleObject.__DICT__).object).getVariable(mm);
-					if (target2 != null){
+				if (target instanceof ModuleObject) {
+					ModuleObject mod = (ModuleObject) target;
+					PythonObject target2 = ((InternalDict) mod
+							.getEditableFields().get(ModuleObject.__DICT__).object)
+							.getVariable(mm);
+					if (target2 != null) {
 						pythonImport(environment, variable, modulePath, target2);
 						return;
 					}
-				} 
+				}
 				if (target.get(mm, null) != null) {
-					pythonImport(environment, variable, modulePath, target.get(mm, null));
+					pythonImport(environment, variable, modulePath,
+							target.get(mm, null));
 					return;
 				} else {
-					target = PythonRuntime.runtime.getModule(mm, new StringObject(((ModuleObject)target).getModuleData().getPackageResolve(), true));
+					target = PythonRuntime.runtime
+							.getModule(mm, new StringObject(
+									((ModuleObject) target).getModuleData()
+											.getPackageResolve(), true));
 				}
 			}
 			pythonImport(environment, variable, modulePath, target);
@@ -1310,11 +1406,13 @@ public class PythonInterpreter extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<bound python interpret for thread 0x" + Long.toHexString(Thread.currentThread().getId()) + ">";
+		return "<bound python interpret for thread 0x"
+				+ Long.toHexString(Thread.currentThread().getId()) + ">";
 	}
 
 	/**
 	 * Sets the arguments for the next RESOLVE_ARGS call
+	 * 
 	 * @param a
 	 */
 	public void setArgs(InternalDict a) {
@@ -1323,6 +1421,7 @@ public class PythonInterpreter extends PythonObject {
 
 	/**
 	 * Returns current frame
+	 * 
 	 * @return
 	 */
 	public FrameObject frame() {
@@ -1330,20 +1429,22 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	/**
-	 * Executes bytecode until cfc equals the number of frames. Used to fully finish execution of newly pushed stack
+	 * Executes bytecode until cfc equals the number of frames. Used to fully
+	 * finish execution of newly pushed stack
+	 * 
 	 * @param cfc
 	 * @return
 	 */
 	public PythonObject executeAll(int cfc) {
 		if (cfc == currentFrame.size())
 			return returnee;
-		while (true){
+		while (true) {
 			ExecutionResult res = executeOnce();
 			if (res == ExecutionResult.INTERRUPTED)
 				return null;
 			if (res == ExecutionResult.FINISHED || res == ExecutionResult.EOF)
-				if (currentFrame.size() == cfc){
-					if (exception() != null){
+				if (currentFrame.size() == cfc) {
+					if (exception() != null) {
 						PythonObject e = exception();
 						currentFrame.peekLast().exception = null;
 						throw new PythonExecutionException(e);
@@ -1360,6 +1461,7 @@ public class PythonInterpreter extends PythonObject {
 	public void setClosure(List<InternalDict> closure) {
 		this.currentClosure = closure;
 	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return new HashSet<String>();

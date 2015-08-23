@@ -26,6 +26,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
  * complex()
+ * 
  * @author Enerccio
  *
  */
@@ -39,29 +40,28 @@ public class ComplexTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject o, KwArgs kwargs){
+	public PythonObject call(TupleObject o, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (o.len() > 2)
 			throw new TypeError("complex(): requires up to 2 parameters");
-		
+
 		double real = 0;
 		double imag = 0;
-		
+
 		try {
-			if (o.len() == 2){
-				real = ((NumberObject)o.valueAt(0)).doubleValue();
-				imag = ((NumberObject)o.valueAt(0)).doubleValue();
-			} else if (o.len() == 1){
-				real = ((NumberObject)o.valueAt(0)).doubleValue();
+			if (o.len() == 2) {
+				real = ((NumberObject) o.valueAt(0)).doubleValue();
+				imag = ((NumberObject) o.valueAt(0)).doubleValue();
+			} else if (o.len() == 1) {
+				real = ((NumberObject) o.valueAt(0)).doubleValue();
 			}
-		} catch (ClassCastException e){
+		} catch (ClassCastException e) {
 			throw new TypeError("complex(): parameters must be numbers");
 		}
-		
+
 		return new ComplexObject(real, imag);
 	}
-	
-	
 
 }

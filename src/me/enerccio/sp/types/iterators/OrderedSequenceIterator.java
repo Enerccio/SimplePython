@@ -31,10 +31,12 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Sequence iterator for system classes list and tuple
+ * 
  * @author Enerccio
  *
  */
-public class OrderedSequenceIterator extends PythonObject implements InternalIterator {
+public class OrderedSequenceIterator extends PythonObject implements
+		InternalIterator {
 	private static final long serialVersionUID = 4746975236443204424L;
 	private SequenceObject sequence;
 	private int cp = 0;
@@ -45,19 +47,25 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 		this.sequence = sequenceObject;
 		this.len = sequence.len();
 	}
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put(SequenceObject.__ITER__,	JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "__iter__"));
-			sfields.put(GeneratorObject.NEXT,		JavaMethodObject.noArgMethod(OrderedSequenceIterator.class, "next"));
-		} catch (Exception e){
+			sfields.put(SequenceObject.__ITER__, JavaMethodObject.noArgMethod(
+					OrderedSequenceIterator.class, "__iter__"));
+			sfields.put(GeneratorObject.NEXT, JavaMethodObject.noArgMethod(
+					OrderedSequenceIterator.class, "next"));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
+
 	@Override
 	public Set<String> getGenHandleNames() {
 		return sfields.keySet();
@@ -67,30 +75,34 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
+
 	@Override
 	public void newObject() {
 		super.newObject();
 	}
-	
+
 	@Override
 	public PythonObject __iter__() {
 		return this;
 	}
-	
+
 	@Override
 	public PythonObject next() {
 		if (cp >= len)
 			throw new StopIteration();
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, NumberObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false,
+				Utils.get(sequence, SequenceObject.__GETITEM__), null,
+				NumberObject.valueOf(cp++));
 		return value;
 	}
-	
+
 	@Override
 	public PythonObject nextInternal() {
 		if (cp >= len)
 			return null;
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false, Utils.get(sequence, SequenceObject.__GETITEM__), null, NumberObject.valueOf(cp++));
+		PythonObject value = PythonInterpreter.interpreter.get().execute(false,
+				Utils.get(sequence, SequenceObject.__GETITEM__), null,
+				NumberObject.valueOf(cp++));
 		return value;
 	}
 
@@ -101,7 +113,7 @@ public class OrderedSequenceIterator extends PythonObject implements InternalIte
 
 	@Override
 	protected String doToString() {
-		return "<iterator of " + clampIter(sequence.toString())  + ">";
+		return "<iterator of " + clampIter(sequence.toString()) + ">";
 	}
 
 	private String clampIter(String string) {

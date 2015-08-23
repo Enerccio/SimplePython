@@ -24,55 +24,77 @@ import me.enerccio.sp.types.sequences.TupleObject;
 public class ArgumentConsumer {
 
 	/**
-	 * Consumes the argument, either from tuple or from kwargs, if either are provided, or the default value. 
-	 * @param function name of the function calling this, for exception purposes
-	 * @param to tuple object, must be not null
-	 * @param kw kwargs, can be null
-	 * @param ord ord in the tuple
-	 * @param arg name of the argument
-	 * @param clazz class of the java coercion
-	 * @param defaultValue default value
+	 * Consumes the argument, either from tuple or from kwargs, if either are
+	 * provided, or the default value.
+	 * 
+	 * @param function
+	 *            name of the function calling this, for exception purposes
+	 * @param to
+	 *            tuple object, must be not null
+	 * @param kw
+	 *            kwargs, can be null
+	 * @param ord
+	 *            ord in the tuple
+	 * @param arg
+	 *            name of the argument
+	 * @param clazz
+	 *            class of the java coercion
+	 * @param defaultValue
+	 *            default value
 	 * @return value or default value
 	 */
-	public static <X> X consumeArgument(String function, TupleObject to, KwArgs kw, int ord, String arg, Class<X> clazz, X defaultValue){
+	public static <X> X consumeArgument(String function, TupleObject to,
+			KwArgs kw, int ord, String arg, Class<X> clazz, X defaultValue) {
 		X value = defaultValue;
-		if (to.len() > ord){
+		if (to.len() > ord) {
 			value = Coerce.argument(to, ord, function, clazz);
 			if (kw != null)
 				if (kw.contains(arg))
-					throw new TypeError(function+"(): duplicate argument '" + arg + "'");
+					throw new TypeError(function + "(): duplicate argument '"
+							+ arg + "'");
 		} else {
-			if (kw != null){
+			if (kw != null) {
 				if (kw.contains(arg))
 					value = kw.consume(arg, clazz);
 			}
 		}
 		return value;
 	}
-	
+
 	/**
-	 * Consumes the argument, either from tuple or from kwargs, if either are provided, or raise python exception
-	 * @param function name of the function calling this, for exception purposes
-	 * @param to tuple object, must be not null
-	 * @param kw kwargs, can be null
-	 * @param ord ord in the tuple
-	 * @param arg name of the argument
-	 * @param clazz class of the java coercion
+	 * Consumes the argument, either from tuple or from kwargs, if either are
+	 * provided, or raise python exception
+	 * 
+	 * @param function
+	 *            name of the function calling this, for exception purposes
+	 * @param to
+	 *            tuple object, must be not null
+	 * @param kw
+	 *            kwargs, can be null
+	 * @param ord
+	 *            ord in the tuple
+	 * @param arg
+	 *            name of the argument
+	 * @param clazz
+	 *            class of the java coercion
 	 * @return value
 	 */
-	public static <X> X consumeArgumentNoDefault(String function, TupleObject to, KwArgs kw, int ord, String arg, Class<X> clazz){
-		if (to.len() > ord){
+	public static <X> X consumeArgumentNoDefault(String function,
+			TupleObject to, KwArgs kw, int ord, String arg, Class<X> clazz) {
+		if (to.len() > ord) {
 			X value = Coerce.argument(to, ord, function, clazz);
 			if (kw != null)
 				if (kw.contains(arg))
-					throw new TypeError(function+"(): duplicate argument '" + arg + "'");
+					throw new TypeError(function + "(): duplicate argument '"
+							+ arg + "'");
 			return value;
 		} else {
-			if (kw != null){
+			if (kw != null) {
 				if (kw.contains(arg))
 					return kw.consume(arg, clazz);
 			}
 		}
-		throw new TypeError(function + "(): argument at position " + ord + " not provided");
+		throw new TypeError(function + "(): argument at position " + ord
+				+ " not provided");
 	}
 }

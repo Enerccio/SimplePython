@@ -28,6 +28,7 @@ import me.enerccio.sp.utils.Pair;
 
 /**
  * Wraps all public methods wrapped by @WrapMethod
+ * 
  * @author Enerccio
  *
  */
@@ -35,17 +36,18 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 	private static final long serialVersionUID = -5142774589035715501L;
 
 	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface WrapMethod { }
-	
+	public static @interface WrapMethod {
+	}
+
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface WrapField {
 		boolean readOnly() default false;
 	}
-	
+
 	@Override
 	protected List<Method> getMethods(Class<?> clazz) {
 		List<Method> ml = new ArrayList<Method>();
-		for (Method m : clazz.getMethods()){
+		for (Method m : clazz.getMethods()) {
 			if (m.isAnnotationPresent(WrapMethod.class))
 				ml.add(m);
 		}
@@ -57,7 +59,8 @@ public class WrapAnnotationFactory extends WrapBaseFactory {
 		List<Pair<Field, Boolean>> fl = new ArrayList<Pair<Field, Boolean>>();
 		for (Field f : clazz.getFields())
 			if (f.isAnnotationPresent(WrapField.class))
-				fl.add(Pair.makePair(f, f.getAnnotation(WrapField.class).readOnly()));
+				fl.add(Pair.makePair(f, f.getAnnotation(WrapField.class)
+						.readOnly()));
 		return fl;
 	}
 

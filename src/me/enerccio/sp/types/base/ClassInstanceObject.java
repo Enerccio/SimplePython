@@ -32,6 +32,7 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Class Instance object. Created by ClassObjects.
+ * 
  * @author Enerccio
  *
  */
@@ -47,7 +48,7 @@ public class ClassInstanceObject extends PythonObject {
 	public ClassInstanceObject() {
 		super(false);
 	}
-	
+
 	@Override
 	public boolean truthValue() {
 		return true;
@@ -55,25 +56,27 @@ public class ClassInstanceObject extends PythonObject {
 
 	@Override
 	protected String doToString() {
-		return "<instance of " + fields.get(ClassObject.__CLASS__).object.toString() + " at 0x"
-				+ Long.toHexString(getId()) + ">";
+		return "<instance of "
+				+ fields.get(ClassObject.__CLASS__).object.toString()
+				+ " at 0x" + Long.toHexString(getId()) + ">";
 	}
-	
+
 	private static JavaMethodObject pyHash;
 	static {
 		try {
 			pyHash = new JavaMethodObject(ClassInstanceObject.class, "pyHash");
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	// Should be only called when object is created, not when any other class is!
+	// Should be only called when object is created, not when any other class
+	// is!
 	public void initObject() {
 		Utils.putPublic(this, __HASH__, pyHash.cloneWithThis(this));
 	}
-	
-	public NumberObject pyHash(TupleObject args, KwArgs kw){
+
+	public NumberObject pyHash(TupleObject args, KwArgs kw) {
 		if (args.len() != 0)
 			throw new TypeError("__hash__(): requires 0 parameters");
 		if (kw != null)

@@ -19,6 +19,7 @@ package me.enerccio.sp.utils;
 
 /**
  * Thrown when method is incompatible for the arguments or number of arguments
+ * 
  * @author Enerccio
  *
  */

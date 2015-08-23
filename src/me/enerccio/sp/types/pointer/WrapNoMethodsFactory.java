@@ -19,6 +19,7 @@ package me.enerccio.sp.types.pointer;
 
 /**
  * Will wrap no methods at all.
+ * 
  * @author Enerccio
  *
  */

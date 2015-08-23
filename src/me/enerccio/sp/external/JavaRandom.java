@@ -41,13 +41,13 @@ public class JavaRandom {
 	public JavaRandom() {
 		rnd = new Random();
 	}
-	
+
 	@WrapMethod
 	@SpyDoc("Get the next random number in the range [0.0, 1.0).")
 	public float random() {
 		return rnd.nextFloat();
 	}
-	
+
 	@WrapMethod
 	public void seed(TupleObject args, KwArgs kw) {
 		kw.notExpectingKWArgs();
@@ -62,7 +62,7 @@ public class JavaRandom {
 		}
 		rnd = new java.util.Random();
 	}
-	
+
 	@WrapMethod
 	@SpyDoc("Return internal state; can be passed to setstate() later.")
 	public PythonObject getstate() {
@@ -88,16 +88,16 @@ public class JavaRandom {
 			throw new TypeError("Passed value is not saved state");
 		}
 		try {
-			ByteArrayInputStream bs = new ByteArrayInputStream(d); 
+			ByteArrayInputStream bs = new ByteArrayInputStream(d);
 			ObjectInputStream ois = new ObjectInputStream(bs);
-			rnd = (java.util.Random)ois.readObject();
-		} catch (ClassNotFoundException|ClassCastException e) {
+			rnd = (java.util.Random) ois.readObject();
+		} catch (ClassNotFoundException | ClassCastException e) {
 			throw new TypeError("Invalid saved state");
 		} catch (IOException e) {
 			throw new RuntimeException("Impossible happened", e);
 		}
 	}
-	
+
 	@WrapMethod
 	@SpyDoc("Choose a random item from range(start, stop[, step])")
 	public int randrange(TupleObject args, KwArgs kw) {
@@ -110,7 +110,7 @@ public class JavaRandom {
 		try {
 			if (args.len() == 1) {
 				// Only one argument - range end
-					stop = Coerce.toJava(args.get(0), int.class);
+				stop = Coerce.toJava(args.get(0), int.class);
 			} else if (args.len() == 2) {
 				// start - end
 				start = Coerce.toJava(args.get(0), int.class);
@@ -126,42 +126,42 @@ public class JavaRandom {
 		}
 		int width = stop - start;
 		if ((step == 1) && (width > 0))
-            return start + rnd.nextInt(width);
-		
-        if (step == 1)
-            throw new ValueError("empty range for randrange()");
-        
-        int n = 0;
-        if (step > 0)
-            n = (width + step - 1);
-        else if (step < 0)
-            n = (width + step + 1);
-        else
-        	throw new ValueError("zero step for randrange()");
+			return start + rnd.nextInt(width);
 
-        if (n <= 0)
-        	throw new ValueError("empty range for randrange()");
+		if (step == 1)
+			throw new ValueError("empty range for randrange()");
 
-        return start + step * rnd.nextInt(n);
+		int n = 0;
+		if (step > 0)
+			n = (width + step - 1);
+		else if (step < 0)
+			n = (width + step + 1);
+		else
+			throw new ValueError("zero step for randrange()");
+
+		if (n <= 0)
+			throw new ValueError("empty range for randrange()");
+
+		return start + step * rnd.nextInt(n);
 	}
-	
+
 	@WrapMethod
 	@SpyDoc("getrandbits(k) -> x.  Generates a long int with k random bits.")
-    public long getrandbits(int k) {
-        if (k <= 0)
-            throw new ValueError("number of bits must be greater than zero");
-        long x = 0;
-        while (k > 0) {
-            x = x << 1;
-            x += randint(0, 1);
-            k --;
-        }
-        return x;
+	public long getrandbits(int k) {
+		if (k <= 0)
+			throw new ValueError("number of bits must be greater than zero");
+		long x = 0;
+		while (k > 0) {
+			x = x << 1;
+			x += randint(0, 1);
+			k--;
+		}
+		return x;
 	}
 
 	@WrapMethod
 	@SpyDoc("Return random integer in range [a, b], including both end points.")
-    public int randint(int a, int b) {
+	public int randint(int a, int b) {
 		int width = b - a;
 		if (width > 0)
 			return a + rnd.nextInt(width + 1);
@@ -172,5 +172,5 @@ public class JavaRandom {
 	protected String __str__() {
 		return String.format("<random object at 0x%h>", this.hashCode());
 	}
-	
+
 }

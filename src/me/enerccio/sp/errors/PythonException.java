@@ -16,6 +16,7 @@
  * License along with this library.
  */
 package me.enerccio.sp.errors;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +30,9 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.sequences.ListObject;
 
-
 /**
  * Represents root exception that can be raised by SimplePython
+ * 
  * @author Enerccio
  *
  */
@@ -43,16 +44,17 @@ public abstract class PythonException extends RuntimeException {
 		TYPE_TO_EXCEPTION.put(PythonRuntime.VALUE_ERROR, ValueError.class);
 		TYPE_TO_EXCEPTION.put(PythonRuntime.TYPE_ERROR, TypeError.class);
 	}
-	
+
 	public final String message;
 	public final ClassObject type;
-	
+
 	public PythonException(ClassObject type, String message, Throwable cause) {
-		super(type.get(ClassObject.__NAME__, null).toString() + ":" + message, cause);
+		super(type.get(ClassObject.__NAME__, null).toString() + ":" + message,
+				cause);
 		this.type = type;
 		this.message = message;
 	}
-	
+
 	public PythonException(ClassObject type, String message) {
 		super(type.get(ClassObject.__NAME__, null).toString() + ":" + message);
 		this.type = type;
@@ -64,23 +66,31 @@ public abstract class PythonException extends RuntimeException {
 		Class<? extends PythonException> jcls = null;
 		String message;
 		try {
-			jcls = TYPE_TO_EXCEPTION.get((ClassObject) e.get(ClassObject.__CLASS__, null));
+			jcls = TYPE_TO_EXCEPTION.get(e.get(
+					ClassObject.__CLASS__, null));
 			message = e.get("__message__", null).toString();
 			if (jcls == null)
 				return null;
-			PythonException pe = jcls.getConstructor(String.class).newInstance(message);; 
-			pe.addPythonStack((List)((ListObject)e.get("stack", null)).objects);
-			return pe; 
-		} catch (ClassCastException | NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ce) {
+			PythonException pe = jcls.getConstructor(String.class).newInstance(
+					message);
+			;
+			pe.addPythonStack((List) ((ListObject) e.get("stack", null)).objects);
+			return pe;
+		} catch (ClassCastException | NullPointerException
+				| InstantiationException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException ce) {
 			return null;
 		}
 	}
-	
+
 	public void addPythonStack(List<StackElement> trace) {
 		// Collections.reverse(pstack);
-		List<StackTraceElement> stl = new ArrayList<StackTraceElement>(Arrays.asList(getStackTrace()));
+		List<StackTraceElement> stl = new ArrayList<StackTraceElement>(
+				Arrays.asList(getStackTrace()));
 		for (StackElement se : trace)
-			stl.add(0, new StackTraceElement(se.module.getName(), se.function, se.module.getFileName(), se.line));
+			stl.add(0, new StackTraceElement(se.module.getName(), se.function,
+					se.module.getFileName(), se.line));
 		setStackTrace(stl.toArray(new StackTraceElement[stl.size()]));
 	}
 }

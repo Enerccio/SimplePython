@@ -33,7 +33,7 @@ public class NoneTypeObject extends TypeObject {
 	}
 
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
 			kwargs.notExpectingKWArgs();
 		if (args.len() != 0)

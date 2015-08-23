@@ -19,6 +19,7 @@ package me.enerccio.sp.types;
 
 /**
  * Access Restriction - marks field public or private
+ * 
  * @author Enerccio
  *
  */

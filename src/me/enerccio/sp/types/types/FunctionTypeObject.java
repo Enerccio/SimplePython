@@ -36,6 +36,7 @@ import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 
 /**
  * function()
+ * 
  * @author Enerccio
  *
  */
@@ -48,16 +49,21 @@ public class FunctionTypeObject extends TypeObject {
 		return "function";
 	}
 
-	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name, kwargs_name, dict)
+	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name,
+	// kwargs_name, dict)
 	@Override
-	public PythonObject call(TupleObject args, KwArgs kwargs){
+	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.notExpectingKWArgs();	// Throws exception if there is kwarg defined 
+			kwargs.notExpectingKWArgs(); // Throws exception if there is kwarg
+											// defined
 		if (args.len() != 7)
-			throw new TypeError(" function(): incorrect number of parameters, requires 7, got " + args.len());
-		
-		PythonRuntime.runtime.checkSandboxAction("function", SecureAction.RUNTIME_COMPILE);
-		
+			throw new TypeError(
+					" function(): incorrect number of parameters, requires 7, got "
+							+ args.len());
+
+		PythonRuntime.runtime.checkSandboxAction("function",
+				SecureAction.RUNTIME_COMPILE);
+
 		String src = null;
 		InternalDict dict = null;
 		List<InternalDict> maps = new ArrayList<InternalDict>();
@@ -65,42 +71,44 @@ public class FunctionTypeObject extends TypeObject {
 		String vararg = null;
 		String kwararg = null;
 		InternalDict defaults = null;
-		
+
 		try {
 			PythonObject arg = args.getObjects()[0];
-			src = ((StringObject)arg).value;
-			
-			dict = (InternalDict)args.getObjects()[1];
-			
-			TupleObject to = (TupleObject)args.getObjects()[2];
+			src = ((StringObject) arg).value;
+
+			dict = (InternalDict) args.getObjects()[1];
+
+			TupleObject to = (TupleObject) args.getObjects()[2];
 			for (PythonObject o : to.getObjects())
-				maps.add(((InternalDict)o));
-			
-			ListObject o = (ListObject)args.getObjects()[3];
+				maps.add(((InternalDict) o));
+
+			ListObject o = (ListObject) args.getObjects()[3];
 			for (PythonObject oo : o.objects)
-				aas.add(((StringObject)oo).value);
-			
+				aas.add(((StringObject) oo).value);
+
 			arg = args.getObjects()[4];
 			if (arg != NoneObject.NONE)
-				vararg = ((StringObject)arg).value;
-			
+				vararg = ((StringObject) arg).value;
+
 			arg = args.getObjects()[4];
 			if (arg != NoneObject.NONE)
-				kwararg = ((StringObject)arg).value;
-			
+				kwararg = ((StringObject) arg).value;
+
 			arg = args.getObjects()[6];
 			if (arg != NoneObject.NONE)
-				defaults = (InternalDict)arg;
+				defaults = (InternalDict) arg;
 			else
 				defaults = new StringDictObject();
-			
-		} catch (ClassCastException e){
+
+		} catch (ClassCastException e) {
 			throw new TypeError(" function(): wrong types of arguments");
 		}
-		
+
 		PythonCompiler c = new PythonCompiler();
-		
-		return c.doCompile(ParserGenerator.parseStringInput(src).string_input(), maps, aas, vararg, kwararg, defaults, dict);
+
+		return c.doCompile(
+				ParserGenerator.parseStringInput(src).string_input(), maps,
+				aas, vararg, kwararg, defaults, dict);
 	}
 
 }

@@ -38,24 +38,26 @@ import me.enerccio.sp.utils.Utils;
 
 /**
  * Python tuple object
+ * 
  * @author Enerccio
  *
  */
-public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAccessor {
+public class TupleObject extends ImmutableSequenceObject implements
+		SimpleIDAccessor {
 	private static final long serialVersionUID = 12L;
 	public static final TupleObject EMPTY = new TupleObject(false);
-	
-	private TupleObject(){
+
+	private TupleObject() {
 		super(false);
 		array = new PythonObject[0];
 	}
-	
-	private TupleObject(boolean internalUse){
+
+	private TupleObject(boolean internalUse) {
 		super(internalUse);
 		array = new PythonObject[0];
 	}
-	
-	public TupleObject(PythonObject... args){
+
+	public TupleObject(PythonObject... args) {
 		super(false);
 		array = args;
 	}
@@ -64,16 +66,17 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		super(internalUse);
 		array = args;
 	}
-	
+
 	private PythonObject[] array;
-	
+
 	@Override
 	public int len() {
 		return array.length;
 	}
-	
-	/** 
-	 * Throws exception if there is any element in tuple. Should be used in parameters expecting function.
+
+	/**
+	 * Throws exception if there is any element in tuple. Should be used in
+	 * parameters expecting function.
 	 */
 	public void notExpectingArgs() {
 		if (array.length == 0)
@@ -81,9 +84,10 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 		throw new TypeError("function takes no arguments");
 	}
 
-	/** 
-	 * Throws exception if there is any element in tuple. Should be used in parameters expecting function.
-	 * Checks passed KWargs as well, throws exception if KWargs is not null nor empty.
+	/**
+	 * Throws exception if there is any element in tuple. Should be used in
+	 * parameters expecting function. Checks passed KWargs as well, throws
+	 * exception if KWargs is not null nor empty.
 	 */
 	public void notExpectingArgs(KwArgs kw) {
 		if (kw != null)
@@ -92,38 +96,42 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			return;
 		throw new TypeError("function takes no arguments");
 	}
-	
-	@Override
-	public int getId(){
-		final int prime = 31;
-        int result = 1;
-        for (int i=0; i<array.length; i++)
-	        result = (prime * result
-	                + ((NumberObject)Utils.run("hash", array[i])).intValue());
 
-        return result;
+	@Override
+	public int getId() {
+		final int prime = 31;
+		int result = 1;
+		for (int i = 0; i < array.length; i++)
+			result = (prime * result + ((NumberObject) Utils.run("hash",
+					array[i])).intValue());
+
+		return result;
 	}
 
 	/**
 	 * returns objects contained in this tuple object
+	 * 
 	 * @return
 	 */
 	public PythonObject[] getObjects() {
 		return array;
 	}
-	
+
+	@Override
 	public PythonObject add(PythonObject b) {
 		if (b instanceof TupleObject) {
-			PythonObject[] ar = new PythonObject[len() + ((TupleObject)b).len()];
+			PythonObject[] ar = new PythonObject[len()
+					+ ((TupleObject) b).len()];
 			int i = 0;
 			for (PythonObject o : array)
 				ar[i++] = o;
-			for (PythonObject o : ((TupleObject)b).array)
+			for (PythonObject o : ((TupleObject) b).array)
 				ar[i++] = o;
 			TupleObject t = new TupleObject(ar);
 			return t;
 		}
-		throw new TypeError("can only concatenate tuple (not '" + b.toString() + "') to tuple");
+		throw new TypeError("can only concatenate tuple (not '" + b.toString()
+				+ "') to tuple");
 	}
 
 	@Override
@@ -132,40 +140,41 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			return "()";
 		List<PythonObject> arr = Arrays.asList(array);
 		String text = arr.toString();
-		return "(" + text.substring(1, text.length()-1) + ")";
+		return "(" + text.substring(1, text.length() - 1) + ")";
 	}
 
 	/** Throws ArrayIndexOutOfBoundsException if i is out of range */
+	@Override
 	public PythonObject get(int i) {
-		return array[i]; 
+		return array[i];
 	}
-	
+
 	@Override
 	public PythonObject get(PythonObject key) {
-		if (key instanceof SliceObject){
+		if (key instanceof SliceObject) {
 			TupleObject to = new TupleObject();
-			
+
 			int[] slicedata = getSliceData(array.length, key);
 			int sav = slicedata[0];
 			int sov = slicedata[1];
 			int stv = slicedata[2];
 			boolean reverse = slicedata[3] == 1;
-			
+
 			List<PythonObject> lo = new ArrayList<PythonObject>();
-			
+
 			if (sav <= sov)
-				for (int i=sav; i<sov; i+=stv)
+				for (int i = sav; i < sov; i += stv)
 					lo.add(array[i]);
 			else
-				for (int i=sov; i<sav; i+=stv)
+				for (int i = sov; i < sav; i += stv)
 					lo.add(array[i]);
 			if (reverse)
 				Collections.reverse(lo);
-			
+
 			to.array = lo.toArray(new PythonObject[lo.size()]);
-			
+
 			return to;
-		} else 
+		} else
 			return doGet(this, key);
 	}
 
@@ -181,7 +190,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	@Override
 	public boolean containsItem(PythonObject o) {
-		for (int i=0; i<len(); i++)
+		for (int i = 0; i < len(); i++)
 			if (o.equals(array[i]))
 				return true;
 		return false;
@@ -195,7 +204,8 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 
 	@Override
 	public void deleteKey(PythonObject key) {
-		throw new TypeError("'" + Utils.run("typename", this) + "' object doesn't support item deletion");
+		throw new TypeError("'" + Utils.run("typename", this)
+				+ "' object doesn't support item deletion");
 	}
 
 	public static TupleObject fromSequence(SequenceObject o) {
@@ -205,7 +215,7 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 	}
 
 	private static void makeFromSequence(SequenceObject o, List<PythonObject> tl) {
-		for (int i = 0; i<o.len(); i++)
+		for (int i = 0; i < o.len(); i++)
 			tl.add(o.get(NumberObject.valueOf(i)));
 	}
 
@@ -223,9 +233,10 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 				// Use iter() function to grab iterator
 				iterator = Utils.run("iter", o);
 			} else {
-				iterator = PythonInterpreter.interpreter.get().execute(true, iter, null);
+				iterator = PythonInterpreter.interpreter.get().execute(true,
+						iter, null);
 				if (iterator instanceof InternalIterator) {
-					InternalIterator ii = (InternalIterator)iterator;
+					InternalIterator ii = (InternalIterator) iterator;
 					PythonObject item = ii.next();
 					while (item != null) {
 						tl.add(item);
@@ -236,36 +247,41 @@ public class TupleObject extends ImmutableSequenceObject  implements SimpleIDAcc
 			}
 			PythonObject next = iterator.get("next", null);
 			if (next == null)
-				throw new TypeError("iterator of " + o.toString() + " has no next() method");
+				throw new TypeError("iterator of " + o.toString()
+						+ " has no next() method");
 			while (true) {
-				PythonObject item = PythonInterpreter.interpreter.get().execute(true, next, null);
+				PythonObject item = PythonInterpreter.interpreter.get()
+						.execute(true, next, null);
 				tl.add(item);
 			}
-		} catch (StopIteration e){
+		} catch (StopIteration e) {
 			return;
 		} catch (PythonExecutionException e) {
-			if (PythonRuntime.isinstance(e.getException(), PythonRuntime.STOP_ITERATION).truthValue())
+			if (PythonRuntime.isinstance(e.getException(),
+					PythonRuntime.STOP_ITERATION).truthValue())
 				; // nothing
-			else if (PythonRuntime.isinstance(e.getException(), PythonRuntime.INDEX_ERROR).truthValue())
+			else if (PythonRuntime.isinstance(e.getException(),
+					PythonRuntime.INDEX_ERROR).truthValue())
 				; // still nothing
 			else
 				throw e;
 		}
 	}
-	
+
 	@Override
 	public PythonObject mul(PythonObject b) {
-		if (b instanceof NumberObject && NumberObject.isInteger(b)){
-			NumberObject no = (NumberObject)b;
+		if (b instanceof NumberObject && NumberObject.isInteger(b)) {
+			NumberObject no = (NumberObject) b;
 			int cnt = no.intValue();
 			List<PythonObject> ret = new ArrayList<PythonObject>();
-			
-			for (int i=0; i<cnt; i++){
+
+			for (int i = 0; i < cnt; i++) {
 				ret.addAll(Arrays.asList(array));
 			}
-			
+
 			return Utils.list2tuple(ret, false);
 		}
-		throw new TypeError("unsupported operand type(s) for *: '" + this + "' and '" + b + "'");
+		throw new TypeError("unsupported operand type(s) for *: '" + this
+				+ "' and '" + b + "'");
 	}
 }

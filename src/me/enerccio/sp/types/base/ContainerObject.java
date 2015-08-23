@@ -26,6 +26,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
  * Represents objects with __contains__
+ * 
  * @author Enerccio
  *
  */
@@ -35,25 +36,30 @@ public abstract class ContainerObject extends PythonObject {
 	public static final String __CONTAINS__ = "__contains__";
 	public static final String __DELKEY__ = "__delkey__";
 	public static final String __LEN__ = "__len__";
-	
+
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
-	
+
 	static {
 		try {
 			sfields.putAll(PythonObject.getSFields());
-			sfields.put(__CONTAINS__, 	new JavaMethodObject(ContainerObject.class, __CONTAINS__, PythonObject.class));
-			sfields.put(__DELKEY__, 	new JavaMethodObject(ContainerObject.class, __DELKEY__, PythonObject.class)); 
-			sfields.put( __LEN__, 		JavaMethodObject.noArgMethod(ContainerObject.class, __LEN__));
-		} catch (Exception e){
+			sfields.put(__CONTAINS__, new JavaMethodObject(
+					ContainerObject.class, __CONTAINS__, PythonObject.class));
+			sfields.put(__DELKEY__, new JavaMethodObject(ContainerObject.class,
+					__DELKEY__, PythonObject.class));
+			sfields.put(__LEN__, JavaMethodObject.noArgMethod(
+					ContainerObject.class, __LEN__));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public ContainerObject(boolean internalObject){
+
+	public ContainerObject(boolean internalObject) {
 		super(internalObject);
 	}
-	
-	protected static Map<String, JavaMethodObject> getSFields(){ return sfields; }
+
+	protected static Map<String, JavaMethodObject> getSFields() {
+		return sfields;
+	}
 
 	@Override
 	public Set<String> getGenHandleNames() {
@@ -64,22 +70,23 @@ public abstract class ContainerObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return sfields;
 	}
-	
-	public PythonObject __contains__(PythonObject o){
+
+	public PythonObject __contains__(PythonObject o) {
 		return BoolObject.fromBoolean(containsItem(o));
 	}
-	
-	public PythonObject __len__(){
+
+	public PythonObject __len__() {
 		return NumberObject.valueOf(len());
 	}
-	
-	public PythonObject __delkey__(PythonObject key){
+
+	public PythonObject __delkey__(PythonObject key) {
 		deleteKey(key);
 		return NoneObject.NONE;
 	}
 
 	/**
 	 * returns true if object o is in this container
+	 * 
 	 * @param o
 	 * @return
 	 */
@@ -87,18 +94,21 @@ public abstract class ContainerObject extends PythonObject {
 
 	/**
 	 * returns number of elements in this container
+	 * 
 	 * @return
 	 */
 	public abstract int len();
-	
+
 	/**
 	 * Removes key from the container or throws attribute error
-	 * @param key to remove
+	 * 
+	 * @param key
+	 *            to remove
 	 */
 	public abstract void deleteKey(PythonObject key);
-	
+
 	@Override
-	public final boolean truthValue(){
+	public final boolean truthValue() {
 		return len() != 0;
 	}
 
