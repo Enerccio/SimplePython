@@ -32,9 +32,15 @@ SOCK_DGRAM  = 0
 __sockethelper = javainstance("__sockethelper__", error)
 
 def gethostname():
+    """
+    Returns hostname of this computer
+    """
     return __sockethelper.gethostname()
 
 def socket(type=SOCK_STREAM, timeout=0):
+    """
+    Opens the socket by the type, either SOCK_STREAM or SOCK_DGRAM with provided timeout
+    """
     if type == SOCK_STREAM:
         return _tcp_socket(timeout)
     else:

@@ -23,6 +23,11 @@ __all__ = ["print_function"]
 _PRINT_FUNCTION = 0x1
 
 class __FutureObject(object):
+    """
+    Represents Future implementation.
+    Does nothing, really, only prints some nice information.
+    Real future is modyfing the compiler
+    """
     def __init__(self, future_id, version_id, version_impl):
         self.future_id = future_id
         self.version_id = version_id

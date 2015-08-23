@@ -25,4 +25,8 @@ SEEK_CUR = 1
 SEEK_END = 2
 
 def _exit(status=0):
+    """
+    Terminates the Java process. 
+    Might throw SandboxException if this is not allowed
+    """
     javainstance("__terminator__", status)

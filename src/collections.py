@@ -23,19 +23,31 @@ from sync import Mutex
 __all__ = ["Queue", "SynchronizedQueue"]
 
 class Queue(object):
+    """
+    Represents FIFO queue
+    """
     def __init__(self):
         super(Queue, self).__init__()
         self._queue = []
         
     def add(self, object):
+        """
+        Adds object to queue
+        """
         self._queue.append(object)
         
     def poll(self):
+        """
+        Returns value from the head of queue and removes that value from the queue
+        """
         value = self._queue[0]
         self._queue = self._queue[1:]
         return value
     
     def has_elements(self):
+        """
+        Returns True if queue has elements
+        """
         return len(self._queue) > 0
     
     def __str__(self):
@@ -45,19 +57,32 @@ class Queue(object):
         return len(self._queue)
         
 class SynchronizedQueue(Queue):
+    """
+    Synchronized version of Queue.
+    Uses Mutex to lock important structures
+    """
     def __init__(self):
         super(SynchronizedQueue, self).__init__()
         self.mutex = Mutex()
         
     def add(self, object):
+        """
+        Adds object to queue
+        """
         with self.mutex:
             Queue.add(self, object)
         
     def poll(self):
+        """
+        Returns value from the head of queue and removes that value from the queue
+        """
         with self.mutex:
             return Queue.poll(self)
         
     def has_elements(self):
+        """
+        Returns True if queue has elements
+        """
         with self.mutex:
             return Queue.has_elements(self)
     

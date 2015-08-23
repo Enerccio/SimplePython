@@ -25,20 +25,36 @@ OPEN_NEW = 1
 OPEN_NEW_TAB = 2
 
 class Error(Exception):
+    """
+    Thrown if webbrowser functions fail
+    """
     pass
 
 class controller(object):
+    """
+    controller object is base class for a browser type
+    """
     def __init__(self, name=None):
         self.browser = javainstance("__webbrowser__", name, Error) 
         
     def open(self, url, new=OPEN_DEFAULT, autoraise=True):
-         self.browser.open(url, new, autoraise)
+        """
+        Opens browser with url, autoraise is unfortunatelly ignored and 
+        OPEN_NEW_TAB is ignored as well 
+        """
+        self.browser.open(url, new, autoraise)
     
     def open_new(self, url):
-         self.browser.open(url, OPEN_NEW)
+        """
+        Does same as open with new=OPEN_NEW
+        """
+        self.browser.open(url, OPEN_NEW)
         
     def open_new_tab(self, url):
-         self.browser.open(url, OPEN_NEW_TAB)
+        """
+        Does same as open with new=OPEN_DEFAULT due to limitations of underline java library
+        """
+        self.browser.open(url, OPEN_NEW_TAB)
          
 class Mozilla(controller):
     pass
@@ -97,20 +113,38 @@ __mappings = {
 __default = controller()
 
 def open(url, new=OPEN_DEFAULT, autoraise=True):
+    """
+    Opens browser with url, autoraise is unfortunatelly ignored and 
+    OPEN_NEW_TAB is ignored as well 
+    """
     __default.open(url, new, autoraise)
     
 def open_new(url):
+    """
+    Does same as open with new=OPEN_NEW
+    """
     open(url, OPEN_NEW)
     
 def open_new_tab(url):
+    """
+    Does same as open with new=OPEN_DEFAULT due to limitations of underline java library
+    """
     open(url, OPEN_NEW_TAB)
     
 def get(name=None):
+    """
+    Returns controller for the name. If name is None, returns default controller
+    """
     if name is None:
         return __default
     return __mappings[name]
 
 def register(name, constructor, instance=None):
+    """
+    Registers new controller for the name. If instance is not None,
+    instance is registered, otherwise constructor is called with 0 arguments
+    to create the instance to register
+    """
     if instance is not None:
         __mappings[name] = instance
     else:

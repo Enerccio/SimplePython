@@ -26,7 +26,13 @@ stderr = javainstance("__sysoutstream__", True)
 __system = javainstance("__system__")
 
 def exit(status=0):
+    """
+    Raises SystemExit with status provided
+    """
     raise SystemExit(status)
 
 def current_time():
+    """
+    Returns current time in ms
+    """
     return __system.current_time()

@@ -23,6 +23,10 @@ __all__ = ["Thread"]
 _threadinfo = javainstance("__threadinfo__")
 
 class Thread(object):
+    """
+    Thread object. Can be started with start method.
+    Executes execute method in a new thread
+    """
     def __init__(self, name=None, thread=None, daemon=False):
         if thread is None:
             self.__jthread = javainstance("__jthread__", self, name)
@@ -32,24 +36,46 @@ class Thread(object):
         self.executed = getattr(self.__jthread, "executed")
         
     def set_name(self, name):
+        """
+        Sets the name of the thread to name
+        """
         self.__jthread.setThreadName(name)
         
     def get_name(self):
+        """
+        Returns name of the thread
+        """
         return self.__jthread.getThreadName()
         
     def start(self):
+        """
+        Starts the thread. Can only be called once
+        """
         self.__jthread.threadStart()
         
     def execute(self):
+        """
+        This method is executed in a new thread. Throws NotImplementedError by default,
+        so it should be overwritten by classes extending Thread
+        """
         raise NotImplementedError("thread.execute")
     
     def join(self):
+        """
+        Waits until this thread finishes
+        """
         self.__jthread.waitJoin()
         
     def interrupt(self):
+        """
+        Interrupts this thread
+        """
         self.__jthread.interruptThread()
         
     def running(self):
+        """
+        Returns True if this thread is running
+        """
         return self.__jthread.threadRunning()
     
     def __eq__(self, other):
@@ -70,6 +96,7 @@ class Thread(object):
     @staticmethod
     def wait(ms):
         """
+        @Staticmethod
         Waits ms milliseconds
         """
         _threadinfo.wait_time(ms, 0)
@@ -77,6 +104,7 @@ class Thread(object):
     @staticmethod
     def wait_nanotime(ms, ns):
         """
+        @Staticmethod
         Waits time milliseconds and ns nanoseconds
         """
         _threadinfo.wait_time(ms, ns)

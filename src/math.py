@@ -21,6 +21,9 @@ License along with this library.
 __all__ = ["floor", "max", "min"]
 
 def floor(x):
+    """
+    Returns floor of the number provided
+    """
     if type(x) == real:
         return real(int(x))
     elif type(x) == complex:
@@ -29,11 +32,17 @@ def floor(x):
         return int(x)
     
 def max(a, b):
+    """
+    Returns maximum of values a b provided
+    """
     if a > b:
         return a
     return b
 
 def min(a, b):
+    """
+    Returns minumum of values a b provided
+    """
     if a < b:
         return a
     return b

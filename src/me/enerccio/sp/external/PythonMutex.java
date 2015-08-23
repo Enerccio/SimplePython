@@ -37,14 +37,14 @@ public class PythonMutex {
 	}
 
 	@WrapMethod
-	public void try_acquire() {
-		m.tryLock();
+	public boolean try_acquire() {
+		return m.tryLock();
 	}
 
 	@WrapMethod
-	public void try_acquire_timeout(long ms, String unit) {
+	public boolean try_acquire_timeout(long ms, String unit) {
 		try {
-			m.tryLock(ms, TimeUnit.valueOf(unit));
+			return m.tryLock(ms, TimeUnit.valueOf(unit));
 		} catch (InterruptedException e) {
 			throw new TypeError("jmutext(): interrupted");
 		} catch (IllegalArgumentException e) {

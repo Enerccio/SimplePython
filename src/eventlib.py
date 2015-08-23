@@ -26,10 +26,19 @@ from sync import Mutex
 __all__ = ["EventReactor", "ThreadedEventReactor", "Event", "standard_events", "event_queue", "stop", "has_events"]
         
 class Event(object):
+    """
+    Base Event class. Provides standard handling of events along with timed events and refireable events
+    """
     __event_counter = 0
     __event_mutex = Mutex()
     
     def __init__(self, callable, periodic=False, periodTime=0, initDelay=0, args=(), kwargs={}):
+        """
+        Creates event out of callable. periodic value represents whether this event will autoqueue 
+        after it has been fired, periodTime is how long it will take after firing of the event to
+        queue again, initDelay is initial delay before event is fired for the fist time and 
+        args, kwargs are values used with the callable
+        """
         self.callable = callable
         self.periodic = periodic
         self.periodTime = periodTime
@@ -39,10 +48,9 @@ class Event(object):
             self.args = (self.args, )
         self.kwargs = kwargs
         
-        __event_mutex.acquire()
-        self.id = __event_counter
-        __event_counter += 1
-        __event_mutex.release()
+        with __event_mutex:
+            self.id = __event_counter
+            __event_counter += 1
         
     def call(self):
         self.callable(self, *self.args, **self.kwargs)
@@ -82,7 +90,16 @@ class __QueueOperator(object):
                     return self.__queue._queue.remove(event)
 
 class EventReactor(object):
+    """
+    EventReactor is base class for all EventReactors.
+    Provides a way to queue new events and then EventReactor deals with
+    the events
+    """
+    
     def __init__(self):
+        """
+        Creates new EventReactor with standard SynchronizedQueue and __QueueOperator
+        """
         self.__event_queue = SynchronizedQueue()
         self.__enqueuer = __QueueOperator(self.__event_queue)
         
@@ -92,6 +109,10 @@ class EventReactor(object):
         self.__last_access_time = sys.current_time()
         
     def poll(self):
+        """
+        When called, one pending event will be resolved.
+        Returns True if at least one event was resolved or False if queue is empty
+        """
         dif = sys.current_time() - self.__last_access_time
         self.__last_access_time = sys.current_time() 
         with self.__event_queue.mutex:
@@ -109,13 +130,26 @@ class EventReactor(object):
             return False
             
     def has_events(self):
+        """
+        Returns True if this reactor has events enqueued. 
+        This might not be accurate value due to threading issues
+        """
         with self.__event_queue.mutex:
             return len(self.__event_queue)
             
     def fire_event(self, event):
+        """
+        Base method, calls .call() on event. Is called when event needs to be fired by poll method
+        """
         event.call()
         
 class ThreadedEventReactor(EventReactor, Thread):
+    """
+    Threaded version of EventReactor.
+    This EventReactor looks like a thread and when started will poll events until stopped.
+    Provided idle_time is waited if reactor has no events in queue
+    """
+    
     def __init__(self, idle_time=10):
         self.stopped = False
         self.idle = idle_time
@@ -128,6 +162,9 @@ class ThreadedEventReactor(EventReactor, Thread):
                 Thread.wait(self.idle)
             
     def stop_event_thread(self):
+        """
+        Stops this event reactor. Cannot be restarted
+        """
         self.stopped = True
 
 _event_queue = None
@@ -157,6 +194,10 @@ stop = __StopProxy()
 has_events = __HasEventsProxy()
 
 def standard_events(poll_idle=10):
+    """
+    standard_events creates the necessary structures for standard events to work with global functions.
+    Creates new thread for the event queue and move the proxies so all works correctly.
+    """
     global _event_queue, _stop, _has_events
     if _event_queue is not None:
         raise TypeError("standard_events can only be called once!")
