@@ -1,8 +1,4 @@
-print 4
-print -4
-
-from __future__ import print_function
+x = [[1, 2], [2, 3]]
 
 def test():
-    x = print
-    print(x)
+   a, b = 1, 2

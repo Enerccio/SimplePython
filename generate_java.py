@@ -23,7 +23,10 @@ License along with this library.
 import os
 
 def math_interpreter_template():
-    os.makedirs("gen/me/enerccio/sp/interpret")
+    try:
+        os.makedirs("gen/me/enerccio/sp/interpret")
+    except:
+        pass
     
     template_path = "src/me/enerccio/sp/interpret/InterpreterMathExecutorHelper.java.template"
     output_path = "gen/me/enerccio/sp/interpret/InterpreterMathExecutorHelper.java"
