@@ -27,6 +27,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import me.enerccio.sp.errors.RuntimeError;
+import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.ModuleResolver;
@@ -49,7 +50,7 @@ public class BlockDefinition {
 	public enum DataTag {
 		MODULE('M'), NONE('N'), INT('I'), LONG('L'), REAL('R'), COMPLEX('C'), BUILTINS(
 				'b'), STRING('S'), ARRAY('A'), STRINGDICT_EMPTY_NEW('D'), ELLIPSIS(
-				'E'), BLOCK('B'), FNC('F')
+				'E'), BLOCK('B'), FNC('F'), SMALL_STRING('s'), SMALL_INT('i'),
 
 		;
 
@@ -76,7 +77,7 @@ public class BlockDefinition {
 	private Map<Integer, Pair<DataTag, Object>> di = new TreeMap<Integer, Pair<DataTag, Object>>();
 	private Map<Integer, Pair<DataTag, Object>> tagobjects = new TreeMap<Integer, Pair<DataTag, Object>>();
 
-	public BlockDefinition(CompiledBlockObject frame) {
+	public BlockDefinition(CompiledBlockObject frame) throws Exception {
 		bytecode = frame.getBytedata().clone();
 
 		for (Integer i : frame.dmap.keySet()) {
@@ -109,15 +110,15 @@ public class BlockDefinition {
 		Object[] arr = (Object[]) pair.getSecond();
 
 		final String name = idList
-				.get((Integer) ((Pair<DataTag, Object>) arr[0]).getSecond());
+				.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[0]).getSecond()));
 		final String fname = idList
-				.get((Integer) ((Pair<DataTag, Object>) arr[1]).getSecond());
+				.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[1]).getSecond()));
 
 		DebugInformation di = new DebugInformation();
-		di.function = idList.get((Integer) ((Pair<DataTag, Object>) arr[2])
-				.getSecond());
-		di.lineno = (Integer) ((Pair<DataTag, Object>) arr[3]).getSecond();
-		di.charno = (Integer) ((Pair<DataTag, Object>) arr[4]).getSecond();
+		di.function = idList.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[2])
+				.getSecond()));
+		di.lineno = Utils.toNumeric(((Pair<DataTag, Object>) arr[3]).getSecond());
+		di.charno = Utils.toNumeric(((Pair<DataTag, Object>) arr[4]).getSecond());
 		ModuleData mf = new ModuleData() {
 
 			@Override
@@ -231,6 +232,9 @@ public class BlockDefinition {
 		case INT:
 			v = NumberObject.valueOf((Integer) pair.getSecond());
 			break;
+		case SMALL_INT:
+			v = NumberObject.valueOf((Byte) pair.getSecond());
+			break;
 		case LONG:
 			v = NumberObject.valueOf((Long) pair.getSecond());
 			break;
@@ -243,6 +247,7 @@ public class BlockDefinition {
 		case REAL:
 			v = NumberObject.valueOf((Float) pair.getSecond());
 			break;
+		case SMALL_STRING:
 		case STRING:
 			v = new StringObject((String) pair.getSecond(), false);
 			break;
@@ -258,18 +263,18 @@ public class BlockDefinition {
 		di.put(i, toTagPair(debugInformation));
 	}
 
-	private void processEntry(Integer i, PythonObject pythonObject) {
+	private void processEntry(Integer i, PythonObject pythonObject) throws Exception {
 		tagobjects.put(i, processEntry(pythonObject));
 	}
 
-	private Pair<DataTag, Object> processEntry(PythonObject o) {
+	private Pair<DataTag, Object> processEntry(PythonObject o) throws Exception {
 
 		if (o == NoneObject.NONE) {
 			return Pair.makePair(DataTag.NONE, null);
 		} else if (o instanceof NumberObject) {
 			NumberObject no = (NumberObject) o;
 			if (NumberObject.isInteger(o)) {
-				return Pair.makePair(DataTag.INT, (Object) no.intValue());
+				return makeInt(no.intValue());
 			}
 			if (NumberObject.isLong(o)) {
 				return Pair.makePair(DataTag.LONG, (Object) no.longValue());
@@ -290,8 +295,7 @@ public class BlockDefinition {
 		} else if (o == PythonRuntime.runtime.getGlobals()) {
 			return Pair.makePair(DataTag.BUILTINS, null);
 		} else if (o instanceof StringObject) {
-			return Pair.makePair(DataTag.STRING,
-					(Object) ((StringObject) o).value);
+			return makeString(((StringObject) o).value);
 		} else if (o instanceof UserFunctionObject) {
 
 			UserFunctionObject fnc = (UserFunctionObject) o;
@@ -300,7 +304,7 @@ public class BlockDefinition {
 			Object[] args = new Object[fnc.args.size()];
 			int i = 0;
 			for (String arg : fnc.args) {
-				args[i] = Pair.makePair(DataTag.STRING, arg);
+				args[i] = makeString(arg);
 				++i;
 			}
 			Object docstring;
@@ -311,20 +315,19 @@ public class BlockDefinition {
 				if (pb == NoneObject.NONE)
 					docstring = Pair.makePair(DataTag.NONE, null);
 				else
-					docstring = Pair.makePair(DataTag.STRING,
+					docstring = makeString(
 							((StringObject) pb).value);
 			}
 			Object block = new BlockDefinition(fnc.block);
-			Object hasArgs = Pair.makePair(DataTag.INT, fnc.isVararg ? 1 : 0);
-			Object vararg = Pair.makePair(DataTag.STRING,
+			Object hasArgs = makeInt(fnc.isVararg ? 1 : 0);
+			Object vararg = makeString(
 					fnc.vararg == null ? "" : fnc.vararg);
-			Object hasKwArgs = Pair
-					.makePair(DataTag.INT, fnc.isKvararg ? 1 : 0);
-			Object kwargarg = Pair.makePair(DataTag.STRING,
+			Object hasKwArgs = makeInt(fnc.isKvararg ? 1 : 0);
+			Object kwargarg = makeString(
 					fnc.kvararg == null ? "" : fnc.kvararg);
 
 			Object[] data = new Object[] {
-					Pair.makePair(DataTag.STRING, fncName),
+					makeString((String) fncName),
 					Pair.makePair(DataTag.ARRAY, args), docstring,
 					Pair.makePair(DataTag.BLOCK, block), hasArgs, vararg,
 					hasKwArgs, kwargarg, };
@@ -377,7 +380,7 @@ public class BlockDefinition {
 
 		Object[] idAr = new Object[idList.size()];
 		for (int i = 0; i < idAr.length; i++) {
-			idAr[i] = Pair.makePair(DataTag.STRING, (Object) idList.get(i));
+			idAr[i] = makeString(idList.get(i));
 		}
 		wr.write(asBytes(Pair.makePair(DataTag.ARRAY, (Object) idAr),
 				protocolVersion));
@@ -400,15 +403,28 @@ public class BlockDefinition {
 		return bof.toByteArray();
 	}
 
+	private static Pair<DataTag, Object> makeString(String string) throws Exception {
+		if (string.getBytes("utf-8").length >= Byte.MAX_VALUE)
+			return Pair.makePair(DataTag.STRING, (Object)string);
+		else
+			return Pair.makePair(DataTag.SMALL_STRING, (Object)string);
+	}
+
 	private Pair<DataTag, Object> toTagPair(DebugInformation d) {
-		Object name = Pair.makePair(DataTag.INT, cache(d.module.getName()));
-		Object filename = Pair.makePair(DataTag.INT,
-				cache(d.module.getFileName()));
-		Object function = Pair.makePair(DataTag.INT, cache(d.function));
-		Object lineno = Pair.makePair(DataTag.INT, d.lineno);
-		Object charno = Pair.makePair(DataTag.INT, d.charno);
+		Object name = makeInt(cache(d.module.getName()));
+		Object filename = makeInt(cache(d.module.getFileName()));
+		Object function = makeInt(cache(d.function));
+		Object lineno = makeInt(d.lineno);
+		Object charno = makeInt(d.charno);
 		return Pair.makePair(DataTag.ARRAY, (Object) new Object[] { name,
 				filename, function, lineno, charno });
+	}
+
+	private static Pair<DataTag, Object> makeInt(int i) {
+		if (i >= Byte.MIN_VALUE && i <= Byte.MAX_VALUE)
+			return Pair.makePair(DataTag.SMALL_INT, (Object)(byte)i);
+		else
+			return Pair.makePair(DataTag.INT, (Object)i);
 	}
 
 	private int cache(String text) {
@@ -452,6 +468,9 @@ public class BlockDefinition {
 		case INT:
 			wr.writeInt((Integer) value);
 			break;
+		case SMALL_INT:
+			wr.writeByte((Byte) value);
+			break;
 		case LONG:
 			wr.writeLong((Long) value);
 			break;
@@ -461,8 +480,13 @@ public class BlockDefinition {
 		case REAL:
 			wr.writeFloat((Float) value);
 			break;
-		case STRING:
+		case SMALL_STRING:
 			byte[] sb = ((String) value).getBytes("utf-8");
+			wr.write((byte)sb.length);
+			wr.write(sb);
+			break;
+		case STRING:
+			sb = ((String) value).getBytes("utf-8");
 			wr.writeInt(sb.length);
 			wr.write(sb);
 			break;
@@ -471,6 +495,8 @@ public class BlockDefinition {
 		case BUILTINS:
 		case STRINGDICT_EMPTY_NEW:
 			break;
+		default:
+			throw new TypeError("can't compile");
 		}
 
 		wr.flush();
@@ -503,6 +529,9 @@ public class BlockDefinition {
 		case INT:
 			pp = Pair.makePair(t, (Object) dis.readInt());
 			break;
+		case SMALL_INT:
+			pp = Pair.makePair(t, (Object) dis.readByte());
+			break;
 		case LONG:
 			pp = Pair.makePair(t, (Object) dis.readLong());
 			break;
@@ -522,6 +551,14 @@ public class BlockDefinition {
 		case BUILTINS:
 		case STRINGDICT_EMPTY_NEW:
 			pp = Pair.makePair(t, null);
+			break;
+		case SMALL_STRING:
+			c = dis.readByte();
+			bd = IOUtils.toByteArray(dis, c);
+			pp = Pair.makePair(t, (Object) new String(bd, "utf-8"));
+			break;
+		default:
+			break;
 		}
 
 		return pp;

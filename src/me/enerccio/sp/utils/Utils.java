@@ -212,4 +212,10 @@ public class Utils {
 			bd.append("\\x" + Integer.toHexString(b & 0xFF));
 		return bd.toString();
 	}
+
+	public static int toNumeric(Object o) {
+		if (o instanceof Byte)
+			return ((Byte)o).intValue();
+		return ((Integer)o).intValue();
+	}
 }

@@ -30,7 +30,7 @@ import me.enerccio.sp.utils.Pair;
 public class ModuleDefinition {
 
 	private static final int pycHeader = 0xDEADBABE;
-	private static final int version = 0;
+	private static final int version = 1;
 
 	public ModuleDefinition(byte[] inputData) throws Exception {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(
@@ -45,7 +45,7 @@ public class ModuleDefinition {
 		root = BlockDefinition.unpackTaggedData(dis);
 	}
 
-	public ModuleDefinition(ModuleObject mo) {
+	public ModuleDefinition(ModuleObject mo) throws Exception {
 		root = Pair.makePair(DataTag.MODULE, (Object) Pair.makePair(
 				DataTag.BLOCK, (Object) new BlockDefinition(mo.getFrame())));
 	}
