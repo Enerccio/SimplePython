@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -62,10 +63,12 @@ public class Coerce {
 			return rv;
 		}
 
-		// 2st, return PythonObject if requested
+		// 2st, return PythonObject if requested and check for dicts and InternalDict
 		if (clazz.isAssignableFrom(o.getClass()))
 			if (PythonObject.class.isAssignableFrom(clazz))
 				return clazz.cast(o);
+		if (clazz.equals(InternalDict.class) && InternalDict.class.isInstance(o))
+			return (X) o;
 
 		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {

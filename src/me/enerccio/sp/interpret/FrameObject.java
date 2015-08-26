@@ -145,6 +145,8 @@ public class FrameObject extends PythonObject {
 	public GeneratorObject ownedGenerator;
 	public PythonObject localContext;
 	public EnvironmentObject environment;
+	public boolean isSignal;
+	public PythonObject storedReturnee;
 
 	@Override
 	public boolean truthValue() {

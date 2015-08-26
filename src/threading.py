@@ -78,6 +78,9 @@ class Thread(object):
         """
         return self.__jthread.threadRunning()
     
+    def signal(self, callable, *args, **kwargs):
+        self.__jthread.signal(callable, args, kwargs)
+    
     def __eq__(self, other):
         if hasattr(other, "__jthread"):
             return self.__jthread == other.__jthread

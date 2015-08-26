@@ -27,6 +27,7 @@ import me.enerccio.sp.errors.KeyError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.KwArgs.HashMapKWArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -35,6 +36,8 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.utils.CastFailedException;
+import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -306,5 +309,17 @@ public class DictObject extends ContainerObject implements InternalDict,
 	@Override
 	public Set<String> keySet() {
 		return keys();
+	}
+	
+	@Override
+	public KwArgs asKwargs() {
+		HashMapKWArgs kwargs = new HashMapKWArgs();
+		for (PythonProxy key : backingMap.keySet())
+			try {
+				kwargs.put(Coerce.toJava(key.o, String.class), backingMap.get(key));
+			} catch (CastFailedException e) {
+				throw new TypeError("cannot use this dict as kwargs due to not containing only string keys");
+			}
+		return kwargs;
 	}
 }

@@ -18,13 +18,16 @@
 package me.enerccio.sp.external;
 
 import me.enerccio.sp.SimplePython;
+import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.base.ClassInstanceObject;
+import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
+import me.enerccio.sp.types.sequences.TupleObject;
 
 public class PythonThread implements Runnable {
 
@@ -93,5 +96,11 @@ public class PythonThread implements Runnable {
 	@WrapMethod
 	public void interruptThread() {
 		t.interrupt();
+	}
+	
+	@WrapMethod
+	public void signal(CallableObject o, TupleObject args, InternalDict dict){
+		PythonInterpreter i = PythonInterpreter.interpreterMap.get(t);
+		PythonInterpreter.interpreter.get().interruptInterpret(i, o, args, dict.asKwargs());
 	}
 }

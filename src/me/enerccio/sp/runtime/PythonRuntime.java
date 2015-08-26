@@ -572,6 +572,7 @@ public class PythonRuntime {
 	public static final TypeObject LONG_TYPE = new LongTypeObject();
 	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static final TypeObject LIST_TYPE = new ListTypeObject();
+	public static final TypeObject FRAME_TYPE = new FrameTypeObject();
 
 	static {
 		OBJECT_TYPE.newObject();
@@ -682,7 +683,7 @@ public class PythonRuntime {
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL,
 							new CompiledBlockTypeObject());
 					globals.put(FrameTypeObject.FRAME_CALL,
-							new FrameTypeObject());
+							FRAME_TYPE);
 					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL,
 							ENVIRONMENT_TYPE);
 
@@ -1219,7 +1220,7 @@ public class PythonRuntime {
 		if (py instanceof CompiledBlockObject)
 			return COMPILED_BLOCK_TYPE;
 		if (py instanceof FrameObject)
-			return (ClassObject) Utils.getGlobal(FrameTypeObject.FRAME_CALL);
+			return FRAME_TYPE;
 
 		return OBJECT_TYPE;
 	}

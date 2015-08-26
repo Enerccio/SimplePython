@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.Semaphore;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.errors.AttributeError;
@@ -118,17 +119,23 @@ public class PythonInterpreter extends PythonObject {
 	/** Collection of all interprets created */
 	public static final Set<PythonInterpreter> interpreters = Collections
 			.synchronizedSet(new HashSet<PythonInterpreter>());
+	public static final Map<Thread, PythonInterpreter> interpreterMap = Collections
+			.synchronizedMap(new HashMap<Thread, PythonInterpreter>());
 
 	public PythonInterpreter() {
 		super(true);
-		bind();
+		bind(Thread.currentThread());
 	}
 
+	private Thread currentOwnerThread;
 	/**
 	 * Binds the interpret to this thread
 	 */
-	public void bind() {
+	public void bind(Thread t) {
+		interpreterMap.remove(t);
+		currentOwnerThread = t;
 		interpreter.set(this);
+		interpreterMap.put(t, this);
 	}
 
 	private EnvironmentObject nullEnv = new EnvironmentObject();
@@ -310,8 +317,86 @@ public class PythonInterpreter extends PythonObject {
 				return ExecutionResult.FINISHED;
 		return r;
 	}
+	
+	private volatile boolean signalSetup;
+	private Semaphore signalWait = new Semaphore(0);
+	private Semaphore signalProceed = new Semaphore(0);
+	
+	public void interruptInterpret(PythonInterpreter i, CallableObject co, TupleObject args, KwArgs kwargs){
+		while (i.signalSetup == true)
+			;
+		synchronized (this){
+			i.signalSetup = true;
+			i.signalWait.release();
+		}
+		try {
+			i.signalProceed.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return;
+		}
+		PythonInterpreter ci = interpreter.get();
+		Thread t = i.getThread();
+		try {
+			i.bind(Thread.currentThread());
+			i.doInstallSignal(co, args, kwargs);
+		} finally {
+			i.bind(t);
+			ci.bind(Thread.currentThread());
+			synchronized (this){
+				i.signalSetup = false;
+				i.signalWait.release();
+			}
+		}
+	}
+
+	private Thread getThread() {
+		return currentOwnerThread;
+	}
+
+	private void doInstallSignal(CallableObject co, TupleObject args,
+			KwArgs kwargs) {
+		FrameObject o = currentFrame.getLast();
+		o.storedReturnee = returnee;
+		try {
+			
+			execute(false, co, kwargs, args.getObjects());
+		} catch (Throwable t){
+			FrameObject o2 = currentFrame.getLast();
+			if (o2.equals(o)){
+				// no new frame, restore immediately
+				returnee = o.storedReturnee;
+			}
+			throw t;
+		}
+		FrameObject o2 = currentFrame.getLast();
+		if (o2.equals(o)){
+			// no new frame, restore immediately
+			returnee = o.storedReturnee;
+		} else {
+			o2.isSignal = true;
+		}
+	}
 
 	private ExecutionResult doExecuteOnce() {
+		if (signalSetup){
+			try {
+				signalWait.acquire();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+				return ExecutionResult.INTERRUPTED;
+			}
+			signalProceed.release();
+			try {
+				signalWait.acquire();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+				return ExecutionResult.INTERRUPTED;
+			}
+		}
+		
 		try {
 			PythonRuntime.runtime.waitIfSaving(this);
 		} catch (InterruptedException e) {
@@ -1308,8 +1393,12 @@ public class PythonInterpreter extends PythonObject {
 						throw new PythonExecutionException(e);
 					}
 				}
-			} else
+			} else {
+				if (o.isSignal){
+					returnee = currentFrame.peekLast().storedReturnee;
+				}
 				currentFrame.peekLast().exception = o.exception;
+			}
 		}
 	}
 

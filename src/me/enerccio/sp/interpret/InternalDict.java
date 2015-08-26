@@ -33,4 +33,6 @@ public interface InternalDict {
 
 	Set<String> keySet();
 
+	KwArgs asKwargs();
+
 }

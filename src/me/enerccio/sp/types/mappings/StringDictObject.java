@@ -27,6 +27,7 @@ import me.enerccio.sp.errors.KeyError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.interpret.KwArgs.HashMapKWArgs;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -282,5 +283,13 @@ public class StringDictObject extends ContainerObject implements InternalDict,
 	@Override
 	public Set<String> keySet() {
 		return keys();
+	}
+
+	@Override
+	public KwArgs asKwargs() {
+		HashMapKWArgs kwargs = new HashMapKWArgs();
+		for (String key : backingMap.keySet())
+			kwargs.put(key, backingMap.get(key));
+		return kwargs;
 	}
 }
