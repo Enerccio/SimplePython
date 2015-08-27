@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -66,6 +67,7 @@ import me.enerccio.sp.types.system.FutureObject;
 import me.enerccio.sp.types.system.PythonFutureObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
+import me.enerccio.sp.utils.RebindableThreadLocal;
 import me.enerccio.sp.utils.Utils;
 
 @SuppressWarnings("unused")
@@ -102,7 +104,7 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	/** Thread local accessor to the interpret */
-	public static final transient ThreadLocal<PythonInterpreter> interpreter = new ThreadLocal<PythonInterpreter>() {
+	public static final transient RebindableThreadLocal<PythonInterpreter> interpreter = new RebindableThreadLocal<PythonInterpreter>() {
 
 		@Override
 		protected PythonInterpreter initialValue() {
@@ -127,24 +129,40 @@ public class PythonInterpreter extends PythonObject {
 
 	public PythonInterpreter() {
 		super(true);
-		bind(Thread.currentThread());
+		currentOwnerThread = Thread.currentThread();
+		bind();
+	}
+	
+	/**
+	 * Creates new PythonInterpreter for that thread
+	 * @param t
+	 */
+	public PythonInterpreter(Thread t){
+		super(true);
+		
 	}
 
 	private Thread currentOwnerThread;
 	/**
 	 * Binds the interpret to this thread
 	 */
-	public void bind(Thread t) {
-		interpreterMap.remove(t);
-		currentOwnerThread = t;
-		interpreter.set(this);
-		interpreterMap.put(t, this);
+	public void bind() {
+		synchronized (interpreter){
+			interpreterMap.remove(currentOwnerThread);
+			interpreter.set(this);
+			interpreterMap.put(currentOwnerThread, this);
+		}
+	}
+	
+	public void bindTo(Thread t){
+		synchronized (interpreter){
+			interpreterMap.remove(currentOwnerThread);
+			interpreter.setForThread(t, this);
+			interpreterMap.put(t, this);
+		}
 	}
 
-	private EnvironmentObject nullEnv = new EnvironmentObject();
-	{
-		nullEnv.add(PythonRuntime.runtime.getGlobals());
-	}
+	private EnvironmentObject nullEnv = null;;
 
 	/**
 	 * current frame stack. Topmost element represents currently interpreted
@@ -197,8 +215,13 @@ public class PythonInterpreter extends PythonObject {
 	 * @return
 	 */
 	public EnvironmentObject environment() {
-		if (currentFrame.size() == 0)
+		if (currentFrame.size() == 0){
+			if (nullEnv == null){
+				nullEnv = new EnvironmentObject();
+				nullEnv.add(PythonRuntime.runtime.getGlobals());
+			}
 			return nullEnv;
+		}
 		return currentFrame.getLast().environment;
 	}
 
@@ -321,57 +344,34 @@ public class PythonInterpreter extends PythonObject {
 		return r;
 	}
 	
-	private volatile boolean askedForInterrupt; 
-	private AtomicBoolean waitingForSetup = new AtomicBoolean(false);
-	private Semaphore setupDone = new Semaphore(0);
-	private Lock interruptInProgress = new ReentrantLock();
-	
-	public void interruptInterpret(PythonInterpreter i, CallableObject co, TupleObject args, KwArgs kwargs){
-		i.interruptInProgress.lock();
-		i.askedForInterrupt = true;
-		
-		PythonInterpreter ci = interpreter.get();
-		
-		if (ci.equals(i))
-			throw new TypeError("can't signal itself");
-		
-		Thread t = i.getThread();
-		try {
-			i.bind(Thread.currentThread());
-			i.doInstallSignal(co, args, kwargs);
-		} finally {
-			i.bind(t);
-			ci.bind(Thread.currentThread());
-			synchronized (i){
-				i.askedForInterrupt = false;
-				i.setupDone.release();
-				i.interruptInProgress.unlock();
-			}
+	private static class InterruptRequest {
+		private final CallableObject co;
+		private final TupleObject argsPayload;
+		private final KwArgs kwargsPayload;
+		public InterruptRequest(CallableObject co, TupleObject argsPayload,
+				KwArgs kwargsPayload) {
+			super();
+			this.co = co;
+			this.argsPayload = argsPayload;
+			this.kwargsPayload = kwargsPayload;
 		}
 	}
 	
-	private void waitUntilSetupFinishes() {
-		try {
-			parkSafe();
-		} catch (InterruptedException e){
-			
-		}
-	}
-
-	private void parkSafe() throws InterruptedException {
-		setupDone.acquire();
+	private ConcurrentLinkedQueue<InterruptRequest> interrupts = new ConcurrentLinkedQueue<InterruptRequest>();
+	
+	public void interruptInterpret(CallableObject co, TupleObject args, KwArgs kwargs){
+		interrupts.add(new InterruptRequest(co, args, kwargs));
 	}
 
 	private Thread getThread() {
 		return currentOwnerThread;
 	}
-
-	private void doInstallSignal(CallableObject co, TupleObject args,
-			KwArgs kwargs) {
+	
+	private void installSignal(InterruptRequest ir) {
 		FrameObject o = currentFrame.getLast();
 		o.storedReturnee = returnee;
 		try {
-			execute(false, co, kwargs, args.getObjects());
+			execute(false, ir.co, ir.kwargsPayload, ir.argsPayload.getObjects());
 		} catch (Throwable t){
 			FrameObject o2 = currentFrame.getLast();
 			if (o2.equals(o)){
@@ -390,10 +390,6 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private ExecutionResult doExecuteOnce() {
-		if (askedForInterrupt){
-			waitUntilSetupFinishes();
-		}
-		
 		try {
 			PythonRuntime.runtime.waitIfSaving(this);
 		} catch (InterruptedException e) {
@@ -402,6 +398,10 @@ public class PythonInterpreter extends PythonObject {
 
 		if (Thread.interrupted()) {
 			return ExecutionResult.INTERRUPTED;
+		}
+		
+		while (!interrupts.isEmpty()){
+			installSignal(interrupts.remove());
 		}
 
 		if (exception() != null) {
@@ -1493,7 +1493,7 @@ public class PythonInterpreter extends PythonObject {
 	@Override
 	protected String doToString() {
 		return "<bound python interpret for thread 0x"
-				+ Long.toHexString(Thread.currentThread().getId()) + ">";
+				+ Long.toHexString(currentOwnerThread.getId()) + ">";
 	}
 
 	/**

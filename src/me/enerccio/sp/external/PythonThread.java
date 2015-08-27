@@ -100,7 +100,6 @@ public class PythonThread implements Runnable {
 	
 	@WrapMethod
 	public void signal(CallableObject o, TupleObject args, InternalDict dict){
-		PythonInterpreter i = PythonInterpreter.interpreterMap.get(t);
-		PythonInterpreter.interpreter.get().interruptInterpret(i, o, args, dict.asKwargs());
+		PythonInterpreter.interpreterMap.get(t).interruptInterpret(o, args, dict.asKwargs());
 	}
 }

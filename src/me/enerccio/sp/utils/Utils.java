@@ -200,7 +200,7 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (PythonInterpreter.interpreter.get().currentFrame.size() == 0)
+		if (PythonInterpreter.interpreter.get() == null || PythonInterpreter.interpreter.get().currentFrame.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
 		return PythonInterpreter.interpreter.get().environment()
 				.get(variable, true, false);
@@ -217,5 +217,9 @@ public class Utils {
 		if (o instanceof Byte)
 			return ((Byte)o).intValue();
 		return ((Integer)o).intValue();
+	}
+
+	public static boolean fixnumEquals(Number first, Number second) {
+		return first.longValue() == second.longValue();
 	}
 }

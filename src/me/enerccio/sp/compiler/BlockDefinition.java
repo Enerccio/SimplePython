@@ -202,12 +202,10 @@ public class BlockDefinition {
 			CompiledBlockObject cbc = ((BlockDefinition) ((Pair<DataTag, Object>) arr[3])
 					.getSecond()).toFrame(mi);
 
-			boolean hasVararg = ((Pair<DataTag, Object>) arr[4]).getSecond()
-					.equals(new Integer(1));
+			boolean hasVararg = Utils.fixnumEquals((Number) ((Pair<DataTag, Object>) arr[4]).getSecond(), new Integer(1));
 			String vararg = (String) ((Pair<DataTag, Object>) arr[5])
 					.getSecond();
-			boolean hasKWarg = ((Pair<DataTag, Object>) arr[6]).getSecond()
-					.equals(new Integer(1));
+			boolean hasKWarg = Utils.fixnumEquals((Number) ((Pair<DataTag, Object>) arr[6]).getSecond(), new Integer(1));
 			String kwararg = (String) ((Pair<DataTag, Object>) arr[7])
 					.getSecond();
 
