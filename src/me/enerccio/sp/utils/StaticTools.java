@@ -205,7 +205,7 @@ public class StaticTools {
 			byte[] buffer = new byte[2048];
 			long count = 0L;
 			int n = 0;
-			while (-1 != (n = input.read(buffer, 0, (int) (c - count)))) {
+			while (-1 != (n = input.read(buffer, 0, Math.min(2048, (int) (c - count))))) {
 				if (n == 0)
 					return bos.toByteArray();
 				bos.write(buffer, 0, n);

@@ -115,6 +115,7 @@ public class PythonInterpreter extends PythonObject {
 			}
 
 			PythonInterpreter i = new PythonInterpreter();
+			interpreterMap.put(Thread.currentThread(), i);
 			interpreters.add(i);
 			return i;
 		}
@@ -130,7 +131,6 @@ public class PythonInterpreter extends PythonObject {
 	public PythonInterpreter() {
 		super(true);
 		currentOwnerThread = Thread.currentThread();
-		bind();
 	}
 	
 	/**
@@ -149,6 +149,7 @@ public class PythonInterpreter extends PythonObject {
 	public void bind() {
 		synchronized (interpreter){
 			interpreterMap.remove(currentOwnerThread);
+			currentOwnerThread = Thread.currentThread();
 			interpreter.set(this);
 			interpreterMap.put(currentOwnerThread, this);
 		}
@@ -157,8 +158,9 @@ public class PythonInterpreter extends PythonObject {
 	public void bindTo(Thread t){
 		synchronized (interpreter){
 			interpreterMap.remove(currentOwnerThread);
+			currentOwnerThread = t;
 			interpreter.setForThread(t, this);
-			interpreterMap.put(t, this);
+			interpreterMap.put(currentOwnerThread, this);
 		}
 	}
 
@@ -370,6 +372,8 @@ public class PythonInterpreter extends PythonObject {
 	private void installSignal(InterruptRequest ir) {
 		FrameObject o = currentFrame.getLast();
 		o.storedReturnee = returnee;
+		o.storedArgs = args;
+		o.storedClosure = currentClosure;
 		try {
 			execute(false, ir.co, ir.kwargsPayload, ir.argsPayload.getObjects());
 		} catch (Throwable t){
@@ -377,6 +381,8 @@ public class PythonInterpreter extends PythonObject {
 			if (o2.equals(o)){
 				// no new frame, restore immediately
 				returnee = o.storedReturnee;
+				args = o.storedArgs;
+				currentClosure = o.storedClosure;
 			}
 			throw t;
 		}
@@ -384,6 +390,8 @@ public class PythonInterpreter extends PythonObject {
 		if (o2.equals(o)){
 			// no new frame, restore immediately
 			returnee = o.storedReturnee;
+			args = o.storedArgs;
+			currentClosure = o.storedClosure;
 		} else {
 			o2.isSignal = true;
 		}
@@ -1392,7 +1400,9 @@ public class PythonInterpreter extends PythonObject {
 				}
 			} else {
 				if (o.isSignal){
-					returnee = currentFrame.peekLast().storedReturnee;
+					returnee = 		 currentFrame.peekLast().storedReturnee;
+					args = 	   		 currentFrame.peekLast().storedArgs;
+					currentClosure = currentFrame.peekLast().storedClosure;
 				}
 				currentFrame.peekLast().exception = o.exception;
 			}

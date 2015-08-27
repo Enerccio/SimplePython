@@ -19,6 +19,7 @@ package me.enerccio.sp.interpret;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -145,8 +146,11 @@ public class FrameObject extends PythonObject {
 	public GeneratorObject ownedGenerator;
 	public PythonObject localContext;
 	public EnvironmentObject environment;
+	
 	public boolean isSignal;
 	public PythonObject storedReturnee;
+	public InternalDict storedArgs;
+	public List<InternalDict> storedClosure;
 
 	@Override
 	public boolean truthValue() {
