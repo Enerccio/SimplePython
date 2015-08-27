@@ -28,6 +28,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.errors.AttributeError;
@@ -318,24 +321,20 @@ public class PythonInterpreter extends PythonObject {
 		return r;
 	}
 	
-	private volatile boolean signalSetup;
-	private Semaphore signalWait = new Semaphore(0);
-	private Semaphore signalProceed = new Semaphore(0);
+	private volatile boolean askedForInterrupt; 
+	private AtomicBoolean waitingForSetup = new AtomicBoolean(false);
+	private Semaphore setupDone = new Semaphore(0);
+	private Lock interruptInProgress = new ReentrantLock();
 	
 	public void interruptInterpret(PythonInterpreter i, CallableObject co, TupleObject args, KwArgs kwargs){
-		while (i.signalSetup == true)
-			;
-		synchronized (this){
-			i.signalSetup = true;
-			i.signalWait.release();
-		}
-		try {
-			i.signalProceed.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return;
-		}
+		i.interruptInProgress.lock();
+		i.askedForInterrupt = true;
+		
 		PythonInterpreter ci = interpreter.get();
+		
+		if (ci.equals(i))
+			throw new TypeError("can't signal itself");
+		
 		Thread t = i.getThread();
 		try {
 			i.bind(Thread.currentThread());
@@ -343,11 +342,24 @@ public class PythonInterpreter extends PythonObject {
 		} finally {
 			i.bind(t);
 			ci.bind(Thread.currentThread());
-			synchronized (this){
-				i.signalSetup = false;
-				i.signalWait.release();
+			synchronized (i){
+				i.askedForInterrupt = false;
+				i.setupDone.release();
+				i.interruptInProgress.unlock();
 			}
 		}
+	}
+	
+	private void waitUntilSetupFinishes() {
+		try {
+			parkSafe();
+		} catch (InterruptedException e){
+			
+		}
+	}
+
+	private void parkSafe() throws InterruptedException {
+		setupDone.acquire();
 	}
 
 	private Thread getThread() {
@@ -359,7 +371,6 @@ public class PythonInterpreter extends PythonObject {
 		FrameObject o = currentFrame.getLast();
 		o.storedReturnee = returnee;
 		try {
-			
 			execute(false, co, kwargs, args.getObjects());
 		} catch (Throwable t){
 			FrameObject o2 = currentFrame.getLast();
@@ -379,22 +390,8 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private ExecutionResult doExecuteOnce() {
-		if (signalSetup){
-			try {
-				signalWait.acquire();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				Thread.currentThread().interrupt();
-				return ExecutionResult.INTERRUPTED;
-			}
-			signalProceed.release();
-			try {
-				signalWait.acquire();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				Thread.currentThread().interrupt();
-				return ExecutionResult.INTERRUPTED;
-			}
+		if (askedForInterrupt){
+			waitUntilSetupFinishes();
 		}
 		
 		try {
