@@ -23,7 +23,6 @@ import java.util.Set;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
-import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.FutureObject;
@@ -45,7 +44,7 @@ public class FutureTypeObject extends TypeObject {
 	}
 	
 	public static class FutureQuery extends PythonObject implements FutureObject {
-
+		private static final long serialVersionUID = 8916981825344941893L;
 		private FutureObject inner;
 		public FutureQuery(FutureObject inner) {
 			super(false);
@@ -59,7 +58,8 @@ public class FutureTypeObject extends TypeObject {
 
 		@Override
 		public boolean isReady() {
-			return inner.isReady();
+			boolean ready =  inner.isReady();
+			return ready;
 		}
 
 		@Override

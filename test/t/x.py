@@ -1,22 +1,19 @@
 from co import coroutine
 from threading.Thread import wait
 
-def fnc():
-    print "in"
-    yield None
-    print "doing job"
-    last = None
+def fnc():   
+    yield None 
+    
+    last = "first"
     while True:
+        wait(1000)
         next = yield last
         last = next
-        wait(1000)
 
 def test():
     x = coroutine(fnc)
-    print x.status()
     print x.resume()
-    print x.status()
-    print x.resume("Ahoj Svet")
-    print x.status()
+    print x.resume("Ahoj Svet") 
     print x.resume("Test")
-    print x.status()
+    print x.resume("Test2")
+    x.terminate()
