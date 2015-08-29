@@ -23,14 +23,17 @@ import java.io.DataOutputStream;
 import java.io.OutputStream;
 
 import me.enerccio.sp.compiler.BlockDefinition.DataTag;
+import me.enerccio.sp.types.AccessRestrictions;
+import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
+import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Pair;
 
 public class ModuleDefinition {
 
 	private static final int pycHeader = 0xDEADBABE;
-	private static final int version = 1;
+	private static final int version = 2;
 
 	public ModuleDefinition(byte[] inputData) throws Exception {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(
@@ -42,15 +45,18 @@ public class ModuleDefinition {
 		int ver = dis.readInt();
 		if (version != ver)
 			throw new RuntimeException("mismatched version");
+		name = BlockDefinition.unpackTaggedData(dis);
 		root = BlockDefinition.unpackTaggedData(dis);
 	}
 
 	public ModuleDefinition(ModuleObject mo) throws Exception {
+		name = Pair.makePair(DataTag.STRING, (Object) mo.fields.get("__name__").object.toString());
 		root = Pair.makePair(DataTag.MODULE, (Object) Pair.makePair(
 				DataTag.BLOCK, (Object) new BlockDefinition(mo.getFrame())));
 	}
 
 	private Pair<DataTag, Object> root;
+	private Pair<DataTag, Object> name;
 
 	public void writeToStream(OutputStream os) throws Exception {
 		if (os == null)
@@ -58,6 +64,7 @@ public class ModuleDefinition {
 		DataOutputStream wr = new DataOutputStream(os);
 		wr.writeInt(pycHeader);
 		wr.writeInt(version);
+		wr.write(BlockDefinition.asBytes(name, version));
 		wr.write(BlockDefinition.asBytes(root, version));
 		os.close();
 	}
@@ -68,6 +75,7 @@ public class ModuleDefinition {
 		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root
 				.getSecond()).getSecond();
 		mo.frame = b.toFrame(data);
+		mo.fields.put("__name__", new AugumentedPythonObject(new StringObject((String)name.getSecond()), AccessRestrictions.PUBLIC));
 		return mo;
 	}
 }

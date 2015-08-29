@@ -163,11 +163,20 @@ public class CompiledBlockObject extends PythonObject {
 	}
 
 	public static synchronized String dis(CompiledBlockObject block) {
-		return dis(block, false, 0);
+		return dis(block, false);
+	}
+	
+	public static synchronized String dis(CompiledBlockObject block, boolean fileout) {
+		return dis(block, false, 0, fileout);
+	}
+	
+	public static synchronized String dis(CompiledBlockObject block,
+			boolean single, int offset) {
+		return dis(block, single, offset, false);
 	}
 
 	public static synchronized String dis(CompiledBlockObject block,
-			boolean single, int offset) {
+			boolean single, int offset, boolean fileout) {
 		StringBuilder bdd = new StringBuilder();
 
 		ByteBuffer b = ByteBuffer.wrap(block.getBytedata());
@@ -181,21 +190,27 @@ public class CompiledBlockObject extends PythonObject {
 			int pos = b.position();
 			Bytecode opcode = Bytecode.fromNumber(((short) (b.get() & 0xff)));
 
-			bd.append(String.format("{fc: %s, ac: %s} ",
-					PythonInterpreter.interpreter.get().currentFrame.size(),
-					PythonInterpreter.interpreter.get().getAccessCount()));
+			if (!fileout)
+				bd.append(String.format("{fc: %s, ac: %s} ",
+						PythonInterpreter.interpreter.get().currentFrame.size(),
+						PythonInterpreter.interpreter.get().getAccessCount()));
 
 			if (d == null || !d.equals(block.getDebugInformation(pos))) {
 				d = block.getDebugInformation(pos);
 				bd.append(String.format("<at %s %-7.7s> ", d.module.getName(),
 						" " + d.lineno + ":" + d.charno));
+			} else if (fileout){
+				bd.append("\t\t");
 			}
 
 			if (!single)
 				bd.append(String.format("%-5.5s", (ord++)));
 			bd.append(String.format("%-5.5s", (pos)));
-			bd.append(String.format("%-9.9s ", (opcode)));
-
+			if (fileout)
+				bd.append(String.format("%-9s ", (opcode)));
+			else
+				bd.append(String.format("%-9.9s ", (opcode)));
+				
 			final String FORMAT = "%-25.25s";
 			switch (opcode) {
 			case CALL:
@@ -253,7 +268,6 @@ public class CompiledBlockObject extends PythonObject {
 			case LOADGLOBAL:
 			case LOADBUILTIN:
 			case LOADDYNAMIC:
-			case MAKE_FUTURE:
 			case PUSH:
 			case SAVE:
 			case SAVEGLOBAL:
@@ -308,6 +322,7 @@ public class CompiledBlockObject extends PythonObject {
 			case RARROW:
 				bd.append(String.format(FORMAT, ""));
 				break;
+			case MAKE_FUTURE:
 			case KWARG:
 				c = b.getInt();
 				List<String> kwargs = new ArrayList<String>();

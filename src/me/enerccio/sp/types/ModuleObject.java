@@ -17,7 +17,14 @@
  */
 package me.enerccio.sp.types;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import me.enerccio.sp.compiler.PythonCompiler;
@@ -34,6 +41,7 @@ import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.StaticTools.ParserGenerator;
@@ -224,5 +232,43 @@ public class ModuleObject extends PythonObject {
 		 * @return
 		 */
 		boolean isJavaClass();
+	}
+	
+	public void disassembleToStream(OutputStream out, File file) throws Exception {
+		Set<CompiledBlockObject> dblocks = new HashSet<CompiledBlockObject>();
+		Queue<CompiledBlockObject> blocks = new LinkedList<CompiledBlockObject>();  
+		Queue<Object> parents = new LinkedList<Object>();
+		
+		blocks.add(frame);
+		parents.add(this);
+		
+		BufferedWriter os = new BufferedWriter(new OutputStreamWriter(out, "utf-8"));
+		
+		try {
+			os.write("Disassembly of the file " + file + "\n");
+			
+			while (!blocks.isEmpty()){
+				CompiledBlockObject block = blocks.poll();
+				dblocks.add(block);
+				
+				os.write(parents.poll().toString() + ":\n");
+				os.write(CompiledBlockObject.dis(block, true));
+				
+				for (Integer key : block.mmap.keySet()){
+					PythonObject po = block.mmap.get(key);
+					if (po instanceof UserFunctionObject)
+						if (!dblocks.contains(((UserFunctionObject)po).block)){
+							blocks.add(((UserFunctionObject)po).block);
+							parents.add(po);
+						}
+				}
+				
+				os.write("\n\n");
+			}
+
+		} finally {
+			os.flush();
+			os.close();
+		}
 	}
 }

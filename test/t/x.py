@@ -17,3 +17,4 @@ def test():
     print x.resume("Test")
     print x.resume("Test2")
     x.terminate()
+    print x.resume()
