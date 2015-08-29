@@ -130,6 +130,7 @@ public class Disassembler {
 			case SAVE_LOCAL:
 			case TEST_FUTURE:
 			case SETATTR:
+			case LOAD_FUTURE:
 			case GETATTR:
 				bytecode.stringValue = Coerce
 						.toJava(mappings.doGet(NumberObject.valueOf(readBuff

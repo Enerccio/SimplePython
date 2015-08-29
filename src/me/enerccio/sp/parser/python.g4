@@ -454,7 +454,7 @@ ready_op:
 ;
 
 future_op:
- 'future' test
+ 'future' nname
 ;
 
 comparison:
