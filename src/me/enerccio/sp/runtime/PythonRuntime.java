@@ -110,6 +110,7 @@ import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.system.FutureObject;
 import me.enerccio.sp.types.types.BoolTypeObject;
 import me.enerccio.sp.types.types.BoundFunctionTypeObject;
 import me.enerccio.sp.types.types.BytecodeTypeObject;
@@ -121,6 +122,7 @@ import me.enerccio.sp.types.types.EnvironmentTypeObject;
 import me.enerccio.sp.types.types.FloatTypeObject;
 import me.enerccio.sp.types.types.FrameTypeObject;
 import me.enerccio.sp.types.types.FunctionTypeObject;
+import me.enerccio.sp.types.types.FutureTypeObject;
 import me.enerccio.sp.types.types.IntTypeObject;
 import me.enerccio.sp.types.types.JavaCallableTypeObject;
 import me.enerccio.sp.types.types.JavaInstanceTypeObject;
@@ -686,6 +688,8 @@ public class PythonRuntime {
 							FRAME_TYPE);
 					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL,
 							ENVIRONMENT_TYPE);
+					globals.put(FutureTypeObject.FUTURE_CALL,
+							new FutureTypeObject());
 
 					ModuleData mp;
 					CompiledBlockObject builtin;
@@ -1221,6 +1225,9 @@ public class PythonRuntime {
 			return COMPILED_BLOCK_TYPE;
 		if (py instanceof FrameObject)
 			return FRAME_TYPE;
+		if (py instanceof FutureObject)
+			return (ClassObject) Utils
+					.getGlobal(FutureTypeObject.FUTURE_CALL); 
 
 		return OBJECT_TYPE;
 	}

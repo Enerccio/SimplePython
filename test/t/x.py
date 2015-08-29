@@ -1,13 +1,22 @@
-def t():
-    while True:
-        pass
+from co import coroutine
+from threading.Thread import wait
 
-class X:
-    def __init__(self):
-        self.x = future: t()
-        
+def fnc():
+    print "in"
+    yield None
+    print "doing job"
+    last = None
+    while True:
+        next = yield last
+        last = next
+        wait(1000)
+
 def test():
-    x = X()
-    print "ok"
-    a = future: x.x
-    print future a
+    x = coroutine(fnc)
+    print x.status()
+    print x.resume()
+    print x.status()
+    print x.resume("Ahoj Svet")
+    print x.status()
+    print x.resume("Test")
+    print x.status()

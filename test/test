@@ -1,3 +1,0 @@
-def anca(a):
-	print a*a
-anca(x)

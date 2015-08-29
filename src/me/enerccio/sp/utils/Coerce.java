@@ -22,6 +22,7 @@ import me.enerccio.sp.types.pointer.PointerObject;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
+import me.enerccio.sp.types.system.FutureObject;
 import me.enerccio.sp.types.types.ListTypeObject;
 
 public class Coerce {
@@ -69,6 +70,8 @@ public class Coerce {
 				return clazz.cast(o);
 		if (clazz.equals(InternalDict.class) && InternalDict.class.isInstance(o))
 			return (X) o;
+		if (clazz.equals(FutureObject.class) && FutureObject.class.isInstance(o))
+			return (X)o;
 
 		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {
