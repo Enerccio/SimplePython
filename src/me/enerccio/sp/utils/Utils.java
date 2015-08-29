@@ -222,4 +222,8 @@ public class Utils {
 	public static boolean fixnumEquals(Number first, Number second) {
 		return first.longValue() == second.longValue();
 	}
+
+	public static String reformatSpecials(String string) {
+		return string.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+	}
 }

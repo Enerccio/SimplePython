@@ -184,34 +184,50 @@ public class CompiledBlockObject extends PythonObject {
 		int c;
 		int ord = 0;
 		b.position(offset);
+		
+		List<String[]> mappers = new ArrayList<String[]>();
 
 		while (b.hasRemaining()) {
-			StringBuilder bd = new StringBuilder();
+			String[] mapper = new String[6];
+			mappers.add(mapper);
+			
 			int pos = b.position();
 			Bytecode opcode = Bytecode.fromNumber(((short) (b.get() & 0xff)));
-
-			if (!fileout)
-				bd.append(String.format("{fc: %s, ac: %s} ",
+			
+			if (fileout)
+				mapper[0] = "";
+			else
+				mapper[0] = String.format("{fc: %s, ac: %s}",
 						PythonInterpreter.interpreter.get().currentFrame.size(),
-						PythonInterpreter.interpreter.get().getAccessCount()));
-
+						PythonInterpreter.interpreter.get().getAccessCount());
+			
 			if (d == null || !d.equals(block.getDebugInformation(pos))) {
 				d = block.getDebugInformation(pos);
-				bd.append(String.format("<at %s %-7.7s> ", d.module.getName(),
-						" " + d.lineno + ":" + d.charno));
+				mapper[1] = String.format("<at %s %-7.7s>", d.module.getName(),
+						" " + d.lineno + ":" + d.charno);
 			} else if (fileout){
-				bd.append("\t\t");
+				mapper[1] = "";
 			}
-
-			if (!single)
-				bd.append(String.format("%-5.5s", (ord++)));
-			bd.append(String.format("%-5.5s", (pos)));
-			if (fileout)
-				bd.append(String.format("%-9s ", (opcode)));
+			
+			if (single)
+				mapper[2] = "";
 			else
-				bd.append(String.format("%-9.9s ", (opcode)));
-				
-			final String FORMAT = "%-25.25s";
+				mapper[2] = new Integer(ord++).toString();
+			
+			mapper[3] = new Integer(pos).toString();
+			
+			if (fileout)
+				mapper[4] = opcode.toString();
+			else
+				mapper[4] = String.format("%.9s ", opcode);
+			
+			
+			String FORMAT;
+			if (fileout)
+				 FORMAT = "%.85s";
+			else
+				 FORMAT = "%.25s";
+			
 			switch (opcode) {
 			case CALL:
 			case DUP:
@@ -225,41 +241,41 @@ public class CompiledBlockObject extends PythonObject {
 			case RCALL:
 			case UNPACK_SEQUENCE:
 			case MAKE_FIRST:
-				bd.append(String.format(FORMAT, b.getInt()));
+				mapper[5] = (String.format(FORMAT, b.getInt()));
 				break;
 			case PUSH_FRAME:
-				bd.append(String.format(FORMAT,
+				mapper[5] = (String.format(FORMAT,
 						b.getInt() + ", copy " + b.getInt() + " elements"));
 				break;
 			case ACCEPT_ITER:
 			case GET_ITER:
-				bd.append(String.format(FORMAT, "or jump to " + b.getInt()));
+				mapper[5] = (String.format(FORMAT, "or jump to " + b.getInt()));
 				break;
 			case SETUP_LOOP:
-				bd.append(String.format(FORMAT, "or jump to " + b.getInt()
+				mapper[5] = (String.format(FORMAT, "or jump to " + b.getInt()
 						+ " with javaiterator"));
 				break;
 			case TRUTH_VALUE:
 				c = b.getInt();
 				if (c == 1)
-					bd.append(String.format(FORMAT, "1 - negated"));
+					mapper[5] = (String.format(FORMAT, "1 - negated"));
 				else
-					bd.append(String.format(FORMAT, c));
+					mapper[5] = (String.format(FORMAT, c));
 				break;
 			case RETURN:
 				c = b.getInt();
 				if (c == 1)
-					bd.append(String.format(FORMAT, "1 - returns value"));
+					mapper[5] = (String.format(FORMAT, "1 - returns value"));
 				else
-					bd.append(String.format(FORMAT, "" + c + " - exits frame"));
+					mapper[5] = (String.format(FORMAT, "" + c + " - exits frame"));
 				break;
 			case DEL:
 				c = b.getInt();
 				boolean isGlobal = b.getInt() == 1;
-				bd.append(String.format(FORMAT,
+				mapper[5] = (String.format(FORMAT,
 						String.format("%s (id %s)", block.getConstant(c), c)));
 				if (isGlobal) {
-					bd.append(String.format(" - global"));
+					mapper[5] = (String.format(" - global"));
 				}
 				break;
 			case DELATTR:
@@ -278,11 +294,11 @@ public class CompiledBlockObject extends PythonObject {
 			case LOAD_FUTURE:
 			case YIELD:
 				c = b.getInt();
-				bd.append(String.format(FORMAT,
+				mapper[5] = (String.format(FORMAT,
 						String.format("%s (id %s)", block.getConstant(c), c)));
 				break;
 			case IMPORT:
-				bd.append(String.format(FORMAT, (c = b.getInt()) + " - "
+				mapper[5] = (String.format(FORMAT, (c = b.getInt()) + " - "
 						+ block.getConstant(c) + "   " + (c = b.getInt())
 						+ " - " + block.getConstant(c)));
 				break;
@@ -320,7 +336,7 @@ public class CompiledBlockObject extends PythonObject {
 			case DCOLON:
 			case QM:
 			case RARROW:
-				bd.append(String.format(FORMAT, ""));
+				mapper[5] = (String.format(FORMAT, ""));
 				break;
 			case MAKE_FUTURE:
 			case KWARG:
@@ -328,21 +344,44 @@ public class CompiledBlockObject extends PythonObject {
 				List<String> kwargs = new ArrayList<String>();
 				for (int i = 0; i < c; i++)
 					kwargs.add(block.getConstant(b.getInt()).toString());
-				bd.append(String.format(FORMAT,
+				mapper[5] = (String.format(FORMAT,
 						String.format("%s (id %s)", c, kwargs)));
 				break;
 			}
-
-			if (single)
-				return bd.toString();
-
-			bd.append("\n");
-			String ss = bd.toString();
-			ss = ss.substring(0, Math.min(ss.length(), 140));
-			ss.trim();
-			if (!ss.endsWith("\n"))
-				ss += "\n";
-			bdd.append(ss);
+			
+			mapper[5] = Utils.reformatSpecials(mapper[5]);
+		}
+		
+		if (single){
+			String[] m = mappers.get(0);
+			bdd.append(String.format("%s %s %s %s %s %s", m[0], m[1], m[2], m[3], m[4], m[5]));
+		} else {
+			int[] rowlens = new int[6];
+			for (int it = 0; it < 6; it++)
+				for (String[] mapper : mappers){
+					rowlens[it] = Math.max(rowlens[it], mapper[it].length()); 
+				}
+			
+			for (String[] mapper : mappers){
+				StringBuilder bd = new StringBuilder();
+				
+				for (int it = 0; it<6; it++){
+					if (rowlens[it] == 0)
+						continue;
+					int len = rowlens[it];
+					String text = mapper[it];
+					
+					bd.append(text);
+					bd.append(" ");
+					
+					int o = len - text.length();
+					for (int i=0; i<o; i++)
+						bd.append(" ");
+				}
+				
+				bdd.append(bd.toString());
+				bdd.append("\n");
+			}
 		}
 
 		return bdd.toString();
