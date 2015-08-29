@@ -93,7 +93,7 @@ public class PythonInterpreter extends PythonObject {
 		String tracers = System.getenv("SPY_TRACE_ENABLED");
 		if (tracers == null || tracers.equals("__all__")){
 			TRACE_THREADS = Collections.synchronizedSet(Collections.unmodifiableSet(new HashSet<String>()));
-			if (tracers.equals("__all__")){
+			if (tracers != null && tracers.equals("__all__")){
 				TRACE_ALL = true;
 			} else {
 				TRACE_ALL = false;
