@@ -38,24 +38,20 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	public PythonObject getValue() {
+		
 		synchronized (this) {
 			if (isReady())
 				return value;
 		}
 
-		while (true) {
-			synchronized (this) {
-				if (isReady())
-					break;
-			}
-			try {
-				monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				return null;
-			}
+		try {
+			monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			Thread.interrupted();
+			return null;
 		}
-		return value;
+		
+		return null;
 	}
 
 	public synchronized void setValue(PythonObject value) {

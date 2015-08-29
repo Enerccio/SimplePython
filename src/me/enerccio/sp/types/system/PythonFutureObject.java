@@ -66,18 +66,13 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		if (isReady())
 			return doGetValue();
 
-		while (true) {
-			if (isReady())
-				break;
-			try {
-				monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return null;
-			}
+		try {
+			monitor.tryAcquire(5, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			Thread.interrupted();
+			return null;
 		}
-
-		return doGetValue();
+		return null;
 	}
 
 	private void startNewFuture() {

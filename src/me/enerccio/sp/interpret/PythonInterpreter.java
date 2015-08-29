@@ -891,8 +891,15 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject value = environment().get(svl, false, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
-		if (value instanceof FutureObject)
+		if (value instanceof FutureObject) {
 			value = ((FutureObject) value).getValue();
+			if (value == null){
+				// future timed out due to having no value
+				// retry future at later date
+				o.pc -= 5;
+				return;
+			}
+		}
 		stack.push(value);
 	}
 
@@ -902,8 +909,15 @@ public class PythonInterpreter extends PythonObject {
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
 		if (value instanceof FutureObject)
-			if (((FutureObject) value).isReady())
+			if (((FutureObject) value).isReady()){
 				value = ((FutureObject) value).getValue();
+				if (value == null){
+					// future timed out due to having no value
+					// retry future at later date
+					o.pc -= 5;
+					return;
+				}
+			}
 		stack.push(value);
 	}
 
@@ -923,8 +937,15 @@ public class PythonInterpreter extends PythonObject {
 		PythonObject value = environment().get(svl, true, false);
 		if (value == null)
 			throw new NameError("name " + svl + " is not defined");
-		if (value instanceof FutureObject)
+		if (value instanceof FutureObject) {
 			value = ((FutureObject) value).getValue();
+			if (value == null){
+				// future timed out due to having no value
+				// retry future at later date
+				o.pc -= 5;
+				return;
+			}
+		}
 		stack.push(value);
 	}
 
@@ -1119,8 +1140,15 @@ public class PythonInterpreter extends PythonObject {
 			StringObject field = (StringObject) o.compiled.getConstant(o
 					.nextInt());
 			PythonObject value = stack.pop(); // object to get attribute from
-			if (value instanceof FutureObject)
+			if (value instanceof FutureObject) {
 				value = ((FutureObject) value).getValue();
+				if (value == null){
+					// future timed out due to having no value
+					// retry future at later date
+					o.pc -= 5;
+					return;
+				}
+			}
 			apo = value.get("__getattribute__", getLocalContext());
 			if (apo != null && !(value instanceof ClassObject)) {
 				// There is __getattribute__ defined, call it directly
