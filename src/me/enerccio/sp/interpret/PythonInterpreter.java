@@ -80,6 +80,8 @@ public class PythonInterpreter extends PythonObject {
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final boolean TRACE_ENABLED = System
 			.getenv("SPY_TRACE_ENABLED") != null;
+	public static final Set<String> TRACE_THREADS;
+	public static final boolean TRACE_ALL;
 	public static final int MAX_DEEP_STACK;
 
 	static {
@@ -88,6 +90,21 @@ public class PythonInterpreter extends PythonObject {
 					.parseInt(System.getenv("DEEP_STACK_LIMIT"));
 		else
 			MAX_DEEP_STACK = -1;
+		String tracers = System.getenv("SPY_TRACE_ENABLED");
+		if (tracers == null || tracers.equals("__all__")){
+			TRACE_THREADS = Collections.synchronizedSet(Collections.unmodifiableSet(new HashSet<String>()));
+			if (tracers.equals("__all__")){
+				TRACE_ALL = true;
+			} else {
+				TRACE_ALL = false;
+			}
+		} else {
+			Set<String> tr = new HashSet<String>();
+			for (String s : tracers.split(";"))
+				tr.add(s);
+			TRACE_THREADS = Collections.synchronizedSet(Collections.unmodifiableSet(tr));
+			TRACE_ALL = false;
+		}
 	}
 
 	private boolean handlingOverflow = false;
@@ -518,9 +535,11 @@ public class PythonInterpreter extends PythonObject {
 				stack.push(returnee);
 		}
 
-		if (TRACE_ENABLED)
-			System.err.println(CompiledBlockObject.dis(o.compiled, true, spc)
-					+ " " + printStack(stack));
+		if (TRACE_ENABLED) {
+			if (TRACE_ALL || TRACE_THREADS.contains(currentOwnerThread.getName()))
+				System.err.println(CompiledBlockObject.dis(o.compiled, true, spc)
+						+ " " + printStack(stack));
+		}
 
 		switch (opcode) {
 		case NOP:
