@@ -1615,6 +1615,11 @@ public class PythonCompiler {
 			throw new SyntaxError("return cannot be inside class definition");
 		if (ctx.testlist() != null)
 			compileRightHand(ctx.testlist(), bytecode);
+		else {
+			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
+			cb.value = NoneObject.NONE;
+		}
+			
 		cb = addBytecode(bytecode, Bytecode.RETURN, ctx.start);
 		cb.intValue = 1;
 	}
