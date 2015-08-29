@@ -1909,8 +1909,7 @@ public class PythonCompiler {
 	}
 
 	private void compile(Future_opContext ctx, List<PythonBytecode> bytecode) {
-		cb = addBytecode(bytecode, Bytecode.LOAD_FUTURE, ctx.start);
-		cb.stringValue = ctx.nname().getText();
+		compileFuture(ctx.test(), bytecode);
 	}
 
 	private int countNots(Not_testContext ctx, List<PythonBytecode> bytecode) {

@@ -308,9 +308,6 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case RARROW:
 				break;
-			case LOAD_FUTURE:
-				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
-				break;
 			default:
 				break;
 			}
