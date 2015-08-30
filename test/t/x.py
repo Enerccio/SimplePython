@@ -13,8 +13,5 @@ def fnc():
 def test():
     x = coroutine(fnc)
     print x.resume()
-    print x.resume("Ahoj Svet") 
-    print x.resume("Test")
-    print x.resume("Test2")
+    print x.resume("Ahoj Svet")
     x.terminate()
-    print x.resume()

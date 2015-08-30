@@ -18,18 +18,28 @@
 package me.enerccio.sp.runtime;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.OutputStream;
 
-import org.jcp.xml.dsig.internal.dom.Utils;
+public class SystemErrProxyOutputStream extends ProxyOutputStream {
 
-public class PythonClassLoader extends ClassLoader {
-
-	public PythonClassLoader(ClassLoader parent){
-		super(parent);
-	}
+	private volatile OutputStream os = System.err;
 	
-	public Class<?> load(String binaryName, InputStream inputData) throws IOException{
-		byte[] array = Utils.readBytesFromStream(inputData);
-		return defineClass(binaryName, array, 0, array.length);
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		
 	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		os = System.err;
+	}
+
+	@Override
+	public void write(int b) throws IOException {
+		os.write(b);
+	}
+
 }

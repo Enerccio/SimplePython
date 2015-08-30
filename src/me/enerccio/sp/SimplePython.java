@@ -18,7 +18,6 @@
 package me.enerccio.sp;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,8 +25,11 @@ import java.util.List;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.runtime.ProxyOutputStream;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
+import me.enerccio.sp.serialization.PySerializer;
+import me.enerccio.sp.serialization.StringPySerializer;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
@@ -126,7 +128,7 @@ public class SimplePython {
 	 * @param os
 	 *            stream for the output
 	 */
-	public static void setSystemOut(OutputStream os) {
+	public static void setSystemOut(ProxyOutputStream os) {
 		r.setSystemOut(os);
 	}
 
@@ -137,18 +139,29 @@ public class SimplePython {
 	 * @param os
 	 *            stream for the output
 	 */
-	public static void setSystemErr(OutputStream os) {
+	public static void setSystemErr(ProxyOutputStream os) {
 		r.setSystemErr(os);
 	}
 
 	/**
-	 * Serializes the runtime into String.
+	 * Serializes the runtime into utf-8 String.
 	 * 
 	 * @return serialized form of the runtime
 	 * @throws Exception
 	 */
 	public static String serialize() throws Exception {
-		return r.serializeRuntime();
+		StringPySerializer strSerializer = new StringPySerializer();
+		r.serializeRuntime(strSerializer);
+		return strSerializer.getString();
+	}
+	
+	/**
+	 * Serializes the runtime into provided serializer
+	 * @param serializer
+	 * @throws Exception
+	 */
+	public static void serialize(PySerializer serializer) throws Exception{
+		r.serializeRuntime(serializer);
 	}
 
 	/**

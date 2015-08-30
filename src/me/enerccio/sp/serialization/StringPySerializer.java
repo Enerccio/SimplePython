@@ -15,21 +15,31 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.runtime;
+package me.enerccio.sp.serialization;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.jcp.xml.dsig.internal.dom.Utils;
+public class StringPySerializer extends AbstractPySerializer {
 
-public class PythonClassLoader extends ClassLoader {
-
-	public PythonClassLoader(ClassLoader parent){
-		super(parent);
+	private OutputStream out;
+	private ByteArrayOutputStream bos;
+	
+	public StringPySerializer() throws IOException {
+		out = bos = new ByteArrayOutputStream();
 	}
 	
-	public Class<?> load(String binaryName, InputStream inputData) throws IOException{
-		byte[] array = Utils.readBytesFromStream(inputData);
-		return defineClass(binaryName, array, 0, array.length);
+	@Override
+	public OutputStream getOutput() {
+		return out;
+	}
+
+	public String getString() throws Exception{
+		return getString("utf-8");
+	}
+	
+	public String getString(String encoding) throws Exception{
+		return bos.toString(encoding);
 	}
 }

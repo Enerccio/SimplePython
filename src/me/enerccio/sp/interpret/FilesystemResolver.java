@@ -34,6 +34,7 @@ import me.enerccio.sp.types.ModuleObject.ModuleData;
  * @see FilesystemResolver#make(String)
  */
 public class FilesystemResolver implements ModuleResolver {
+	private static final long serialVersionUID = 8811099800748652767L;
 	private static final String RESOLVER_ID = "FSPR_1";
 	private File rootPath;
 
@@ -99,6 +100,7 @@ public class FilesystemResolver implements ModuleResolver {
 	}
 
 	private class MI implements ModuleData {
+		private static final long serialVersionUID = -5150375199772148611L;
 		private String name;
 		private File file;
 		private String resolvePath;

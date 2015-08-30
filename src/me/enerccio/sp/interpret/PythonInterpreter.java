@@ -415,27 +415,21 @@ public class PythonInterpreter extends PythonObject {
 	}
 
 	private ExecutionResult doExecuteOnce() {
+		acquireInterpret(); 
 		try {
-			PythonRuntime.runtime.waitIfSaving(this);
-		} catch (InterruptedException e) {
-			return ExecutionResult.INTERRUPTED;
-		}
-
-		if (Thread.interrupted()) {
-			return ExecutionResult.INTERRUPTED;
-		}
-		
-		while (!interrupts.isEmpty()){
-			installSignal(interrupts.remove());
-		}
-
-		if (exception() != null) {
-			handleException(new PythonExecutionException(exception()));
-			return ExecutionResult.EOF;
-		}
-
-		++accessCount;
-		try {
+			if (Thread.interrupted()) {
+				return ExecutionResult.INTERRUPTED;
+			}
+			
+			while (!interrupts.isEmpty()){
+				installSignal(interrupts.remove());
+			}
+	
+			if (exception() != null) {
+				handleException(new PythonExecutionException(exception()));
+				return ExecutionResult.EOF;
+			}
+	
 			if (currentFrame.size() == 0)
 				return ExecutionResult.FINISHED;
 			FrameObject o = currentFrame.getLast();
@@ -457,7 +451,7 @@ public class PythonInterpreter extends PythonObject {
 				return ExecutionResult.EOF;
 			}
 		} finally {
-			--accessCount;
+			releaseInterpret();
 		}
 	}
 
@@ -1618,4 +1612,14 @@ public class PythonInterpreter extends PythonObject {
 	public List<InternalDict> getCurrentClosure() {
 		return currentClosure;
 	}
+
+	private transient ReentrantLock lock = new ReentrantLock();
+	public void acquireInterpret() {
+		lock.lock();
+	}
+
+	public void releaseInterpret() {
+		lock.unlock();
+	}
+	
 }

@@ -32,6 +32,7 @@ import me.enerccio.sp.types.ModuleObject.ModuleData;
  *
  */
 public class InternalJavaPathResolver implements ModuleResolver {
+	private static final long serialVersionUID = -7378642828100764595L;
 	private static final String RESOLVER_ID = "IJPR_1";
 
 	@Override
@@ -75,8 +76,12 @@ public class InternalJavaPathResolver implements ModuleResolver {
 	}
 
 	private class MI implements ModuleData {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7371254199796731185L;
 		private String name;
-		private InputStream is;
+		private transient InputStream is;
 
 		MI(String name) {
 			this.name = name;

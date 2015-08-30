@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
@@ -38,8 +39,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.enerccio.sp.SimplePython;
@@ -81,6 +80,7 @@ import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.SecureAction;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
@@ -153,7 +153,11 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public class PythonRuntime {
+public class PythonRuntime implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -9008091841735075126L;
 	public static int PREALOCATED_INTEGERS = 512; // Goes from
 													// -PREALOCATED_INTEGERS to
 													// PREALOCATED_INTEGERS
@@ -170,7 +174,7 @@ public class PythonRuntime {
 												// overflow
 	private PythonSecurityManager manager;
 	private InternalJavaPathResolver ijpr = new InternalJavaPathResolver();
-
+	
 	public void setSecurityManager(PythonSecurityManager manager) {
 		this.manager = manager;
 	}
@@ -182,7 +186,7 @@ public class PythonRuntime {
 	}
 
 	/** PythonRuntime is a singleton */
-	public static final PythonRuntime runtime = new PythonRuntime();
+	public static PythonRuntime runtime = new PythonRuntime();
 
 	private PythonRuntime() {
 		addFactory("", WrapNoMethodsFactory.class);
@@ -212,15 +216,12 @@ public class PythonRuntime {
 	public Map<String, ModuleContainer> root = new TreeMap<String, ModuleContainer>();
 	private List<ModuleResolver> resolvers = new ArrayList<ModuleResolver>();
 	/** object identifier key generator */
-	private volatile long key = Long.MIN_VALUE;
+	private volatile long key = 0L;
 
 	/* related to serialization */
-	private CyclicBarrier awaitBarrierEntry;
-	private CyclicBarrier awaitBarrierExit;
-	private volatile boolean isSaving = false;
 	private volatile boolean allowedNewInterpret = true;
-	private OutputStream out = System.out;
-	private OutputStream err = System.err;
+	private OutputStream out = new SystemOutProxyOutputStream();
+	private OutputStream err = new SystemErrProxyOutputStream();
 	public static ClassObject ERROR;
 	public static ClassObject ATTRIBUTE_ERROR;
 	public static ClassObject RUNTIME_ERROR;
@@ -238,7 +239,7 @@ public class PythonRuntime {
 	public static ClassObject IMPORT_ERROR;
 	public static ClassObject SANDBOX_ERROR;
 	public static ClassObject AST;
-
+	
 	/**
 	 * Waits until creation of new interprets is possible
 	 * 
@@ -254,7 +255,7 @@ public class PythonRuntime {
 	 * 
 	 * @param os
 	 */
-	public void setSystemOut(OutputStream os) {
+	public void setSystemOut(ProxyOutputStream os) {
 		out = os;
 	}
 
@@ -263,28 +264,10 @@ public class PythonRuntime {
 	 * 
 	 * @param os
 	 */
-	public void setSystemErr(OutputStream os) {
+	public void setSystemErr(ProxyOutputStream os) {
 		err = os;
 	}
 
-	/**
-	 * Interpret waits here if saving is happening
-	 * 
-	 * @param i
-	 * @throws InterruptedException
-	 */
-	public void waitIfSaving(PythonInterpreter i) throws InterruptedException {
-		if (!isSaving)
-			return;
-		if (!i.isInterpretStoppable())
-			return; // continue working
-		try {
-			awaitBarrierEntry.await();
-			awaitBarrierExit.await();
-		} catch (BrokenBarrierException e) {
-			throw new InterruptedException(e.getMessage());
-		}
-	}
 
 	/**
 	 * Serializes runtime
@@ -292,24 +275,30 @@ public class PythonRuntime {
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized String serializeRuntime() throws Exception {
-		allowedNewInterpret = false;
-		int numInterprets = PythonInterpreter.interpreters.size();
-		awaitBarrierEntry = new CyclicBarrier(numInterprets + 1); // include
-																	// self
-		awaitBarrierExit = new CyclicBarrier(numInterprets + 1); // include self
-		isSaving = true;
-
-		awaitBarrierEntry.await();
-		String content = doSerializeRuntime();
-		awaitBarrierExit.await();
-
-		return content;
-	}
-
-	private String doSerializeRuntime() {
-		// TODO Auto-generated method stub
-		return null;
+	public synchronized void serializeRuntime(PySerializer serializer) throws Exception {
+		synchronized (PythonInterpreter.interpreters){
+			allowedNewInterpret = false;
+	
+			for (PythonInterpreter i : PythonInterpreter.interpreters){
+				i.acquireInterpret();
+			}
+		}
+		
+		try {
+			serializer.initialiteSerialization();
+			activeSerializer = serializer;
+			doSerializeRuntime(serializer);
+			serializer.finishSerialization();
+			activeSerializer = null;
+		
+		} finally {
+			synchronized (PythonInterpreter.interpreters){
+				for (PythonInterpreter i : PythonInterpreter.interpreters){
+					i.releaseInterpret();
+				}
+				allowedNewInterpret = true;
+			}
+		}
 	}
 
 	/**
@@ -376,7 +365,8 @@ public class PythonRuntime {
 		return path + "." + sm;
 	}
 
-	public static class ModuleContainer {
+	public static class ModuleContainer implements Serializable {
+		private static final long serialVersionUID = 6288891033210948204L;
 		public ModuleObject module;
 		public Map<String, ModuleObject> submodules = new TreeMap<String, ModuleObject>();
 		public Map<String, ModuleContainer> subpackages = new TreeMap<String, ModuleContainer>();
@@ -502,7 +492,7 @@ public class PythonRuntime {
 		}
 	}
 	
-	private PythonClassLoader loader = new PythonClassLoader(getClass().getClassLoader());
+	private transient PythonClassLoader loader = new PythonClassLoader(getClass().getClassLoader());
 
 	private Object loadJavaProxyObject(ModuleData data) throws Exception {
 		String pp = data.getPackageResolve();
@@ -555,26 +545,28 @@ public class PythonRuntime {
 	public static final String STATICFUNCTION = "staticfunction";
 
 	/** Some basic types */
-	public static final TypeObject ENVIRONMENT_TYPE = new EnvironmentTypeObject();
-	public static final TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject
+	public static TypeObject ENVIRONMENT_TYPE = new EnvironmentTypeObject();
+	public static TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject
 			.get();
-	public static final TypeObject OBJECT_TYPE = new ObjectTypeObject();
-	public static final TypeObject TYPE_TYPE = new TypeTypeObject();
-	public static final TypeObject NONE_TYPE = NoneObject.TYPE;
-	public static final TypeObject STRING_TYPE = new StringTypeObject();
-	public static final TypeObject TUPLE_TYPE = new TupleTypeObject();
-	public static final TypeObject DICT_TYPE = new DictTypeObject();
-	public static final TypeObject BOOL_TYPE = new BoolTypeObject();
-	public static final TypeObject INT_TYPE = new IntTypeObject();
-	public static final TypeObject FUNCTION_TYPE = new FunctionTypeObject();
-	public static final TypeObject BYTECODE_TYPE = new BytecodeTypeObject();
-	public static final TypeObject COMPILED_BLOCK_TYPE = new CompiledBlockTypeObject();
-	public static final TypeObject BOUND_FUNCTION_TYPE = new BoundFunctionTypeObject();
-	public static final TypeObject METHOD_TYPE = new MethodTypeObject();
-	public static final TypeObject LONG_TYPE = new LongTypeObject();
-	public static final TypeObject FLOAT_TYPE = new FloatTypeObject();
-	public static final TypeObject LIST_TYPE = new ListTypeObject();
-	public static final TypeObject FRAME_TYPE = new FrameTypeObject();
+	public static TypeObject OBJECT_TYPE = new ObjectTypeObject();
+	public static TypeObject TYPE_TYPE = new TypeTypeObject();
+	public static TypeObject NONE_TYPE = NoneObject.TYPE;
+	public static TypeObject STRING_TYPE = new StringTypeObject();
+	public static TypeObject TUPLE_TYPE = new TupleTypeObject();
+	public static TypeObject DICT_TYPE = new DictTypeObject();
+	public static TypeObject BOOL_TYPE = new BoolTypeObject();
+	public static TypeObject INT_TYPE = new IntTypeObject();
+	public static TypeObject FUNCTION_TYPE = new FunctionTypeObject();
+	public static TypeObject BYTECODE_TYPE = new BytecodeTypeObject();
+	public static TypeObject COMPILED_BLOCK_TYPE = new CompiledBlockTypeObject();
+	public static TypeObject BOUND_FUNCTION_TYPE = new BoundFunctionTypeObject();
+	public static TypeObject METHOD_TYPE = new MethodTypeObject();
+	public static TypeObject LONG_TYPE = new LongTypeObject();
+	public static TypeObject FLOAT_TYPE = new FloatTypeObject();
+	public static TypeObject LIST_TYPE = new ListTypeObject();
+	public static TypeObject FRAME_TYPE = new FrameTypeObject();
+	
+	public static transient PySerializer activeSerializer;
 
 	static {
 		OBJECT_TYPE.newObject();
@@ -695,6 +687,11 @@ public class PythonRuntime {
 					CompiledBlockObject builtin;
 					try {
 						mp = new ModuleData() {
+							/**
+							 * 
+							 */
+							private static final long serialVersionUID = -144896051620682650L;
+
 							@Override
 							public boolean isPackage() {
 								return false;
@@ -1577,9 +1574,79 @@ public class PythonRuntime {
 		return err;
 	}
 
-	private AtomicBoolean buildingGlobals = new AtomicBoolean(false);
+	private transient AtomicBoolean buildingGlobals = new AtomicBoolean(false);
 
 	public boolean buildingGlobals() {
 		return buildingGlobals.get();
+	}
+	
+	private void doSerializeRuntime(PySerializer s) {
+		// constants and manager/ijpr
+		s.serialize(PREALOCATED_INTEGERS);
+		s.serialize(USE_BIGNUM_LONG);
+		s.serialize(USE_DOUBLE_FLOAT);
+		s.serialize(USE_INT_ONLY);
+		s.serializeJava(manager);
+		s.serializeJava(ijpr);
+		
+		// modules & linkKey & resolvers
+		s.serialize(key);
+		s.serializeJava(root);
+		s.serializeJava(resolvers);
+		
+		// important classes & io
+		s.serializeJava(out);
+		s.serializeJava(err);
+		s.serialize(ERROR);
+		s.serialize(ATTRIBUTE_ERROR);
+		s.serialize(RUNTIME_ERROR);
+		s.serialize(NAME_ERROR);
+		s.serialize(STOP_ITERATION);
+		s.serialize(GENERATOR_EXIT);
+		s.serialize(INDEX_ERROR);
+		s.serialize(TYPE_ERROR);
+		s.serialize(IO_ERROR);
+		s.serialize(SYNTAX_ERROR);
+		s.serialize(VALUE_ERROR);
+		s.serialize(KEY_ERROR);
+		s.serialize(NATIVE_ERROR);
+		s.serialize(INTERPRETER_ERROR);
+		s.serialize(IMPORT_ERROR);
+		s.serialize(SANDBOX_ERROR);
+		s.serialize(AST);
+		
+		// globals and types
+		s.serialize(globals);
+		s.serialize(ENVIRONMENT_TYPE);
+		s.serialize(JAVA_CALLABLE_TYPE);
+		s.serialize(OBJECT_TYPE);
+		s.serialize(TYPE_TYPE);
+		s.serialize(NONE_TYPE);
+		s.serialize(STRING_TYPE);
+		s.serialize(TUPLE_TYPE);
+		s.serialize(DICT_TYPE);
+		s.serialize(BOOL_TYPE);
+		s.serialize(INT_TYPE);
+		s.serialize(FUNCTION_TYPE);
+		s.serialize(BYTECODE_TYPE);
+		s.serialize(COMPILED_BLOCK_TYPE);
+		s.serialize(BOUND_FUNCTION_TYPE);
+		s.serialize(METHOD_TYPE);
+		s.serialize(LONG_TYPE);
+		s.serialize(FLOAT_TYPE);
+		s.serialize(LIST_TYPE);
+		s.serialize(FRAME_TYPE);
+		
+		s.serialize("\nINTERPRETERS\n");
+		s.serialize(PythonInterpreter.interpreters.size());
+		for (PythonInterpreter i : PythonInterpreter.interpreters){
+			s.serialize(i);
+		}
+		
+	}
+	
+	private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+		
 	}
 }

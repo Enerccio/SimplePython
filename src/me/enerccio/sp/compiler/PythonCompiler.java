@@ -151,6 +151,11 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class PythonCompiler {
 	public static volatile long genFunc = 0;
 	private static final ModuleData GENERATED_FUNCTIONS = new ModuleData() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6475497283060523448L;
+
 		@Override
 		public ModuleResolver getResolver() {
 			return null;
@@ -182,6 +187,11 @@ public class PythonCompiler {
 		}
 	};
 	private static final ModuleData EVAL_FUNCTIONS = new ModuleData() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8312051640444625706L;
+
 		@Override
 		public ModuleResolver getResolver() {
 			return null;
@@ -295,6 +305,11 @@ public class PythonCompiler {
 	public CompiledBlockObject doCompile(File_inputContext fcx,
 			final String filename) {
 		ModuleData m = module = new ModuleData() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 4294583786431719287L;
+
 			@Override
 			public ModuleResolver getResolver() {
 				return null;

@@ -20,6 +20,7 @@ package me.enerccio.sp.interpret;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 
@@ -30,7 +31,7 @@ import me.enerccio.sp.types.ModuleObject.ModuleData;
  * @author Enerccio
  *
  */
-public interface ModuleResolver {
+public interface ModuleResolver extends Serializable {
 	/**
 	 * Constructs module data for the requested name and requested path. Returns
 	 * null if name does not corresponds to any module.

@@ -15,21 +15,29 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.runtime;
+package me.enerccio.sp.serialization;
 
-import java.io.IOException;
-import java.io.InputStream;
+import me.enerccio.sp.types.PythonObject;
 
-import org.jcp.xml.dsig.internal.dom.Utils;
-
-public class PythonClassLoader extends ClassLoader {
-
-	public PythonClassLoader(ClassLoader parent){
-		super(parent);
-	}
+public interface PySerializer {
 	
-	public Class<?> load(String binaryName, InputStream inputData) throws IOException{
-		byte[] array = Utils.readBytesFromStream(inputData);
-		return defineClass(binaryName, array, 0, array.length);
-	}
+	void initialiteSerialization() throws Exception;
+	void finishSerialization() throws Exception;
+
+	void serialize(PythonObject object);
+	
+	void serialize(boolean object);
+	void serialize(int object);
+	void serialize(byte object);
+	void serialize(String object);
+	void serialize(long object);
+	void serialize(double object);
+	void serialize(float object);
+	void serialize(char object);
+	void serialize(short object);
+	void serialize(byte[] object);
+	
+	void serializeJava(Object o);
+	
+	
 }

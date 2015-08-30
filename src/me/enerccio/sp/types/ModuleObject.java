@@ -21,6 +21,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -198,7 +199,7 @@ public class ModuleObject extends PythonObject {
 	}
 
 	/** Provides informations about module */
-	public static interface ModuleData {
+	public static interface ModuleData extends Serializable {
 		/**
 		 * Returns module resolver used to load this module. May return null for
 		 * some very special cases.

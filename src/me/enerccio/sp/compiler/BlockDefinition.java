@@ -103,6 +103,54 @@ public class BlockDefinition {
 		c.finishCB();
 		return c;
 	}
+	
+	public static class BlockModuleData implements ModuleData {
+
+		private ModuleData mi;
+		private String name;
+		private String fname;
+		
+		public BlockModuleData(ModuleData mi, String name, String fname){
+			this.mi = mi;
+			this.name = name;
+			this.fname = fname;
+		}
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7452846275154675473L;
+
+		@Override
+		public ModuleResolver getResolver() {
+			return mi.getResolver();
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getFileName() {
+			return fname;
+		}
+
+		@Override
+		public String getPackageResolve() {
+			return mi.getPackageResolve();
+		}
+
+		@Override
+		public boolean isPackage() {
+			return mi.isPackage();
+		}
+
+		@Override
+		public boolean isJavaClass() {
+			return false;
+		}
+	};
 
 	@SuppressWarnings("unchecked")
 	private void add(NavigableMap<Integer, DebugInformation> dmap, Integer i,
@@ -119,38 +167,7 @@ public class BlockDefinition {
 				.getSecond()));
 		di.lineno = Utils.toNumeric(((Pair<DataTag, Object>) arr[3]).getSecond());
 		di.charno = Utils.toNumeric(((Pair<DataTag, Object>) arr[4]).getSecond());
-		ModuleData mf = new ModuleData() {
-
-			@Override
-			public ModuleResolver getResolver() {
-				return mi.getResolver();
-			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public String getFileName() {
-				return fname;
-			}
-
-			@Override
-			public String getPackageResolve() {
-				return mi.getPackageResolve();
-			}
-
-			@Override
-			public boolean isPackage() {
-				return mi.isPackage();
-			}
-
-			@Override
-			public boolean isJavaClass() {
-				return false;
-			}
-		};
+		ModuleData mf = new BlockModuleData(mi, name, fname);
 
 		di.module = mf;
 		dmap.put(i, di);

@@ -17,13 +17,15 @@
  */
 package me.enerccio.sp.runtime;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import me.enerccio.sp.types.pointer.PointerFactory;
 
-public class FactoryResolver {
+public class FactoryResolver implements Serializable {
+	private static final long serialVersionUID = -3975868202409565371L;
 
 	private class FactoryPath {
 		private PointerFactory f;

@@ -17,7 +17,10 @@
  */
 package me.enerccio.sp.types;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.lang.ref.SoftReference;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +31,7 @@ import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasEqMethod;
 import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasNeMethod;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -42,7 +46,7 @@ import me.enerccio.sp.utils.Utils;
  * @author Enerccio
  *
  */
-public abstract class PythonObject implements Serializable, HasEqMethod,
+public abstract class PythonObject implements Externalizable, HasEqMethod,
 		HasNeMethod {
 	private static final long serialVersionUID = 1L;
 	public static final String __CLASS__ = "__class__";
@@ -271,4 +275,42 @@ public abstract class PythonObject implements Serializable, HasEqMethod,
 
 	public volatile boolean mark = false;
 	public long linkName;
+
+	public void serializeInnerState(PySerializer pySerializer){
+		pySerializer.serialize(linkName);
+		serializeFields(pySerializer);
+		serializeDirectState(pySerializer);
+	}
+
+	private void serializeFields(PySerializer pySerializer) {
+		pySerializer.serialize(fields.size());
+		for (String key : fields.keySet()){
+			serializeField(pySerializer, key, fields.get(key));
+		}
+	}
+
+	private void serializeField(PySerializer pySerializer, String key,
+			AugumentedPythonObject apo) {
+		pySerializer.serialize(key);
+		pySerializer.serialize(apo.object);
+		pySerializer.serialize(apo.owner);
+		pySerializer.serialize(apo.restrictions == AccessRestrictions.PRIVATE);
+	}
+
+	protected void serializeDirectState(PySerializer pySerializer){
+		// TODO
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PythonRuntime.activeSerializer.serialize(this);	
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO
+	}
+	
+	
 }

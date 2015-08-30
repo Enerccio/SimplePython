@@ -19,6 +19,7 @@ package me.enerccio.sp.interpret;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,7 +82,11 @@ public class CompiledBlockObject extends PythonObject {
 		mmap = new HashMap<Integer, PythonObject>();
 	}
 
-	public static class DebugInformation {
+	public static class DebugInformation implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1939256028096037392L;
 		public int lineno, charno;
 		public ModuleData module;
 		public String function;
