@@ -1598,7 +1598,7 @@ public class PythonRuntime implements Serializable {
 		
 		// modules & linkKey & resolvers
 		s.serialize(key);
-		s.serializeJava(root);
+		serializeRoot(s);
 		s.serializeJava(resolvers);
 		
 		// important classes & io
@@ -1644,7 +1644,6 @@ public class PythonRuntime implements Serializable {
 		s.serialize(LIST_TYPE);
 		s.serialize(FRAME_TYPE);
 		
-		s.serialize("\nINTERPRETERS\n");
 		s.serialize(PythonInterpreter.interpreters.size());
 		for (PythonInterpreter i : PythonInterpreter.interpreters){
 			s.serialize(i);
@@ -1652,6 +1651,29 @@ public class PythonRuntime implements Serializable {
 		
 	}
 	
+	private void serializeRoot(PySerializer s) {
+		s.serialize(root.size());
+		for (String key : root.keySet()){
+			s.serialize(key);
+			serializeModuleContainer(s, root.get(key));
+		}
+	}
+
+	private void serializeModuleContainer(PySerializer s,
+			ModuleContainer mc) {
+		s.serialize(mc.module);
+		s.serialize(mc.submodules.size());
+		for (String key : mc.submodules.keySet()){
+			s.serialize(key);
+			s.serialize(mc.submodules.get(key));
+		}
+		s.serialize(mc.subpackages.size());
+		for (String key : mc.subpackages.keySet()){
+			s.serialize(key);
+			serializeModuleContainer(s, mc.subpackages.get(key));
+		}
+	}
+
 	private void writeObject(java.io.ObjectOutputStream stream)
             throws IOException {
 		

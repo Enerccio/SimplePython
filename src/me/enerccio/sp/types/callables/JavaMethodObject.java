@@ -220,7 +220,7 @@ public class JavaMethodObject extends CallableObject {
 		pySerializer.serializeJava(caller);
 		pySerializer.serialize(boundHandle.getDeclaringClass().getName());
 		pySerializer.serialize(boundHandle.getName());
-		pySerializer.serializeJava(boundHandle.getParameterTypes().length);
+		pySerializer.serialize(boundHandle.getParameterTypes().length);
 		for (Class<?> cls : boundHandle.getParameterTypes()){
 			pySerializer.serialize(cls.getName());
 		}

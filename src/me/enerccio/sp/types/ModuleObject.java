@@ -80,7 +80,7 @@ public class ModuleObject extends PythonObject {
 		pySerializer.serialize(isInited);
 		pySerializer.serialize(frame);
 		pySerializer.serializeJava(data);
-		pySerializer.serializeJava(globals);
+		pySerializer.serialize(globals);
 	}
 
 	public ModuleObject(ModuleData data, boolean compilingBT) {

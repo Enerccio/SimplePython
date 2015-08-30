@@ -75,6 +75,7 @@ public abstract class BasePySerializer implements PySerializer, PySerializerData
 					serialize(object.linkName);
 				} else {
 					serialized.add(object.linkName);
+					serialize(object.getTag());
 					object.serializeInnerState((PySerializer)this);
 				}
 			}
@@ -116,15 +117,19 @@ public abstract class BasePySerializer implements PySerializer, PySerializerData
 	@Override
 	public void serializeJava(Object o){
 		try {
-			if (objectCache.containsKey(o)){
-				serialize(true);
-				serialize(objectCache.get(o));
+			if (o instanceof PythonObject){
+				serialize((PythonObject)o);
 			} else {
-				serialize(false);
-				serialize(oid);
-				objectCache.put(o, oid++);
-				ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
-				owriter.writeObject(o);
+				if (objectCache.containsKey(o)){
+					serialize(true);
+					serialize(objectCache.get(o));
+				} else {
+					serialize(false);
+					serialize(oid);
+					objectCache.put(o, oid++);
+					ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
+					owriter.writeObject(o);
+				}
 			}
 		} catch (Exception e){
 			e.printStackTrace();

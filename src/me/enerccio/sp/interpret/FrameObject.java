@@ -177,8 +177,15 @@ public class FrameObject extends PythonObject {
 		pySerializer.serialize(environment);
 		pySerializer.serialize(isSignal);
 		pySerializer.serialize(storedReturnee);
-		pySerializer.serializeJava(storedArgs);
-		pySerializer.serializeJava(storedClosure);
+		pySerializer.serialize((PythonObject) storedArgs);
+		if (storedClosure == null){
+			pySerializer.serialize(false);
+		} else {
+			pySerializer.serialize(true);
+			pySerializer.serialize(storedClosure.size());
+			for (InternalDict id : storedClosure)
+				pySerializer.serialize((PythonObject) id);
+		}
 	}
 
 	@Override
