@@ -25,6 +25,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -42,6 +43,11 @@ public class StaticMethodObject extends CallableObject {
 
 	public StaticMethodObject() {
 
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.STATICM;
 	}
 
 	@Override

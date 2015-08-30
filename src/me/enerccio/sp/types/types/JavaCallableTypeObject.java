@@ -17,6 +17,8 @@
  */
 package me.enerccio.sp.types.types;
 
+import me.enerccio.sp.types.Tags;
+
 /**
  * javamethod()
  * 
@@ -45,4 +47,8 @@ public class JavaCallableTypeObject extends TypeObject {
 		return "javamethod";
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.JCALL_TYPE;
+	}
 }

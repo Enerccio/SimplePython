@@ -44,6 +44,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.utils.Utils;
@@ -363,6 +364,12 @@ public abstract class NumberObject extends PythonObject implements
 		@Override
 		public NumberType getNumberType() {
 			return NumberType.INT;
+		}
+		
+		
+		@Override
+		public byte getTag() {
+			return Tags.INT;
 		}
 
 		@Override
@@ -815,6 +822,12 @@ public abstract class NumberObject extends PythonObject implements
 		private static final long serialVersionUID = 35L;
 		private final long value;
 		
+		
+		@Override
+		public byte getTag() {
+			return Tags.LONG;
+		}
+		
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
@@ -1201,6 +1214,12 @@ public abstract class NumberObject extends PythonObject implements
 		public NumberType getNumberType() {
 			return NumberType.FLOAT;
 		}
+		
+		
+		@Override
+		public byte getTag() {
+			return Tags.FLOAT;
+		}
 
 		FloatObject(float v) {
 			value = v;
@@ -1476,6 +1495,12 @@ public abstract class NumberObject extends PythonObject implements
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
+		}
+		
+		
+		@Override
+		public byte getTag() {
+			return Tags.DOUBLE;
 		}
 
 		@Override

@@ -21,6 +21,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -65,5 +66,10 @@ public class StringTypeObject extends TypeObject {
 	@Override
 	public void newObject() {
 		super.newObject();
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.STRING_TYPE;
 	}
 }

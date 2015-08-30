@@ -49,6 +49,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -86,6 +87,11 @@ public class PythonInterpreter extends PythonObject {
 	public static final Set<String> TRACE_THREADS;
 	public static final boolean TRACE_ALL;
 	public static final int MAX_DEEP_STACK;
+	
+	@Override
+	public byte getTag() {
+		return Tags.PYTHON_INTERPRETER;
+	}
 
 	static {
 		if (System.getenv("DEEP_STACK_LIMIT") != null)

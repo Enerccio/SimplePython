@@ -21,6 +21,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -82,5 +83,10 @@ public class LongTypeObject extends TypeObject {
 
 		throw new TypeError("long() can't convert " + obj.toString()
 				+ " to long");
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.LONG_TYPE;
 	}
 }

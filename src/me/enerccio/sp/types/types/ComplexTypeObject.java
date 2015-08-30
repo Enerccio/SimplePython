@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ComplexObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -64,4 +65,8 @@ public class ComplexTypeObject extends TypeObject {
 		return new ComplexObject(real, imag);
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.COMPLEX_TYPE;
+	}
 }

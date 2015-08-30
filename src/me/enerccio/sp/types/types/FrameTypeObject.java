@@ -22,6 +22,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Coerce;
@@ -33,6 +34,11 @@ public class FrameTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "frame";
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FRAME_TYPE;
 	}
 
 	@Override

@@ -24,6 +24,7 @@ import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
@@ -46,6 +47,12 @@ public class SliceObject extends PythonObject {
 				AccessRestrictions.PUBLIC));
 		fields.put(STEP_ACCESSOR, new AugumentedPythonObject(step,
 				AccessRestrictions.PUBLIC));
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.SLICE;
 	}
 
 	@Override

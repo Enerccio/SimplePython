@@ -69,6 +69,11 @@ public class ModuleObject extends PythonObject {
 	public CompiledBlockObject frame;
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
+	
+	@Override
+	public byte getTag() {
+		return Tags.MODULE;
+	}
 
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {

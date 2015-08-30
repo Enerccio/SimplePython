@@ -22,6 +22,7 @@ import java.util.Set;
 
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /**
@@ -62,5 +63,11 @@ public class EllipsisObject extends PythonObject {
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.ELLIPSIS;
 	}
 }

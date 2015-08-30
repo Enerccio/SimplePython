@@ -26,6 +26,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -52,6 +53,11 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor,
 		this.start = start;
 		this.end = end;
 		this.step = step;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.XRANGE;
 	}
 	
 	@Override

@@ -29,6 +29,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -561,5 +562,10 @@ public class StringObject extends ImmutableSequenceObject implements
 			return value.compareTo(((StringObject) b).value) >= 0 ? BoolObject.TRUE
 					: BoolObject.FALSE;
 		return BoolObject.FALSE;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.STRING;
 	}
 }

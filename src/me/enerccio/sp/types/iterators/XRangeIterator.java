@@ -24,6 +24,7 @@ import java.util.Set;
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
@@ -50,6 +51,11 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 		this.i = start;
 		this.end = end;
 		this.step = step;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.XRI;
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();

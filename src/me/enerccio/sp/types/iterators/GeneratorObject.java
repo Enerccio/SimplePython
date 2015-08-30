@@ -29,6 +29,7 @@ import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -63,6 +64,11 @@ public class GeneratorObject extends PythonObject {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.GEN;
 	}
 
 	protected static Map<String, JavaMethodObject> getSFields() {

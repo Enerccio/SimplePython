@@ -29,6 +29,7 @@ import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
@@ -42,6 +43,11 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
 	private List<InternalDict> environments = new ArrayList<InternalDict>();
+	
+	@Override
+	public byte getTag() {
+		return Tags.EO;
+	}
 	
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {

@@ -25,6 +25,7 @@ import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.types.NoneTypeObject;
@@ -45,6 +46,12 @@ public class NoneObject extends PythonObject {
 
 	public NoneObject() {
 		super(false);
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.NONE;
 	}
 
 	@Override

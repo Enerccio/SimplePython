@@ -22,6 +22,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -38,6 +39,11 @@ public class FloatTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "float";
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FLOAT_TYPE;
 	}
 
 	@Override

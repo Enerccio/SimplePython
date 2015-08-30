@@ -29,6 +29,7 @@ import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.BoundHandleObject;
@@ -157,5 +158,10 @@ public class ObjectTypeObject extends TypeObject {
 
 	public static PythonObject str(PythonObject o) {
 		return new StringObject(o.toString());
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FUTURE_TYPE;
 	}
 }

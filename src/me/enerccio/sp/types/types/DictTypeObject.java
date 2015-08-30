@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.TupleObject;
 
 /**
@@ -45,4 +46,8 @@ public class DictTypeObject extends TypeObject {
 		return args.convertKwargs(kwargs);
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.DICT_TYPE;
+	}
 }

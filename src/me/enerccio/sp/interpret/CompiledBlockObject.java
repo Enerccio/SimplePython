@@ -36,6 +36,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -48,6 +49,11 @@ public class CompiledBlockObject extends PythonObject {
 	public static final String CO_CODE = "co_code";
 	public static final String CO_CONSTS = "co_consts";
 	public static final String CO_DEBUG = "co_debug";
+	
+	@Override
+	public byte getTag() {
+		return Tags.CBO;
+	}
 
 	public CompiledBlockObject(List<PythonBytecode> bytecode) {
 		super(false);

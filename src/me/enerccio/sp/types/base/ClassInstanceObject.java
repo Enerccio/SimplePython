@@ -26,6 +26,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -45,6 +46,12 @@ public class ClassInstanceObject extends PythonObject {
 	public static final String __SETATTR__ = "__setattr__";
 	public static final String __HASH__ = "__hash__";
 	public static final String __GETATTRIBUTE__ = "__getattribute__";
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.INSTANCE;
+	}
 
 	public ClassInstanceObject() {
 		super(false);

@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -64,5 +65,10 @@ public class XRangeTypeObject extends TypeObject {
 
 		XRangeObject rv = new XRangeObject(false, start, end, step);
 		return rv;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.XRANGE_TYPE;
 	}
 }

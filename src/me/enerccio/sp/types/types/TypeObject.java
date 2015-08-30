@@ -22,6 +22,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -99,4 +100,8 @@ public abstract class TypeObject extends ClassObject {
 		return false;
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.TYPE_TYPE;
+	}
 }

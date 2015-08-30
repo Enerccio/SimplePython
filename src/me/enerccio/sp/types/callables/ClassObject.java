@@ -29,6 +29,7 @@ import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.StringObject;
@@ -56,6 +57,12 @@ public class ClassObject extends CallableObject {
 
 	public ClassObject() {
 
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.CLASS;
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
@@ -61,6 +62,11 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			closure.putVariable(key, var);
 		}
 		startNewFuture();
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.PFUTURE;
 	}
 
 	@Override

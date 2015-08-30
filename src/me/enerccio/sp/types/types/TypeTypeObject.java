@@ -22,6 +22,7 @@ import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -93,5 +94,10 @@ public class TypeTypeObject extends TypeObject {
 		}
 
 		return type;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.TYPE_TYPE_TYPE;
 	}
 }

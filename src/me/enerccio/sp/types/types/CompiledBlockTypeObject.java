@@ -26,6 +26,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
@@ -70,4 +71,8 @@ public class CompiledBlockTypeObject extends TypeObject {
 		}
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.CB_TYPE;
+	}
 }

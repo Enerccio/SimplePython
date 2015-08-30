@@ -29,6 +29,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
@@ -66,6 +67,12 @@ public class UserFunctionObject extends CallableObject {
 		pySerializer.serialize(vararg);
 		pySerializer.serialize(isKvararg);
 		pySerializer.serialize(kvararg);
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.UFUNC;
 	}
 
 	public UserFunctionObject() {

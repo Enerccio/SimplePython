@@ -28,6 +28,7 @@ import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -49,6 +50,11 @@ public class FunctionTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "function";
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FUNCTION_TYPE;
 	}
 
 	// function(string, locals, tuple_of_maps, list_of_anames, vararg_name,

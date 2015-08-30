@@ -23,6 +23,7 @@ import java.util.Set;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.properties.FieldPropertyObject;
 import me.enerccio.sp.utils.Utils;
@@ -903,5 +904,10 @@ public class PythonBytecode extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+
+	@Override
+	public byte getTag() {
+		return Tags.PYTHON_BYTECODE;
 	}
 }

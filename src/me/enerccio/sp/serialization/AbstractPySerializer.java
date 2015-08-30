@@ -17,7 +17,6 @@
  */
 package me.enerccio.sp.serialization;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -63,6 +62,7 @@ public abstract class AbstractPySerializer implements PySerializer, PySerializer
 		if (object == null){
 			serialize(false);
 		} else {
+			serialize(object.getTag());
 			serialize(true);
 			if (serialized.contains(object.linkName)){
 				serialize(true);
@@ -182,11 +182,8 @@ public abstract class AbstractPySerializer implements PySerializer, PySerializer
 				serialize(false);
 				serialize(oid);
 				objectCache.put(o, oid++);
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ObjectOutputStream owriter = new ObjectOutputStream(out);
+				ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
 				owriter.writeObject(o);
-				owriter.close();
-				serialize(out.toByteArray());
 			}
 		} catch (Exception e){
 			e.printStackTrace();

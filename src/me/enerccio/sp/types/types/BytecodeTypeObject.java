@@ -27,6 +27,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.properties.MethodPropertyObject;
@@ -48,6 +49,11 @@ public class BytecodeTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "bytecode";
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.BC_TYPE;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -49,5 +50,10 @@ public class SliceTypeObject extends TypeObject {
 
 		return new SliceObject(args.valueAt(0), args.valueAt(1),
 				args.valueAt(2));
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.SLICE_TYPE;
 	}
 }

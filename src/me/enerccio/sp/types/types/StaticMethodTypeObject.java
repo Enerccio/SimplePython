@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.system.StaticMethodObject;
@@ -57,4 +58,8 @@ public class StaticMethodTypeObject extends TypeObject {
 		return smo;
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.SMETH_TYPE;
+	}
 }

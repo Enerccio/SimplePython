@@ -31,6 +31,7 @@ import me.enerccio.sp.interpret.KwArgs.HashMapKWArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -67,6 +68,11 @@ public class DictObject extends ContainerObject implements InternalDict,
 		newObject();
 		for (Integer k : mmap.keySet())
 			backingMap.put(NumberObject.valueOf(k), mmap.get(k));
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.DICT;
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();

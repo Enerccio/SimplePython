@@ -20,6 +20,7 @@ package me.enerccio.sp.types.callables;
 import java.lang.reflect.Method;
 
 import me.enerccio.sp.serialization.PySerializer;
+import me.enerccio.sp.types.Tags;
 
 /**
  * Java function wrapped into callable object.
@@ -58,5 +59,11 @@ public class JavaFunctionObject extends JavaMethodObject {
 	protected void serializeDirectState(PySerializer pySerializer) {
 		super.serializeDirectState(pySerializer);
 		pySerializer.serialize(isWrappedMethod);
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.JFUNC;
 	}
 }

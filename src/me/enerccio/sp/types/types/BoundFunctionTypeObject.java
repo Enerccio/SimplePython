@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.BoundHandleObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -39,6 +40,11 @@ public class BoundFunctionTypeObject extends TypeObject {
 	@Override
 	public String getTypeIdentificator() {
 		return "bound-function";
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.BF_TYPE;
 	}
 
 	@Override

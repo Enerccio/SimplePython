@@ -21,6 +21,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.TupleObject;
 
 public class EnvironmentTypeObject extends TypeObject {
@@ -42,4 +43,8 @@ public class EnvironmentTypeObject extends TypeObject {
 		return PythonInterpreter.interpreter.get().environment();
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.ENV_TYPE;
+	}
 }

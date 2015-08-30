@@ -31,6 +31,7 @@ import me.enerccio.sp.interpret.KwArgs.HashMapKWArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ContainerObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -65,6 +66,11 @@ public class StringDictObject extends ContainerObject implements InternalDict,
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.SDICT;
 	}
 
 	protected static Map<String, JavaMethodObject> getSFields() {

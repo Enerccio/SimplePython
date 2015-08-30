@@ -6,6 +6,7 @@ import java.util.Set;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
 /** Container for stack data */
@@ -13,6 +14,11 @@ public class StackElement extends PythonObject {
 	private static final long serialVersionUID = -3288411350030175582L;
 	public static final StackElement SYSTEM_FRAME = new StackElement();
 	public static final StackElement LAST_FRAME = new StackElement();
+	
+	@Override
+	public byte getTag() {
+		return Tags.STACK_EL;
+	}
 
 	public final ModuleData module;
 	public final int line;

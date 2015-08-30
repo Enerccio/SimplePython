@@ -19,6 +19,7 @@ package me.enerccio.sp.types.base;
 
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 
 /**
  * Represents boolean. Cannot be instantiated.
@@ -28,6 +29,12 @@ import me.enerccio.sp.types.PythonObject;
  */
 public class BoolObject extends NumberObject {
 	private static final long serialVersionUID = 7L;
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.BOOL;
+	}
 
 	/** Python True */
 	public static final BoolObject TRUE = new BoolObject(true);

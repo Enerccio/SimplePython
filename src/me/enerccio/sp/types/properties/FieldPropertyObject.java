@@ -25,6 +25,7 @@ import java.util.Set;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
@@ -105,5 +106,10 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FP;
 	}
 }

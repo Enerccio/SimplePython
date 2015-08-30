@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 
@@ -39,5 +40,10 @@ public class NoneTypeObject extends TypeObject {
 		if (args.len() != 0)
 			throw new TypeError("none(): requires zero arguments");
 		return NoneObject.NONE;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.NONE_TYPE;
 	}
 }

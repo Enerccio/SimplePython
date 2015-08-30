@@ -27,6 +27,7 @@ import java.util.Stack;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
 import me.enerccio.sp.types.sequences.ListObject;
@@ -43,6 +44,11 @@ public class FrameObject extends PythonObject {
 
 	public FrameObject() {
 		super(false);
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.FO;
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();

@@ -26,6 +26,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
 
@@ -42,6 +43,12 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	private String name;
 	public Set<JavaMethodObject> methods = Collections
 			.synchronizedSet(new HashSet<JavaMethodObject>());
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.JCONGRUENT;
+	}
 
 	public JavaCongruentAggregatorObject(String n) {
 		name = n;

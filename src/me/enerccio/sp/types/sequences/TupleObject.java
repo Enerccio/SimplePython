@@ -30,6 +30,7 @@ import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
 import me.enerccio.sp.types.iterators.InternalIterator;
@@ -47,6 +48,11 @@ public class TupleObject extends ImmutableSequenceObject implements
 		SimpleIDAccessor {
 	private static final long serialVersionUID = 12L;
 	public static final TupleObject EMPTY = new TupleObject(false);
+	
+	@Override
+	public byte getTag() {
+		return Tags.TUPLE;
+	}
 
 	private TupleObject() {
 		super(false);

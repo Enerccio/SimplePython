@@ -25,6 +25,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Utils;
@@ -45,6 +46,12 @@ public class BoundHandleObject extends PythonObject {
 
 	public BoundHandleObject() {
 		super(false);
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.BH;
 	}
 
 	@Override

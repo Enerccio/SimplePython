@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -69,5 +70,10 @@ public class MethodTypeObject extends TypeObject {
 		Utils.putPublic(mo, UserMethodObject.SELF, inst);
 		Utils.putPublic(mo, UserMethodObject.ACCESSOR, accessor);
 		return mo;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.METH_TYPE;
 	}
 }

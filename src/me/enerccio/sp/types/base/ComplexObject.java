@@ -22,6 +22,7 @@ import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -42,6 +43,12 @@ public class ComplexObject extends NumberObject {
 
 	public ComplexObject() {
 
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.COMPLEX;
 	}
 
 	public ComplexObject(double r, double i) {

@@ -35,6 +35,7 @@ import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.StringObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.types.types.JavaCallableTypeObject;
@@ -62,6 +63,12 @@ public class JavaMethodObject extends CallableObject {
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface SpyDoc {
 		String value();
+	}
+	
+	
+	@Override
+	public byte getTag() {
+		return Tags.JMETH;
 	}
 
 	@Override
@@ -225,8 +232,7 @@ public class JavaMethodObject extends CallableObject {
 			pySerializer.serialize(argNames.length);
 			for (String s : argNames)
 				pySerializer.serialize(s);
-		}
-				
+		}		
 	}
 
 	/**

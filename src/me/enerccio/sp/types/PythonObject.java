@@ -53,8 +53,11 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 	public static final String __FORMAT__ = "__format__";
 	public static final String __EQ__ = "__eq__";
 	public static final String __NE__ = "__ne__";
+	
+	private boolean io;
 
 	public PythonObject(boolean internalObject) {
+		this.io = internalObject;
 		if (!internalObject)
 			newObject();
 	}
@@ -278,6 +281,7 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 
 	public void serializeInnerState(PySerializer pySerializer){
 		pySerializer.serialize(linkName);
+		pySerializer.serialize(io);
 		serializeFields(pySerializer);
 		serializeDirectState(pySerializer);
 	}
@@ -309,6 +313,7 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 			ClassNotFoundException {
 		// TODO
 	}
-	
+
+	public abstract byte getTag();
 	
 }

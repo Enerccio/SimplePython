@@ -20,6 +20,7 @@ package me.enerccio.sp.types.types;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.ListObject;
 import me.enerccio.sp.types.sequences.SequenceObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -68,4 +69,8 @@ public class TupleTypeObject extends TypeObject {
 		throw new TypeError("tuple() takes at most 1 argument");
 	}
 
+	@Override
+	public byte getTag() {
+		return Tags.TUPLE_TYPE;
+	}
 }

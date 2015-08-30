@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
 public class JavaFutureObject extends PythonObject implements FutureObject {
@@ -53,6 +54,11 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public byte getTag() {
+		return Tags.JFUTURE;
 	}
 
 	public synchronized void setValue(PythonObject value) {
