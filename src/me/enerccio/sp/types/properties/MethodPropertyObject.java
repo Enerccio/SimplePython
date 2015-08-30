@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -42,6 +43,13 @@ public class MethodPropertyObject extends PythonObject implements
 		this.name = name;
 		this.getter = getter;
 		this.setter = setter;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(name);
+		pySerializer.serialize(getter);
+		pySerializer.serialize(setter);
 	}
 
 	public MethodPropertyObject() {

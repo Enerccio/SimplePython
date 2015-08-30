@@ -18,6 +18,7 @@
 package me.enerccio.sp.types.base;
 
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -52,6 +53,11 @@ public class ComplexObject extends NumberObject {
 				AccessRestrictions.PUBLIC));
 		fields.put(IMAG_ACCESSOR, new AugumentedPythonObject(i,
 				AccessRestrictions.PUBLIC));
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 
 	@Override

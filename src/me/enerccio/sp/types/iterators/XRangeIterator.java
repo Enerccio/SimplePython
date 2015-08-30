@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.StopIteration;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -36,6 +37,13 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	public static final String NEXT = GeneratorObject.NEXT;
 
 	private int i, end, step;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(i);
+		pySerializer.serialize(end);
+		pySerializer.serialize(step);
+	}
 
 	public XRangeIterator(int start, int end, int step) {
 		super(false);

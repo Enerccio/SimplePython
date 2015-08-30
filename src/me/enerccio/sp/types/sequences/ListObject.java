@@ -30,6 +30,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
@@ -146,6 +147,13 @@ public class ListObject extends MutableSequenceObject implements
 
 	public List<PythonObject> objects = Collections
 			.synchronizedList(new ArrayList<PythonObject>());
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(objects.size());
+		for (PythonObject o : objects)
+			pySerializer.serialize(o);
+	}
 
 	@Override
 	public PythonObject add(PythonObject b) {

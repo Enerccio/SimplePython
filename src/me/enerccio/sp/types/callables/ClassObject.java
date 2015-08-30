@@ -25,6 +25,7 @@ import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -228,5 +229,10 @@ public class ClassObject extends CallableObject {
 		if (o == null && fields.containsKey(__DICT__))
 			o = ((InternalDict) fields.get(__DICT__).object).getVariable(key);
 		return o;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 }

@@ -20,6 +20,7 @@ package me.enerccio.sp.compiler;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -51,6 +52,20 @@ public class PythonBytecode extends PythonObject {
 	public String stringValue;
 	public Object object;
 	public boolean booleanValue;
+	
+
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(debugLine);
+		pySerializer.serialize(debugCharacter);
+		pySerializer.serialize(debugFunction);
+		pySerializer.serializeJava(debugModule);
+		pySerializer.serialize(intValue);
+		pySerializer.serialize(value);
+		pySerializer.serialize(stringValue);
+		pySerializer.serializeJava(object);
+		pySerializer.serialize(booleanValue);
+	}
 
 	public PythonBytecode() {
 		super(true);

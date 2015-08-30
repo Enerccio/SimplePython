@@ -28,6 +28,7 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.base.SliceObject;
@@ -68,6 +69,13 @@ public class TupleObject extends ImmutableSequenceObject implements
 	}
 
 	private PythonObject[] array;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(array.length);
+		for (PythonObject o : array)
+			pySerializer.serialize(o);
+	}
 
 	@Override
 	public int len() {

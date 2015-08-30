@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.interpret;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,6 +46,7 @@ import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
@@ -159,7 +162,8 @@ public class PythonInterpreter extends PythonObject {
 		
 	}
 
-	private Thread currentOwnerThread;
+	private Thread currentOwnerThread; // --not serialized
+	
 	/**
 	 * Binds the interpret to this thread
 	 */
@@ -181,18 +185,13 @@ public class PythonInterpreter extends PythonObject {
 		}
 	}
 
-	private EnvironmentObject nullEnv = null;;
+	private EnvironmentObject nullEnv = null;
 
 	/**
 	 * current frame stack. Topmost element represents currently interpreted
 	 * frame
 	 */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
-	/**
-	 * Number of times this interpret is accessed by itself. If >0, interpret
-	 * can't be serialized
-	 */
-	private volatile int accessCount = 0;
 	/** Represents currrently passed arguments to the function */
 	private InternalDict args = null;
 	/** Represents value returned by a call */
@@ -200,15 +199,6 @@ public class PythonInterpreter extends PythonObject {
 	private List<InternalDict> currentClosure;
 
 	private final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
-
-	/**
-	 * whether this interpret can be stopped at safe place or not
-	 * 
-	 * @return
-	 */
-	public boolean isInterpretStoppable() {
-		return accessCount == 0;
-	}
 
 	/**
 	 * executes single call identified by function in current environment and
@@ -363,7 +353,11 @@ public class PythonInterpreter extends PythonObject {
 		return r;
 	}
 	
-	private static class InterruptRequest {
+	private static class InterruptRequest implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5196133542628984318L;
 		private final CallableObject co;
 		private final TupleObject argsPayload;
 		private final KwArgs kwargsPayload;
@@ -1591,10 +1585,6 @@ public class PythonInterpreter extends PythonObject {
 		}
 	}
 
-	public int getAccessCount() {
-		return accessCount;
-	}
-
 	public void setClosure(List<InternalDict> closure) {
 		this.currentClosure = closure;
 	}
@@ -1621,5 +1611,27 @@ public class PythonInterpreter extends PythonObject {
 	public void releaseInterpret() {
 		lock.unlock();
 	}
+
+	public boolean tryAcquireInterpret() {
+		try {
+			return lock.tryLock(1500, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			return false;
+		}
+	}
 	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(handlingOverflow);
+		pySerializer.serialize(nullEnv);
+		pySerializer.serialize(currentFrame.size());
+		for (FrameObject o : currentFrame)
+			pySerializer.serialize(o);
+		pySerializer.serialize((PythonObject) args);
+		pySerializer.serialize(returnee);
+		pySerializer.serialize(currentClosure.size());
+		for (InternalDict o : currentClosure)
+			pySerializer.serialize((PythonObject) o);
+		pySerializer.serializeJava(interrupts);
+	}
 }

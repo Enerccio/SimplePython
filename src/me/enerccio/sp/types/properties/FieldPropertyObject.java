@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.utils.CastFailedException;
@@ -51,6 +52,13 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 		this.readOnly = readOnly;
 		this.property = field;
 		this.properter = object;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(readOnly);
+		pySerializer.serializeJava(properter);
+		pySerializer.serialize(property.getName());
 	}
 
 	@Override

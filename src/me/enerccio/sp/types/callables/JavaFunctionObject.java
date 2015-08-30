@@ -19,6 +19,8 @@ package me.enerccio.sp.types.callables;
 
 import java.lang.reflect.Method;
 
+import me.enerccio.sp.serialization.PySerializer;
+
 /**
  * Java function wrapped into callable object.
  * 
@@ -50,5 +52,11 @@ public class JavaFunctionObject extends JavaMethodObject {
 
 	public void setWrappedMethod(boolean isWrappedMethod) {
 		this.isWrappedMethod = isWrappedMethod;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		super.serializeDirectState(pySerializer);
+		pySerializer.serialize(isWrappedMethod);
 	}
 }

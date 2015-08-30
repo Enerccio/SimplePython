@@ -297,9 +297,7 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 		pySerializer.serialize(apo.restrictions == AccessRestrictions.PRIVATE);
 	}
 
-	protected void serializeDirectState(PySerializer pySerializer){
-		// TODO
-	}
+	protected abstract void serializeDirectState(PySerializer pySerializer);
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {

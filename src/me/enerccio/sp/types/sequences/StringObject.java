@@ -27,6 +27,7 @@ import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.KeyError;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.NumberObject;
@@ -128,6 +129,11 @@ public class StringObject extends ImmutableSequenceObject implements
 	}
 
 	public String value;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(value);
+	}
 
 	@Override
 	public int len() {

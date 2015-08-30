@@ -23,6 +23,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -41,6 +42,13 @@ public class OrderedSequenceIterator extends PythonObject implements
 	private SequenceObject sequence;
 	private int cp = 0;
 	private int len = 0;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(cp);
+		pySerializer.serialize(len);
+		pySerializer.serialize(sequence);
+	}
 
 	public OrderedSequenceIterator(SequenceObject sequenceObject) {
 		super(false);

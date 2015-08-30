@@ -23,6 +23,7 @@ import java.util.Set;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -115,6 +116,11 @@ public class BoundHandleObject extends PythonObject {
 	@Override
 	public boolean truthValue() {
 		return true;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+				
 	}
 
 }

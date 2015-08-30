@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.types.base;
 
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 
 /**
@@ -35,6 +36,12 @@ public class BoolObject extends NumberObject {
 
 	private final boolean value;
 	private final NumberObject intRepresentation;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(value);
+		pySerializer.serialize(intRepresentation);
+	}
 
 	@Override
 	public NumberType getNumberType() {

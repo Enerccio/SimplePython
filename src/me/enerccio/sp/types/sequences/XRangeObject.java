@@ -24,6 +24,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.BoolObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -51,6 +52,13 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor,
 		this.start = start;
 		this.end = end;
 		this.step = step;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(start);
+		pySerializer.serialize(end);
+		pySerializer.serialize(step);
 	}
 
 	private static Map<String, JavaMethodObject> sfields = Collections

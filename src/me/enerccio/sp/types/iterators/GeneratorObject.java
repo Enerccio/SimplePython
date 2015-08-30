@@ -25,6 +25,7 @@ import java.util.Set;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -86,6 +87,14 @@ public class GeneratorObject extends PythonObject {
 
 	private String name;
 	public List<FrameObject> storedFrames;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(name);
+		pySerializer.serialize(storedFrames.size());
+		for (FrameObject o : storedFrames)
+			pySerializer.serialize(o);
+	}
 
 	@Override
 	public void newObject() {

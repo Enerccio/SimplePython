@@ -24,6 +24,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -92,5 +93,10 @@ public class ClassInstanceObject extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return new HashMap<String, JavaMethodObject>();
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 }

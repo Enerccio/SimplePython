@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -276,15 +277,21 @@ public class PythonRuntime implements Serializable {
 	 * @throws Exception
 	 */
 	public synchronized void serializeRuntime(PySerializer serializer) throws Exception {
-		synchronized (PythonInterpreter.interpreters){
-			allowedNewInterpret = false;
-	
-			for (PythonInterpreter i : PythonInterpreter.interpreters){
-				i.acquireInterpret();
-			}
-		}
+		Set<PythonInterpreter> acqSet = new HashSet<PythonInterpreter>();
 		
 		try {
+			synchronized (PythonInterpreter.interpreters){
+				allowedNewInterpret = false;
+		
+				for (PythonInterpreter i : PythonInterpreter.interpreters){
+					if (!i.tryAcquireInterpret()){
+						throw new RuntimeError("Save failure");
+					}
+					acqSet.add(i);
+				}
+			}
+			
+			
 			serializer.initialiteSerialization();
 			activeSerializer = serializer;
 			doSerializeRuntime(serializer);
@@ -293,7 +300,7 @@ public class PythonRuntime implements Serializable {
 		
 		} finally {
 			synchronized (PythonInterpreter.interpreters){
-				for (PythonInterpreter i : PythonInterpreter.interpreters){
+				for (PythonInterpreter i : acqSet){
 					i.releaseInterpret();
 				}
 				allowedNewInterpret = true;

@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.Bytecode;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.iterators.GeneratorObject;
@@ -136,7 +137,7 @@ public class FrameObject extends PythonObject {
 	/** Bytecode of this frame */
 	public CompiledBlockObject compiled;
 	/** Bytebuffer of the data */
-	public ByteBuffer dataStream;
+	public ByteBuffer dataStream; // -- not serialized, recreate
 	/** program counter */
 	public int pc;
 	/** previous pc */
@@ -151,6 +152,28 @@ public class FrameObject extends PythonObject {
 	public PythonObject storedReturnee;
 	public InternalDict storedArgs;
 	public List<InternalDict> storedClosure;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(parentFrame);
+		pySerializer.serialize(returnHappened);
+		pySerializer.serialize(accepts_return);
+		pySerializer.serialize(exception);
+		pySerializer.serialize(compiled);
+		pySerializer.serialize(pc);
+		pySerializer.serialize(prevPc);
+		
+		pySerializer.serialize(stack.size());
+		for (PythonObject o : stack)
+			pySerializer.serialize(o);
+		pySerializer.serialize(ownedGenerator);
+		pySerializer.serialize(localContext);
+		pySerializer.serialize(environment);
+		pySerializer.serialize(isSignal);
+		pySerializer.serialize(storedReturnee);
+		pySerializer.serializeJava(storedArgs);
+		pySerializer.serializeJava(storedClosure);
+	}
 
 	@Override
 	public boolean truthValue() {

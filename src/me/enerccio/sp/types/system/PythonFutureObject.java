@@ -29,6 +29,7 @@ import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -43,8 +44,9 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	private PythonObject result;
 	private PythonObject exception;
 	private InternalDict closure;
-	private volatile FutureStatus status = FutureStatus.RUNNING;
+	private volatile FutureStatus status = FutureStatus.PREPARED;
 	private Semaphore monitor = new Semaphore(0);
+	private Thread ftThread;
 
 	public PythonFutureObject(UserFunctionObject fc, List<String> closureCopy,
 			EnvironmentObject environment) {
@@ -76,7 +78,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 	}
 
 	private void startNewFuture() {
-		Thread t = new Thread("future-call-thread") {
+		ftThread = new Thread("future-call-thread") {
 			@Override
 			public void run() {
 				futureCall.call(new TupleObject(true), null);
@@ -97,7 +99,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 				monitor.release();
 			}
 		};
-		t.start();
+		ftThread.start();
 	}
 
 	private PythonObject doGetValue() {
@@ -130,6 +132,44 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	public boolean isReady() {
-		return status != FutureStatus.RUNNING;
+		return status != FutureStatus.RUNNING && status != FutureStatus.PREPARED;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		switch (status){
+		case FAILED:
+			pySerializer.serialize(0);
+			break;
+		case FINISHED:
+			pySerializer.serialize(1);
+			break;
+		case PREPARED:
+			pySerializer.serialize(2);
+			break;
+		case RUNNING:
+			pySerializer.serialize(3);
+			break;
+		default:
+			break;
+		}
+		
+		switch (status){
+		case FAILED:
+			pySerializer.serialize(exception);
+			break;
+		case FINISHED:
+			pySerializer.serialize(result);
+			break;
+		case PREPARED:
+			pySerializer.serialize(futureCall);
+			pySerializer.serialize((PythonObject) closure);
+			break;
+		case RUNNING:
+			pySerializer.serialize(PythonInterpreter.interpreterMap.get(ftThread));
+			break;
+		default:
+			break;
+		}
 	}
 }

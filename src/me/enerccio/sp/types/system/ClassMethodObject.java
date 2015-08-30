@@ -22,6 +22,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.CallableObject;
@@ -86,5 +87,10 @@ public class ClassMethodObject extends CallableObject {
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		return ((CallableObject) fields.get(__FUNC__).object)
 				.call(args, kwargs);
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 }

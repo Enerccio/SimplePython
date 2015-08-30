@@ -48,6 +48,11 @@ import me.enerccio.sp.utils.Utils;
 public class ObjectTypeObject extends TypeObject {
 	private static final long serialVersionUID = 4583318830595686027L;
 	private static final ModuleData OBJECT_MODULE_INFO = new ModuleData() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4956333399367944586L;
+
 		@Override
 		public String getName() {
 			return "<object>";

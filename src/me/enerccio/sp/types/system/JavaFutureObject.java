@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 
@@ -85,5 +86,10 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	@Override
 	public boolean isReady() {
 		return status != FutureStatus.RUNNING;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+
 	}
 }

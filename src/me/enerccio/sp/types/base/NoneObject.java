@@ -22,6 +22,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
@@ -93,5 +94,10 @@ public class NoneObject extends PythonObject {
 	@Override
 	protected String doToString() {
 		return "None";
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 }

@@ -20,6 +20,7 @@ package me.enerccio.sp.types.base;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -65,5 +66,10 @@ public class SliceObject extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		
 	}
 }

@@ -22,6 +22,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -80,6 +81,14 @@ public class FutureTypeObject extends TypeObject {
 		@Override
 		protected String doToString() {
 			return "<Future Query for " + inner.toString() + ">";
+		}
+		
+		@Override
+		protected void serializeDirectState(PySerializer pySerializer) {
+			if (inner instanceof PythonObject)
+				pySerializer.serialize((PythonObject) inner);
+			else
+				pySerializer.serializeJava(inner);
 		}
 		
 	}

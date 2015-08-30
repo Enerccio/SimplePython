@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -90,5 +91,10 @@ public class PointerObject extends PythonObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serializeJava(pointed);
 	}
 }

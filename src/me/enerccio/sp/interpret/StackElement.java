@@ -3,6 +3,7 @@ package me.enerccio.sp.interpret;
 import java.util.Map;
 import java.util.Set;
 
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -53,5 +54,13 @@ public class StackElement extends PythonObject {
 	protected String doToString() {
 		return "<" + module.getName() + " at line " + line + " " + character
 				+ ">";
+	}
+
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serializeJava(module);
+		pySerializer.serialize(line);
+		pySerializer.serialize(character);
+		pySerializer.serialize(function);
 	}
 }

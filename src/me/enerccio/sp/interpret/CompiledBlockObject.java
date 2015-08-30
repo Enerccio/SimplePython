@@ -33,6 +33,7 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
@@ -54,7 +55,6 @@ public class CompiledBlockObject extends PythonObject {
 		try {
 			if (compiled == null) {
 				compiled = compile(bytecode, mmap, dmap);
-				// bytecode = null;
 			}
 		} catch (Exception e) {
 			throw new TypeError("invalid bytecode", e);
@@ -126,6 +126,17 @@ public class CompiledBlockObject extends PythonObject {
 	private byte[] compiled;
 	public Map<Integer, PythonObject> mmap;
 	public NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(compiled);
+		pySerializer.serialize(mmap.size());
+		for (Integer i : mmap.keySet()){
+			pySerializer.serialize(i);
+			pySerializer.serialize(mmap.get(i));
+		}
+		pySerializer.serializeJava(dmap);
+	}
 
 	public byte[] getBytedata() {
 		return compiled;
@@ -202,9 +213,8 @@ public class CompiledBlockObject extends PythonObject {
 			if (fileout)
 				mapper[0] = "";
 			else
-				mapper[0] = String.format("{fc: %s, ac: %s}",
-						PythonInterpreter.interpreter.get().currentFrame.size(),
-						PythonInterpreter.interpreter.get().getAccessCount());
+				mapper[0] = String.format("{fc: %s}",
+						PythonInterpreter.interpreter.get().currentFrame.size());
 			
 			if (d == null || !d.equals(block.getDebugInformation(pos))) {
 				d = block.getDebugInformation(pos);

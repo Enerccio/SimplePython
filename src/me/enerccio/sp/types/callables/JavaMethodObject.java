@@ -31,6 +31,7 @@ import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
 import me.enerccio.sp.types.PythonObject;
@@ -205,6 +206,27 @@ public class JavaMethodObject extends CallableObject {
 		} catch (PointerMethodIncompatibleException e) {
 			throw new TypeError(e.getMessage(), e);
 		}
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serializeJava(caller);
+		pySerializer.serialize(boundHandle.getDeclaringClass().getName());
+		pySerializer.serialize(boundHandle.getName());
+		pySerializer.serializeJava(boundHandle.getParameterTypes().length);
+		for (Class<?> cls : boundHandle.getParameterTypes()){
+			pySerializer.serialize(cls.getName());
+		}
+		pySerializer.serialize(noTypeConversion);
+		if (argNames == null){
+			pySerializer.serialize(false);
+		} else {
+			pySerializer.serialize(true);
+			pySerializer.serialize(argNames.length);
+			for (String s : argNames)
+				pySerializer.serialize(s);
+		}
+				
 	}
 
 	/**

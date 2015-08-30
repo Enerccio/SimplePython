@@ -21,7 +21,7 @@ import me.enerccio.sp.types.PythonObject;
 
 public interface FutureObject {
 	public enum FutureStatus {
-		RUNNING, FINISHED, FAILED
+		PREPARED, RUNNING, FINISHED, FAILED
 	}
 
 	/** Should wait until value is available */

@@ -28,6 +28,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.KwArgs.HashMapKWArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.ContainerObject;
@@ -100,6 +101,15 @@ public class DictObject extends ContainerObject implements InternalDict,
 	}
 
 	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(backingMap.size());
+		for (PythonProxy pp : backingMap.keySet()){
+			pySerializer.serialize(pp.o);
+			pySerializer.serialize(backingMap.get(pp));
+		}
+	}
 
 	@Override
 	public PythonObject set(String key, PythonObject localContext,

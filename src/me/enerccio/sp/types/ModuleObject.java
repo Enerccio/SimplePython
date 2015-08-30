@@ -40,6 +40,7 @@ import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
@@ -68,6 +69,14 @@ public class ModuleObject extends PythonObject {
 	public CompiledBlockObject frame;
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
+
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(isInited);
+		pySerializer.serialize(frame);
+		pySerializer.serializeJava(data);
+		pySerializer.serializeJava(globals);
+	}
 
 	public ModuleObject(ModuleData data, boolean compilingBT) {
 		super(false);

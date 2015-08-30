@@ -41,6 +41,7 @@ import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasRshiftMethod;
 import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasSubMethod;
 import me.enerccio.sp.interpret.InterpreterMathExecutorHelper.HasXorMethod;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
@@ -367,6 +368,11 @@ public abstract class NumberObject extends PythonObject implements
 		@Override
 		public void newObject() {
 
+		}
+		
+		@Override
+		protected void serializeDirectState(PySerializer pySerializer) {
+			pySerializer.serialize(value);
 		}
 
 		private static IntObject[] baseMap = new IntObject[1 + 2 * PythonRuntime.PREALOCATED_INTEGERS];
@@ -808,6 +814,11 @@ public abstract class NumberObject extends PythonObject implements
 	private static class LongObject extends NumberObject {
 		private static final long serialVersionUID = 35L;
 		private final long value;
+		
+		@Override
+		protected void serializeDirectState(PySerializer pySerializer) {
+			pySerializer.serialize(value);
+		}
 
 		@Override
 		public NumberType getNumberType() {
@@ -1180,6 +1191,11 @@ public abstract class NumberObject extends PythonObject implements
 	private static class FloatObject extends NumberObject {
 		private static final long serialVersionUID = 8L;
 		private final float value;
+		
+		@Override
+		protected void serializeDirectState(PySerializer pySerializer) {
+			pySerializer.serialize(value);
+		}
 
 		@Override
 		public NumberType getNumberType() {
@@ -1456,6 +1472,11 @@ public abstract class NumberObject extends PythonObject implements
 	private static class DoubleObject extends NumberObject {
 		private static final long serialVersionUID = 8L;
 		private final double value;
+		
+		@Override
+		protected void serializeDirectState(PySerializer pySerializer) {
+			pySerializer.serialize(value);
+		}
 
 		@Override
 		public NumberType getNumberType() {

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.PointerMethodIncompatibleException;
@@ -71,5 +72,13 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	@Override
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
+	}
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(name);
+		pySerializer.serialize(methods.size());
+		for (JavaMethodObject mo : methods)
+			pySerializer.serialize(mo);
 	}
 }

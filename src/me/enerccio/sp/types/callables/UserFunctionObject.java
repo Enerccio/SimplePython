@@ -27,6 +27,7 @@ import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -54,6 +55,18 @@ public class UserFunctionObject extends CallableObject {
 
 	public boolean isKvararg = false;
 	public String kvararg;
+	
+	@Override
+	protected void serializeDirectState(PySerializer pySerializer) {
+		pySerializer.serialize(block);
+		pySerializer.serialize(args.size());
+		for (String a : args)
+			pySerializer.serialize(a);
+		pySerializer.serialize(isVararg);
+		pySerializer.serialize(vararg);
+		pySerializer.serialize(isKvararg);
+		pySerializer.serialize(kvararg);
+	}
 
 	public UserFunctionObject() {
 
