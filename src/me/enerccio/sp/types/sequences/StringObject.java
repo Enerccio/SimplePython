@@ -568,4 +568,12 @@ public class StringObject extends ImmutableSequenceObject implements
 	public byte getTag() {
 		return Tags.STRING;
 	}
+
+	@Override
+	public void serializeInnerState(PySerializer pySerializer) {
+		pySerializer.serialize(io);
+		serializeDirectState(pySerializer);
+	}
+	
+	
 }

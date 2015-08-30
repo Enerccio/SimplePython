@@ -54,7 +54,7 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 	public static final String __EQ__ = "__eq__";
 	public static final String __NE__ = "__ne__";
 	
-	private boolean io;
+	protected boolean io;
 
 	public PythonObject(boolean internalObject) {
 		this.io = internalObject;

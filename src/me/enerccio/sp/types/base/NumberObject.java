@@ -356,8 +356,15 @@ public abstract class NumberObject extends PythonObject implements
 
 	@Override
 	public abstract PythonObject ge(PythonObject arg);
+	
+	private static abstract class DirectNumberObject extends NumberObject {
+		@Override
+		public void serializeInnerState(PySerializer pySerializer) {
+			serializeDirectState(pySerializer);
+		}
+	}
 
-	private static class IntObject extends NumberObject {
+	private static class IntObject extends DirectNumberObject {
 		private static final long serialVersionUID = 6L;
 		private final int value;
 
@@ -818,7 +825,7 @@ public abstract class NumberObject extends PythonObject implements
 		}
 	}
 
-	private static class LongObject extends NumberObject {
+	private static class LongObject extends DirectNumberObject {
 		private static final long serialVersionUID = 35L;
 		private final long value;
 		
@@ -1201,7 +1208,7 @@ public abstract class NumberObject extends PythonObject implements
 		}
 	}
 
-	private static class FloatObject extends NumberObject {
+	private static class FloatObject extends DirectNumberObject {
 		private static final long serialVersionUID = 8L;
 		private final float value;
 		
@@ -1488,7 +1495,7 @@ public abstract class NumberObject extends PythonObject implements
 		}
 	}
 
-	private static class DoubleObject extends NumberObject {
+	private static class DoubleObject extends DirectNumberObject {
 		private static final long serialVersionUID = 8L;
 		private final double value;
 		

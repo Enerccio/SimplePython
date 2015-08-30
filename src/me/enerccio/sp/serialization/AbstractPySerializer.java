@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.types.PythonObject;
+import me.enerccio.sp.types.Tags;
 
 public abstract class AbstractPySerializer implements PySerializer, PySerializerDataSource {
 
@@ -60,20 +61,33 @@ public abstract class AbstractPySerializer implements PySerializer, PySerializer
 	@Override
 	public void serialize(PythonObject object) {
 		if (object == null){
-			serialize(false);
+			serialize(false); // nonnull
 		} else {
 			serialize(object.getTag());
-			serialize(true);
-			if (serialized.contains(object.linkName)){
-				serialize(true);
-				serialize(object.linkName);
-			} else {
-				serialized.add(object.linkName);
+			if (primitive(object)){
+				serialize(true); // nonnull
+				serialize(true); // primitive
 				object.serializeInnerState((PySerializer)this);
+			} else {
+				serialize(true); // nonnull
+				serialize(false); // primitive
+				if (serialized.contains(object.linkName)){
+					serialize(true);
+					serialize(object.linkName);
+				} else {
+					serialized.add(object.linkName);
+					object.serializeInnerState((PySerializer)this);
+				}
 			}
 		}
 	}
 	
+	private boolean primitive(PythonObject object) {
+		byte tag = object.getTag();
+		return tag == Tags.INT || tag == Tags.LONG || tag == Tags.DOUBLE || tag == Tags.FLOAT 
+				|| tag == Tags.STRING;
+	}
+
 	@Override
 	public void serialize(boolean object) {
 		try {
