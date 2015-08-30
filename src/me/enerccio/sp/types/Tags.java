@@ -17,6 +17,9 @@
  */
 package me.enerccio.sp.types;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class Tags {
 	public static final byte PYTHON_BYTECODE = 0;
 	public static final byte CBO = 1;
@@ -91,4 +94,76 @@ public abstract class Tags {
 		
 	}
 	
+	public static final Map<Byte, String> tagDescName = new HashMap<Byte, String>();
+	
+	static {
+		tagDescName.put(PYTHON_BYTECODE, "python-bytecode");
+		tagDescName.put(CBO, "compiled-byte-object");
+		tagDescName.put(EO, "environment-object");
+		tagDescName.put(FO, "frame-object");
+		tagDescName.put(PYTHON_INTERPRETER, "python-interpreter");
+		tagDescName.put(STACK_EL, "stack-element");
+		tagDescName.put(MODULE, "module");
+		tagDescName.put(BOOL, "bool");
+		tagDescName.put(INSTANCE, "class-instance");
+		tagDescName.put(COMPLEX, "complex-number");
+		tagDescName.put(ELLIPSIS, "ellipsis");
+		tagDescName.put(NONE, "none");
+		tagDescName.put(INT, "int-number");
+		tagDescName.put(LONG, "long-number");
+		tagDescName.put(FLOAT, "float-number");
+		tagDescName.put(DOUBLE, "double-number");
+		tagDescName.put(SLICE, "slice-object");
+		tagDescName.put(BH, "bound-handle");
+		tagDescName.put(CLASS, "class-object");
+		tagDescName.put(JCONGRUENT, "java-congruent-method");
+		tagDescName.put(JFUNC, "java-function");
+		tagDescName.put(JMETH, "java-method");
+		tagDescName.put(UFUNC, "python-function");
+		tagDescName.put(UMETH, "python-method");
+		tagDescName.put(GEN, "generator");
+		tagDescName.put(OSI, "ordered-sequence-iterator");
+		tagDescName.put(XRI, "xrange-iterator");
+		tagDescName.put(DICT, "dict");
+		tagDescName.put(SDICT, "string-dict");
+		tagDescName.put(POINTER, "pointer");
+		tagDescName.put(FP, "field-property");
+		tagDescName.put(MP, "method-property");
+		tagDescName.put(LIST, "list");
+		tagDescName.put(STRING, "python-string");
+		tagDescName.put(TUPLE, "tuple");
+		tagDescName.put(XRANGE, "xrange");
+		tagDescName.put(CLASSM, "classmethod");
+		tagDescName.put(JFUTURE, "java-future");
+		tagDescName.put(PFUTURE, "python-future");
+		tagDescName.put(STATICM, "static-method");
+		tagDescName.put(FUTUREQ, "future-query");
+		
+		tagDescName.put(BOOL_TYPE, "bool-type");
+		tagDescName.put(BF_TYPE, "bound-function-type");
+		tagDescName.put(BC_TYPE, "bytecode-type");
+		tagDescName.put(CM_TYPE, "class-method-type");
+		tagDescName.put(CB_TYPE, "compiled-block-type");
+		tagDescName.put(COMPLEX_TYPE, "complex-type");
+		tagDescName.put(DICT_TYPE, "dict-type");
+		tagDescName.put(ENV_TYPE, "environment-type");
+		tagDescName.put(FLOAT_TYPE, "float-type");
+		tagDescName.put(FRAME_TYPE, "frame-type");
+		tagDescName.put(FUNCTION_TYPE, "function-type");
+		tagDescName.put(FUTURE_TYPE, "future-type");
+		tagDescName.put(INT_TYPE, "int-type");
+		tagDescName.put(JCALL_TYPE, "javacall-type");
+		tagDescName.put(JINST_TYPE, "javainstance-type");
+		tagDescName.put(LIST_TYPE, "list-type");
+		tagDescName.put(LONG_TYPE, "long-type");
+		tagDescName.put(METH_TYPE, "method-type");
+		tagDescName.put(NONE_TYPE, "none-type");
+		tagDescName.put(SLICE_TYPE, "slice-type");
+		tagDescName.put(SMETH_TYPE, "staticmethod-type");
+		tagDescName.put(STRING_TYPE, "string-type");
+		tagDescName.put(TUPLE_TYPE, "tuple-type");
+		tagDescName.put(TYPE_TYPE, "type-type");
+		tagDescName.put(TYPE_TYPE_TYPE, "type-type-type");
+		tagDescName.put(XRANGE_TYPE, "xrange-type");
+	}
 }

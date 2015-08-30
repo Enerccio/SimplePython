@@ -4,6 +4,7 @@ import java.nio.file.Paths;
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.FilesystemResolver;
 import me.enerccio.sp.serialization.FileOutputPySerializer;
+import me.enerccio.sp.serialization.XMLPySerializer;
 import me.enerccio.sp.types.ModuleObject;
 
 public class Test {
@@ -28,7 +29,7 @@ public class Test {
 				public void run() {
 					try {
 						Thread.sleep(500);
-						SimplePython.serialize(new FileOutputPySerializer(new File("ser.ser")));
+						SimplePython.serialize(new XMLPySerializer(new File("ser.xml")));
 					} catch (Exception e){
 						e.printStackTrace();
 					}

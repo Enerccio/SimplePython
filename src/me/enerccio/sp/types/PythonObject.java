@@ -57,6 +57,7 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 	protected boolean io;
 
 	public PythonObject(boolean internalObject) {
+		PythonRuntime.runtime.newInstanceInitialization(this);
 		this.io = internalObject;
 		if (!internalObject)
 			newObject();
@@ -93,7 +94,6 @@ public abstract class PythonObject implements Externalizable, HasEqMethod,
 	 * Should be called only once to initialize methods of the object
 	 */
 	protected void newObject() {
-		registerObject();
 		if (getType() == null)
 			throw new NullPointerException("Type for "
 					+ this.getClass().getName() + " is NULL");

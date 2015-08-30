@@ -18,8 +18,12 @@
 package me.enerccio.sp.serialization;
 
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,14 +49,37 @@ public abstract class BasePySerializer implements PySerializer, PySerializerData
 
 	@Override
 	public void finishSerialization() throws Exception {
-		
+		saveObjects();
 	}
 	
-	private Set<Long> serialized;
-	private Map<String, Long> stringCache;
-	private Map<Object, Long> objectCache;
-	private long sid;
-	private long oid;
+	private void saveObjects() throws Exception {
+		List<Object> olist = new ArrayList<Object>();
+		olist.addAll(objectCache.keySet());
+		Collections.sort(olist, new Comparator<Object>(){
+
+			@Override
+			public int compare(Object o1, Object o2) {
+				return objectCache.get(o1).compareTo(objectCache.get(o2));
+			}
+			
+		});
+		
+		saveObjects(olist);
+	}
+
+	protected void saveObjects(List<Object> olist) throws Exception {
+		serialize(objectCache.size());
+		ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
+		for (Object key : olist){
+			owriter.writeObject(key);
+		}
+	}
+
+	protected Set<Long> serialized;
+	protected Map<String, Long> stringCache;
+	protected long sid;
+	private   Map<Object, Long> objectCache;
+	private   long oid;
 	
 	public static int HEADER = 0xFACEDACE;
 	public static int VERSION = 0x0000001;
@@ -75,14 +102,13 @@ public abstract class BasePySerializer implements PySerializer, PySerializerData
 					serialize(object.linkName);
 				} else {
 					serialized.add(object.linkName);
-					serialize(object.getTag());
 					object.serializeInnerState((PySerializer)this);
 				}
 			}
 		}
 	}
 	
-	private boolean primitive(PythonObject object) {
+	protected boolean primitive(PythonObject object) {
 		byte tag = object.getTag();
 		return tag == Tags.INT || tag == Tags.LONG || tag == Tags.DOUBLE || tag == Tags.FLOAT 
 				|| tag == Tags.STRING;
@@ -121,14 +147,10 @@ public abstract class BasePySerializer implements PySerializer, PySerializerData
 				serialize((PythonObject)o);
 			} else {
 				if (objectCache.containsKey(o)){
-					serialize(true);
 					serialize(objectCache.get(o));
 				} else {
-					serialize(false);
 					serialize(oid);
 					objectCache.put(o, oid++);
-					ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
-					owriter.writeObject(o);
 				}
 			}
 		} catch (Exception e){

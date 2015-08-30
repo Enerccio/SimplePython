@@ -1635,9 +1635,14 @@ public class PythonInterpreter extends PythonObject {
 			pySerializer.serialize(o);
 		pySerializer.serialize((PythonObject) args);
 		pySerializer.serialize(returnee);
-		pySerializer.serialize(currentClosure.size());
-		for (InternalDict o : currentClosure)
-			pySerializer.serialize((PythonObject) o);
+		if (currentClosure != null){
+			pySerializer.serialize(true);
+			pySerializer.serialize(currentClosure.size());
+			for (InternalDict o : currentClosure)
+				pySerializer.serialize((PythonObject) o);
+		} else {
+			pySerializer.serialize(false);
+		}
 		pySerializer.serializeJava(interrupts);
 	}
 }
