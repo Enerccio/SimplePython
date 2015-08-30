@@ -17,17 +17,40 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.mappings.Dictionary;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Formatter;
 
-public class FormatterAccessor {
+public class FormatterAccessor implements Externalizable {
 
 	private CallableObject getValue;
 	private CallableObject checkUnused;
 	private CallableObject formatField;
+	
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(getValue);
+		s.serialize(checkUnused);
+		s.serialize(formatField);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO Auto-generated method stub
+		
+	}
 
 	public FormatterAccessor(CallableObject getValue,
 			CallableObject checkUnused, CallableObject formatField) {

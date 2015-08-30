@@ -17,9 +17,14 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class ThreadInfo extends Thread {
+public class ThreadInfo extends Thread implements Externalizable {
 
 	public ThreadInfo() {
 
@@ -37,5 +42,17 @@ public class ThreadInfo extends Thread {
 		} catch (InterruptedException e) {
 
 		}
+	}
+	
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
 	}
 }

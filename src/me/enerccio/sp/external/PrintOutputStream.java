@@ -17,14 +17,18 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.OutputStream;
 
 import me.enerccio.sp.errors.IOError;
 import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class PrintOutputStream {
+public class PrintOutputStream implements Externalizable {
 
 	private boolean err;
 
@@ -49,4 +53,17 @@ public class PrintOutputStream {
 		return "std" + (err ? "err" : "out") + " stream";
 	}
 
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(err);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO Auto-generated method stub
+		
+	}
 }

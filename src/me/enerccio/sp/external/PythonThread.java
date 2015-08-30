@@ -17,11 +17,17 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.base.ClassInstanceObject;
 import me.enerccio.sp.types.callables.CallableObject;
 import me.enerccio.sp.types.callables.UserMethodObject;
@@ -29,13 +35,30 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapField;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.types.sequences.TupleObject;
 
-public class PythonThread implements Runnable {
+public class PythonThread implements Runnable, Externalizable {
 
 	private UserMethodObject call;
 	private Thread t;
 
 	@WrapField(readOnly = true)
 	public boolean executed;
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(call);
+		s.serialize(executed);
+		s.serialize(t.isAlive());
+		s.serialize(t.isDaemon());
+		s.serialize(t.getName());
+		s.serialize(PythonInterpreter.interpreter.getForThread(t));
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
+	}
 
 	public PythonThread(ClassInstanceObject o, String name) {
 		PythonRuntime.runtime.checkSandboxAction("jthread",

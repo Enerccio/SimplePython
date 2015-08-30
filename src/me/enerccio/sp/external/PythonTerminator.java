@@ -17,10 +17,17 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Serializable;
+
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 
-public class PythonTerminator {
+public class PythonTerminator implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8870570765697909583L;
 
 	public PythonTerminator(int returnCode) {
 		PythonRuntime.runtime.checkSandboxAction("_exit",

@@ -34,7 +34,7 @@ public class RebindableThreadLocal<T> {
 		return getForThread(t);
 	}
 	
-	private T getForThread(Thread t) {
+	public T getForThread(Thread t) {
 		if (!values.containsKey(t))
 			values.put(t, initialValue());
 		return values.get(t);

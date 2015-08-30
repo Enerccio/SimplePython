@@ -104,10 +104,13 @@ public abstract class AbstractPySerializer implements PySerializer, PySerializer
 	public static byte STRING_CACHED = 2;
 	public static byte CACHE_STRING = 1;
 	public static byte NO_CACHE_STRING = 0;
+	public static byte STRING_NULL = -1;
 
 	@Override
 	public void serialize(String object) {
-		if (stringCache.containsKey(object)){
+		if (object == null){
+			serialize(STRING_NULL);
+		} else if (stringCache.containsKey(object)){
 			serialize(STRING_CACHED);
 			serialize(stringCache.get(object));
 		} else {	

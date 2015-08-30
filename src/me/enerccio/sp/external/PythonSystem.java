@@ -17,9 +17,14 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 
-public class PythonSystem extends Thread {
+public class PythonSystem extends Thread implements Externalizable {
 
 	public PythonSystem() {
 
@@ -30,4 +35,15 @@ public class PythonSystem extends Thread {
 		return System.currentTimeMillis();
 	}
 
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		// PySerializer s = PythonRuntime.activeSerializer;
+		
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
+	}
 }

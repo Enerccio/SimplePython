@@ -17,6 +17,10 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.TreeMap;
@@ -28,6 +32,7 @@ import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NumberObject;
 import me.enerccio.sp.types.mappings.DictObject;
@@ -36,14 +41,31 @@ import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 
-public class Disassembler {
+public class Disassembler implements Externalizable {
 
 	private byte[] data;
 	private DictObject mappings;
 	private TreeMap<Integer, DebugInformation> debug;
-	private ByteBuffer readBuff;
+	private ByteBuffer readBuff; // -- not serialized
 	@WrapField(readOnly = true)
 	public int last_bytecode_pos;
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(data);
+		s.serialize(mappings);
+		s.serializeJava(debug);
+		s.serialize(readBuff.position());
+		s.serialize(last_bytecode_pos);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO Auto-generated method stub
+		
+	}
 
 	public Disassembler(String code, DictObject mappings,
 			TreeMap<Integer, DebugInformation> dmap) {

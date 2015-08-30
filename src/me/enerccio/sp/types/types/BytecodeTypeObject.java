@@ -79,6 +79,11 @@ public class BytecodeTypeObject extends TypeObject {
 	}
 
 	private static ModuleData mook = new ModuleData() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5693240579018378700L;
+
 		@Override
 		public String getName() {
 			return "<generated-module>";

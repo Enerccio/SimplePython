@@ -17,13 +17,19 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.Utils;
 
-public class SocketHelper {
+public class SocketHelper implements Externalizable {
 
 	private ClassObject errorType;
 
@@ -38,5 +44,17 @@ public class SocketHelper {
 		} catch (Exception e) {
 			throw Utils.throwException(errorType, "failed to get hostname", e);
 		}
+	}
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(errorType);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
 	}
 }

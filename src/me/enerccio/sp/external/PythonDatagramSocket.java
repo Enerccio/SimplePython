@@ -17,7 +17,10 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -27,6 +30,7 @@ import java.util.Arrays;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
@@ -35,7 +39,7 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
-public class PythonDatagramSocket implements Closeable {
+public class PythonDatagramSocket implements Closeable, Externalizable {
 
 	private DatagramSocket socket;
 	private ClassObject errorType;
@@ -53,6 +57,21 @@ public class PythonDatagramSocket implements Closeable {
 		} catch (Exception e) {
 			throw Utils.throwException(errorType, "failed to open socket", e);
 		}
+	}
+	
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(errorType);
+		s.serialize(timeoutType);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@WrapMethod

@@ -17,7 +17,10 @@
  */
 package me.enerccio.sp.external;
 
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -27,6 +30,7 @@ import javax.net.ServerSocketFactory;
 
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
@@ -35,11 +39,25 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.Utils;
 
-public class PythonServerSocket implements Closeable {
+public class PythonServerSocket implements Closeable, Externalizable {
 
 	private ServerSocket socket;
 	private ClassObject errorType;
-	private ClassObject timeoutType;
+	private ClassObject timeoutType;	
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serialize(errorType);
+		s.serialize(timeoutType);
+		
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
+	}
 
 	public PythonServerSocket(ClassObject errorType, ClassObject timeoutType,
 			String addr, int port, int backlog) {

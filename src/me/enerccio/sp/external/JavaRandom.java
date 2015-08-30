@@ -19,14 +19,19 @@ package me.enerccio.sp.external;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.errors.ValueError;
 import me.enerccio.sp.interpret.KwArgs;
+import me.enerccio.sp.runtime.PythonRuntime;
+import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject.SpyDoc;
@@ -35,11 +40,25 @@ import me.enerccio.sp.types.sequences.TupleObject;
 import me.enerccio.sp.utils.CastFailedException;
 import me.enerccio.sp.utils.Coerce;
 
-public class JavaRandom {
+public class JavaRandom implements Externalizable {
 	private Random rnd = null;
 
 	public JavaRandom() {
 		rnd = new Random();
+	}
+	
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		PySerializer s = PythonRuntime.activeSerializer;
+		s.serializeJava(rnd);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@WrapMethod
