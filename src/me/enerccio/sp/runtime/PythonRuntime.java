@@ -292,7 +292,7 @@ public class PythonRuntime implements Serializable {
 			}
 			
 			
-			serializer.initialiteSerialization();
+			serializer.initializeSerialization();
 			activeSerializer = serializer;
 			doSerializeRuntime(serializer);
 			serializer.finishSerialization();

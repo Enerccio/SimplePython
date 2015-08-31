@@ -21,7 +21,7 @@ import me.enerccio.sp.types.PythonObject;
 
 public interface PySerializer {
 	
-	void initialiteSerialization() throws Exception;
+	void initializeSerialization() throws Exception;
 	void finishSerialization() throws Exception;
 
 	void serialize(PythonObject object);

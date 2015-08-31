@@ -25,7 +25,7 @@ public interface PyDeserializer {
 		public void run(Object nativeObject);
 	}
 	
-	void initialiteDeserialization() throws Exception;
+	void initializeSerialization() throws Exception;
 	void finishDeserialization() throws Exception;
 	
 	public PythonObject next();

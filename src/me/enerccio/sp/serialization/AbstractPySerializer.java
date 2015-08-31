@@ -25,8 +25,8 @@ public abstract class AbstractPySerializer extends BasePySerializer {
 	private DataOutputStream writer;
 	
 	@Override
-	public void initialiteSerialization() throws Exception {
-		super.initialiteSerialization();
+	public void initializeSerialization() throws Exception {
+		super.initializeSerialization();
 		writer = new DataOutputStream(getOutput());
 		serialize(HEADER);
 		serialize(VERSION);

@@ -39,7 +39,7 @@ import me.enerccio.sp.types.Tags;
 public abstract class BasePySerializer implements PySerializer, PySerializationDataSource {
 
 	@Override
-	public void initialiteSerialization() throws Exception {
+	public void initializeSerialization() throws Exception {
 		serialized = new HashSet<Long>();
 		stringCache = new HashMap<String, Long>();
 		objectCache = new HashMap<Object, Long>();

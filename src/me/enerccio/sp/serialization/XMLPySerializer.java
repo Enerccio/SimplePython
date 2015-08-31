@@ -53,8 +53,8 @@ public class XMLPySerializer extends BasePySerializer {
 	}
 
 	@Override
-	public void initialiteSerialization() throws Exception {
-		super.initialiteSerialization();
+	public void initializeSerialization() throws Exception {
+		super.initializeSerialization();
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		doc = docBuilder.newDocument();
