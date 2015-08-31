@@ -40,6 +40,6 @@ public interface PyDeserializer {
 	public byte[]  nextBytes();
 	public String  nextString();
 	
-	public void getNext(NativeResult nr);
+	public void nextNative(NativeResult nr);
 	public PythonObject getByLink(long link);
 }
