@@ -17,10 +17,29 @@
  */
 package me.enerccio.sp.serialization;
 
-import java.io.OutputStream;
+import me.enerccio.sp.types.PythonObject;
 
-public interface PySerializerDataSource {
+public interface PyDeserializer {
 
-	OutputStream getOutput();
+	public static interface NativeResult {
+		public void run(Object nativeObject);
+	}
 	
+	void initialiteDeserialization() throws Exception;
+	void finishDeserialization() throws Exception;
+	
+	public PythonObject next();
+	public boolean nextBoolean();
+	public byte    nextByte();
+	public long    nextLong();
+	public int     nextInt();
+	public float   nextFloat();
+	public double  nextDouble();
+	public char    nextChar();
+	public short   nextShort();
+	public byte[]  nextBytes();
+	public String  nextString();
+	
+	public void getNext(NativeResult nr);
+	public PythonObject getByLink(long link);
 }

@@ -36,7 +36,7 @@ import me.enerccio.sp.types.Tags;
  * @author Enerccio
  *
  */
-public abstract class BasePySerializer implements PySerializer, PySerializerDataSource {
+public abstract class BasePySerializer implements PySerializer, PySerializationDataSource {
 
 	@Override
 	public void initialiteSerialization() throws Exception {
