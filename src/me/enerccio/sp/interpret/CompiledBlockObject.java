@@ -262,6 +262,8 @@ public class CompiledBlockObject extends PythonObject {
 			case RCALL:
 			case UNPACK_SEQUENCE:
 			case MAKE_FIRST:
+			case D_STARTFUNC:
+			case D_RETURN:
 				mapper[5] = (String.format(FORMAT, b.getInt()));
 				break;
 			case PUSH_FRAME:
@@ -562,6 +564,12 @@ public class CompiledBlockObject extends PythonObject {
 				w.writeInt(b.intValue);
 				break;
 			case MAKE_FIRST:
+				w.writeInt(b.intValue);
+				break;
+			case D_STARTFUNC:
+				w.writeInt(b.intValue);
+				break;
+			case D_RETURN:
 				w.writeInt(b.intValue);
 				break;
 			case RERAISE:

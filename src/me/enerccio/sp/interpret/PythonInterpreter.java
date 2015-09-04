@@ -45,6 +45,7 @@ import me.enerccio.sp.errors.RuntimeError;
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
+import me.enerccio.sp.interpreter.debug.Debugger;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
@@ -534,10 +535,21 @@ public class PythonInterpreter extends PythonObject {
 				System.err.println(CompiledBlockObject.dis(o.compiled, true, spc)
 						+ " " + printStack(stack));
 		}
+		
+		try {
+			if (debugger != null)
+				debugger.debugNextOperation(this, opcode, o, spc);
+		} catch (NullPointerException e){
+			// pass
+		}
 
 		switch (opcode) {
 		case NOP:
 			// do nothing
+			break;
+		case D_RETURN:
+		case D_STARTFUNC:
+			o.pc += 4;
 			break;
 		case RESOLVE_CLOSURE:
 			resolveClosure(o, stack);
@@ -1644,5 +1656,16 @@ public class PythonInterpreter extends PythonObject {
 			pySerializer.serialize(false);
 		}
 		pySerializer.serializeJava(interrupts);
+	}
+	
+	private transient volatile Debugger debugger;
+	public void attachDebugger(Debugger debugger){
+		this.debugger = debugger;
+		this.debugger.bind(this);
+	}
+	
+	public void deattachDebugger(){
+		this.debugger = null;
+		this.debugger.unbind(this);
 	}
 }

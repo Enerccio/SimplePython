@@ -126,6 +126,18 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.NOP;
 		}
 	}
+	
+	public static class Debug extends PythonBytecode {
+		
+		public Debug(Bytecode b){
+			bytecode = b;
+		}
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 438692545119066014L;
+	}
 
 	public static class MakeFirst extends PythonBytecode {
 		/**

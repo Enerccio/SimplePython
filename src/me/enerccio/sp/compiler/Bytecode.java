@@ -71,6 +71,7 @@ import me.enerccio.sp.compiler.PythonBytecode.TruthValue;
 import me.enerccio.sp.compiler.PythonBytecode.UnpackKwArg;
 import me.enerccio.sp.compiler.PythonBytecode.UnpackSequence;
 import me.enerccio.sp.compiler.PythonBytecode.Yield;
+import me.enerccio.sp.compiler.PythonBytecode.Debug;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 
 import org.antlr.v4.runtime.Token;
@@ -113,7 +114,12 @@ public enum Bytecode {
 	// math macros
 	ADD(164), SUB(165), MUL(166), DIV(167), MOD(168), AND(169), OR(170), XOR(
 			171), POW(172), RSHIFT(173), LSHIFT(174), LT(175), LE(176), GE(177), GT(
-			178), EQ(179), NE(180), DCOLON(181), QM(182), RARROW(183), ;
+			178), EQ(179), NE(180), DCOLON(181), QM(182), RARROW(183), 
+			
+			
+	// debugger only bytecodes
+	D_STARTFUNC(250), D_RETURN(251),
+			;
 
 	Bytecode(int id) {
 		this.id = id;
@@ -384,6 +390,11 @@ public enum Bytecode {
 		case RARROW:
 			bytecode = new BinaryOperator(b);
 
+			break;
+		case D_STARTFUNC:
+		case D_RETURN:
+			bytecode = new Debug(b);
+			
 			break;
 		}
 

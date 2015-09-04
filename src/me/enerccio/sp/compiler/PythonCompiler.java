@@ -543,6 +543,7 @@ public class PythonCompiler {
 			cb.stringValue = "LoopContinue";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 		}
 
@@ -553,6 +554,7 @@ public class PythonCompiler {
 			cb.stringValue = "LoopBreak";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 		}
 
@@ -621,6 +623,7 @@ public class PythonCompiler {
 		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
 		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
 		cb.intValue = 1;
+		addBytecode(bytecode, Bytecode.D_RETURN, wi.stop);
 		// Stack contains TOP -> return value -> frame -> exception #1 -> with
 		// item.__exit__ -> exception #1 -> exception #1.__class__
 		addBytecode(bytecode, Bytecode.SWAP_STACK, wi.stop);
@@ -632,6 +635,7 @@ public class PythonCompiler {
 		// item.__exit__ -> exception #1.__class__/None -> exception #1/None
 		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
 		cb.intValue = 2;
+		addBytecode(bytecode, Bytecode.D_RETURN, wi.stop);
 		// Stack contains TOP -> return value -> frame -> exception #1 ->
 		// result(with item.__exit__)
 		PythonBytecode exceptionNotSuppressed = addBytecode(bytecode,
@@ -732,6 +736,7 @@ public class PythonCompiler {
 		putGetAttr("__enter__", bytecode, wi.stop);
 		cb = addBytecode(bytecode, Bytecode.CALL, wi.stop);
 		cb.intValue = 0;
+		addBytecode(bytecode, Bytecode.D_RETURN, wi.stop);
 	}
 
 	private void compileWithBody(SuiteContext suite,
@@ -996,6 +1001,7 @@ public class PythonCompiler {
 			compile(ctx.case_block(i).test(), bytecode);
 			cb = addBytecode(bytecode, Bytecode.RCALL, ctx.start);
 			cb.intValue = 1;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			cb = addBytecode(bytecode, Bytecode.JUMPIFTRUE, ctx.start);
 			jumps.add(cb);
 		}
@@ -1043,6 +1049,7 @@ public class PythonCompiler {
 		}
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.start);
 		cb.intValue = c;
+		addBytecode(bytecode, Bytecode.D_RETURN, classdef.start);
 		UserFunctionObject fnc = new UserFunctionObject();
 		Utils.putPublic(fnc, "__name__", new StringObject("$$__classBodyFncFor"
 				+ className + "$$"));
@@ -1064,8 +1071,10 @@ public class PythonCompiler {
 		addBytecode(bytecode, Bytecode.RESOLVE_CLOSURE, classdef.stop);
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.stop);
 		cb.intValue = 0;
+		addBytecode(bytecode, Bytecode.D_RETURN, classdef.stop);
 		cb = addBytecode(bytecode, Bytecode.CALL, classdef.stop);
 		cb.intValue = 3;
+		addBytecode(bytecode, Bytecode.D_RETURN, classdef.stop);
 
 		addBytecode(bytecode, Bytecode.DUP, classdef.stop);
 		cb = addBytecode(bytecode, Bytecode.PUSH, classdef.stop);
@@ -1158,6 +1167,7 @@ public class PythonCompiler {
 				compile(ctx.test(), bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 				cb.intValue = 2;
+				addBytecode(bytecode, Bytecode.D_RETURN, ctx.stop);
 				addBytecode(bytecode, Bytecode.POP, ctx.stop);
 			}
 		}
@@ -1188,11 +1198,13 @@ public class PythonCompiler {
 				cb.intValue = args.normalArgCount;
 				if (args.hasArgExpansion)
 					cb.intValue = -1 * (cb.intValue + 1);
+				addBytecode(bytecode, Bytecode.D_RETURN, d.stop);
 			}
 			// call
 			addBytecode(bytecode, Bytecode.SWAP_STACK, dc.stop);
 			cb = addBytecode(bytecode, Bytecode.CALL, dc.stop);
 			cb.intValue = 1;
+			addBytecode(bytecode, Bytecode.D_RETURN, d.stop);
 		}
 	}
 
@@ -1203,6 +1215,7 @@ public class PythonCompiler {
 		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, t);
 		addBytecode(bytecode, Bytecode.OPEN_LOCALS, t);
 		addBytecode(bytecode, Bytecode.RESOLVE_ARGS, t);
+		addBytecode(bytecode, Bytecode.D_STARTFUNC, t);
 
 		if (suite instanceof SuiteContext) {
 			boolean first = true;
@@ -1440,6 +1453,7 @@ public class PythonCompiler {
 		}
 		cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 		cb.intValue = 3;
+		addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 	}
 
 	private void compile(Del_stmtContext ctx, List<PythonBytecode> bytecode) {
@@ -1611,6 +1625,7 @@ public class PythonCompiler {
 			compile(ctx.test(1), bytecode); // Argument
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 1;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			cb = addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 			cb.booleanValue = true;
 		} else if (ctx.test().size() == 1) {
@@ -1654,6 +1669,7 @@ public class PythonCompiler {
 
 		cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 		cb.intValue = ctx.test().size() - st;
+		addBytecode(bytecode, Bytecode.D_RETURN, ctx.stop);
 
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
 		cb.value = new StringObject(" ");
@@ -1673,6 +1689,7 @@ public class PythonCompiler {
 
 		cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 		cb.intValue = 4;
+		addBytecode(bytecode, Bytecode.D_RETURN, ctx.stop);
 
 		addBytecode(bytecode, Bytecode.POP, ctx.stop);
 	}
@@ -1776,6 +1793,7 @@ public class PythonCompiler {
 		if (tlc > 1) {
 			cb = addBytecode(bytecode, Bytecode.CALL, testlist.stop);
 			cb.intValue = tlc;
+			addBytecode(bytecode, Bytecode.D_RETURN, testlist.stop);
 		}
 	}
 
@@ -1957,6 +1975,7 @@ public class PythonCompiler {
 				cb = addBytecode(bytecode, Bytecode.CALL,
 						((ExprContext) ctx.getChild(2)).start);
 				cb.intValue = 1;
+				addBytecode(bytecode, Bytecode.D_RETURN, ((ExprContext) ctx.getChild(2)).start);
 				if (ctx.getChild(1).getText().equals("notin"))
 					putNot(bytecode, ((ExprContext) ctx.getChild(2)).start);
 				return;
@@ -1992,6 +2011,7 @@ public class PythonCompiler {
 					cb = addBytecode(bytecode, Bytecode.CALL,
 							((ExprContext) ctx.getChild(i + 1)).start);
 					cb.intValue = 2;
+					addBytecode(bytecode, Bytecode.D_RETURN, ((ExprContext) ctx.getChild(i + 1)).start);
 					if (ctx.getChild(i).getText().equals("isnot"))
 						putNot(bytecode,
 								((ExprContext) ctx.getChild(i + 1)).start);
@@ -2108,6 +2128,7 @@ public class PythonCompiler {
 				putGetAttr(NumberObject.__NEG__, bytecode, ctx.start);
 				cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 				cb.intValue = 0;
+				addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 				return;
 			}
 
@@ -2144,12 +2165,14 @@ public class PythonCompiler {
 			if (tc.arglist() == null) {
 				cb = addBytecode(bytecode, Bytecode.CALL, tc.stop);
 				cb.intValue = 0;
+				addBytecode(bytecode, Bytecode.D_RETURN, tc.stop);
 			} else {
 				CallArgsData args = compileArguments(tc.arglist(), bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, tc.stop);
 				cb.intValue = args.normalArgCount;
 				if (args.hasArgExpansion)
 					cb.intValue = -1 * (cb.intValue + 1);
+				addBytecode(bytecode, Bytecode.D_RETURN, tc.stop);
 			}
 		} else if (tc.getText().startsWith("[")) {
 			putGetAttr("__getitem__", bytecode, tc.start);
@@ -2172,9 +2195,11 @@ public class PythonCompiler {
 		if (tlc > 1) {
 			cb = addBytecode(bytecode, Bytecode.CALL, sc.stop);
 			cb.intValue = tlc;
+			addBytecode(bytecode, Bytecode.D_RETURN, sc.stop);
 		}
 		cb = addBytecode(bytecode, Bytecode.CALL, sc.stop);
 		cb.intValue = 1;
+		addBytecode(bytecode, Bytecode.D_RETURN, sc.stop);
 	}
 
 	private void compile(SubscriptContext s, List<PythonBytecode> bytecode) {
@@ -2402,6 +2427,7 @@ public class PythonCompiler {
 			cb.stringValue = TupleTypeObject.MAKE_TUPLE_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, t);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, t);
 			return;
 		}
 		if (ctx.testlist_comp() != null)
@@ -2416,6 +2442,7 @@ public class PythonCompiler {
 		compile(dcx.test(1), bytecode);
 		cb = addBytecode(bytecode, Bytecode.CALL, dcx.start);
 		cb.intValue = 2;
+		addBytecode(bytecode, Bytecode.D_RETURN, dcx.start);
 		addBytecode(bytecode, Bytecode.POP, dcx.stop);
 	}
 
@@ -2433,6 +2460,7 @@ public class PythonCompiler {
 					compile(i, bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
 				cb.intValue = ctx.test().size();
+				addBytecode(bytecode, Bytecode.D_RETURN, ctx.stop);
 			} else {
 				compile(ctx.test(0), bytecode);
 			}
@@ -2447,6 +2475,7 @@ public class PythonCompiler {
 			cb.stringValue = ListTypeObject.MAKE_LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, token);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, token);
 			return;
 		}
 		if (listmaker.list_for() != null) {
@@ -2457,6 +2486,7 @@ public class PythonCompiler {
 			cb.stringValue = ListTypeObject.LIST_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, listmaker.stop);
 			/** Stack: TOP -> list */
 			addBytecode(bytecode, Bytecode.DUP, listmaker.stop);
 			// Get append method
@@ -2472,6 +2502,7 @@ public class PythonCompiler {
 				compile(t, bytecode);
 			cb = addBytecode(bytecode, Bytecode.CALL, listmaker.stop);
 			cb.intValue = listmaker.test().size();
+			addBytecode(bytecode, Bytecode.D_RETURN, listmaker.stop);
 		}
 	}
 
@@ -2558,6 +2589,7 @@ public class PythonCompiler {
 			cb.stringValue = DictTypeObject.DICT_CALL;
 			cb = addBytecode(bytecode, Bytecode.CALL, t);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, t);
 			if (dictorsetmaker != null) {
 				// { x:y, a:b, h:i }
 				addBytecode(bytecode, Bytecode.DUP, dictorsetmaker.start);
@@ -2584,6 +2616,7 @@ public class PythonCompiler {
 				cb.stringValue = ListTypeObject.LIST_CALL;
 				cb = addBytecode(bytecode, Bytecode.CALL, dictorsetmaker.stop);
 				cb.intValue = 0;
+				addBytecode(bytecode, Bytecode.D_RETURN, dictorsetmaker.stop);
 			} else {
 				// { x : y for x in somethingiterable }
 				// Generate empty dict
@@ -2592,6 +2625,7 @@ public class PythonCompiler {
 				cb.stringValue = DictTypeObject.DICT_CALL;
 				cb = addBytecode(bytecode, Bytecode.CALL, dictorsetmaker.stop);
 				cb.intValue = 0;
+				addBytecode(bytecode, Bytecode.D_RETURN, dictorsetmaker.stop);
 			}
 			/** Stack: TOP -> dict */
 			addBytecode(bytecode, Bytecode.DUP, dictorsetmaker.stop);
@@ -2609,6 +2643,7 @@ public class PythonCompiler {
 				/** Stack: TOP -> set -> list */
 				cb = addBytecode(bytecode, Bytecode.RCALL, dictorsetmaker.stop);
 				cb.intValue = 1;
+				addBytecode(bytecode, Bytecode.D_RETURN, dictorsetmaker.stop);
 				/** Stack: TOP -> set(list) */
 			} else {
 				// dict - Get setitem method
@@ -2760,6 +2795,7 @@ public class PythonCompiler {
 				compile(fctx.test(), bytecode);
 				cb = addBytecode(bytecode, Bytecode.CALL, fctx.stop);
 				cb.intValue = 2;
+				addBytecode(bytecode, Bytecode.D_RETURN, fctx.stop);
 				addBytecode(bytecode, Bytecode.POP, fctx.stop);
 			}
 		}
@@ -2931,6 +2967,7 @@ public class PythonCompiler {
 															// -> value -> a
 					cb = addBytecode(bytecode, Bytecode.KCALL, s.stest().stop);
 					cb.intValue = 2;
+					addBytecode(bytecode, Bytecode.D_RETURN, s.stest().stop);
 				} else {
 					// xyz[a:b] = ...
 					throw new SyntaxError(
@@ -3088,6 +3125,7 @@ public class PythonCompiler {
 			cb.stringValue = "LoopContinue";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 		}
 
@@ -3099,6 +3137,7 @@ public class PythonCompiler {
 			cb.stringValue = "LoopBreak";
 			cb = addBytecode(bytecode, Bytecode.CALL, ctx.start);
 			cb.intValue = 0;
+			addBytecode(bytecode, Bytecode.D_RETURN, ctx.start);
 			addBytecode(bytecode, Bytecode.RAISE, ctx.start);
 		}
 

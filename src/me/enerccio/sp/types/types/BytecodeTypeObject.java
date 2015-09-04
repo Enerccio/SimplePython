@@ -228,6 +228,10 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case PUSH_LOCALS:
 				break;
+			case D_RETURN:
+			case D_STARTFUNC:
+				bytecode.intValue = Coerce.toJava(args.get(1), int.class);
+				break;
 			case PUSH_LOCAL_CONTEXT:
 				break;
 			case RAISE:
@@ -321,9 +325,7 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case LOAD_FUTURE:
 				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
-				break;
-			default:
-				break;
+				break;				
 			}
 
 			bytecode.newObject();

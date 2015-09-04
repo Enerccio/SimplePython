@@ -135,6 +135,8 @@ public class Disassembler implements Externalizable {
 			case JUMPIFTRUE:
 			case SWAP_STACK:
 			case MAKE_FIRST:
+			case D_RETURN:
+			case D_STARTFUNC:
 				bytecode.intValue = readBuff.getInt();
 				break;
 			case PUSH_FRAME:

@@ -3,7 +3,9 @@ import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.FilesystemResolver;
-import me.enerccio.sp.serialization.FileOutputPySerializer;
+import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
+import me.enerccio.sp.interpreter.debug.AbstractDebugger;
 import me.enerccio.sp.serialization.XMLPySerializer;
 import me.enerccio.sp.types.ModuleObject;
 
@@ -36,6 +38,36 @@ public class Test {
 				}
 				
 			};
+			t.start();
+			
+			PythonInterpreter i = PythonInterpreter.interpreter.get();
+			final AbstractDebugger d = new AbstractDebugger();
+			
+			i.attachDebugger(d);
+			d.installBreakpoint("x", "", 14);
+			
+			t = new Thread(){
+
+				@Override
+				public void run() {
+					while (true){
+						try {
+							d.breakingSemaphore.acquire();
+						} catch (InterruptedException e) {
+							return;
+						}
+						
+						System.err.println("Debugging " + d.f + " for " + d.i + " - cpc: " + d.cpc + ", opcode " + d.cbc);
+						DebugInformation di = d.f.getCompiled().getDebugInformation(d.cpc);
+						System.err.println("Debugging: " + di.function + " at module " + di.module.getName() + ", lineno: " + di.lineno);
+						d.breakNextLine();
+						
+						d.waitingSemaphore.release();
+					}
+				}
+				
+			};
+			t.setDaemon(true);
 			t.start();
 			
 			ModuleObject x = SimplePython.getModule("x");
