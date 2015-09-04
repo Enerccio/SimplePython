@@ -43,6 +43,7 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 		serialized = new HashSet<Long>();
 		stringCache = new HashMap<String, Long>();
 		objectCache = new HashMap<Object, Long>();
+		objectSet = new HashSet<BasePySerializer.ObjectProxy>();
 		sid = 0;
 		oid = 0;
 	}
@@ -74,11 +75,47 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 			owriter.writeObject(key);
 		}
 	}
+	
+	private static class ObjectProxy {
+		private final Object o;
+
+		private ObjectProxy(Object o){
+			this.o = o;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((o == null) ? 0 : o.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ObjectProxy other = (ObjectProxy) obj;
+			if (o == null) {
+				if (other.o != null)
+					return false;
+			} else if (!(other.o == this.o))
+				return false;
+			return true;
+		}
+		
+		
+	}
 
 	protected Set<Long> serialized;
 	protected Map<String, Long> stringCache;
 	protected long sid;
 	private   Map<Object, Long> objectCache;
+	private   Set<ObjectProxy> objectSet;
 	private   long oid;
 	
 	public static int HEADER = 0xFACEDACE;
@@ -146,10 +183,11 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 			if (o instanceof PythonObject){
 				serialize((PythonObject)o);
 			} else {
-				if (objectCache.containsKey(o)){
+				if (objectSet.contains(new ObjectProxy(o))){
 					serialize(objectCache.get(o));
 				} else {
 					serialize(oid);
+					objectSet.add(new ObjectProxy(o));
 					objectCache.put(o, oid++);
 				}
 			}
