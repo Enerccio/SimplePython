@@ -1,8 +1,11 @@
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.FilesystemResolver;
+import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpreter.debug.AbstractDebugger;
@@ -57,9 +60,18 @@ public class Test {
 							return;
 						}
 						
-						System.err.println("Debugging " + d.f + " for " + d.i + " - cpc: " + d.cpc + ", opcode " + d.cbc);
-						DebugInformation di = d.f.getCompiled().getDebugInformation(d.cpc);
-						System.err.println("Debugging: " + di.function + " at module " + di.module.getName() + ", lineno: " + di.lineno + "; " + di.isLineStart);
+						System.err.println();
+						
+						List<FrameObject> frames = d.getFrames();
+						Collections.reverse(frames);
+						for (FrameObject fo : frames){
+							DebugInformation di = fo.compiled.getDebugInformation(fo.prevPc);
+							System.out.println("at " + di.function + ", module <" + di.module.getFileName() + ">, line " + di.lineno + ", pos " + di.charno);
+							for (String variable : d.getVariables(fo)){
+								System.out.println("    " + variable + ": " + d.valueToString(fo, variable));
+							}
+						}
+						
 						d.breakNextLine();
 						
 						d.waitingSemaphore.release();

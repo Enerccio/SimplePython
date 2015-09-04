@@ -271,4 +271,8 @@ public class EnvironmentObject extends PythonObject {
 		else
 			return environments.get(environments.size() - 2);
 	}
+
+	public InternalDict getTop() {
+		return environments.get(0);
+	}
 }

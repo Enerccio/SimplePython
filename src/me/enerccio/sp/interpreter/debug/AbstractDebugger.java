@@ -17,7 +17,10 @@
  */
 package me.enerccio.sp.interpreter.debug;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
@@ -145,5 +148,35 @@ public class AbstractDebugger implements Debugger {
 		Breakpoint bp = new Breakpoint(moduleName, modulePath, line);
 		breakpoints.add(bp);
 		return bp;
+	}
+
+	public List<FrameObject> getFrames() {
+		List<FrameObject> frl = new ArrayList<FrameObject>();
+		for (FrameObject fo : i.currentFrame){
+			if (fo.parentFrame == null){
+				frl.add(fo);
+			}
+		}
+		return frl;
+	}
+	
+	public List<String> getVariables(FrameObject frame){
+		List<String> names = new ArrayList<String>();
+		if (frame.environment == null)
+			return names;
+		Set<String> vNames = frame.environment.getTop().keySet();
+		for (String v : vNames){
+			names.add(v);
+		}
+		Collections.sort(names);
+		if (names.contains("self")){
+			names.remove("self");
+			names.add(0, "self");
+		}
+		return names;
+	}
+	
+	public String valueToString(FrameObject frame, String variable){
+		return frame.environment.getLocals().getVariable(variable).toString();
 	}
 }

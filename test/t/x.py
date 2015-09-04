@@ -10,8 +10,15 @@ def fnc():
         next = yield last
         last = next
 
-def test():
+def t2():
     x = coroutine(fnc)
     print x.resume()
     print x.resume("Ahoj Svet")
     x.terminate()
+    
+def test():
+    x = 5
+    t1(x)
+    
+def t1(y):
+    t2()
