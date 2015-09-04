@@ -59,7 +59,7 @@ public class Test {
 						
 						System.err.println("Debugging " + d.f + " for " + d.i + " - cpc: " + d.cpc + ", opcode " + d.cbc);
 						DebugInformation di = d.f.getCompiled().getDebugInformation(d.cpc);
-						System.err.println("Debugging: " + di.function + " at module " + di.module.getName() + ", lineno: " + di.lineno);
+						System.err.println("Debugging: " + di.function + " at module " + di.module.getName() + ", lineno: " + di.lineno + "; " + di.isLineStart);
 						d.breakNextLine();
 						
 						d.waitingSemaphore.release();

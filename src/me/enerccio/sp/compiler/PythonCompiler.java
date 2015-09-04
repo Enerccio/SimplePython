@@ -3100,10 +3100,36 @@ public class PythonCompiler {
 		}
 	};
 
+	private static class TokenProxy {
+		private Token t;
+		public TokenProxy(Token t){
+			this.t = t;
+		}
+		
+		@Override
+		public boolean equals(Object o){
+			Token token = ((TokenProxy)o).t;
+			return t.getLine() == token.getLine();
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (t.getLine());
+			return result;
+		}
+	}
+	
+	private Set<TokenProxy> usedTokens = new HashSet<TokenProxy>();
 	private PythonBytecode addBytecode(List<PythonBytecode> bytecode,
 			Bytecode bctype, Token token) {
 		PythonBytecode rv;
 		rv = Bytecode.makeBytecode(bctype, token, getFunction(), module);
+		if (!usedTokens.contains(new TokenProxy(token))){
+			usedTokens.add(new TokenProxy(token));
+			rv.newLine = true;
+		}
 		bytecode.add(rv);
 		return rv;
 	}

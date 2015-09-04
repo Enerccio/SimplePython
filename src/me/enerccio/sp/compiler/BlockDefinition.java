@@ -167,6 +167,8 @@ public class BlockDefinition {
 				.getSecond()));
 		di.lineno = Utils.toNumeric(((Pair<DataTag, Object>) arr[3]).getSecond());
 		di.charno = Utils.toNumeric(((Pair<DataTag, Object>) arr[4]).getSecond());
+		di.isLineStart = Utils.toNumeric(((Pair<DataTag, Object>) arr[5]).getSecond()) == 1;
+		
 		ModuleData mf = new BlockModuleData(mi, name, fname);
 
 		di.module = mf;
@@ -431,8 +433,9 @@ public class BlockDefinition {
 		Object function = makeInt(cache(d.function));
 		Object lineno = makeInt(d.lineno);
 		Object charno = makeInt(d.charno);
+		Object isStart = makeInt(d.isLineStart ? 1 : 0);
 		return Pair.makePair(DataTag.ARRAY, (Object) new Object[] { name,
-				filename, function, lineno, charno });
+				filename, function, lineno, charno, isStart });
 	}
 
 	private static Pair<DataTag, Object> makeInt(int i) {

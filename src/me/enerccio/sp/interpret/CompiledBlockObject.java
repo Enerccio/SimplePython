@@ -96,6 +96,7 @@ public class CompiledBlockObject extends PythonObject {
 		public int lineno, charno;
 		public ModuleData module;
 		public String function;
+		public boolean isLineStart;
 
 		@Override
 		public int hashCode() {
@@ -105,6 +106,7 @@ public class CompiledBlockObject extends PythonObject {
 			result = prime * result + lineno;
 			result = prime * result + function.hashCode();
 			result = prime * result + module.hashCode();
+			result = prime * result + (isLineStart ? 1 : 0);
 			return result;
 		}
 
@@ -124,6 +126,8 @@ public class CompiledBlockObject extends PythonObject {
 			if (!function.equals(other.function))
 				return false;
 			if (!module.equals(other.module))
+				return false;
+			if (!isLineStart == other.isLineStart)
 				return false;
 			return true;
 		}
@@ -440,6 +444,7 @@ public class CompiledBlockObject extends PythonObject {
 				d.lineno = b.debugLine;
 				d.function = b.debugFunction;
 				d.module = b.debugModule;
+				d.isLineStart = b.newLine;
 				dmap.put(ii, d);
 			}
 
@@ -684,7 +689,7 @@ public class CompiledBlockObject extends PythonObject {
 	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
 		return d.charno != b.debugCharacter || d.lineno != b.debugLine
 				|| !d.module.equals(b.debugModule)
-				|| !d.function.equals(b.debugFunction);
+				|| !d.function.equals(b.debugFunction) || d.isLineStart != b.newLine;
 	}
 
 	private static int insertValue(PythonObject v,

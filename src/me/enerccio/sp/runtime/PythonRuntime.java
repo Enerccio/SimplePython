@@ -733,7 +733,7 @@ public class PythonRuntime implements Serializable {
 						builtin = mo.frame;
 					} catch (Exception e1) {
 						throw new RuntimeException(
-								"Failed to initialize python!");
+								"Failed to initialize python!", e1);
 					}
 
 					PythonInterpreter i = PythonInterpreter.interpreter.get();

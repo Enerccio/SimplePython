@@ -42,12 +42,8 @@ public class AbstractDebugger implements Debugger {
 		DebugInformation di = f.getCompiled().getDebugInformation(cpc);
 		for (Breakpoint bp : breakpoints){
 			if (bp.applies(di)){
-				if (!bp.appliedRecently){
-					bp.doesApply();
 					doBreak(i, b, f, cpc);
-				}
-			} else {
-				bp.doesNotApply();
+					return;
 			}
 		}
 		

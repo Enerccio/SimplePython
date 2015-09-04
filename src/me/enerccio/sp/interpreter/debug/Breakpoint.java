@@ -24,7 +24,6 @@ public class Breakpoint {
 	private String moduleName;
 	private String modulePath;
 	private int line;
-	boolean appliedRecently;
 	
 	@Override
 	public int hashCode() {
@@ -71,15 +70,8 @@ public class Breakpoint {
 	public boolean applies(DebugInformation debugInfo){
 		return debugInfo.module.getPackageResolve().equals(modulePath) &&
 			   debugInfo.module.getName().equals(moduleName) &&
-			   debugInfo.lineno == line;
-	}
-
-	public void doesNotApply() {
-		appliedRecently = false;
-	}
-	
-	public void doesApply(){
-		appliedRecently = true;
+			   debugInfo.lineno == line &&
+			   debugInfo.isLineStart;
 	}
 	
 }

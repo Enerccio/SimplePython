@@ -33,7 +33,7 @@ import me.enerccio.sp.utils.Pair;
 public class ModuleDefinition {
 
 	private static final int pycHeader = 0xDEADBABE;
-	private static final int version = 2;
+	private static final int version = 3;
 
 	public ModuleDefinition(byte[] inputData) throws Exception {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(

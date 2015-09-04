@@ -46,6 +46,7 @@ public class PythonBytecode extends PythonObject {
 	public int debugCharacter;
 	public String debugFunction;
 	public ModuleData debugModule = null;
+	public boolean newLine = false;
 
 	/* fields used by various bytecodes */
 	public int intValue;
