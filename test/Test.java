@@ -69,8 +69,6 @@ public class Test {
 								+ di.module.getFileName() + ">, line "
 								+ di.lineno + ", pos " + di.charno);
 
-						d.breakReturn();
-
 						d.waitingSemaphore.release();
 					}
 				}

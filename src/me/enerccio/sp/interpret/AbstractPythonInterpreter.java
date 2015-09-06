@@ -35,6 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.BasePythonError;
+import me.enerccio.sp.errors.InterpreterError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.errors.PythonException;
 import me.enerccio.sp.errors.RuntimeError;
@@ -100,10 +101,18 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	}
 
 	static {
+		boolean _PURE_JAVA;
 		if (System.getenv("PURE_JAVA") != null)
-			PURE_JAVA = true;
-		else
-			PURE_JAVA = false;
+			_PURE_JAVA = true;
+		else {
+			try {
+				System.loadLibrary("NativePythonInterpreter");
+				_PURE_JAVA = false;
+			} catch (Throwable t){
+				_PURE_JAVA = true;
+			}
+		}
+		PURE_JAVA = _PURE_JAVA;
 		
 		if (System.getenv("DEEP_STACK_LIMIT") != null)
 			MAX_DEEP_STACK = Integer
@@ -1505,6 +1514,198 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 		}
 	}
 
-	protected abstract ExecutionResult doExecuteSingleInstruction(
-			FrameObject o, Stack<PythonObject> stack, Bytecode opcode);
+	/**
+	 * Executes current instruction
+	 * 
+	 * @param o
+	 *            current frame
+	 * @return execution result
+	 */
+	protected ExecutionResult doExecuteSingleInstruction(FrameObject o,
+			Stack<PythonObject> stack, Bytecode opcode) {
+
+		switch (opcode) {
+		case NOP:
+			// do nothing
+			break;
+		case D_RETURN:
+		case D_STARTFUNC:
+			o.pc += 4;
+			break;
+		case RESOLVE_CLOSURE:
+			resolveClosure(o, stack);
+			break;
+		case OPEN_LOCALS:
+			openLocals(o, stack);
+			break;
+		case PUSH_LOCALS:
+			// retrieves locals of this call and pushes them onto stack
+			pushLocals(o, stack);
+			break;
+		case PUSH_ENVIRONMENT:
+			// pushes new environment onto environment stack.
+			// also sets flag on the current frame to later pop the environment
+			// when frame itself is popped
+			pushEnvironment(o, stack);
+			break;
+		case CALL:
+			// calls the runnable with arguments
+			// values are gathered from the stack in reverse order, with lowest
+			// being the callable itself.
+			// if call(x)'s x is negative, it is vararg call, thus last argument
+			// must be a tuple that will be
+			// expanded to fill the arguments
+			call(o, stack);
+			break;
+		case SETUP_LOOP:
+			// Grabs object from stack. It it is something that can be iterated
+			// internally, pushes
+			// iterator back there. Otherwise, calls iter method.
+			setupLoop(o, stack);
+			break;
+		case ACCEPT_ITER:
+			// Replaces frame left by ECALL with returnee value.
+			// If StopIteration was raised, jumps to specified bytecode
+			// Any other exception is rised again
+			acceptIter(o, stack);
+			break;
+		case GET_ITER:
+			if (getIter(o, stack))
+				break;
+			// Note: Falls down to ECALL. This is not by mistake.
+		case ECALL:
+			// Leaves called method on top of stack
+			// Pushes frame in which call was called
+			ecall(o, stack);
+			break;
+		case KCALL:
+		case RCALL:
+			krcall(opcode, o, stack);
+			break;
+		case GOTO:
+			gotoOperation(o, stack);
+			break;
+		case JUMPIFFALSE:
+			jumpIfFalse(o, stack);
+			break;
+		case JUMPIFTRUE:
+			jumpIfTrue(o, stack);
+			break;
+		case JUMPIFNONE:
+			jumpIfNone(o, stack);
+			break;
+		case JUMPIFNORETURN:
+			jumpIfNoReturn(o, stack);
+			break;
+		case MAKE_FUTURE:
+			makeFuture(o, stack);
+			break;
+		case LOAD:
+			load(o, stack);
+			break;
+		case LOAD_FUTURE:
+			// pushes variable onto stack. If variable is future, it is not
+			// resolved
+			loadFuture(o, stack);
+			break;
+		case TEST_FUTURE:
+			testFuture(o, stack);
+			break;
+		case LOADGLOBAL:
+			loadGlobal(o, stack);
+			break;
+		case POP:
+			pop(o, stack);
+			break;
+		case TRUTH_VALUE:
+			truthValue(o, stack);
+			break;
+		case PUSH:
+			push(o, stack);
+			break;
+		case RETURN:
+			returnOperation(o, stack);
+			return ExecutionResult.EOF;
+		case SAVE:
+			save(o, stack);
+			break;
+		case KWARG:
+			kwarg(o, stack);
+			break;
+		case SAVE_LOCAL:
+			saveLocal(o, stack);
+			break;
+		case SAVEGLOBAL:
+			saveGlobal(o, stack);
+			break;
+		case DUP:
+			dup(o, stack);
+			break;
+		case IMPORT:
+			importOperation(o, stack);
+			break;
+		case SWAP_STACK:
+			swapStack(o, stack);
+			break;
+		case MAKE_FIRST:
+			makeFirst(o, stack);
+			break;
+		case UNPACK_SEQUENCE:
+			unpackSequence(o, stack);
+			break;
+		case UNPACK_KWARG:
+			unpackKwargs(o, stack);
+			break;
+		case PUSH_LOCAL_CONTEXT:
+			pushLocalContext(o, stack);
+			break;
+		case RESOLVE_ARGS:
+			resolveArgs(o, stack);
+			break;
+		case GETATTR:
+			getAttr(o, stack);
+			break;
+		case DELATTR:
+			delAttr(o, stack);
+			break;
+		case SETATTR:
+			setAttr(o, stack);
+			break;
+		case ISINSTANCE:
+			isinstance(o, stack);
+			break;
+		case RAISE:
+			raise(o, stack);
+			break;
+		case RERAISE:
+			reraise(o, stack);
+			break;
+		case PUSH_FRAME:
+			pushFrame(o, stack);
+			break;
+		case PUSH_EXCEPTION:
+			pushException(o, stack);
+			break;
+		case YIELD:
+			return yield(o, stack);
+		case LOADDYNAMIC:
+			loadDynamic(o, stack);
+			break;
+		case SAVEDYNAMIC:
+			saveDynamic(o, stack);
+			break;
+		case LOADBUILTIN:
+			loadBuiltin(o, stack);
+			break;
+		case DEL:
+			del(o, stack);
+			break;
+		default:
+			if (!mathHelper.mathOperation(this, o, stack, opcode))
+				throw new InterpreterError("unhandled bytecode "
+						+ opcode.toString());
+		}
+
+		return ExecutionResult.OK;
+	}
 }

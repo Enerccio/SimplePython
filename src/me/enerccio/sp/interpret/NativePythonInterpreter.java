@@ -23,6 +23,10 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.types.PythonObject;
 
 public class NativePythonInterpreter extends AbstractPythonInterpreter {
+	
+	NativePythonInterpreter() {
+		super();
+	}
 
 	@Override
 	protected native ExecutionResult doExecuteSingleInstruction(FrameObject o,
