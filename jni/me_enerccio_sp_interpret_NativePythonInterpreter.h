@@ -13,6 +13,22 @@ extern "C" {
 #define me_enerccio_sp_interpret_NativePythonInterpreter_serialVersionUID -8039667108607710165i64
 /*
  * Class:     me_enerccio_sp_interpret_NativePythonInterpreter
+ * Method:    load0
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_load0
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     me_enerccio_sp_interpret_NativePythonInterpreter
+ * Method:    finalize0
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_finalize0
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     me_enerccio_sp_interpret_NativePythonInterpreter
  * Method:    doExecuteSingleInstruction
  * Signature: (Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;Lme/enerccio/sp/compiler/Bytecode;)Lme/enerccio/sp/interpret/ExecutionResult;
  */

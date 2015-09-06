@@ -1,28 +1,15 @@
-from co import coroutine
-from threading.Thread import wait
 
-def fnc():   
-    yield None 
-    
-    last = "first"
-    while True:
-        wait(1000)
-        next = yield last
-        last = next
-        
-class t3(object):
-    def __init__(self):
-        t2()
+def call_me(x):
+    if (x % 2) == 0:
+        return 1
+    return 0
 
-def t2():
-    x = coroutine(fnc)
-    print x.resume()
-    print x.resume("Ahoj Svet")
-    x.terminate()
-    
+def fnc():
+    v = 0
+    for i in xrange(1280):
+        for j in xrange(1280):
+            v += call_me(i^j)
+    return v
+
 def test():
-    x = 5
-    t1(x)
-    
-def t1(y):
-    t3()
+    print fnc()

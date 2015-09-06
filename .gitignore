@@ -10,3 +10,4 @@ src/*.pyc
 /hs_err_pid3140.log
 /ser.ser
 /ser.xml
+*.log

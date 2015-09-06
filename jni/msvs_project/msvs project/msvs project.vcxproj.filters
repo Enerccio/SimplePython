@@ -18,6 +18,9 @@
     <ClInclude Include="..\..\me_enerccio_sp_interpret_NativePythonInterpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sp_def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\me_enerccio_sp_interpret_NativePythonInterpreter.c">

@@ -26,7 +26,22 @@ public class NativePythonInterpreter extends AbstractPythonInterpreter {
 	
 	NativePythonInterpreter() {
 		super();
+		load();
 	}
+	
+	protected void load(){
+		load0();
+	}
+	
+	private native void load0();
+	private final long __native_pi_data = 0;
+	
+	@Override
+	protected void finalize() throws Throwable {
+		finalize0();
+	};
+	
+	private native void finalize0();
 
 	@Override
 	protected native ExecutionResult doExecuteSingleInstruction(FrameObject o,

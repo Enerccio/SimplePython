@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <jni.h>
+#include "sp_def.h"
 #include "me_enerccio_sp_interpret_NativePythonInterpreter.h"
 
 
@@ -22,15 +23,204 @@ do { \
 	(*env)->CallNonvirtualVoidMethod(env, self, super, methid, __VA_ARGS__); \
 } while (0)
 
+typedef struct {
+	jclass    opcode_class;
+	jfieldID  opcode_field;
+	jclass    frame_class;
+	jfieldID  pc_id;
+	jclass    exec_res_class;
+	jclass    self_class;
+	jfieldID  exec_EOF;
+	jfieldID  exec_OK;
+	jclass    helper_class;
+	jfieldID  helper_field;
+	jmethodID math_operation;
+	jclass    interpreter_error_class;
+} native_pi_data_t;
+
+JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_load0
+(JNIEnv* env, jobject self)
+{
+	native_pi_data_t* nd = malloc(sizeof(native_pi_data_t));
+
+	jclass opcode_class = (*env)->FindClass(env, "Lme/enerccio/sp/compiler/Bytecode;");
+	jfieldID opcode_field = (*env)->GetFieldID(env, opcode_class, "id", "I");
+
+	jclass frame_class = (*env)->FindClass(env, "Lme/enerccio/sp/interpret/FrameObject;");
+	jfieldID pc_id = (*env)->GetFieldID(env, frame_class, "pc", "I");
+
+	jclass exec_res_class = (*env)->FindClass(env, "me/enerccio/sp/interpret/ExecutionResult");
+	jfieldID exec_EOF = (*env)->GetStaticFieldID(env, exec_res_class, "EOF", "Lme/enerccio/sp/interpret/ExecutionResult;");
+	jfieldID exec_OK = (*env)->GetStaticFieldID(env, exec_res_class, "OK", "Lme/enerccio/sp/interpret/ExecutionResult;");
+
+	jclass self_class = (*env)->GetObjectClass(env, self);
+	jfieldID helper_field = (*env)->GetFieldID(env, self_class, "mathHelper", "Lme/enerccio/sp/interpret/InterpreterMathExecutorHelper;");
+
+	jclass helper_class = (*env)->FindClass(env, "me/enerccio/sp/interpret/InterpreterMathExecutorHelper");
+	// public boolean mathOperation(AbstractPythonInterpreter interpreter, FrameObject o, Stack<PythonObject> stack, Bytecode opcode)
+	jmethodID math_operation = (*env)->GetMethodID(env, helper_class, "mathOperation",
+		"(Lme/enerccio/sp/interpret/AbstractPythonInterpreter;Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;Lme/enerccio/sp/compiler/Bytecode;)Z");
+
+	jclass interpreter_error_class = (*env)->FindClass(env, "Lme/enerccio/sp/errors/InterpreterError;");
+
+	nd->opcode_class = (jclass)(*env)->NewGlobalRef(env, (jobject)opcode_class);
+	nd->opcode_field = opcode_field;
+	nd->frame_class = (jclass)(*env)->NewGlobalRef(env, (jobject)frame_class);
+	nd->pc_id = pc_id;
+	nd->exec_res_class = (jclass)(*env)->NewGlobalRef(env, (jobject)exec_res_class);
+	nd->exec_EOF = exec_EOF;
+	nd->self_class = (jclass)(*env)->NewGlobalRef(env, (jobject)self_class);
+	nd->exec_OK = exec_OK;
+	nd->helper_field = helper_field;
+	nd->helper_class = (jclass)(*env)->NewGlobalRef(env, (jobject)helper_class);
+	nd->math_operation = math_operation;
+	nd->interpreter_error_class = (jclass)(*env)->NewGlobalRef(env, (jobject)interpreter_error_class);
+
+	jfieldID storage_long = (*env)->GetFieldID(env, self_class, "__native_pi_data", "J");
+	(*env)->SetLongField(env, self, storage_long, (long)((void*)nd));
+}
+
+JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_finalize0
+(JNIEnv* env, jobject self)
+{
+	jclass self_class = (*env)->GetObjectClass(env, self);
+	jfieldID storage_long = (*env)->GetFieldID(env, self_class, "__native_pi_data", "J");
+	native_pi_data_t* nd = (native_pi_data_t*)(*env)->GetLongField(env, self, storage_long);
+
+	(*env)->DeleteGlobalRef(env, (jobject)nd->opcode_class);
+	(*env)->DeleteGlobalRef(env, (jobject)nd->frame_class);
+	(*env)->DeleteGlobalRef(env, (jobject)nd->exec_res_class);
+	(*env)->DeleteGlobalRef(env, (jobject)nd->helper_class);
+	(*env)->DeleteGlobalRef(env, (jobject)nd->interpreter_error_class);
+	(*env)->DeleteGlobalRef(env, (jobject)nd->self_class);
+
+	free(nd);
+	(*env)->SetLongField(env, self, storage_long, (long)NULL);
+}
+
 JNIEXPORT jobject JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_doExecuteSingleInstruction
 (JNIEnv* env, jobject self, jobject frame_object, jobject stack, jobject opcode)
 {
-	CALL_SUPER_RETURN(
-		"doExecuteSingleInstruction",
-		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;Lme/enerccio/sp/compiler/Bytecode;)Lme/enerccio/sp/interpret/ExecutionResult;",
-		CallNonvirtualObjectMethod,
-		frame_object, stack, opcode
-		);
+	jclass self_class = (*env)->GetObjectClass(env, self);
+	jfieldID storage_long = (*env)->GetFieldID(env, self_class, "__native_pi_data", "J");
+	native_pi_data_t* nd = (native_pi_data_t*)(*env)->GetLongField(env, self, storage_long);
+	
+	int op_iv = (int)(*env)->GetIntField(env, opcode, nd->opcode_field);
+
+	bytecode_t bytecode = (bytecode_t)op_iv;
+
+	switch (bytecode)
+	{
+	case D_STARTFUNC:
+	case D_RETURN: 
+	{
+					 (*env)->SetIntField(env, frame_object, nd->pc_id, (*env)->GetIntField(env, frame_object, nd->pc_id) + 4);
+	} break;
+	case NOP: break; 
+
+	case PUSH_ENVIRONMENT: Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushEnvironment(env, self, frame_object, stack); break;
+	case RESOLVE_CLOSURE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_resolveClosure(env, self, frame_object, stack); break;
+	case PUSH_LOCAL_CONTEXT: Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushLocalContext(env, self, frame_object, stack); break;
+	case IMPORT: Java_me_enerccio_sp_interpret_NativePythonInterpreter_importOperation(env, self, frame_object, stack); break;
+	case RESOLVE_ARGS: Java_me_enerccio_sp_interpret_NativePythonInterpreter_resolveArgs(env, self, frame_object, stack); break;
+	case PUSH_FRAME: Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushFrame(env, self, frame_object, stack); break;
+	case PUSH_EXCEPTION:Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushException(env, self, frame_object, stack); break;
+	case OPEN_LOCALS:Java_me_enerccio_sp_interpret_NativePythonInterpreter_openLocals(env, self, frame_object, stack); break;
+	case PUSH_LOCALS: Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushLocals(env, self, frame_object, stack); break;
+	case POP: Java_me_enerccio_sp_interpret_NativePythonInterpreter_pop(env, self, frame_object, stack); break;
+	case PUSH: Java_me_enerccio_sp_interpret_NativePythonInterpreter_push(env, self, frame_object, stack); break;
+	case CALL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_call(env, self, frame_object, stack); break;
+	case KCALL:
+	case RCALL:
+		Java_me_enerccio_sp_interpret_NativePythonInterpreter_krcall(env, self, opcode, frame_object, stack);
+		break; 
+	case GET_ITER:
+	{
+					if (Java_me_enerccio_sp_interpret_NativePythonInterpreter_getIter(env, self, frame_object, stack) == JNI_TRUE)
+						break;
+	}
+	case ECALL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_ecall(env, self, frame_object, stack); break;
+
+	case DUP: Java_me_enerccio_sp_interpret_NativePythonInterpreter_dup(env, self, frame_object, stack); break;
+	case SWAP_STACK: Java_me_enerccio_sp_interpret_NativePythonInterpreter_swapStack(env, self, frame_object, stack); break;
+	case JUMPIFTRUE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfTrue(env, self, frame_object, stack); break;
+	case JUMPIFFALSE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfFalse(env, self, frame_object, stack); break;
+	case JUMPIFNONE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfNone(env, self, frame_object, stack); break;
+	case JUMPIFNORETURN: Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfNoReturn(env, self, frame_object, stack); break;
+	case GOTO: Java_me_enerccio_sp_interpret_NativePythonInterpreter_gotoOperation(env, self, frame_object, stack); break;
+	case RETURN:
+	{
+	   Java_me_enerccio_sp_interpret_NativePythonInterpreter_returnOperation(env, self, frame_object, stack);
+
+	   return (*env)->GetStaticObjectField(env, nd->exec_res_class, nd->exec_EOF);
+	}
+	case SAVE_LOCAL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveLocal(env, self, frame_object, stack); break;
+	case TRUTH_VALUE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_truthValue(env, self, frame_object, stack); break;
+	case MAKE_FIRST: Java_me_enerccio_sp_interpret_NativePythonInterpreter_makeFirst(env, self, frame_object, stack); break;
+	case LOAD: Java_me_enerccio_sp_interpret_NativePythonInterpreter_load(env, self, frame_object, stack); break;
+	case LOADGLOBAL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadGlobal(env, self, frame_object, stack); break;
+	case SAVE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_save(env, self, frame_object, stack); break;
+	case SAVEGLOBAL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveGlobal(env, self, frame_object, stack); break;
+	case UNPACK_SEQUENCE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_unpackSequence(env, self, frame_object, stack); break;
+	case LOADDYNAMIC: Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadDynamic(env, self, frame_object, stack); break;
+	case SAVEDYNAMIC: Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveDynamic(env, self, frame_object, stack); break;
+	case LOADBUILTIN: Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadBuiltin(env, self, frame_object, stack); break;
+	case KWARG: Java_me_enerccio_sp_interpret_NativePythonInterpreter_kwarg(env, self, frame_object, stack); break;
+	case UNPACK_KWARG: Java_me_enerccio_sp_interpret_NativePythonInterpreter_unpackKwargs(env, self, frame_object, stack); break;
+	case MAKE_FUTURE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_makeFuture(env, self, frame_object, stack); break;
+	case TEST_FUTURE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_testFuture(env, self, frame_object, stack); break;
+	case LOAD_FUTURE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadFuture(env, self, frame_object, stack); break;
+	case RAISE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_raise(env, self, frame_object, stack); break;
+	case RERAISE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_reraise(env, self, frame_object, stack); break;
+	case GETATTR: Java_me_enerccio_sp_interpret_NativePythonInterpreter_getAttr(env, self, frame_object, stack); break;
+	case SETATTR: Java_me_enerccio_sp_interpret_NativePythonInterpreter_setAttr(env, self, frame_object, stack); break;
+	case ISINSTANCE: Java_me_enerccio_sp_interpret_NativePythonInterpreter_isinstance(env, self, frame_object, stack); break;
+	case YIELD: return Java_me_enerccio_sp_interpret_NativePythonInterpreter_yield(env, self, frame_object, stack); 
+	case DEL: Java_me_enerccio_sp_interpret_NativePythonInterpreter_del(env, self, frame_object, stack); break;
+	case DELATTR: Java_me_enerccio_sp_interpret_NativePythonInterpreter_delAttr(env, self, frame_object, stack); break;
+	case SETUP_LOOP: Java_me_enerccio_sp_interpret_NativePythonInterpreter_setupLoop(env, self, frame_object, stack); break;
+	case ACCEPT_ITER: Java_me_enerccio_sp_interpret_NativePythonInterpreter_acceptIter(env, self, frame_object, stack); break;
+	case ADD:
+	case SUB:
+	case MUL:
+	case DIV:
+	case MOD:
+	case AND:
+	case OR:
+	case XOR:
+	case POW:
+	case RSHIFT:
+	case LSHIFT:
+	case LT:
+	case LE:
+	case GE:
+	case GT:
+	case EQ:
+	case NE:
+	case DCOLON:
+	case QM:
+	case RARROW:
+	default:
+	{
+			   /*
+			   if (!mathHelper.mathOperation(this, o, stack, opcode))
+			   throw new InterpreterError("unhandled bytecode "
+			   + opcode.toString());
+			   */
+			   
+			   jobject helper = (*env)->GetObjectField(env, self, nd->helper_field);
+			   jboolean result = (*env)->CallNonvirtualBooleanMethod(env, helper, nd->helper_class, nd->math_operation, self, frame_object, stack, opcode);
+			   if (result == JNI_FALSE)
+			   {
+				   
+				   (*env)->ThrowNew(env, nd->interpreter_error_class, "unhandled bytecode in native interpreter");
+				   return NULL;
+			   }
+	}
+		break;
+	};
+	
+	return (*env)->GetStaticObjectField(env, nd->exec_res_class, nd->exec_OK);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_resolveClosure
