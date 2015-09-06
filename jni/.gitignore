@@ -1,0 +1,4 @@
+/msvs project.*.exp
+/msvs project.*.ilk
+/msvs project.*.lib
+/msvs project.*.pdb

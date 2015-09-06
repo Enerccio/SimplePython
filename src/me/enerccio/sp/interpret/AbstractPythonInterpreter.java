@@ -78,6 +78,7 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 			.getenv("SPY_TRACE_ENABLED") != null;
 	public static final Set<String> TRACE_THREADS;
 	public static final boolean TRACE_ALL;
+	public static final boolean PURE_JAVA;
 	public static final int MAX_DEEP_STACK;
 
 	@Override
@@ -99,11 +100,17 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	}
 
 	static {
+		if (System.getenv("PURE_JAVA") != null)
+			PURE_JAVA = true;
+		else
+			PURE_JAVA = false;
+		
 		if (System.getenv("DEEP_STACK_LIMIT") != null)
 			MAX_DEEP_STACK = Integer
 					.parseInt(System.getenv("DEEP_STACK_LIMIT"));
 		else
 			MAX_DEEP_STACK = -1;
+		
 		String tracers = System.getenv("SPY_TRACE_ENABLED");
 		if (tracers == null || tracers.equals("__all__")) {
 			TRACE_THREADS = Collections.synchronizedSet(Collections
@@ -144,8 +151,16 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	};
 
 	protected static AbstractPythonInterpreter createInterpreter() {
-		// TODO Auto-generated method stub
-		return null;
+		if (PURE_JAVA)
+			return new JavaPythonInterpreter();
+		else {
+			try {
+				return new NativePythonInterpreter();
+			} catch (Throwable t){
+				// failed to create native, return pure java
+				return new JavaPythonInterpreter();
+			}
+		}
 	}
 
 	public AbstractPythonInterpreter() {
