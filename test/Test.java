@@ -4,8 +4,8 @@ import java.nio.file.Paths;
 import me.enerccio.sp.SimplePython;
 import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
+import me.enerccio.sp.interpret.debug.AbstractDebugger;
 import me.enerccio.sp.interpret.FilesystemResolver;
-import me.enerccio.sp.interpreter.debug.AbstractDebugger;
 import me.enerccio.sp.serialization.XMLPySerializer;
 import me.enerccio.sp.types.ModuleObject;
 

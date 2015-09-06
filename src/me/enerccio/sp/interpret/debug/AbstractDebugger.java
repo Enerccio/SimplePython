@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.interpreter.debug;
+package me.enerccio.sp.interpret.debug;
 
 import java.util.ArrayList;
 import java.util.Collections;

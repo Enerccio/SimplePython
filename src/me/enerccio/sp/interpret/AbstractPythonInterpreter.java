@@ -41,7 +41,7 @@ import me.enerccio.sp.errors.RuntimeError;
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
-import me.enerccio.sp.interpreter.debug.Debugger;
+import me.enerccio.sp.interpret.debug.Debugger;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
