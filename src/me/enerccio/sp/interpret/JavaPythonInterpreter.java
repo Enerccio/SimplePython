@@ -17,12 +17,6 @@
  */
 package me.enerccio.sp.interpret;
 
-import java.util.Stack;
-
-import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.errors.InterpreterError;
-import me.enerccio.sp.types.PythonObject;
-
 /**
  * PythonInterpret. Interprets bytecode. One per thread and gets automatically constructed the moment something wants to access it in a thread.
  * Empty class, because abstract one already does all the work, but kept to have clear distinction between native and pure java

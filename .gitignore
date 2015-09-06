@@ -6,3 +6,7 @@ src/me/enerccio/sp/parser/python*.java
 src/*.pyc
 /__pycache__/
 .classpath
+/dis.dis
+/hs_err_pid3140.log
+/ser.ser
+/ser.xml

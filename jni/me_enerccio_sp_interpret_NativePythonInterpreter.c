@@ -7,37 +7,40 @@
 
 
 #define CALL_SUPER_RETURN(NAME, SIGNATURE, JNI_METHOD_NAME, ...) \
+do { \
 	jclass objcls = (*env)->GetObjectClass(env, self); \
 	jclass super = (*env)->GetSuperclass(env, objcls); \
 	jmethodID methid = (*env)->GetMethodID(env, super, NAME, SIGNATURE); \
 	return (*env)->JNI_METHOD_NAME(env, self, super, methid, __VA_ARGS__); \
+} while (0)
 
 #define CALL_SUPER_NORETURN(NAME, SIGNATURE, ...) \
+do { \
 	jclass objcls = (*env)->GetObjectClass(env, self); \
 	jclass super = (*env)->GetSuperclass(env, objcls); \
 	jmethodID methid = (*env)->GetMethodID(env, super, NAME, SIGNATURE); \
 	(*env)->CallNonvirtualVoidMethod(env, self, super, methid, __VA_ARGS__); \
-
+} while (0)
 
 JNIEXPORT jobject JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_doExecuteSingleInstruction
 (JNIEnv* env, jobject self, jobject frame_object, jobject stack, jobject opcode)
 {
 	CALL_SUPER_RETURN(
-		"doExecuteSingleInstruction", 
+		"doExecuteSingleInstruction",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;Lme/enerccio/sp/compiler/Bytecode;)Lme/enerccio/sp/interpret/ExecutionResult;",
 		CallNonvirtualObjectMethod,
 		frame_object, stack, opcode
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_resolveClosure
 (JNIEnv* env, jobject self, jobject frame_object, jobject stack)
 {
 	CALL_SUPER_NORETURN(
-		"resolveClosure", 
+		"resolveClosure",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_openLocals
@@ -47,7 +50,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_ope
 		"openLocals",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushLocals
@@ -57,7 +60,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"pushLocals",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushEnvironment
@@ -67,7 +70,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"pushEnvironment",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_call
@@ -77,7 +80,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_cal
 		"call",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_setupLoop
@@ -87,7 +90,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_set
 		"setupLoop",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_acceptIter
@@ -97,7 +100,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_acc
 		"acceptIter",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT jboolean JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_getIter
@@ -108,7 +111,7 @@ JNIEXPORT jboolean JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)Z",
 		CallNonvirtualBooleanMethod,
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_ecall
@@ -118,7 +121,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_eca
 		"ecall",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_krcall
@@ -128,7 +131,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_krc
 		"krcall",
 		"(Lme/enerccio/sp/compiler/Bytecode;Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		opcode, frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_gotoOperation
@@ -138,7 +141,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_got
 		"gotoOperation",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfFalse
@@ -148,7 +151,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jum
 		"jumpIfFalse",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfTrue
@@ -158,7 +161,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jum
 		"jumpIfTrue",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfNone
@@ -168,7 +171,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jum
 		"jumpIfNone",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jumpIfNoReturn
@@ -178,7 +181,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_jum
 		"jumpIfNoReturn",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_makeFuture
@@ -188,7 +191,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_mak
 		"makeFuture",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_load
@@ -198,7 +201,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loa
 		"load",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadFuture
@@ -208,7 +211,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loa
 		"loadFuture",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_testFuture
@@ -218,7 +221,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_tes
 		"testFuture",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadGlobal
@@ -228,7 +231,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loa
 		"loadGlobal",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pop
@@ -238,7 +241,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pop
 		"pop",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_truthValue
@@ -248,7 +251,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_tru
 		"truthValue",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_push
@@ -258,7 +261,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"push",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_returnOperation
@@ -268,7 +271,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_ret
 		"returnOperation",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_save
@@ -278,7 +281,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_sav
 		"save",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_kwarg
@@ -288,7 +291,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_kwa
 		"kwarg",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveLocal
@@ -298,7 +301,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_sav
 		"saveLocal",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveGlobal
@@ -308,7 +311,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_sav
 		"saveGlobal",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_dup
@@ -318,7 +321,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_dup
 		"dup",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_importOperation
@@ -328,7 +331,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_imp
 		"importOperation",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_swapStack
@@ -338,7 +341,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_swa
 		"swapStack",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_makeFirst
@@ -348,7 +351,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_mak
 		"makeFirst",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_unpackSequence
@@ -358,7 +361,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_unp
 		"unpackSequence",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_unpackKwargs
@@ -368,7 +371,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_unp
 		"unpackKwargs",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushLocalContext
@@ -378,7 +381,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"pushLocalContext",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_resolveArgs
@@ -388,7 +391,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_res
 		"resolveArgs",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_getAttr
@@ -398,7 +401,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_get
 		"getAttr",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_delAttr
@@ -408,7 +411,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_del
 		"delAttr",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_setAttr
@@ -418,7 +421,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_set
 		"setAttr",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_isinstance
@@ -428,7 +431,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_isi
 		"isinstance",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_raise
@@ -438,7 +441,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_rai
 		"raise",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_reraise
@@ -448,7 +451,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_rer
 		"reraise",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushFrame
@@ -458,7 +461,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"pushFrame",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pushException
@@ -468,7 +471,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_pus
 		"pushException",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT jobject JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_yield
@@ -479,7 +482,7 @@ JNIEXPORT jobject JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)Lme/enerccio/sp/interpret/ExecutionResult;",
 		CallNonvirtualObjectMethod,
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadDynamic
@@ -489,7 +492,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loa
 		"loadDynamic",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_saveDynamic
@@ -499,7 +502,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_sav
 		"saveDynamic",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loadBuiltin
@@ -509,7 +512,7 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_loa
 		"loadBuiltin",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
 
 JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_del
@@ -519,5 +522,5 @@ JNIEXPORT void JNICALL Java_me_enerccio_sp_interpret_NativePythonInterpreter_del
 		"del",
 		"(Lme/enerccio/sp/interpret/FrameObject;Ljava/util/Stack;)V",
 		frame_object, stack
-		)
+		);
 }
