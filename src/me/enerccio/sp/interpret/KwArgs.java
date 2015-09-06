@@ -68,8 +68,8 @@ public interface KwArgs {
 
 	public Map<String, PythonObject> getAll();
 
-	public static class HashMapKWArgs extends HashMap<String, PythonObject> implements
-			KwArgs, Serializable {
+	public static class HashMapKWArgs extends HashMap<String, PythonObject>
+			implements KwArgs, Serializable {
 		private static final long serialVersionUID = 7370108455070437208L;
 
 		@Override

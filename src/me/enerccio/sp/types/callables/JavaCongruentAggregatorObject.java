@@ -43,8 +43,7 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	private String name;
 	public Set<JavaMethodObject> methods = Collections
 			.synchronizedSet(new HashSet<JavaMethodObject>());
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.JCONGRUENT;
@@ -80,7 +79,7 @@ public class JavaCongruentAggregatorObject extends CallableObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(name);

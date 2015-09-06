@@ -42,7 +42,7 @@ public class PythonMutex implements Externalizable {
 	@WrapMethod
 	public void acquire() {
 		m.lock();
-		synchronized (m){	
+		synchronized (m) {
 			co = Thread.currentThread();
 			++count;
 		}
@@ -51,8 +51,8 @@ public class PythonMutex implements Externalizable {
 	@WrapMethod
 	public boolean try_acquire() {
 		boolean b = m.tryLock();
-		synchronized (m){
-			if (b){
+		synchronized (m) {
+			if (b) {
 				co = Thread.currentThread();
 				++count;
 			}
@@ -64,8 +64,8 @@ public class PythonMutex implements Externalizable {
 	public boolean try_acquire_timeout(long ms, String unit) {
 		try {
 			boolean b = m.tryLock(ms, TimeUnit.valueOf(unit));
-			synchronized (m){
-				if (b){
+			synchronized (m) {
+				if (b) {
 					co = Thread.currentThread();
 					++count;
 				}
@@ -80,7 +80,7 @@ public class PythonMutex implements Externalizable {
 
 	@WrapMethod
 	public void release() {
-		synchronized (m){
+		synchronized (m) {
 			m.unlock();
 			--count;
 		}
@@ -92,12 +92,12 @@ public class PythonMutex implements Externalizable {
 		s.serialize(co.getId());
 		s.serialize(co.getName());
 		s.serialize(count);
-		
+
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 }

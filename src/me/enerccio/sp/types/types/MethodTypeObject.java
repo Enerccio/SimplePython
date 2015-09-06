@@ -71,7 +71,7 @@ public class MethodTypeObject extends TypeObject {
 		Utils.putPublic(mo, UserMethodObject.ACCESSOR, accessor);
 		return mo;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.METH_TYPE;

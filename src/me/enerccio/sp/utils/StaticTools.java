@@ -205,7 +205,8 @@ public class StaticTools {
 			byte[] buffer = new byte[2048];
 			long count = 0L;
 			int n = 0;
-			while (-1 != (n = input.read(buffer, 0, Math.min(2048, (int) (c - count))))) {
+			while (-1 != (n = input.read(buffer, 0,
+					Math.min(2048, (int) (c - count))))) {
 				if (n == 0)
 					return bos.toByteArray();
 				bos.write(buffer, 0, n);
@@ -246,14 +247,16 @@ public class StaticTools {
 
 		/**
 		 * Parses module provider into pythonParser
-		 * @param r 
+		 * 
+		 * @param r
 		 * 
 		 * @param provider
 		 * @return
 		 * @throws IOException
 		 * @throws Exception
 		 */
-		public static pythonParser parse(ModuleData data, Ref<pythonLexer> r) throws IOException {
+		public static pythonParser parse(ModuleData data, Ref<pythonLexer> r)
+				throws IOException {
 			ANTLRInputStream is = new ANTLRInputStream(data.getResolver().read(
 					data));
 			pythonLexer lexer = new pythonLexer(is);
@@ -339,7 +342,8 @@ public class StaticTools {
 		 *            source
 		 * @return parse tree
 		 */
-		public static pythonParser parseStringInput(String src, Ref<pythonLexer> r) {
+		public static pythonParser parseStringInput(String src,
+				Ref<pythonLexer> r) {
 			ANTLRInputStream is = new ANTLRInputStream(src);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();
@@ -362,7 +366,8 @@ public class StaticTools {
 		 *            name of the file
 		 * @return parse tree
 		 */
-		public static pythonParser parseCompileFunction(String src, String value, Ref<pythonLexer> r) {
+		public static pythonParser parseCompileFunction(String src,
+				String value, Ref<pythonLexer> r) {
 			ANTLRInputStream is = new ANTLRInputStream(src);
 			pythonLexer lexer = new pythonLexer(is);
 			lexer.removeErrorListeners();

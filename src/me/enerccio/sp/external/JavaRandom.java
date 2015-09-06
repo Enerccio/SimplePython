@@ -46,7 +46,6 @@ public class JavaRandom implements Externalizable {
 	public JavaRandom() {
 		rnd = new Random();
 	}
-	
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -58,7 +57,7 @@ public class JavaRandom implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@WrapMethod

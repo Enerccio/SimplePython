@@ -24,10 +24,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.errors.PythonException;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
@@ -57,13 +57,13 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		for (String key : closureCopy) {
 			PythonObject var = environment.get(key, false, false);
 			if (var.get("__onfuture__", null) != null)
-				var = PythonInterpreter.interpreter.get().execute(true,
+				var = AbstractPythonInterpreter.interpreter.get().execute(true,
 						var.get("__onfuture__", null), null);
 			closure.putVariable(key, var);
 		}
 		startNewFuture();
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.PFUTURE;
@@ -88,10 +88,11 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			@Override
 			public void run() {
 				futureCall.call(new TupleObject(true), null);
-				PythonInterpreter.interpreter.get().getCurrentClosure()
+				AbstractPythonInterpreter.interpreter.get().getCurrentClosure()
 						.add(0, closure);
 				try {
-					result = PythonInterpreter.interpreter.get().executeAll(0);
+					result = AbstractPythonInterpreter.interpreter.get()
+							.executeAll(0);
 					status = FutureStatus.FINISHED;
 				} catch (PythonExecutionException e) {
 					exception = e.getException();
@@ -138,12 +139,13 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	public boolean isReady() {
-		return status != FutureStatus.RUNNING && status != FutureStatus.PREPARED;
+		return status != FutureStatus.RUNNING
+				&& status != FutureStatus.PREPARED;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		switch (status){
+		switch (status) {
 		case FAILED:
 			pySerializer.serialize(0);
 			break;
@@ -159,8 +161,8 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		default:
 			break;
 		}
-		
-		switch (status){
+
+		switch (status) {
 		case FAILED:
 			pySerializer.serialize(exception);
 			break;
@@ -172,7 +174,8 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			pySerializer.serialize((PythonObject) closure);
 			break;
 		case RUNNING:
-			pySerializer.serialize(PythonInterpreter.interpreterMap.get(ftThread));
+			pySerializer.serialize(AbstractPythonInterpreter.interpreterMap
+					.get(ftThread));
 			break;
 		default:
 			break;

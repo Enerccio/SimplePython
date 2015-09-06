@@ -54,7 +54,7 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 		this.property = field;
 		this.properter = object;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(readOnly);
@@ -107,7 +107,7 @@ public class FieldPropertyObject extends PythonObject implements PropertyObject 
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.FP;

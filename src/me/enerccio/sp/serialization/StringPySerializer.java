@@ -25,21 +25,21 @@ public class StringPySerializer extends AbstractPySerializer {
 
 	private OutputStream out;
 	private ByteArrayOutputStream bos;
-	
+
 	public StringPySerializer() throws IOException {
 		out = bos = new ByteArrayOutputStream();
 	}
-	
+
 	@Override
 	public OutputStream getOutput() {
 		return out;
 	}
 
-	public String getString() throws Exception{
+	public String getString() throws Exception {
 		return getString("utf-8");
 	}
-	
-	public String getString(String encoding) throws Exception{
+
+	public String getString(String encoding) throws Exception {
 		return bos.toString(encoding);
 	}
 }

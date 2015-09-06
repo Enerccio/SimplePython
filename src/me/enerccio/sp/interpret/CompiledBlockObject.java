@@ -49,7 +49,7 @@ public class CompiledBlockObject extends PythonObject {
 	public static final String CO_CODE = "co_code";
 	public static final String CO_CONSTS = "co_consts";
 	public static final String CO_DEBUG = "co_debug";
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.CBO;
@@ -136,12 +136,12 @@ public class CompiledBlockObject extends PythonObject {
 	private byte[] compiled;
 	public Map<Integer, PythonObject> mmap;
 	public NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(compiled);
 		pySerializer.serialize(mmap.size());
-		for (Integer i : mmap.keySet()){
+		for (Integer i : mmap.keySet()) {
 			pySerializer.serialize(i);
 			pySerializer.serialize(mmap.get(i));
 		}
@@ -191,11 +191,12 @@ public class CompiledBlockObject extends PythonObject {
 	public static synchronized String dis(CompiledBlockObject block) {
 		return dis(block, false);
 	}
-	
-	public static synchronized String dis(CompiledBlockObject block, boolean fileout) {
+
+	public static synchronized String dis(CompiledBlockObject block,
+			boolean fileout) {
 		return dis(block, false, 0, fileout);
 	}
-	
+
 	public static synchronized String dis(CompiledBlockObject block,
 			boolean single, int offset) {
 		return dis(block, single, offset, false);
@@ -210,49 +211,50 @@ public class CompiledBlockObject extends PythonObject {
 		int c;
 		int ord = 0;
 		b.position(offset);
-		
+
 		List<String[]> mappers = new ArrayList<String[]>();
 
 		while (b.hasRemaining()) {
 			String[] mapper = new String[6];
 			mappers.add(mapper);
-			
+
 			int pos = b.position();
 			Bytecode opcode = Bytecode.fromNumber(((short) (b.get() & 0xff)));
-			
+
 			if (fileout)
 				mapper[0] = "";
 			else
-				mapper[0] = String.format("{fc: %s}",
-						PythonInterpreter.interpreter.get().currentFrame.size());
-			
+				mapper[0] = String
+						.format("{fc: %s}",
+								AbstractPythonInterpreter.interpreter.get().currentFrame
+										.size());
+
 			if (d == null || !d.equals(block.getDebugInformation(pos))) {
 				d = block.getDebugInformation(pos);
 				mapper[1] = String.format("<at %s %-7.7s>", d.module.getName(),
 						" " + d.lineno + ":" + d.charno);
-			} else if (fileout){
+			} else if (fileout) {
 				mapper[1] = "";
 			}
-			
+
 			if (single)
 				mapper[2] = "";
 			else
 				mapper[2] = new Integer(ord++).toString();
-			
+
 			mapper[3] = new Integer(pos).toString();
-			
+
 			if (fileout)
 				mapper[4] = opcode.toString();
 			else
 				mapper[4] = String.format("%.9s ", opcode);
-			
-			
+
 			String FORMAT;
 			if (fileout)
-				 FORMAT = "%.85s";
+				FORMAT = "%.85s";
 			else
-				 FORMAT = "%.25s";
-			
+				FORMAT = "%.25s";
+
 			switch (opcode) {
 			case CALL:
 			case DUP:
@@ -294,7 +296,8 @@ public class CompiledBlockObject extends PythonObject {
 				if (c == 1)
 					mapper[5] = (String.format(FORMAT, "1 - returns value"));
 				else
-					mapper[5] = (String.format(FORMAT, "" + c + " - exits frame"));
+					mapper[5] = (String.format(FORMAT, "" + c
+							+ " - exits frame"));
 				break;
 			case DEL:
 				c = b.getInt();
@@ -375,37 +378,38 @@ public class CompiledBlockObject extends PythonObject {
 						String.format("%s (id %s)", c, kwargs)));
 				break;
 			}
-			
+
 			mapper[5] = Utils.reformatSpecials(mapper[5]);
 		}
-		
-		if (single){
+
+		if (single) {
 			String[] m = mappers.get(0);
-			bdd.append(String.format("%s %s %s %s %s %s", m[0], m[1], m[2], m[3], m[4], m[5]));
+			bdd.append(String.format("%s %s %s %s %s %s", m[0], m[1], m[2],
+					m[3], m[4], m[5]));
 		} else {
 			int[] rowlens = new int[6];
 			for (int it = 0; it < 6; it++)
-				for (String[] mapper : mappers){
-					rowlens[it] = Math.max(rowlens[it], mapper[it].length()); 
+				for (String[] mapper : mappers) {
+					rowlens[it] = Math.max(rowlens[it], mapper[it].length());
 				}
-			
-			for (String[] mapper : mappers){
+
+			for (String[] mapper : mappers) {
 				StringBuilder bd = new StringBuilder();
-				
-				for (int it = 0; it<6; it++){
+
+				for (int it = 0; it < 6; it++) {
 					if (rowlens[it] == 0)
 						continue;
 					int len = rowlens[it];
 					String text = mapper[it];
-					
+
 					bd.append(text);
 					bd.append(" ");
-					
+
 					int o = len - text.length();
-					for (int i=0; i<o; i++)
+					for (int i = 0; i < o; i++)
 						bd.append(" ");
 				}
-				
+
 				bdd.append(bd.toString());
 				bdd.append("\n");
 			}
@@ -689,7 +693,8 @@ public class CompiledBlockObject extends PythonObject {
 	private static boolean notEqual(DebugInformation d, PythonBytecode b) {
 		return d.charno != b.debugCharacter || d.lineno != b.debugLine
 				|| !d.module.equals(b.debugModule)
-				|| !d.function.equals(b.debugFunction) || d.isLineStart != b.newLine;
+				|| !d.function.equals(b.debugFunction)
+				|| d.isLineStart != b.newLine;
 	}
 
 	private static int insertValue(PythonObject v,

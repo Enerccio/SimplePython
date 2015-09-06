@@ -24,22 +24,34 @@ public interface PyDeserializer {
 	public static interface NativeResult {
 		public void run(Object nativeObject);
 	}
-	
+
 	void initializeSerialization() throws Exception;
+
 	void finishDeserialization() throws Exception;
-	
+
 	public PythonObject next();
+
 	public boolean nextBoolean();
-	public byte    nextByte();
-	public long    nextLong();
-	public int     nextInt();
-	public float   nextFloat();
-	public double  nextDouble();
-	public char    nextChar();
-	public short   nextShort();
-	public byte[]  nextBytes();
-	public String  nextString();
-	
+
+	public byte nextByte();
+
+	public long nextLong();
+
+	public int nextInt();
+
+	public float nextFloat();
+
+	public double nextDouble();
+
+	public char nextChar();
+
+	public short nextShort();
+
+	public byte[] nextBytes();
+
+	public String nextString();
+
 	public void nextNative(NativeResult nr);
+
 	public PythonObject getByLink(long link);
 }

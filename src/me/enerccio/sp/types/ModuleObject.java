@@ -31,11 +31,11 @@ import java.util.Set;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.SyntaxError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.ModuleResolver;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.parser.pythonParser;
 import me.enerccio.sp.parser.pythonParser.File_inputContext;
@@ -46,8 +46,8 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 import me.enerccio.sp.types.callables.UserFunctionObject;
 import me.enerccio.sp.types.mappings.StringDictObject;
 import me.enerccio.sp.types.sequences.StringObject;
-import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Ref;
+import me.enerccio.sp.utils.StaticTools.ParserGenerator;
 import me.enerccio.sp.utils.Utils;
 
 /**
@@ -69,7 +69,7 @@ public class ModuleObject extends PythonObject {
 	public CompiledBlockObject frame;
 	/** whether this module is inited or not */
 	public volatile boolean isInited = false;
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.MODULE;
@@ -170,19 +170,20 @@ public class ModuleObject extends PythonObject {
 	 * Initializes the module by executing it's bytecode
 	 */
 	private void doInitModule() {
-		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
-		PythonInterpreter.interpreter.get().executeBytecode(frame);
+		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+				.size();
+		AbstractPythonInterpreter.interpreter.get().executeBytecode(frame);
 
-		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame
+		FrameObject newFrame = AbstractPythonInterpreter.interpreter.get().currentFrame
 				.getLast();
 
 		InternalDict args = new StringDictObject();
 		args.putVariable(__THISMODULE__, this);
 		args.putVariable(__NAME__, new StringObject(data.getName()));
 
-		PythonInterpreter.interpreter.get().setArgs(args);
+		AbstractPythonInterpreter.interpreter.get().setArgs(args);
 
-		PythonInterpreter.interpreter.get().executeAll(cfc);
+		AbstractPythonInterpreter.interpreter.get().executeAll(cfc);
 
 		globals = (StringDictObject) newFrame.environment.getLocals();
 		Utils.putPublic(this, __DICT__, globals);
@@ -241,43 +242,46 @@ public class ModuleObject extends PythonObject {
 		 * Returns true if module is package
 		 */
 		boolean isPackage();
-		
+
 		/**
 		 * Returns true if this module is actually hidden java
+		 * 
 		 * @return
 		 */
 		boolean isJavaClass();
 	}
-	
-	public void disassembleToStream(OutputStream out, File file) throws Exception {
+
+	public void disassembleToStream(OutputStream out, File file)
+			throws Exception {
 		Set<CompiledBlockObject> dblocks = new HashSet<CompiledBlockObject>();
-		Queue<CompiledBlockObject> blocks = new LinkedList<CompiledBlockObject>();  
+		Queue<CompiledBlockObject> blocks = new LinkedList<CompiledBlockObject>();
 		Queue<Object> parents = new LinkedList<Object>();
-		
+
 		blocks.add(frame);
 		parents.add(this);
-		
-		BufferedWriter os = new BufferedWriter(new OutputStreamWriter(out, "utf-8"));
-		
+
+		BufferedWriter os = new BufferedWriter(new OutputStreamWriter(out,
+				"utf-8"));
+
 		try {
 			os.write("Disassembly of the file " + file + "\n");
-			
-			while (!blocks.isEmpty()){
+
+			while (!blocks.isEmpty()) {
 				CompiledBlockObject block = blocks.poll();
 				dblocks.add(block);
-				
+
 				os.write(parents.poll().toString() + ":\n");
 				os.write(CompiledBlockObject.dis(block, true));
-				
-				for (Integer key : block.mmap.keySet()){
+
+				for (Integer key : block.mmap.keySet()) {
 					PythonObject po = block.mmap.get(key);
 					if (po instanceof UserFunctionObject)
-						if (!dblocks.contains(((UserFunctionObject)po).block)){
-							blocks.add(((UserFunctionObject)po).block);
+						if (!dblocks.contains(((UserFunctionObject) po).block)) {
+							blocks.add(((UserFunctionObject) po).block);
 							parents.add(po);
 						}
 				}
-				
+
 				os.write("\n\n");
 			}
 

@@ -9,6 +9,10 @@ def fnc():
         wait(1000)
         next = yield last
         last = next
+        
+class t3(object):
+    def __init__(self):
+        t2()
 
 def t2():
     x = coroutine(fnc)
@@ -21,4 +25,4 @@ def test():
     t1(x)
     
 def t1(y):
-    t2()
+    t3()

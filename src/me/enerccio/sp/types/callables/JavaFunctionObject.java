@@ -54,14 +54,13 @@ public class JavaFunctionObject extends JavaMethodObject {
 	public void setWrappedMethod(boolean isWrappedMethod) {
 		this.isWrappedMethod = isWrappedMethod;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		super.serializeDirectState(pySerializer);
 		pySerializer.serialize(isWrappedMethod);
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.JFUNC;

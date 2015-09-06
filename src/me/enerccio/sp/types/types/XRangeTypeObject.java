@@ -66,7 +66,7 @@ public class XRangeTypeObject extends TypeObject {
 		XRangeObject rv = new XRangeObject(false, start, end, step);
 		return rv;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.XRANGE_TYPE;

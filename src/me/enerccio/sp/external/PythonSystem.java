@@ -38,12 +38,12 @@ public class PythonSystem extends Thread implements Externalizable {
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		// PySerializer s = PythonRuntime.activeSerializer;
-		
+
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 }

@@ -17,6 +17,7 @@
  */
 package me.enerccio.sp.serialization;
 
-public abstract class BasePyDeserializer implements PyDeserializer, PyDeserializationDataSource {
-	
+public abstract class BasePyDeserializer implements PyDeserializer,
+		PyDeserializationDataSource {
+
 }

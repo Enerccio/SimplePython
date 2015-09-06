@@ -43,12 +43,12 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
 public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
 	private List<InternalDict> environments = new ArrayList<InternalDict>();
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.EO;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(environments.size());

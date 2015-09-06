@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -56,7 +56,7 @@ public class UserFunctionObject extends CallableObject {
 
 	public boolean isKvararg = false;
 	public String kvararg;
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(block);
@@ -68,8 +68,7 @@ public class UserFunctionObject extends CallableObject {
 		pySerializer.serialize(isKvararg);
 		pySerializer.serialize(kvararg);
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.UFUNC;
@@ -134,9 +133,9 @@ public class UserFunctionObject extends CallableObject {
 			a.putVariable(kvararg, kwdict);
 		}
 
-		PythonInterpreter.interpreter.get().setArgs(a);
-		PythonInterpreter.interpreter.get().setClosure(closure);
-		PythonInterpreter.interpreter.get().executeBytecode(block);
+		AbstractPythonInterpreter.interpreter.get().setArgs(a);
+		AbstractPythonInterpreter.interpreter.get().setClosure(closure);
+		AbstractPythonInterpreter.interpreter.get().executeBytecode(block);
 
 		return NoneObject.NONE; // returns immediately
 	}

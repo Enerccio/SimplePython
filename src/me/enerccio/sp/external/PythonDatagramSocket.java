@@ -58,7 +58,6 @@ public class PythonDatagramSocket implements Closeable, Externalizable {
 			throw Utils.throwException(errorType, "failed to open socket", e);
 		}
 	}
-	
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -71,7 +70,7 @@ public class PythonDatagramSocket implements Closeable, Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@WrapMethod

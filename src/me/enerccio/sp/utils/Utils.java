@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -70,8 +70,8 @@ public class Utils {
 
 	/** Executes builtin with specified parameters and waits until it finishes */
 	public static PythonObject run(String function, PythonObject... args) {
-		return PythonInterpreter.interpreter.get().executeCall(true, function,
-				args);
+		return AbstractPythonInterpreter.interpreter.get().executeCall(true,
+				function, args);
 	}
 
 	/**
@@ -200,9 +200,11 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (PythonInterpreter.interpreter.get() == null || PythonInterpreter.interpreter.get().currentFrame.size() == 0)
+		if (AbstractPythonInterpreter.interpreter.get() == null
+				|| AbstractPythonInterpreter.interpreter.get().currentFrame
+						.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return PythonInterpreter.interpreter.get().environment()
+		return AbstractPythonInterpreter.interpreter.get().environment()
 				.get(variable, true, false);
 	}
 
@@ -215,8 +217,8 @@ public class Utils {
 
 	public static int toNumeric(Object o) {
 		if (o instanceof Byte)
-			return ((Byte)o).intValue();
-		return ((Integer)o).intValue();
+			return ((Byte) o).intValue();
+		return ((Integer) o).intValue();
 	}
 
 	public static boolean fixnumEquals(Number first, Number second) {
@@ -224,6 +226,7 @@ public class Utils {
 	}
 
 	public static String reformatSpecials(String string) {
-		return string.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+		return string.replace("\n", "\\n").replace("\r", "\\r")
+				.replace("\t", "\\t");
 	}
 }

@@ -95,7 +95,7 @@ public class TypeTypeObject extends TypeObject {
 
 		return type;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.TYPE_TYPE_TYPE;

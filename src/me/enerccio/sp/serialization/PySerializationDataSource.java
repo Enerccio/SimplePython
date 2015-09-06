@@ -22,5 +22,5 @@ import java.io.OutputStream;
 public interface PySerializationDataSource {
 
 	OutputStream getOutput();
-	
+
 }

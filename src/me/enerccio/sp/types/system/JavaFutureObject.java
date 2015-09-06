@@ -40,7 +40,7 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 
 	@Override
 	public PythonObject getValue() {
-		
+
 		synchronized (this) {
 			if (isReady())
 				return value;
@@ -52,10 +52,10 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 			Thread.interrupted();
 			return null;
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.JFUTURE;
@@ -93,7 +93,7 @@ public class JavaFutureObject extends PythonObject implements FutureObject {
 	public boolean isReady() {
 		return status != FutureStatus.RUNNING;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 

@@ -49,7 +49,7 @@ public class Disassembler implements Externalizable {
 	private ByteBuffer readBuff; // -- not serialized
 	@WrapField(readOnly = true)
 	public int last_bytecode_pos;
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
@@ -64,7 +64,7 @@ public class Disassembler implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public Disassembler(String code, DictObject mappings,

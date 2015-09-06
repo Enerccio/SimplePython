@@ -42,7 +42,7 @@ public class PointerObject extends PythonObject {
 		super(false);
 		pointed = o;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.POINTER;
@@ -98,7 +98,7 @@ public class PointerObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serializeJava(pointed);

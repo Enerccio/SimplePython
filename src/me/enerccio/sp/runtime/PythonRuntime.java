@@ -67,6 +67,7 @@ import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.external.SocketHelper;
 import me.enerccio.sp.external.ThreadInfo;
 import me.enerccio.sp.external.WebbrowserController;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -77,7 +78,6 @@ import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.interpret.NoGetattrException;
 import me.enerccio.sp.interpret.PythonExecutionException;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.parser.pythonLexer;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
 import me.enerccio.sp.sandbox.SecureAction;
@@ -175,7 +175,7 @@ public class PythonRuntime implements Serializable {
 												// overflow
 	private PythonSecurityManager manager;
 	private InternalJavaPathResolver ijpr = new InternalJavaPathResolver();
-	
+
 	public void setSecurityManager(PythonSecurityManager manager) {
 		this.manager = manager;
 	}
@@ -240,7 +240,7 @@ public class PythonRuntime implements Serializable {
 	public static ClassObject IMPORT_ERROR;
 	public static ClassObject SANDBOX_ERROR;
 	public static ClassObject AST;
-	
+
 	/**
 	 * Waits until creation of new interprets is possible
 	 * 
@@ -269,38 +269,37 @@ public class PythonRuntime implements Serializable {
 		err = os;
 	}
 
-
 	/**
 	 * Serializes runtime
 	 * 
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized void serializeRuntime(PySerializer serializer) throws Exception {
-		Set<PythonInterpreter> acqSet = new HashSet<PythonInterpreter>();
-		
+	public synchronized void serializeRuntime(PySerializer serializer)
+			throws Exception {
+		Set<AbstractPythonInterpreter> acqSet = new HashSet<AbstractPythonInterpreter>();
+
 		try {
-			synchronized (PythonInterpreter.interpreters){
+			synchronized (AbstractPythonInterpreter.interpreters) {
 				allowedNewInterpret = false;
-		
-				for (PythonInterpreter i : PythonInterpreter.interpreters){
-					if (!i.tryAcquireInterpret()){
+
+				for (AbstractPythonInterpreter i : AbstractPythonInterpreter.interpreters) {
+					if (!i.tryAcquireInterpret()) {
 						throw new RuntimeError("Save failure");
 					}
 					acqSet.add(i);
 				}
 			}
-			
-			
+
 			serializer.initializeSerialization();
 			activeSerializer = serializer;
 			doSerializeRuntime(serializer);
 			serializer.finishSerialization();
 			activeSerializer = null;
-		
+
 		} finally {
-			synchronized (PythonInterpreter.interpreters){
-				for (PythonInterpreter i : acqSet){
+			synchronized (AbstractPythonInterpreter.interpreters) {
+				for (AbstractPythonInterpreter i : acqSet) {
 					i.releaseInterpret();
 				}
 				allowedNewInterpret = true;
@@ -418,9 +417,10 @@ public class PythonRuntime implements Serializable {
 		ModuleObject mo;
 		try {
 			mo = getCompiled(data, false);
-			if (mo == null){
+			if (mo == null) {
 				throw new ImportError("failed to load module '" + name
-						+ "' with resolve path '" + moduleResolvePath.value + "'");
+						+ "' with resolve path '" + moduleResolvePath.value
+						+ "'");
 			}
 		} catch (Exception e) {
 			throw new ImportError("failed to load module '" + name
@@ -466,8 +466,8 @@ public class PythonRuntime implements Serializable {
 			}
 		}
 		ModuleObject mo = null;
-		
-		if (data.isJavaClass()){
+
+		if (data.isJavaClass()) {
 			mo = loadJavaProxy(data);
 		} else {
 			mo = new ModuleObject(data, loadingBuiltins);
@@ -483,7 +483,7 @@ public class PythonRuntime implements Serializable {
 		}
 		return mo;
 	}
-	
+
 	/**
 	 * @param data
 	 * @return
@@ -493,13 +493,14 @@ public class PythonRuntime implements Serializable {
 		try {
 			ModuleObject mo = new ProxyModule(loadJavaProxyObject(data), data);
 			return mo;
-		} catch (Throwable e){
+		} catch (Throwable e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
-	private transient PythonClassLoader loader = new PythonClassLoader(getClass().getClassLoader());
+
+	private transient PythonClassLoader loader = new PythonClassLoader(
+			getClass().getClassLoader());
 
 	private Object loadJavaProxyObject(ModuleData data) throws Exception {
 		String pp = data.getPackageResolve();
@@ -553,8 +554,7 @@ public class PythonRuntime implements Serializable {
 
 	/** Some basic types */
 	public static TypeObject ENVIRONMENT_TYPE = new EnvironmentTypeObject();
-	public static TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject
-			.get();
+	public static TypeObject JAVA_CALLABLE_TYPE = JavaCallableTypeObject.get();
 	public static TypeObject OBJECT_TYPE = new ObjectTypeObject();
 	public static TypeObject TYPE_TYPE = new TypeTypeObject();
 	public static TypeObject NONE_TYPE = NoneObject.TYPE;
@@ -572,7 +572,7 @@ public class PythonRuntime implements Serializable {
 	public static TypeObject FLOAT_TYPE = new FloatTypeObject();
 	public static TypeObject LIST_TYPE = new ListTypeObject();
 	public static TypeObject FRAME_TYPE = new FrameTypeObject();
-	
+
 	public static transient PySerializer activeSerializer;
 
 	static {
@@ -683,8 +683,7 @@ public class PythonRuntime implements Serializable {
 							new XRangeTypeObject());
 					globals.put(CompiledBlockTypeObject.COMPILED_CALL,
 							new CompiledBlockTypeObject());
-					globals.put(FrameTypeObject.FRAME_CALL,
-							FRAME_TYPE);
+					globals.put(FrameTypeObject.FRAME_CALL, FRAME_TYPE);
 					globals.put(EnvironmentTypeObject.ENVIRONMENT_CALL,
 							ENVIRONMENT_TYPE);
 					globals.put(FutureTypeObject.FUTURE_CALL,
@@ -736,7 +735,8 @@ public class PythonRuntime implements Serializable {
 								"Failed to initialize python!", e1);
 					}
 
-					PythonInterpreter i = PythonInterpreter.interpreter.get();
+					AbstractPythonInterpreter i = AbstractPythonInterpreter.interpreter
+							.get();
 					i.setArgs(new StringDictObject());
 					i.executeBytecode(builtin);
 
@@ -784,13 +784,13 @@ public class PythonRuntime implements Serializable {
 	}
 
 	protected static PythonObject locals() {
-		return (PythonObject) PythonInterpreter.interpreter.get().environment()
-				.getLocals();
+		return (PythonObject) AbstractPythonInterpreter.interpreter.get()
+				.environment().getLocals();
 	}
 
 	protected static PythonObject globals() {
-		return (PythonObject) PythonInterpreter.interpreter.get().environment()
-				.getGlobals();
+		return (PythonObject) AbstractPythonInterpreter.interpreter.get()
+				.environment().getGlobals();
 	}
 
 	/**
@@ -800,7 +800,7 @@ public class PythonRuntime implements Serializable {
 	public static InputStream cachedRead(ModuleData data) {
 		if (data.isJavaClass())
 			return null;
-		
+
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
 		long lastMod = data.getResolver().lastModified(data);
 		for (File f : SimplePython.pycCaches) {
@@ -826,7 +826,7 @@ public class PythonRuntime implements Serializable {
 	public static OutputStream cachedWrite(ModuleData data) {
 		if (data.isJavaClass())
 			return null;
-		
+
 		if (SimplePython.pycCaches.isEmpty())
 			return null;
 		String pycname = data.getName() + "." + getCacheHash(data) + ".pyc";
@@ -884,11 +884,12 @@ public class PythonRuntime implements Serializable {
 			String src = ((StringObject) source).value;
 
 			block = c.doCompile(
-					ParserGenerator.parseCompileFunction(src, filename.value, r)
+					ParserGenerator
+							.parseCompileFunction(src, filename.value, r)
 							.file_input(), filename.value);
 		} else if (isderived(source, AST)) {
-			ListObject lo = (ListObject) PythonInterpreter.interpreter.get()
-					.execute(
+			ListObject lo = (ListObject) AbstractPythonInterpreter.interpreter
+					.get().execute(
 							true,
 							Utils.run("getattr", source, new StringObject(
 									"get_bytecode")), null);
@@ -903,10 +904,11 @@ public class PythonRuntime implements Serializable {
 			}
 			block = new CompiledBlockObject(pbl);
 		} else {
-			PythonObject str = PythonInterpreter.interpreter.get().execute(
-					true,
-					Utils.run("getattr", source, new StringObject("read_all")),
-					null);
+			PythonObject str = AbstractPythonInterpreter.interpreter.get()
+					.execute(
+							true,
+							Utils.run("getattr", source, new StringObject(
+									"read_all")), null);
 			block = (CompiledBlockObject) Utils.run("compile", str, filename);
 		}
 
@@ -947,7 +949,7 @@ public class PythonRuntime implements Serializable {
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 
-		PythonInterpreter.interpreter.get().execute(true, fnc, null);
+		AbstractPythonInterpreter.interpreter.get().execute(true, fnc, null);
 
 		return NoneObject.NONE;
 	}
@@ -990,7 +992,8 @@ public class PythonRuntime implements Serializable {
 
 		Ref<pythonLexer> r = new Ref<pythonLexer>();
 		PythonCompiler c = new PythonCompiler(r);
-		block = c.doCompileEval(ParserGenerator.parseEval(code, r).eval_input());
+		block = c
+				.doCompileEval(ParserGenerator.parseEval(code, r).eval_input());
 
 		UserFunctionObject fnc = new UserFunctionObject();
 
@@ -1005,7 +1008,8 @@ public class PythonRuntime implements Serializable {
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 
-		return PythonInterpreter.interpreter.get().execute(true, fnc, null);
+		return AbstractPythonInterpreter.interpreter.get().execute(true, fnc,
+				null);
 	}
 
 	public static List<String> dir(TupleObject to, KwArgs kwargs) {
@@ -1044,8 +1048,8 @@ public class PythonRuntime implements Serializable {
 		}
 
 		if (o.get("__dir__", null) != null) {
-			PythonObject dirCall = PythonInterpreter.interpreter.get().execute(
-					true, o.get("__dir__", null), null);
+			PythonObject dirCall = AbstractPythonInterpreter.interpreter.get()
+					.execute(true, o.get("__dir__", null), null);
 			if (!(dirCall instanceof ListObject))
 				throw new TypeError("dir(): __dir__ must return list");
 			ListObject lo = (ListObject) dirCall;
@@ -1087,13 +1091,14 @@ public class PythonRuntime implements Serializable {
 	}
 
 	protected static PythonObject apply(PythonObject callable, ListObject args) {
-		PythonInterpreter.interpreter.get().checkOverflow();
+		AbstractPythonInterpreter.interpreter.get().checkOverflow();
 
-		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
+		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+				.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects, true);
-		PythonInterpreter.interpreter.get().execute(false, callable, null,
-				a.getObjects());
-		return PythonInterpreter.interpreter.get().executeAll(cfc);
+		AbstractPythonInterpreter.interpreter.get().execute(false, callable,
+				null, a.getObjects());
+		return AbstractPythonInterpreter.interpreter.get().executeAll(cfc);
 	}
 
 	protected static PythonObject chr(int v) {
@@ -1230,8 +1235,7 @@ public class PythonRuntime implements Serializable {
 		if (py instanceof FrameObject)
 			return FRAME_TYPE;
 		if (py instanceof FutureObject)
-			return (ClassObject) Utils
-					.getGlobal(FutureTypeObject.FUTURE_CALL); 
+			return (ClassObject) Utils.getGlobal(FutureTypeObject.FUTURE_CALL);
 
 		return OBJECT_TYPE;
 	}
@@ -1255,12 +1259,12 @@ public class PythonRuntime implements Serializable {
 			PythonObject getattr = getattr(o,
 					ClassInstanceObject.__GETATTRIBUTE__, true);
 			if (getattr != null && !(o instanceof ClassObject))
-				return PythonInterpreter.interpreter.get().execute(false,
-						getattr, null, new StringObject(attribute));
+				return AbstractPythonInterpreter.interpreter.get().execute(
+						false, getattr, null, new StringObject(attribute));
 		}
 
-		PythonObject value = o.get(attribute, PythonInterpreter.interpreter
-				.get().getLocalContext());
+		PythonObject value = o.get(attribute,
+				AbstractPythonInterpreter.interpreter.get().getLocalContext());
 		if (value == null) {
 			if (skip == true)
 				return null;
@@ -1273,8 +1277,8 @@ public class PythonRuntime implements Serializable {
 			try {
 				PythonObject getattr = getattr(o,
 						ClassInstanceObject.__GETATTR__);
-				value = PythonInterpreter.interpreter.get().execute(false,
-						getattr, null, new StringObject(attribute));
+				value = AbstractPythonInterpreter.interpreter.get().execute(
+						false, getattr, null, new StringObject(attribute));
 			} catch (NoGetattrException e) {
 				throw new AttributeError(String.format(
 						"%s object has no attribute '%s'", o, attribute));
@@ -1287,8 +1291,8 @@ public class PythonRuntime implements Serializable {
 	}
 
 	protected static PythonObject hasattr(PythonObject o, String attribute) {
-		PythonObject value = o.get(attribute, PythonInterpreter.interpreter
-				.get().getLocalContext());
+		PythonObject value = o.get(attribute,
+				AbstractPythonInterpreter.interpreter.get().getLocalContext());
 		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
 	}
 
@@ -1298,32 +1302,33 @@ public class PythonRuntime implements Serializable {
 
 	public static PythonObject setattr(PythonObject o, String attribute,
 			PythonObject v) {
-		if (o.get("__setattr__", PythonInterpreter.interpreter.get()
+		if (o.get("__setattr__", AbstractPythonInterpreter.interpreter.get()
 				.getLocalContext()) != null
 				&& v != null) {
-			return PythonInterpreter.interpreter.get().execute(
+			return AbstractPythonInterpreter.interpreter.get().execute(
 					false,
-					o.get("__setattr__", PythonInterpreter.interpreter.get()
-							.getLocalContext()), null,
+					o.get("__setattr__", AbstractPythonInterpreter.interpreter
+							.get().getLocalContext()), null,
 					new StringObject(attribute), v);
-		} else if (o.get("__delattr__", PythonInterpreter.interpreter.get()
-				.getLocalContext()) != null
+		} else if (o.get("__delattr__", AbstractPythonInterpreter.interpreter
+				.get().getLocalContext()) != null
 				&& v == null) {
-			return PythonInterpreter.interpreter.get().execute(
+			return AbstractPythonInterpreter.interpreter.get().execute(
 					false,
-					o.get("__delattr__", PythonInterpreter.interpreter.get()
-							.getLocalContext()), null,
+					o.get("__delattr__", AbstractPythonInterpreter.interpreter
+							.get().getLocalContext()), null,
 					new StringObject(attribute));
 		}
 		PythonObject field;
-		if ((field = o.get(attribute, PythonInterpreter.interpreter.get()
-				.getLocalContext())) == null
+		if ((field = o.get(attribute, AbstractPythonInterpreter.interpreter
+				.get().getLocalContext())) == null
 				&& v != null)
 			o.create(
 					attribute,
 					attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE
 							: AccessRestrictions.PUBLIC,
-					PythonInterpreter.interpreter.get().getLocalContext());
+					AbstractPythonInterpreter.interpreter.get()
+							.getLocalContext());
 		if (field != null && field instanceof PropertyObject) {
 			if (v == null)
 				throw new AttributeError("attribute '" + attribute
@@ -1332,8 +1337,8 @@ public class PythonRuntime implements Serializable {
 			((PropertyObject) field).set(v);
 			return NoneObject.NONE;
 		}
-		o.set(attribute, PythonInterpreter.interpreter.get().getLocalContext(),
-				v);
+		o.set(attribute, AbstractPythonInterpreter.interpreter.get()
+				.getLocalContext(), v);
 		return NoneObject.NONE;
 	}
 
@@ -1586,7 +1591,7 @@ public class PythonRuntime implements Serializable {
 	public boolean buildingGlobals() {
 		return buildingGlobals.get();
 	}
-	
+
 	private void doSerializeRuntime(PySerializer s) {
 		// constants and manager/ijpr
 		s.serialize(PREALOCATED_INTEGERS);
@@ -1595,12 +1600,12 @@ public class PythonRuntime implements Serializable {
 		s.serialize(USE_INT_ONLY);
 		s.serializeJava(manager);
 		s.serializeJava(ijpr);
-		
+
 		// modules & linkKey & resolvers
 		s.serialize(key);
 		serializeRoot(s);
 		s.serializeJava(resolvers);
-		
+
 		// important classes & io
 		s.serializeJava(out);
 		s.serializeJava(err);
@@ -1621,7 +1626,7 @@ public class PythonRuntime implements Serializable {
 		s.serialize(IMPORT_ERROR);
 		s.serialize(SANDBOX_ERROR);
 		s.serialize(AST);
-		
+
 		// globals and types
 		s.serialize(globals);
 		s.serialize(ENVIRONMENT_TYPE);
@@ -1643,39 +1648,38 @@ public class PythonRuntime implements Serializable {
 		s.serialize(FLOAT_TYPE);
 		s.serialize(LIST_TYPE);
 		s.serialize(FRAME_TYPE);
-		
-		s.serialize(PythonInterpreter.interpreters.size());
-		for (PythonInterpreter i : PythonInterpreter.interpreters){
+
+		s.serialize(AbstractPythonInterpreter.interpreters.size());
+		for (AbstractPythonInterpreter i : AbstractPythonInterpreter.interpreters) {
 			s.serialize(i);
 		}
-		
+
 	}
-	
+
 	private void serializeRoot(PySerializer s) {
 		s.serialize(root.size());
-		for (String key : root.keySet()){
+		for (String key : root.keySet()) {
 			s.serialize(key);
 			serializeModuleContainer(s, root.get(key));
 		}
 	}
 
-	private void serializeModuleContainer(PySerializer s,
-			ModuleContainer mc) {
+	private void serializeModuleContainer(PySerializer s, ModuleContainer mc) {
 		s.serialize(mc.module);
 		s.serialize(mc.submodules.size());
-		for (String key : mc.submodules.keySet()){
+		for (String key : mc.submodules.keySet()) {
 			s.serialize(key);
 			s.serialize(mc.submodules.get(key));
 		}
 		s.serialize(mc.subpackages.size());
-		for (String key : mc.subpackages.keySet()){
+		for (String key : mc.subpackages.keySet()) {
 			s.serialize(key);
 			serializeModuleContainer(s, mc.subpackages.get(key));
 		}
 	}
 
 	private void writeObject(java.io.ObjectOutputStream stream)
-            throws IOException {
-		
+			throws IOException {
+
 	}
 }

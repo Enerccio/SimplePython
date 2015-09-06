@@ -41,7 +41,7 @@ public class NoneTypeObject extends TypeObject {
 			throw new TypeError("none(): requires zero arguments");
 		return NoneObject.NONE;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.NONE_TYPE;

@@ -59,13 +59,12 @@ public class EllipsisObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.ELLIPSIS;

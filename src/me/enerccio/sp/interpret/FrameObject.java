@@ -45,7 +45,7 @@ public class FrameObject extends PythonObject {
 	public FrameObject() {
 		super(false);
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.FO;
@@ -153,12 +153,12 @@ public class FrameObject extends PythonObject {
 	public GeneratorObject ownedGenerator;
 	public PythonObject localContext;
 	public EnvironmentObject environment;
-	
+
 	public boolean isSignal;
 	public PythonObject storedReturnee;
 	public InternalDict storedArgs;
 	public List<InternalDict> storedClosure;
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(parentFrame);
@@ -168,7 +168,7 @@ public class FrameObject extends PythonObject {
 		pySerializer.serialize(compiled);
 		pySerializer.serialize(pc);
 		pySerializer.serialize(prevPc);
-		
+
 		pySerializer.serialize(stack.size());
 		for (PythonObject o : stack)
 			pySerializer.serialize(o);
@@ -178,7 +178,7 @@ public class FrameObject extends PythonObject {
 		pySerializer.serialize(isSignal);
 		pySerializer.serialize(storedReturnee);
 		pySerializer.serialize((PythonObject) storedArgs);
-		if (storedClosure == null){
+		if (storedClosure == null) {
 			pySerializer.serialize(false);
 		} else {
 			pySerializer.serialize(true);

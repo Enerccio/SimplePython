@@ -22,30 +22,31 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class RebindableThreadLocal<T> {
-	
-	private Map<Thread, T> values = Collections.synchronizedMap(new WeakHashMap<Thread, T>());
-	
-	public RebindableThreadLocal(){
-		
+
+	private Map<Thread, T> values = Collections
+			.synchronizedMap(new WeakHashMap<Thread, T>());
+
+	public RebindableThreadLocal() {
+
 	}
-	
-	public T get(){
+
+	public T get() {
 		Thread t = Thread.currentThread();
 		return getForThread(t);
 	}
-	
+
 	public T getForThread(Thread t) {
 		if (!values.containsKey(t))
 			values.put(t, initialValue());
 		return values.get(t);
 	}
 
-	public void set(T value){
+	public void set(T value) {
 		Thread t = Thread.currentThread();
 		setForThread(t, value);
 	}
-	
-	public void setForThread(Thread t, T value){
+
+	public void setForThread(Thread t, T value) {
 		values.put(t, value);
 	}
 

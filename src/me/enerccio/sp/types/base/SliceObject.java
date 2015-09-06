@@ -48,8 +48,7 @@ public class SliceObject extends PythonObject {
 		fields.put(STEP_ACCESSOR, new AugumentedPythonObject(step,
 				AccessRestrictions.PUBLIC));
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.SLICE;
@@ -74,9 +73,9 @@ public class SliceObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 }

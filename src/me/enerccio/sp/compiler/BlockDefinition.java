@@ -103,19 +103,19 @@ public class BlockDefinition {
 		c.finishCB();
 		return c;
 	}
-	
+
 	public static class BlockModuleData implements ModuleData {
 
 		private ModuleData mi;
 		private String name;
 		private String fname;
-		
-		public BlockModuleData(ModuleData mi, String name, String fname){
+
+		public BlockModuleData(ModuleData mi, String name, String fname) {
 			this.mi = mi;
 			this.name = name;
 			this.fname = fname;
 		}
-		
+
 		/**
 		 * 
 		 */
@@ -157,18 +157,21 @@ public class BlockDefinition {
 			Pair<DataTag, Object> pair, final ModuleData mi) {
 		Object[] arr = (Object[]) pair.getSecond();
 
-		final String name = idList
-				.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[0]).getSecond()));
-		final String fname = idList
-				.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[1]).getSecond()));
+		final String name = idList.get(Utils
+				.toNumeric(((Pair<DataTag, Object>) arr[0]).getSecond()));
+		final String fname = idList.get(Utils
+				.toNumeric(((Pair<DataTag, Object>) arr[1]).getSecond()));
 
 		DebugInformation di = new DebugInformation();
-		di.function = idList.get(Utils.toNumeric(((Pair<DataTag, Object>) arr[2])
-				.getSecond()));
-		di.lineno = Utils.toNumeric(((Pair<DataTag, Object>) arr[3]).getSecond());
-		di.charno = Utils.toNumeric(((Pair<DataTag, Object>) arr[4]).getSecond());
-		di.isLineStart = Utils.toNumeric(((Pair<DataTag, Object>) arr[5]).getSecond()) == 1;
-		
+		di.function = idList.get(Utils
+				.toNumeric(((Pair<DataTag, Object>) arr[2]).getSecond()));
+		di.lineno = Utils.toNumeric(((Pair<DataTag, Object>) arr[3])
+				.getSecond());
+		di.charno = Utils.toNumeric(((Pair<DataTag, Object>) arr[4])
+				.getSecond());
+		di.isLineStart = Utils.toNumeric(((Pair<DataTag, Object>) arr[5])
+				.getSecond()) == 1;
+
 		ModuleData mf = new BlockModuleData(mi, name, fname);
 
 		di.module = mf;
@@ -221,10 +224,14 @@ public class BlockDefinition {
 			CompiledBlockObject cbc = ((BlockDefinition) ((Pair<DataTag, Object>) arr[3])
 					.getSecond()).toFrame(mi);
 
-			boolean hasVararg = Utils.fixnumEquals((Number) ((Pair<DataTag, Object>) arr[4]).getSecond(), new Integer(1));
+			boolean hasVararg = Utils.fixnumEquals(
+					(Number) ((Pair<DataTag, Object>) arr[4]).getSecond(),
+					new Integer(1));
 			String vararg = (String) ((Pair<DataTag, Object>) arr[5])
 					.getSecond();
-			boolean hasKWarg = Utils.fixnumEquals((Number) ((Pair<DataTag, Object>) arr[6]).getSecond(), new Integer(1));
+			boolean hasKWarg = Utils.fixnumEquals(
+					(Number) ((Pair<DataTag, Object>) arr[6]).getSecond(),
+					new Integer(1));
 			String kwararg = (String) ((Pair<DataTag, Object>) arr[7])
 					.getSecond();
 
@@ -280,7 +287,8 @@ public class BlockDefinition {
 		di.put(i, toTagPair(debugInformation));
 	}
 
-	private void processEntry(Integer i, PythonObject pythonObject) throws Exception {
+	private void processEntry(Integer i, PythonObject pythonObject)
+			throws Exception {
 		tagobjects.put(i, processEntry(pythonObject));
 	}
 
@@ -332,19 +340,15 @@ public class BlockDefinition {
 				if (pb == NoneObject.NONE)
 					docstring = Pair.makePair(DataTag.NONE, null);
 				else
-					docstring = makeString(
-							((StringObject) pb).value);
+					docstring = makeString(((StringObject) pb).value);
 			}
 			Object block = new BlockDefinition(fnc.block);
 			Object hasArgs = makeInt(fnc.isVararg ? 1 : 0);
-			Object vararg = makeString(
-					fnc.vararg == null ? "" : fnc.vararg);
+			Object vararg = makeString(fnc.vararg == null ? "" : fnc.vararg);
 			Object hasKwArgs = makeInt(fnc.isKvararg ? 1 : 0);
-			Object kwargarg = makeString(
-					fnc.kvararg == null ? "" : fnc.kvararg);
+			Object kwargarg = makeString(fnc.kvararg == null ? "" : fnc.kvararg);
 
-			Object[] data = new Object[] {
-					makeString((String) fncName),
+			Object[] data = new Object[] { makeString((String) fncName),
 					Pair.makePair(DataTag.ARRAY, args), docstring,
 					Pair.makePair(DataTag.BLOCK, block), hasArgs, vararg,
 					hasKwArgs, kwargarg, };
@@ -420,11 +424,12 @@ public class BlockDefinition {
 		return bof.toByteArray();
 	}
 
-	private static Pair<DataTag, Object> makeString(String string) throws Exception {
+	private static Pair<DataTag, Object> makeString(String string)
+			throws Exception {
 		if (string.getBytes("utf-8").length >= Byte.MAX_VALUE)
-			return Pair.makePair(DataTag.STRING, (Object)string);
+			return Pair.makePair(DataTag.STRING, (Object) string);
 		else
-			return Pair.makePair(DataTag.SMALL_STRING, (Object)string);
+			return Pair.makePair(DataTag.SMALL_STRING, (Object) string);
 	}
 
 	private Pair<DataTag, Object> toTagPair(DebugInformation d) {
@@ -440,9 +445,9 @@ public class BlockDefinition {
 
 	private static Pair<DataTag, Object> makeInt(int i) {
 		if (i >= Byte.MIN_VALUE && i <= Byte.MAX_VALUE)
-			return Pair.makePair(DataTag.SMALL_INT, (Object)(byte)i);
+			return Pair.makePair(DataTag.SMALL_INT, (Object) (byte) i);
 		else
-			return Pair.makePair(DataTag.INT, (Object)i);
+			return Pair.makePair(DataTag.INT, (Object) i);
 	}
 
 	private int cache(String text) {
@@ -500,7 +505,7 @@ public class BlockDefinition {
 			break;
 		case SMALL_STRING:
 			byte[] sb = ((String) value).getBytes("utf-8");
-			wr.write((byte)sb.length);
+			wr.write((byte) sb.length);
 			wr.write(sb);
 			break;
 		case STRING:

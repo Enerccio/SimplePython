@@ -50,7 +50,8 @@ public class ModuleDefinition {
 	}
 
 	public ModuleDefinition(ModuleObject mo) throws Exception {
-		name = Pair.makePair(DataTag.STRING, (Object) mo.fields.get("__name__").object.toString());
+		name = Pair.makePair(DataTag.STRING,
+				(Object) mo.fields.get("__name__").object.toString());
 		root = Pair.makePair(DataTag.MODULE, (Object) Pair.makePair(
 				DataTag.BLOCK, (Object) new BlockDefinition(mo.getFrame())));
 	}
@@ -75,7 +76,8 @@ public class ModuleDefinition {
 		BlockDefinition b = (BlockDefinition) ((Pair<DataTag, Object>) root
 				.getSecond()).getSecond();
 		mo.frame = b.toFrame(data);
-		mo.fields.put("__name__", new AugumentedPythonObject(new StringObject((String)name.getSecond()), AccessRestrictions.PUBLIC));
+		mo.fields.put("__name__", new AugumentedPythonObject(new StringObject(
+				(String) name.getSecond()), AccessRestrictions.PUBLIC));
 		return mo;
 	}
 }

@@ -26,15 +26,18 @@ import me.enerccio.sp.types.pointer.WrapPublicFactory;
 public class ProxyModule extends ModuleObject {
 	private static final long serialVersionUID = -8899305931463807366L;
 	private static final PointerFactory pp = new WrapPublicFactory();
-	
+
 	private PointerObject moduleAccessor;
 	private Object rawAccessor;
+
 	public ProxyModule(Object moduleAccessor, ModuleData data) {
 		super(data);
 		rawAccessor = moduleAccessor;
-		this.moduleAccessor = pp.doInitialize(moduleAccessor, moduleAccessor.getClass());
+		this.moduleAccessor = pp.doInitialize(moduleAccessor,
+				moduleAccessor.getClass());
 	}
 
+	@Override
 	public void injectGlobal(String key, PythonObject value) {
 		// does nothing
 	}
@@ -59,19 +62,24 @@ public class ProxyModule extends ModuleObject {
 	/**
 	 * Initializes the module.
 	 */
+	@Override
 	public void initModule() {
 		try {
 			rawAccessor.getClass().getMethod("init").invoke(rawAccessor);
-		} catch (Exception e){
-			throw new NativeError("failed to load java module, maybe pyj forgot to include init() method?", e);
+		} catch (Exception e) {
+			throw new NativeError(
+					"failed to load java module, maybe pyj forgot to include init() method?",
+					e);
 		}
 		isInited = true;
 	}
-	
+
+	@Override
 	public PythonObject getField(String string) {
 		return moduleAccessor.get(string, null);
 	}
 
+	@Override
 	public CompiledBlockObject getFrame() {
 		return null;
 	}

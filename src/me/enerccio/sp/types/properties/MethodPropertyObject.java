@@ -45,7 +45,7 @@ public class MethodPropertyObject extends PythonObject implements
 		this.getter = getter;
 		this.setter = setter;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(name);
@@ -73,7 +73,7 @@ public class MethodPropertyObject extends PythonObject implements
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.MP;

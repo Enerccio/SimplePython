@@ -64,14 +64,17 @@ public class Coerce {
 			return rv;
 		}
 
-		// 2st, return PythonObject if requested and check for dicts and InternalDict
+		// 2st, return PythonObject if requested and check for dicts and
+		// InternalDict
 		if (clazz.isAssignableFrom(o.getClass()))
 			if (PythonObject.class.isAssignableFrom(clazz))
 				return clazz.cast(o);
-		if (clazz.equals(InternalDict.class) && InternalDict.class.isInstance(o))
+		if (clazz.equals(InternalDict.class)
+				&& InternalDict.class.isInstance(o))
 			return (X) o;
-		if (clazz.equals(FutureObject.class) && FutureObject.class.isInstance(o))
-			return (X)o;
+		if (clazz.equals(FutureObject.class)
+				&& FutureObject.class.isInstance(o))
+			return (X) o;
 
 		// 3nd, coerce None directly
 		if (o == NoneObject.NONE) {

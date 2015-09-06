@@ -41,7 +41,7 @@ public class BoundFunctionTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "bound-function";
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.BF_TYPE;

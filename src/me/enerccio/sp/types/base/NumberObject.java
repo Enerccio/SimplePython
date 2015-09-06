@@ -356,7 +356,7 @@ public abstract class NumberObject extends PythonObject implements
 
 	@Override
 	public abstract PythonObject ge(PythonObject arg);
-	
+
 	private static abstract class DirectNumberObject extends NumberObject {
 		@Override
 		public void serializeInnerState(PySerializer pySerializer) {
@@ -372,8 +372,7 @@ public abstract class NumberObject extends PythonObject implements
 		public NumberType getNumberType() {
 			return NumberType.INT;
 		}
-		
-		
+
 		@Override
 		public byte getTag() {
 			return Tags.INT;
@@ -383,7 +382,7 @@ public abstract class NumberObject extends PythonObject implements
 		public void newObject() {
 
 		}
-		
+
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
@@ -828,13 +827,12 @@ public abstract class NumberObject extends PythonObject implements
 	private static class LongObject extends DirectNumberObject {
 		private static final long serialVersionUID = 35L;
 		private final long value;
-		
-		
+
 		@Override
 		public byte getTag() {
 			return Tags.LONG;
 		}
-		
+
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
@@ -1211,7 +1209,7 @@ public abstract class NumberObject extends PythonObject implements
 	private static class FloatObject extends DirectNumberObject {
 		private static final long serialVersionUID = 8L;
 		private final float value;
-		
+
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
@@ -1221,8 +1219,7 @@ public abstract class NumberObject extends PythonObject implements
 		public NumberType getNumberType() {
 			return NumberType.FLOAT;
 		}
-		
-		
+
 		@Override
 		public byte getTag() {
 			return Tags.FLOAT;
@@ -1498,13 +1495,12 @@ public abstract class NumberObject extends PythonObject implements
 	private static class DoubleObject extends DirectNumberObject {
 		private static final long serialVersionUID = 8L;
 		private final double value;
-		
+
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			pySerializer.serialize(value);
 		}
-		
-		
+
 		@Override
 		public byte getTag() {
 			return Tags.DOUBLE;

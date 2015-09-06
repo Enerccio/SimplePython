@@ -20,24 +20,33 @@ package me.enerccio.sp.serialization;
 import me.enerccio.sp.types.PythonObject;
 
 public interface PySerializer {
-	
+
 	void initializeSerialization() throws Exception;
+
 	void finishSerialization() throws Exception;
 
 	void serialize(PythonObject object);
-	
+
 	void serialize(boolean object);
+
 	void serialize(int object);
+
 	void serialize(byte object);
+
 	void serialize(String object);
+
 	void serialize(long object);
+
 	void serialize(double object);
+
 	void serialize(float object);
+
 	void serialize(char object);
+
 	void serialize(short object);
+
 	void serialize(byte[] object);
-	
+
 	void serializeJava(Object o);
-	
-	
+
 }

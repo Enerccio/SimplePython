@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.ProxyOutputStream;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
@@ -154,13 +154,14 @@ public class SimplePython {
 		r.serializeRuntime(strSerializer);
 		return strSerializer.getString();
 	}
-	
+
 	/**
 	 * Serializes the runtime into provided serializer
+	 * 
 	 * @param serializer
 	 * @throws Exception
 	 */
-	public static void serialize(PySerializer serializer) throws Exception{
+	public static void serialize(PySerializer serializer) throws Exception {
 		r.serializeRuntime(serializer);
 	}
 
@@ -364,7 +365,7 @@ public class SimplePython {
 		}
 
 		c.call(new TupleObject(args), null);
-		return PythonInterpreter.interpreter.get().executeAll(0);
+		return AbstractPythonInterpreter.interpreter.get().executeAll(0);
 	}
 
 	/**
@@ -438,7 +439,7 @@ public class SimplePython {
 	 */
 	public static PythonObject execute(PythonObject object, KwArgs kwargs,
 			PythonObject... args) {
-		return PythonInterpreter.interpreter.get().execute(true, object,
-				kwargs, args);
+		return AbstractPythonInterpreter.interpreter.get().execute(true,
+				object, kwargs, args);
 	}
 }

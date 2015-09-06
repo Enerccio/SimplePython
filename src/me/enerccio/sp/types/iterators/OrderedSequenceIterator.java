@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.StopIteration;
-import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -43,12 +43,12 @@ public class OrderedSequenceIterator extends PythonObject implements
 	private SequenceObject sequence;
 	private int cp = 0;
 	private int len = 0;
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.OSI;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(cp);
@@ -104,9 +104,10 @@ public class OrderedSequenceIterator extends PythonObject implements
 	public PythonObject next() {
 		if (cp >= len)
 			throw new StopIteration();
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false,
-				Utils.get(sequence, SequenceObject.__GETITEM__), null,
-				NumberObject.valueOf(cp++));
+		PythonObject value = AbstractPythonInterpreter.interpreter.get()
+				.execute(false,
+						Utils.get(sequence, SequenceObject.__GETITEM__), null,
+						NumberObject.valueOf(cp++));
 		return value;
 	}
 
@@ -114,9 +115,10 @@ public class OrderedSequenceIterator extends PythonObject implements
 	public PythonObject nextInternal() {
 		if (cp >= len)
 			return null;
-		PythonObject value = PythonInterpreter.interpreter.get().execute(false,
-				Utils.get(sequence, SequenceObject.__GETITEM__), null,
-				NumberObject.valueOf(cp++));
+		PythonObject value = AbstractPythonInterpreter.interpreter.get()
+				.execute(false,
+						Utils.get(sequence, SequenceObject.__GETITEM__), null,
+						NumberObject.valueOf(cp++));
 		return value;
 	}
 

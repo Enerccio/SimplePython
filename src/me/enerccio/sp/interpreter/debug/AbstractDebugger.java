@@ -25,100 +25,121 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.interpret.FrameObject;
-import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
+import me.enerccio.sp.interpret.FrameObject;
 
 public class AbstractDebugger implements Debugger {
 
 	@Override
-	public void bind(PythonInterpreter pythonInterpreter) {
-		
+	public void bind(AbstractPythonInterpreter pythonInterpreter) {
+
 	}
-	
+
 	private Set<Breakpoint> breakpoints = new HashSet<Breakpoint>();
 
 	@Override
-	public void debugNextOperation(PythonInterpreter i, Bytecode b,
+	public void debugNextOperation(AbstractPythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc) {
-		
+
 		DebugInformation di = f.getCompiled().getDebugInformation(cpc);
-		for (Breakpoint bp : breakpoints){
-			if (bp.applies(di)){
-					doBreak(i, b, f, cpc);
-					return;
+		for (Breakpoint bp : breakpoints) {
+			if (bp.applies(di)) {
+				doBreak(i, b, f, cpc);
+				return;
 			}
 		}
-		
-		if (breakNextInstruction){
+
+		if (breakNextInstruction) {
 			doBreak(i, b, f, cpc);
-		} else if (breakNextLine){
-			if (nextLineBreak.applies(di)){
+		} else if (breakNextLine) {
+			if (nextLineBreak.applies(di)) {
 				doBreak(i, b, f, cpc);
-			} else if (b == Bytecode.D_RETURN){
-				if (f == nextLineFrame){
+			} else if (b == Bytecode.D_RETURN) {
+				if (f == nextLineFrame) {
 					doBreak(i, b, f, cpc);
 				}
 			}
-		} else if (breakIntoCall){
-			if (b == Bytecode.D_STARTFUNC){
-				if (i.currentFrame.size() > 1){
-					FrameObject previousFrame = i.currentFrame.get(i.currentFrame.size()-2);
-					if (previousFrame == nextIntoCall){
+		} else if (breakIntoCall) {
+			if (b == Bytecode.D_STARTFUNC) {
+				if (i.currentFrame.size() > 1) {
+					FrameObject previousFrame = i.currentFrame
+							.get(i.currentFrame.size() - 2);
+					if (previousFrame == nextIntoCall) {
 						doBreak(i, b, f, cpc);
 					}
 				}
 			}
+		} else if (breakReturn) {
+			if (b == Bytecode.D_RETURN) {
+				if (f == nextLineFrame) {
+					doBreak(i, b, f, cpc);
+				}
+			}
 		}
 	}
-	
-	public void breakOnNextInstruction(){
+
+	public void breakOnNextInstruction() {
 		breakNextInstruction = true;
 	}
-	
-	public void breakNextLine(){
+
+	public void breakNextLine() {
 		DebugInformation di = f.getCompiled().getDebugInformation(cpc);
-		nextLineBreak = new Breakpoint(di.module.getName(), di.module.getPackageResolve(), di.lineno+1);
-		nextLineFrame = i.currentFrame.size() == 1 ? null : i.currentFrame.get(i.currentFrame.size()-2);
+		nextLineBreak = new Breakpoint(di.module.getName(),
+				di.module.getPackageResolve(), di.lineno + 1);
+		nextLineFrame = i.currentFrame.size() == 1 ? null : i.currentFrame
+				.get(i.currentFrame.size() - 2);
 		breakNextLine = true;
 	}
-	
-	public void breakIntoCall(){
+
+	public void breakIntoCall() {
 		nextIntoCall = i.currentFrame.getLast();
 		breakIntoCall = true;
 	}
-	
-	protected boolean     breakNextInstruction = false;
-	protected boolean     breakNextLine        = false;
-	protected Breakpoint  nextLineBreak        = null;
-	protected FrameObject nextLineFrame        = null;
-	protected boolean     breakIntoCall	       = false;
-	protected FrameObject nextIntoCall		   = null;
-	
+
+	public void breakReturn() {
+		nextReturn = i.currentFrame.size() == 1 ? null : i.currentFrame
+				.get(i.currentFrame.size() - 2);
+		if (nextReturn != null)
+			breakReturn = true;
+	}
+
+	protected boolean breakNextInstruction = false;
+	protected boolean breakNextLine = false;
+	protected Breakpoint nextLineBreak = null;
+	protected FrameObject nextLineFrame = null;
+	protected boolean breakIntoCall = false;
+	protected FrameObject nextIntoCall = null;
+	protected boolean breakReturn = false;
+	protected FrameObject nextReturn = null;
+
 	protected void clearRegisters() {
 		breakNextInstruction = false;
-		breakNextLine 	     = false;
-		breakIntoCall	     = false;
-		nextIntoCall	     = null;
-		nextLineBreak        = null;
-		nextLineFrame        = null;
+		breakNextLine = false;
+		breakIntoCall = false;
+		nextIntoCall = null;
+		nextLineBreak = null;
+		nextLineFrame = null;
+		breakReturn = false;
+		nextReturn = null;
 	}
 
 	public final Semaphore breakingSemaphore = new Semaphore(0);
-	public final Semaphore waitingSemaphore  = new Semaphore(0);
-	
-	protected void doBreak(PythonInterpreter i, Bytecode b, FrameObject f, int cpc) {
+	public final Semaphore waitingSemaphore = new Semaphore(0);
+
+	protected void doBreak(AbstractPythonInterpreter i, Bytecode b,
+			FrameObject f, int cpc) {
 		clearRegisters();
 		initializeBreak(i, b, f, cpc);
 		breakingSemaphore.release();
 		try {
 			waitingSemaphore.acquire();
 		} catch (InterruptedException e) {
-			
+
 		}
 		cleanup();
 	}
-	
+
 	protected void cleanup() {
 		i = null;
 		cbc = null;
@@ -126,12 +147,12 @@ public class AbstractDebugger implements Debugger {
 		f = null;
 	}
 
-	public PythonInterpreter i;
+	public AbstractPythonInterpreter i;
 	public Bytecode cbc;
 	public int cpc;
 	public FrameObject f;
 
-	protected void initializeBreak(PythonInterpreter i, Bytecode b,
+	protected void initializeBreak(AbstractPythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc) {
 		this.i = i;
 		this.cbc = b;
@@ -140,11 +161,12 @@ public class AbstractDebugger implements Debugger {
 	}
 
 	@Override
-	public void unbind(PythonInterpreter pythonInterpreter) {
-		
+	public void unbind(AbstractPythonInterpreter pythonInterpreter) {
+
 	}
 
-	public Breakpoint installBreakpoint(String moduleName, String modulePath, int line){
+	public Breakpoint installBreakpoint(String moduleName, String modulePath,
+			int line) {
 		Breakpoint bp = new Breakpoint(moduleName, modulePath, line);
 		breakpoints.add(bp);
 		return bp;
@@ -152,31 +174,31 @@ public class AbstractDebugger implements Debugger {
 
 	public List<FrameObject> getFrames() {
 		List<FrameObject> frl = new ArrayList<FrameObject>();
-		for (FrameObject fo : i.currentFrame){
-			if (fo.parentFrame == null){
+		for (FrameObject fo : i.currentFrame) {
+			if (fo.parentFrame == null) {
 				frl.add(fo);
 			}
 		}
 		return frl;
 	}
-	
-	public List<String> getVariables(FrameObject frame){
+
+	public List<String> getVariables(FrameObject frame) {
 		List<String> names = new ArrayList<String>();
 		if (frame.environment == null)
 			return names;
 		Set<String> vNames = frame.environment.getTop().keySet();
-		for (String v : vNames){
+		for (String v : vNames) {
 			names.add(v);
 		}
 		Collections.sort(names);
-		if (names.contains("self")){
+		if (names.contains("self")) {
 			names.remove("self");
 			names.add(0, "self");
 		}
 		return names;
 	}
-	
-	public String valueToString(FrameObject frame, String variable){
+
+	public String valueToString(FrameObject frame, String variable) {
 		return frame.environment.getLocals().getVariable(variable).toString();
 	}
 }

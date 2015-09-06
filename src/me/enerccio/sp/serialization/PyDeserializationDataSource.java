@@ -22,5 +22,5 @@ import java.io.InputStream;
 public interface PyDeserializationDataSource {
 
 	InputStream getInput();
-	
+
 }

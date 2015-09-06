@@ -44,7 +44,7 @@ public class StaticMethodObject extends CallableObject {
 	public StaticMethodObject() {
 
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.STATICM;
@@ -94,9 +94,9 @@ public class StaticMethodObject extends CallableObject {
 		return ((CallableObject) fields.get(__FUNC__).object)
 				.call(args, kwargs);
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-	
+
 	}
 }

@@ -20,6 +20,7 @@ package me.enerccio.sp.runtime;
 import java.io.Externalizable;
 import java.io.OutputStream;
 
-public abstract class ProxyOutputStream extends OutputStream implements Externalizable {
+public abstract class ProxyOutputStream extends OutputStream implements
+		Externalizable {
 
 }

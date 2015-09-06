@@ -18,8 +18,8 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.sequences.TupleObject;
@@ -40,7 +40,7 @@ public class EnvironmentTypeObject extends TypeObject {
 					+ args.len());
 		if (kwargs != null)
 			kwargs.checkEmpty("environment");
-		return PythonInterpreter.interpreter.get().environment();
+		return AbstractPythonInterpreter.interpreter.get().environment();
 	}
 
 	@Override

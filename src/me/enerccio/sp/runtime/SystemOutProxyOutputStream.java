@@ -25,10 +25,10 @@ import java.io.OutputStream;
 public class SystemOutProxyOutputStream extends ProxyOutputStream {
 
 	private volatile OutputStream os = System.out;
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		
+
 	}
 
 	@Override

@@ -26,10 +26,11 @@ import java.io.OutputStream;
 public class FileOutputPySerializer extends AbstractPySerializer {
 
 	private OutputStream out;
+
 	public FileOutputPySerializer(File f) throws IOException {
 		out = new BufferedOutputStream(new FileOutputStream(f));
 	}
-	
+
 	@Override
 	public OutputStream getOutput() {
 		return out;

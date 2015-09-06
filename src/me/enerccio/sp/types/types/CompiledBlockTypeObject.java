@@ -51,8 +51,8 @@ public class CompiledBlockTypeObject extends TypeObject {
 		try {
 			String s = Coerce.toJava(o.get(0), String.class);
 			@SuppressWarnings("unchecked")
-			Map<PythonObject, PythonObject> mm = Coerce
-					.toJava(o.get(1), Map.class);
+			Map<PythonObject, PythonObject> mm = Coerce.toJava(o.get(1),
+					Map.class);
 			Map<Integer, PythonObject> consts = new HashMap<Integer, PythonObject>();
 			for (PythonObject key : mm.keySet()) {
 				if (!NumberObject.isInteger(key))

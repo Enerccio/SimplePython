@@ -43,20 +43,20 @@ public class PythonServerSocket implements Closeable, Externalizable {
 
 	private ServerSocket socket;
 	private ClassObject errorType;
-	private ClassObject timeoutType;	
+	private ClassObject timeoutType;
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
 		s.serialize(errorType);
 		s.serialize(timeoutType);
-		
+
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 
 	public PythonServerSocket(ClassObject errorType, ClassObject timeoutType,

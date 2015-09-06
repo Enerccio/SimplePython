@@ -53,7 +53,6 @@ public class PrintOutputStream implements Externalizable {
 		return "std" + (err ? "err" : "out") + " stream";
 	}
 
-
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
@@ -64,6 +63,6 @@ public class PrintOutputStream implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

@@ -64,8 +64,7 @@ public class JavaMethodObject extends CallableObject {
 	public static @interface SpyDoc {
 		String value();
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.JMETH;
@@ -214,25 +213,25 @@ public class JavaMethodObject extends CallableObject {
 			throw new TypeError(e.getMessage(), e);
 		}
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serializeJava(caller);
 		pySerializer.serialize(boundHandle.getDeclaringClass().getName());
 		pySerializer.serialize(boundHandle.getName());
 		pySerializer.serialize(boundHandle.getParameterTypes().length);
-		for (Class<?> cls : boundHandle.getParameterTypes()){
+		for (Class<?> cls : boundHandle.getParameterTypes()) {
 			pySerializer.serialize(cls.getName());
 		}
 		pySerializer.serialize(noTypeConversion);
-		if (argNames == null){
+		if (argNames == null) {
 			pySerializer.serialize(false);
 		} else {
 			pySerializer.serialize(true);
 			pySerializer.serialize(argNames.length);
 			for (String s : argNames)
 				pySerializer.serialize(s);
-		}		
+		}
 	}
 
 	/**

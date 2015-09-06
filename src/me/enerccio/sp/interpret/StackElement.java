@@ -14,7 +14,7 @@ public class StackElement extends PythonObject {
 	private static final long serialVersionUID = -3288411350030175582L;
 	public static final StackElement SYSTEM_FRAME = new StackElement();
 	public static final StackElement LAST_FRAME = new StackElement();
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.STACK_EL;

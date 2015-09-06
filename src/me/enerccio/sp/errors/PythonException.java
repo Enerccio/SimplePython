@@ -66,8 +66,7 @@ public abstract class PythonException extends RuntimeException {
 		Class<? extends PythonException> jcls = null;
 		String message;
 		try {
-			jcls = TYPE_TO_EXCEPTION.get(e.get(
-					ClassObject.__CLASS__, null));
+			jcls = TYPE_TO_EXCEPTION.get(e.get(ClassObject.__CLASS__, null));
 			message = e.get("__message__", null).toString();
 			if (jcls == null)
 				return null;

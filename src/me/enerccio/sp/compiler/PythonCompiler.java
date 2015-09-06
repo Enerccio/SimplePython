@@ -222,8 +222,8 @@ public class PythonCompiler {
 			return false;
 		}
 	};
-	
-	public PythonCompiler(Ref<pythonLexer> l){
+
+	public PythonCompiler(Ref<pythonLexer> l) {
 		this.lexer = l;
 	}
 
@@ -1649,7 +1649,7 @@ public class PythonCompiler {
 			cb = addBytecode(bytecode, Bytecode.PUSH, ctx.start);
 			cb.value = NoneObject.NONE;
 		}
-			
+
 		cb = addBytecode(bytecode, Bytecode.RETURN, ctx.start);
 		cb.intValue = 1;
 	}
@@ -1975,7 +1975,8 @@ public class PythonCompiler {
 				cb = addBytecode(bytecode, Bytecode.CALL,
 						((ExprContext) ctx.getChild(2)).start);
 				cb.intValue = 1;
-				addBytecode(bytecode, Bytecode.D_RETURN, ((ExprContext) ctx.getChild(2)).start);
+				addBytecode(bytecode, Bytecode.D_RETURN,
+						((ExprContext) ctx.getChild(2)).start);
 				if (ctx.getChild(1).getText().equals("notin"))
 					putNot(bytecode, ((ExprContext) ctx.getChild(2)).start);
 				return;
@@ -2011,7 +2012,8 @@ public class PythonCompiler {
 					cb = addBytecode(bytecode, Bytecode.CALL,
 							((ExprContext) ctx.getChild(i + 1)).start);
 					cb.intValue = 2;
-					addBytecode(bytecode, Bytecode.D_RETURN, ((ExprContext) ctx.getChild(i + 1)).start);
+					addBytecode(bytecode, Bytecode.D_RETURN,
+							((ExprContext) ctx.getChild(i + 1)).start);
 					if (ctx.getChild(i).getText().equals("isnot"))
 						putNot(bytecode,
 								((ExprContext) ctx.getChild(i + 1)).start);
@@ -2301,7 +2303,7 @@ public class PythonCompiler {
 	private void compile(AtomContext ctx, List<PythonBytecode> bytecode) {
 		if (ctx.nname() != null) {
 			String name = ctx.nname().getText();
-			if (name.equals("print")){
+			if (name.equals("print")) {
 				cb = addBytecode(bytecode, Bytecode.LOADBUILTIN, ctx.start);
 				cb.stringValue = "print_function_fnc";
 				return;
@@ -3102,16 +3104,17 @@ public class PythonCompiler {
 
 	private static class TokenProxy {
 		private Token t;
-		public TokenProxy(Token t){
+
+		public TokenProxy(Token t) {
 			this.t = t;
 		}
-		
+
 		@Override
-		public boolean equals(Object o){
-			Token token = ((TokenProxy)o).t;
+		public boolean equals(Object o) {
+			Token token = ((TokenProxy) o).t;
 			return t.getLine() == token.getLine();
 		}
-		
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -3120,13 +3123,14 @@ public class PythonCompiler {
 			return result;
 		}
 	}
-	
+
 	private Set<TokenProxy> usedTokens = new HashSet<TokenProxy>();
+
 	private PythonBytecode addBytecode(List<PythonBytecode> bytecode,
 			Bytecode bctype, Token token) {
 		PythonBytecode rv;
 		rv = Bytecode.makeBytecode(bctype, token, getFunction(), module);
-		if (!usedTokens.contains(new TokenProxy(token))){
+		if (!usedTokens.contains(new TokenProxy(token))) {
 			usedTokens.add(new TokenProxy(token));
 			rv.newLine = true;
 		}

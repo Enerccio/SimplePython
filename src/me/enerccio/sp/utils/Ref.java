@@ -20,19 +20,20 @@ package me.enerccio.sp.utils;
 public class Ref<T> {
 
 	private T t;
-	public Ref(T t){
+
+	public Ref(T t) {
 		this.t = t;
 	}
-	
-	public Ref(){
-		
+
+	public Ref() {
+
 	}
-	
-	public T get(){
+
+	public T get() {
 		return t;
 	}
-	
-	public void set(T t){
+
+	public void set(T t) {
 		this.t = t;
 	}
 }

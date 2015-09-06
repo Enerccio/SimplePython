@@ -24,7 +24,7 @@ public class Breakpoint {
 	private String moduleName;
 	private String modulePath;
 	private int line;
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -61,17 +61,16 @@ public class Breakpoint {
 		return true;
 	}
 
-	Breakpoint(String moduleName, String modulePath, int line){
+	Breakpoint(String moduleName, String modulePath, int line) {
 		this.moduleName = moduleName;
 		this.modulePath = modulePath;
 		this.line = line;
 	}
-	
-	public boolean applies(DebugInformation debugInfo){
-		return debugInfo.module.getPackageResolve().equals(modulePath) &&
-			   debugInfo.module.getName().equals(moduleName) &&
-			   debugInfo.lineno == line &&
-			   debugInfo.isLineStart;
+
+	public boolean applies(DebugInformation debugInfo) {
+		return debugInfo.module.getPackageResolve().equals(modulePath)
+				&& debugInfo.module.getName().equals(moduleName)
+				&& debugInfo.lineno == line && debugInfo.isLineStart;
 	}
-	
+
 }

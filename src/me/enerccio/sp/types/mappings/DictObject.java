@@ -69,7 +69,7 @@ public class DictObject extends ContainerObject implements InternalDict,
 		for (Integer k : mmap.keySet())
 			backingMap.put(NumberObject.valueOf(k), mmap.get(k));
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.DICT;
@@ -107,11 +107,11 @@ public class DictObject extends ContainerObject implements InternalDict,
 	}
 
 	public HashHashMap<PythonObject> backingMap = new HashHashMap<PythonObject>();
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(backingMap.size());
-		for (PythonProxy pp : backingMap.keySet()){
+		for (PythonProxy pp : backingMap.keySet()) {
 			pySerializer.serialize(pp.o);
 			pySerializer.serialize(backingMap.get(pp));
 		}
@@ -326,15 +326,17 @@ public class DictObject extends ContainerObject implements InternalDict,
 	public Set<String> keySet() {
 		return keys();
 	}
-	
+
 	@Override
 	public KwArgs asKwargs() {
 		HashMapKWArgs kwargs = new HashMapKWArgs();
 		for (PythonProxy key : backingMap.keySet())
 			try {
-				kwargs.put(Coerce.toJava(key.o, String.class), backingMap.get(key));
+				kwargs.put(Coerce.toJava(key.o, String.class),
+						backingMap.get(key));
 			} catch (CastFailedException e) {
-				throw new TypeError("cannot use this dict as kwargs due to not containing only string keys");
+				throw new TypeError(
+						"cannot use this dict as kwargs due to not containing only string keys");
 			}
 		return kwargs;
 	}

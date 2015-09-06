@@ -67,7 +67,7 @@ public class StringDictObject extends ContainerObject implements InternalDict,
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.SDICT;
@@ -88,11 +88,11 @@ public class StringDictObject extends ContainerObject implements InternalDict,
 	}
 
 	public Map<String, PythonObject> backingMap = new HashMap<String, PythonObject>();
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(backingMap.size());
-		for (String key : backingMap.keySet()){
+		for (String key : backingMap.keySet()) {
 			pySerializer.serialize(key);
 			pySerializer.serialize(backingMap.get(key));
 		}

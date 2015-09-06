@@ -54,7 +54,6 @@ public class PythonBytecode extends PythonObject {
 	public String stringValue;
 	public Object object;
 	public boolean booleanValue;
-	
 
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
@@ -127,13 +126,13 @@ public class PythonBytecode extends PythonObject {
 			bytecode = Bytecode.NOP;
 		}
 	}
-	
+
 	public static class Debug extends PythonBytecode {
-		
-		public Debug(Bytecode b){
+
+		public Debug(Bytecode b) {
 			bytecode = b;
 		}
-		
+
 		/**
 		 * 
 		 */
@@ -753,8 +752,8 @@ public class PythonBytecode extends PythonObject {
 
 		@Override
 		protected String doToString() {
-			return String.format("%s(%s, %s)", getOpcode().toString(),
-					object, stringValue);
+			return String.format("%s(%s, %s)", getOpcode().toString(), object,
+					stringValue);
 		}
 
 	}

@@ -62,7 +62,7 @@ public abstract class Tags {
 	public static final byte PFUTURE = 38;
 	public static final byte STATICM = 39;
 	public static final byte FUTUREQ = 40;
-	
+
 	public static final byte BOOL_TYPE = -1;
 	public static final byte BF_TYPE = -2;
 	public static final byte BC_TYPE = -3;
@@ -90,12 +90,12 @@ public abstract class Tags {
 	public static final byte TYPE_TYPE_TYPE = -25;
 	public static final byte XRANGE_TYPE = -26;
 
-	private Tags(){
-		
+	private Tags() {
+
 	}
-	
+
 	public static final Map<Byte, String> tagDescName = new HashMap<Byte, String>();
-	
+
 	static {
 		tagDescName.put(PYTHON_BYTECODE, "python-bytecode");
 		tagDescName.put(CBO, "compiled-byte-object");
@@ -138,7 +138,7 @@ public abstract class Tags {
 		tagDescName.put(PFUTURE, "python-future");
 		tagDescName.put(STATICM, "static-method");
 		tagDescName.put(FUTUREQ, "future-query");
-		
+
 		tagDescName.put(BOOL_TYPE, "bool-type");
 		tagDescName.put(BF_TYPE, "bound-function-type");
 		tagDescName.put(BC_TYPE, "bytecode-type");

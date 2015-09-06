@@ -22,16 +22,16 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import edu.stanford.ejalbert.BrowserLauncher;
-import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
-import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
-import edu.stanford.ejalbert.exceptionhandler.BrowserLauncherErrorHandler;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.callables.ClassObject;
 import me.enerccio.sp.types.pointer.WrapAnnotationFactory.WrapMethod;
 import me.enerccio.sp.utils.Utils;
+import edu.stanford.ejalbert.BrowserLauncher;
+import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
+import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
+import edu.stanford.ejalbert.exceptionhandler.BrowserLauncherErrorHandler;
 
 public class WebbrowserController implements Externalizable {
 
@@ -42,8 +42,7 @@ public class WebbrowserController implements Externalizable {
 	private ClassObject error;
 	private BrowserLauncher launcher;
 	private String name;
-	
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
@@ -54,7 +53,7 @@ public class WebbrowserController implements Externalizable {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 
 	public WebbrowserController(String name, ClassObject error) {

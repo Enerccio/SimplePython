@@ -77,7 +77,7 @@ public class FilesystemResolver implements ModuleResolver {
 				}
 			}
 		}
-		if (jpath.exists()){
+		if (jpath.exists()) {
 			try {
 				if (jpath.isFile()) {
 					return new MI(name, jpath, resolvePath, true, true);
@@ -107,7 +107,8 @@ public class FilesystemResolver implements ModuleResolver {
 		private boolean isPackage;
 		private boolean isJava;
 
-		MI(String name, File file, String resolvePath, boolean isPackage, boolean isJava) {
+		MI(String name, File file, String resolvePath, boolean isPackage,
+				boolean isJava) {
 			this.name = name;
 			this.file = file;
 			this.resolvePath = resolvePath;

@@ -43,16 +43,15 @@ public class ThreadInfo extends Thread implements Externalizable {
 
 		}
 	}
-	
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		
+
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 }

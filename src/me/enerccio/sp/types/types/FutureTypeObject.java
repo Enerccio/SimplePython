@@ -44,20 +44,22 @@ public class FutureTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "bool";
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.FUTURE_TYPE;
 	}
-	
-	public static class FutureQuery extends PythonObject implements FutureObject {
+
+	public static class FutureQuery extends PythonObject implements
+			FutureObject {
 		private static final long serialVersionUID = 8916981825344941893L;
 		private FutureObject inner;
+
 		public FutureQuery(FutureObject inner) {
 			super(false);
 			this.inner = inner;
 		}
-		
+
 		@Override
 		public byte getTag() {
 			return Tags.FUTUREQ;
@@ -70,7 +72,7 @@ public class FutureTypeObject extends TypeObject {
 
 		@Override
 		public boolean isReady() {
-			boolean ready =  inner.isReady();
+			boolean ready = inner.isReady();
 			return ready;
 		}
 
@@ -93,7 +95,7 @@ public class FutureTypeObject extends TypeObject {
 		protected String doToString() {
 			return "<Future Query for " + inner.toString() + ">";
 		}
-		
+
 		@Override
 		protected void serializeDirectState(PySerializer pySerializer) {
 			if (inner instanceof PythonObject)
@@ -101,18 +103,20 @@ public class FutureTypeObject extends TypeObject {
 			else
 				pySerializer.serializeJava(inner);
 		}
-		
+
 	}
 
 	@Override
 	public PythonObject call(TupleObject args, KwArgs kwargs) {
 		if (kwargs != null)
-			kwargs.checkEmpty("future_object"); // Throws exception if there is kwarg
-											// defined
+			kwargs.checkEmpty("future_object"); // Throws exception if there is
+												// kwarg
+		// defined
 		if (args.len() != 1)
 			throw new TypeError("future_object(): requires 1 arguments");
-		
-		FutureObject fo = Coerce.argument(args, 0, "future_object()", FutureObject.class);
+
+		FutureObject fo = Coerce.argument(args, 0, "future_object()",
+				FutureObject.class);
 		return new FutureQuery(fo);
 	}
 

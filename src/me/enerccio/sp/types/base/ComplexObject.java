@@ -44,8 +44,7 @@ public class ComplexObject extends NumberObject {
 	public ComplexObject() {
 
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.COMPLEX;
@@ -61,10 +60,10 @@ public class ComplexObject extends NumberObject {
 		fields.put(IMAG_ACCESSOR, new AugumentedPythonObject(i,
 				AccessRestrictions.PUBLIC));
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 
 	@Override

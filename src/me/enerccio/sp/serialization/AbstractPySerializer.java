@@ -23,7 +23,7 @@ import java.io.IOException;
 public abstract class AbstractPySerializer extends BasePySerializer {
 
 	private DataOutputStream writer;
-	
+
 	@Override
 	public void initializeSerialization() throws Exception {
 		super.initializeSerialization();
@@ -110,9 +110,9 @@ public abstract class AbstractPySerializer extends BasePySerializer {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public void serialize(byte[] object){
+	public void serialize(byte[] object) {
 		try {
 			writer.writeInt(object.length);
 			writer.write(object);

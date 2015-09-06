@@ -44,7 +44,7 @@ public class ClassMethodObject extends CallableObject {
 	public ClassMethodObject() {
 
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.CLASSM;
@@ -94,9 +94,9 @@ public class ClassMethodObject extends CallableObject {
 		return ((CallableObject) fields.get(__FUNC__).object)
 				.call(args, kwargs);
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 }

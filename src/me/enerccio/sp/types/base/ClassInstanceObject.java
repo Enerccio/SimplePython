@@ -46,8 +46,7 @@ public class ClassInstanceObject extends PythonObject {
 	public static final String __SETATTR__ = "__setattr__";
 	public static final String __HASH__ = "__hash__";
 	public static final String __GETATTRIBUTE__ = "__getattribute__";
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.INSTANCE;
@@ -101,9 +100,9 @@ public class ClassInstanceObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return new HashMap<String, JavaMethodObject>();
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 }

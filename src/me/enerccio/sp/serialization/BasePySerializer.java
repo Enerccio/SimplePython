@@ -31,12 +31,15 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
 
 /**
- * BasePySerializer - Provides a way to save strings, java objects and python objects, along 
- * with caching and linking. Subclasses needs to provide a data source and way of saving primitives.
+ * BasePySerializer - Provides a way to save strings, java objects and python
+ * objects, along with caching and linking. Subclasses needs to provide a data
+ * source and way of saving primitives.
+ * 
  * @author Enerccio
  *
  */
-public abstract class BasePySerializer implements PySerializer, PySerializationDataSource {
+public abstract class BasePySerializer implements PySerializer,
+		PySerializationDataSource {
 
 	@Override
 	public void initializeSerialization() throws Exception {
@@ -52,34 +55,34 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 	public void finishSerialization() throws Exception {
 		saveObjects();
 	}
-	
+
 	private void saveObjects() throws Exception {
 		List<Object> olist = new ArrayList<Object>();
 		olist.addAll(objectCache.keySet());
-		Collections.sort(olist, new Comparator<Object>(){
+		Collections.sort(olist, new Comparator<Object>() {
 
 			@Override
 			public int compare(Object o1, Object o2) {
 				return objectCache.get(o1).compareTo(objectCache.get(o2));
 			}
-			
+
 		});
-		
+
 		saveObjects(olist);
 	}
 
 	protected void saveObjects(List<Object> olist) throws Exception {
 		serialize(objectCache.size());
 		ObjectOutputStream owriter = new ObjectOutputStream(getOutput());
-		for (Object key : olist){
+		for (Object key : olist) {
 			owriter.writeObject(key);
 		}
 	}
-	
+
 	private static class ObjectProxy {
 		private final Object o;
 
-		private ObjectProxy(Object o){
+		private ObjectProxy(Object o) {
 			this.o = o;
 		}
 
@@ -107,50 +110,49 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 				return false;
 			return true;
 		}
-		
-		
+
 	}
 
 	protected Set<Long> serialized;
 	protected Map<String, Long> stringCache;
 	protected long sid;
-	private   Map<Object, Long> objectCache;
-	private   Set<ObjectProxy> objectSet;
-	private   long oid;
-	
+	private Map<Object, Long> objectCache;
+	private Set<ObjectProxy> objectSet;
+	private long oid;
+
 	public static int HEADER = 0xFACEDACE;
 	public static int VERSION = 0x0000001;
-	
+
 	@Override
 	public void serialize(PythonObject object) {
-		if (object == null){
+		if (object == null) {
 			serialize(false); // nonnull
 		} else {
 			serialize(object.getTag());
-			if (primitive(object)){
+			if (primitive(object)) {
 				serialize(true); // nonnull
 				serialize(true); // primitive
-				object.serializeInnerState((PySerializer)this);
+				object.serializeInnerState(this);
 			} else {
 				serialize(true); // nonnull
 				serialize(false); // primitive
-				if (serialized.contains(object.linkName)){
+				if (serialized.contains(object.linkName)) {
 					serialize(true);
 					serialize(object.linkName);
 				} else {
 					serialized.add(object.linkName);
-					object.serializeInnerState((PySerializer)this);
+					object.serializeInnerState(this);
 				}
 			}
 		}
 	}
-	
+
 	protected boolean primitive(PythonObject object) {
 		byte tag = object.getTag();
-		return tag == Tags.INT || tag == Tags.LONG || tag == Tags.DOUBLE || tag == Tags.FLOAT 
-				|| tag == Tags.STRING;
+		return tag == Tags.INT || tag == Tags.LONG || tag == Tags.DOUBLE
+				|| tag == Tags.FLOAT || tag == Tags.STRING;
 	}
-	
+
 	public static byte STRING_CACHED = 2;
 	public static byte CACHE_STRING = 1;
 	public static byte NO_CACHE_STRING = 0;
@@ -158,15 +160,15 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 
 	@Override
 	public void serialize(String object) {
-		if (object == null){
+		if (object == null) {
 			serialize(STRING_NULL);
-		} else if (stringCache.containsKey(object)){
+		} else if (stringCache.containsKey(object)) {
 			serialize(STRING_CACHED);
 			serialize(stringCache.get(object));
-		} else {	
+		} else {
 			byte[] bd = object.getBytes();
-			
-			if (bd.length < 8){
+
+			if (bd.length < 8) {
 				serialize(NO_CACHE_STRING);
 			} else {
 				serialize(CACHE_STRING);
@@ -176,14 +178,14 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 			serialize(bd);
 		}
 	}
-	
+
 	@Override
-	public void serializeJava(Object o){
+	public void serializeJava(Object o) {
 		try {
-			if (o instanceof PythonObject){
-				serialize((PythonObject)o);
+			if (o instanceof PythonObject) {
+				serialize((PythonObject) o);
 			} else {
-				if (objectSet.contains(new ObjectProxy(o))){
+				if (objectSet.contains(new ObjectProxy(o))) {
 					serialize(objectCache.get(o));
 				} else {
 					serialize(oid);
@@ -191,7 +193,7 @@ public abstract class BasePySerializer implements PySerializer, PySerializationD
 					objectCache.put(o, oid++);
 				}
 			}
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

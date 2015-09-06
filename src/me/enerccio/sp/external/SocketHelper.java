@@ -45,7 +45,7 @@ public class SocketHelper implements Externalizable {
 			throw Utils.throwException(errorType, "failed to get hostname", e);
 		}
 	}
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
@@ -55,6 +55,6 @@ public class SocketHelper implements Externalizable {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 }

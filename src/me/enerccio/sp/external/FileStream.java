@@ -43,7 +43,7 @@ public class FileStream implements Externalizable {
 	public FileStream(String file, String mode) {
 		PythonRuntime.runtime.checkSandboxAction("filestream",
 				SecureAction.OPEN_FILE, file, mode);
-		
+
 		this.f = file;
 		try {
 			init(file, mode);
@@ -51,7 +51,6 @@ public class FileStream implements Externalizable {
 			throw new IOError("failed to open file " + file, e);
 		}
 	}
-	
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -66,7 +65,7 @@ public class FileStream implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void init(String file, String mode) throws Exception {

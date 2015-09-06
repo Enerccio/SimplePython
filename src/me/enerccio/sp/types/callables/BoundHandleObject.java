@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -47,8 +47,7 @@ public class BoundHandleObject extends PythonObject {
 	public BoundHandleObject() {
 		super(false);
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.BH;
@@ -94,11 +93,13 @@ public class BoundHandleObject extends PythonObject {
 
 		if (callable instanceof UserFunctionObject) {
 			UserFunctionObject c = (UserFunctionObject) callable;
-			PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
-			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
+			AbstractPythonInterpreter.interpreter.get()
+					.invoke(c, kwargs, aargs);
+			AbstractPythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject) callable;
-			PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
+			AbstractPythonInterpreter.interpreter.get()
+					.invoke(c, kwargs, aargs);
 		}
 
 		return NoneObject.NONE; // returns immediately
@@ -124,10 +125,10 @@ public class BoundHandleObject extends PythonObject {
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-				
+
 	}
 
 }

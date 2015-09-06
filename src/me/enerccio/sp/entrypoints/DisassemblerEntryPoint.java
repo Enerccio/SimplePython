@@ -32,19 +32,20 @@ public class DisassemblerEntryPoint {
 
 	public static void main(String[] args) throws Exception {
 		SimplePython.initialize();
-		
+
 		String input = args[0];
 		String output = args[1];
-		
+
 		File in = new File(input);
 		File out = new File(output);
-		
+
 		disassemble(in, out);
 	}
 
-	public static void disassemble(File in, File out) throws FileNotFoundException, IOException, Exception {
-		ModuleObject mo = new ModuleDefinition(IOUtils.toByteArray(new FileInputStream(in)))
-				.toModule(null);
+	public static void disassemble(File in, File out)
+			throws FileNotFoundException, IOException, Exception {
+		ModuleObject mo = new ModuleDefinition(
+				IOUtils.toByteArray(new FileInputStream(in))).toModule(null);
 		mo.disassembleToStream(new FileOutputStream(out), in);
 	}
 

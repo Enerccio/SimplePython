@@ -38,7 +38,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 	public static final String NEXT = GeneratorObject.NEXT;
 
 	private int i, end, step;
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(i);
@@ -52,7 +52,7 @@ public class XRangeIterator extends PythonObject implements InternalIterator {
 		this.end = end;
 		this.step = step;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.XRI;

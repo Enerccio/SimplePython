@@ -23,8 +23,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import me.enerccio.sp.SimplePython;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.InternalDict;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.SecureAction;
 import me.enerccio.sp.serialization.PySerializer;
@@ -42,7 +42,7 @@ public class PythonThread implements Runnable, Externalizable {
 
 	@WrapField(readOnly = true)
 	public boolean executed;
-	
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		PySerializer s = PythonRuntime.activeSerializer;
@@ -51,13 +51,13 @@ public class PythonThread implements Runnable, Externalizable {
 		s.serialize(t.isAlive());
 		s.serialize(t.isDaemon());
 		s.serialize(t.getName());
-		s.serialize(PythonInterpreter.interpreter.getForThread(t));
+		s.serialize(AbstractPythonInterpreter.interpreter.getForThread(t));
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
-		
+
 	}
 
 	public PythonThread(ClassInstanceObject o, String name) {
@@ -78,7 +78,8 @@ public class PythonThread implements Runnable, Externalizable {
 		executed = true;
 
 		if (call != null)
-			PythonInterpreter.interpreter.get().execute(true, call, null);
+			AbstractPythonInterpreter.interpreter.get().execute(true, call,
+					null);
 	};
 
 	@WrapMethod
@@ -120,9 +121,10 @@ public class PythonThread implements Runnable, Externalizable {
 	public void interruptThread() {
 		t.interrupt();
 	}
-	
+
 	@WrapMethod
-	public void signal(CallableObject o, TupleObject args, InternalDict dict){
-		PythonInterpreter.interpreterMap.get(t).interruptInterpret(o, args, dict.asKwargs());
+	public void signal(CallableObject o, TupleObject args, InternalDict dict) {
+		AbstractPythonInterpreter.interpreterMap.get(t).interruptInterpret(o,
+				args, dict.asKwargs());
 	}
 }

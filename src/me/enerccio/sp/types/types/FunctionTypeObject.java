@@ -51,7 +51,7 @@ public class FunctionTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "function";
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.FUNCTION_TYPE;
@@ -115,9 +115,8 @@ public class FunctionTypeObject extends TypeObject {
 		Ref<pythonLexer> r = new Ref<pythonLexer>();
 		PythonCompiler c = new PythonCompiler(r);
 
-		return c.doCompile(
-				ParserGenerator.parseStringInput(src, r).string_input(), maps,
-				aas, vararg, kwararg, defaults, dict);
+		return c.doCompile(ParserGenerator.parseStringInput(src, r)
+				.string_input(), maps, aas, vararg, kwararg, defaults, dict);
 	}
 
 }

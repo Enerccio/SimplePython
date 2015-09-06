@@ -35,7 +35,6 @@ public class FormatterAccessor implements Externalizable {
 	private CallableObject getValue;
 	private CallableObject checkUnused;
 	private CallableObject formatField;
-	
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -49,7 +48,7 @@ public class FormatterAccessor implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public FormatterAccessor(CallableObject getValue,

@@ -29,8 +29,7 @@ import me.enerccio.sp.types.Tags;
  */
 public class BoolObject extends NumberObject {
 	private static final long serialVersionUID = 7L;
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.BOOL;
@@ -43,7 +42,7 @@ public class BoolObject extends NumberObject {
 
 	private final boolean value;
 	private final NumberObject intRepresentation;
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(value);

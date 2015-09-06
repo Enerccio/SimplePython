@@ -47,8 +47,7 @@ public class NoneObject extends PythonObject {
 	public NoneObject() {
 		super(false);
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.NONE;
@@ -102,9 +101,9 @@ public class NoneObject extends PythonObject {
 	protected String doToString() {
 		return "None";
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 }

@@ -54,12 +54,12 @@ public class XRangeObject extends PythonObject implements SimpleIDAccessor,
 		this.end = end;
 		this.step = step;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.XRANGE;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(start);

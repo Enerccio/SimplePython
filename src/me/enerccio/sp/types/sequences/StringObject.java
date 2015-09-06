@@ -130,7 +130,7 @@ public class StringObject extends ImmutableSequenceObject implements
 	}
 
 	public String value;
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
 		pySerializer.serialize(value);
@@ -563,7 +563,7 @@ public class StringObject extends ImmutableSequenceObject implements
 					: BoolObject.FALSE;
 		return BoolObject.FALSE;
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.STRING;
@@ -574,6 +574,5 @@ public class StringObject extends ImmutableSequenceObject implements
 		pySerializer.serialize(io);
 		serializeDirectState(pySerializer);
 	}
-	
-	
+
 }

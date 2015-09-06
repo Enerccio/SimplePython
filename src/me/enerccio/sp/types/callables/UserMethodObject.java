@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -63,8 +63,7 @@ public class UserMethodObject extends CallableObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.UMETH;
@@ -92,11 +91,13 @@ public class UserMethodObject extends CallableObject {
 
 		if (callable instanceof UserFunctionObject) {
 			UserFunctionObject c = (UserFunctionObject) callable;
-			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
-			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
+			v = AbstractPythonInterpreter.interpreter.get().invoke(c, kwargs,
+					aargs);
+			AbstractPythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject) callable;
-			v = PythonInterpreter.interpreter.get().invoke(c, kwargs, aargs);
+			v = AbstractPythonInterpreter.interpreter.get().invoke(c, kwargs,
+					aargs);
 		}
 
 		return v; // returns immediately
@@ -122,9 +123,9 @@ public class UserMethodObject extends CallableObject {
 	public boolean truthValue() {
 		return true;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-	
+
 	}
 }

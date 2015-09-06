@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
+import me.enerccio.sp.interpret.AbstractPythonInterpreter;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
-import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.AccessRestrictions;
 import me.enerccio.sp.types.AugumentedPythonObject;
@@ -58,8 +58,7 @@ public class ClassObject extends CallableObject {
 	public ClassObject() {
 
 	}
-	
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.CLASS;
@@ -140,12 +139,14 @@ public class ClassObject extends CallableObject {
 			addToInstance(o.fields.get(__DICT__).object, instance, o);
 		}
 
-		int cfc = PythonInterpreter.interpreter.get().currentFrame.size();
+		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+				.size();
 
-		PythonInterpreter.interpreter.get().invoke(
+		AbstractPythonInterpreter.interpreter.get().invoke(
 				instance.get(ClassInstanceObject.__INIT__, instance), kwargs,
 				args);
-		PythonObject o = PythonInterpreter.interpreter.get().executeAll(cfc);
+		PythonObject o = AbstractPythonInterpreter.interpreter.get()
+				.executeAll(cfc);
 		if (o == NoneObject.NONE)
 			return instance;
 		return o;
@@ -237,9 +238,9 @@ public class ClassObject extends CallableObject {
 			o = ((InternalDict) fields.get(__DICT__).object).getVariable(key);
 		return o;
 	}
-	
+
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
-		
+
 	}
 }

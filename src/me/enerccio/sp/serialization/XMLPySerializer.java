@@ -42,12 +42,12 @@ import org.w3c.dom.NodeList;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 public class XMLPySerializer extends BasePySerializer {
-	
+
 	private Stack<Element> rEl = new Stack<Element>();
 	private File f;
 	private Document doc;
 	private Element rootElement;
-	
+
 	public XMLPySerializer(File file) {
 		f = file;
 	}
@@ -55,7 +55,8 @@ public class XMLPySerializer extends BasePySerializer {
 	@Override
 	public void initializeSerialization() throws Exception {
 		super.initializeSerialization();
-		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilderFactory docFactory = DocumentBuilderFactory
+				.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		doc = docBuilder.newDocument();
 		rootElement = doc.createElement("python-state");
@@ -68,13 +69,15 @@ public class XMLPySerializer extends BasePySerializer {
 	@Override
 	public void finishSerialization() throws Exception {
 		super.finishSerialization();
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		TransformerFactory transformerFactory = TransformerFactory
+				.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(doc);
 		StreamResult result = new StreamResult(f);
-		
+
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+		transformer.setOutputProperty(
+				"{http://xml.apache.org/xslt}indent-amount", "2");
 		transformer.transform(source, result);
 	}
 
@@ -83,7 +86,7 @@ public class XMLPySerializer extends BasePySerializer {
 		Element parent = rEl.peek();
 		Element e = doc.createElement("string");
 		parent.appendChild(e);
-		if (object == null){
+		if (object == null) {
 			e.setAttribute("is-null", "true");
 		} else {
 			e.appendChild(doc.createTextNode(object));
@@ -95,7 +98,7 @@ public class XMLPySerializer extends BasePySerializer {
 		rEl.pop();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutputStream owriter = new ObjectOutputStream(bos);
-		for (Object key : olist){
+		for (Object key : olist) {
 			owriter.writeObject(key);
 		}
 		Element e = doc.createElement("serialized-java-objects");
@@ -183,37 +186,39 @@ public class XMLPySerializer extends BasePySerializer {
 	@Override
 	public void serialize(PythonObject object) {
 		Element parent = rEl.peek();
-		if (object == null){
+		if (object == null) {
 			Element e = doc.createElement("pyobject-null");
 			parent.appendChild(e);
 		} else {
-			if (primitive(object)){
-				object.serializeInnerState((PySerializer)this);
+			if (primitive(object)) {
+				object.serializeInnerState(this);
 				NodeList nl = parent.getChildNodes();
-				Element p = (Element)nl.item(nl.getLength()-1);
+				Element p = (Element) nl.item(nl.getLength() - 1);
 				p.setAttribute("pyprimitive", "true");
 			} else {
-				if (serialized.contains(object.linkName)){
+				if (serialized.contains(object.linkName)) {
 					Element e = doc.createElement("python-link");
-					e.setAttribute("link-type", Tags.tagDescName.get(object.getTag()));
+					e.setAttribute("link-type",
+							Tags.tagDescName.get(object.getTag()));
 					parent.appendChild(e);
 					rEl.add(e);
 					serialize(object.linkName);
 					rEl.pop();
 				} else {
-					Element e = doc.createElement(Tags.tagDescName.get(object.getTag()));
+					Element e = doc.createElement(Tags.tagDescName.get(object
+							.getTag()));
 					parent.appendChild(e);
 					rEl.add(e);
 					serialized.add(object.linkName);
-					object.serializeInnerState((PySerializer)this);
+					object.serializeInnerState(this);
 					rEl.pop();
 				}
 			}
 		}
 	}
-	
+
 	@Override
-	public void serializeJava(Object o){
+	public void serializeJava(Object o) {
 		if (o instanceof PythonObject)
 			super.serializeJava(o);
 		else {

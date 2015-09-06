@@ -51,7 +51,7 @@ public class SliceTypeObject extends TypeObject {
 		return new SliceObject(args.valueAt(0), args.valueAt(1),
 				args.valueAt(2));
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.SLICE_TYPE;

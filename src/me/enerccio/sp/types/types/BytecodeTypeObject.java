@@ -50,7 +50,7 @@ public class BytecodeTypeObject extends TypeObject {
 	public String getTypeIdentificator() {
 		return "bytecode";
 	}
-	
+
 	@Override
 	public byte getTag() {
 		return Tags.BC_TYPE;
@@ -325,7 +325,7 @@ public class BytecodeTypeObject extends TypeObject {
 				break;
 			case LOAD_FUTURE:
 				bytecode.stringValue = Coerce.toJava(args.get(1), String.class);
-				break;				
+				break;
 			}
 
 			bytecode.newObject();
