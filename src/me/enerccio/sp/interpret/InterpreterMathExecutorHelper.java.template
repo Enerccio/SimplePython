@@ -29,7 +29,7 @@ import me.enerccio.sp.types.sequences.StringObject;
 
 public class InterpreterMathExecutorHelper {	
 	$$interfaces$$
-	public boolean mathOperationAbstractPythonInterpreter interpreter, FrameObject o, Stack<PythonObject> stack, Bytecode opcode){
+	public boolean mathOperation(PythonInterpreter interpreter, FrameObject o, Stack<PythonObject> stack, Bytecode opcode){
 		
 		switch (opcode){$$switches$$
 		default:
@@ -39,7 +39,7 @@ public class InterpreterMathExecutorHelper {
 		return true;
 	}
 
-	private void standardCallAbstractPythonInterpreter i, FrameObject o, String m, PythonObject a, PythonObject b) {
+	private void standardCall(PythonInterpreter i, FrameObject o, String m, PythonObject a, PythonObject b) {
 		PythonObject method = null;
 		try {
 			PythonObject apo;

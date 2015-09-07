@@ -18,17 +18,17 @@
 package me.enerccio.sp.interpret.debug;
 
 import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.FrameObject;
 
 public interface Debugger {
 
-	public void bind(AbstractPythonInterpreter pythonInterpreter);
+	public void bind(PythonInterpreter pythonInterpreter);
 
-	public void debugNextOperation(AbstractPythonInterpreter i, Bytecode b,
+	public void debugNextOperation(PythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc);
 
-	public void unbind(AbstractPythonInterpreter pythonInterpreter); // called
+	public void unbind(PythonInterpreter pythonInterpreter); // called
 																		// after
 																		// the
 																		// debugger

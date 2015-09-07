@@ -31,7 +31,7 @@ import java.util.Set;
 import me.enerccio.sp.compiler.PythonCompiler;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.SyntaxError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.InternalDict;
@@ -170,20 +170,20 @@ public class ModuleObject extends PythonObject {
 	 * Initializes the module by executing it's bytecode
 	 */
 	private void doInitModule() {
-		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+		int cfc = PythonInterpreter.interpreter.get().currentFrame
 				.size();
-		AbstractPythonInterpreter.interpreter.get().executeBytecode(frame);
+		PythonInterpreter.interpreter.get().executeBytecode(frame);
 
-		FrameObject newFrame = AbstractPythonInterpreter.interpreter.get().currentFrame
+		FrameObject newFrame = PythonInterpreter.interpreter.get().currentFrame
 				.getLast();
 
 		InternalDict args = new StringDictObject();
 		args.putVariable(__THISMODULE__, this);
 		args.putVariable(__NAME__, new StringObject(data.getName()));
 
-		AbstractPythonInterpreter.interpreter.get().setArgs(args);
+		PythonInterpreter.interpreter.get().setArgs(args);
 
-		AbstractPythonInterpreter.interpreter.get().executeAll(cfc);
+		PythonInterpreter.interpreter.get().executeAll(cfc);
 
 		globals = (StringDictObject) newFrame.environment.getLocals();
 		Utils.putPublic(this, __DICT__, globals);

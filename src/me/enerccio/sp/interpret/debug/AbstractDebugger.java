@@ -25,21 +25,21 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import me.enerccio.sp.compiler.Bytecode;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.FrameObject;
 
 public class AbstractDebugger implements Debugger {
 
 	@Override
-	public void bind(AbstractPythonInterpreter pythonInterpreter) {
+	public void bind(PythonInterpreter pythonInterpreter) {
 
 	}
 
 	private Set<Breakpoint> breakpoints = new HashSet<Breakpoint>();
 
 	@Override
-	public void debugNextOperation(AbstractPythonInterpreter i, Bytecode b,
+	public void debugNextOperation(PythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc) {
 
 		DebugInformation di = f.getCompiled().getDebugInformation(cpc);
@@ -127,7 +127,7 @@ public class AbstractDebugger implements Debugger {
 	public final Semaphore breakingSemaphore = new Semaphore(0);
 	public final Semaphore waitingSemaphore = new Semaphore(0);
 
-	protected void doBreak(AbstractPythonInterpreter i, Bytecode b,
+	protected void doBreak(PythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc) {
 		clearRegisters();
 		initializeBreak(i, b, f, cpc);
@@ -147,12 +147,12 @@ public class AbstractDebugger implements Debugger {
 		f = null;
 	}
 
-	public AbstractPythonInterpreter i;
+	public PythonInterpreter i;
 	public Bytecode cbc;
 	public int cpc;
 	public FrameObject f;
 
-	protected void initializeBreak(AbstractPythonInterpreter i, Bytecode b,
+	protected void initializeBreak(PythonInterpreter i, Bytecode b,
 			FrameObject f, int cpc) {
 		this.i = i;
 		this.cbc = b;
@@ -161,7 +161,7 @@ public class AbstractDebugger implements Debugger {
 	}
 
 	@Override
-	public void unbind(AbstractPythonInterpreter pythonInterpreter) {
+	public void unbind(PythonInterpreter pythonInterpreter) {
 
 	}
 

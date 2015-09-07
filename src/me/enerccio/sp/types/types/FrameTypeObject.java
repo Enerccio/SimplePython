@@ -19,7 +19,7 @@ package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -48,7 +48,7 @@ public class FrameTypeObject extends TypeObject {
 					+ args.len());
 		if (kwargs != null)
 			kwargs.checkEmpty("frame");
-		AbstractPythonInterpreter i = AbstractPythonInterpreter.interpreter
+		PythonInterpreter i = PythonInterpreter.interpreter
 				.get();
 		if (args.len() == 0)
 			return NumberObject.valueOf(i.currentFrame.size());

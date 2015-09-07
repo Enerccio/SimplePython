@@ -23,7 +23,7 @@ import java.util.List;
 import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.errors.AttributeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -149,7 +149,7 @@ public class ObjectTypeObject extends TypeObject {
 
 	public static PythonObject getattribute(PythonObject self, String attribute) {
 		PythonObject value = self.get(attribute,
-				AbstractPythonInterpreter.interpreter.get().getLocalContext());
+				PythonInterpreter.interpreter.get().getLocalContext());
 		if (value == null)
 			throw new AttributeError(String.format(
 					"%s object has no attribute '%s'", self, attribute));

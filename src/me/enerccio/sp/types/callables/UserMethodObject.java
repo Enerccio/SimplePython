@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
@@ -91,12 +91,12 @@ public class UserMethodObject extends CallableObject {
 
 		if (callable instanceof UserFunctionObject) {
 			UserFunctionObject c = (UserFunctionObject) callable;
-			v = AbstractPythonInterpreter.interpreter.get().invoke(c, kwargs,
+			v = PythonInterpreter.interpreter.get().invoke(c, kwargs,
 					aargs);
-			AbstractPythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
+			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject) callable;
-			v = AbstractPythonInterpreter.interpreter.get().invoke(c, kwargs,
+			v = PythonInterpreter.interpreter.get().invoke(c, kwargs,
 					aargs);
 		}
 

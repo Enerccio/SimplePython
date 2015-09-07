@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
 import me.enerccio.sp.runtime.ProxyOutputStream;
@@ -365,7 +365,7 @@ public class SimplePython {
 		}
 
 		c.call(new TupleObject(args), null);
-		return AbstractPythonInterpreter.interpreter.get().executeAll(0);
+		return PythonInterpreter.interpreter.get().executeAll(0);
 	}
 
 	/**
@@ -439,7 +439,7 @@ public class SimplePython {
 	 */
 	public static PythonObject execute(PythonObject object, KwArgs kwargs,
 			PythonObject... args) {
-		return AbstractPythonInterpreter.interpreter.get().execute(true,
+		return PythonInterpreter.interpreter.get().execute(true,
 				object, kwargs, args);
 	}
 }

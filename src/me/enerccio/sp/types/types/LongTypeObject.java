@@ -18,7 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -76,11 +76,11 @@ public class LongTypeObject extends TypeObject {
 			return NumberObject.valueOf(((NumberObject) obj).longValue());
 		PythonObject __int__ = obj.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
-			int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+			int cfc = PythonInterpreter.interpreter.get().currentFrame
 					.size();
-			AbstractPythonInterpreter.interpreter.get().execute(false, __int__,
+			PythonInterpreter.interpreter.get().execute(false, __int__,
 					null);
-			return AbstractPythonInterpreter.interpreter.get().executeAll(cfc);
+			return PythonInterpreter.interpreter.get().executeAll(cfc);
 		}
 
 		throw new TypeError("long() can't convert " + obj.toString()

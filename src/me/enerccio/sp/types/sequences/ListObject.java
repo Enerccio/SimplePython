@@ -27,7 +27,7 @@ import java.util.Set;
 import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
@@ -75,7 +75,7 @@ public class ListObject extends MutableSequenceObject implements
 				// Use iter() function to grab iterator
 				iterator = Utils.run("iter", o);
 			} else {
-				iterator = AbstractPythonInterpreter.interpreter.get().execute(
+				iterator = PythonInterpreter.interpreter.get().execute(
 						true, iter, null);
 				if (iterator instanceof InternalIterator) {
 					InternalIterator ii = (InternalIterator) iterator;
@@ -92,7 +92,7 @@ public class ListObject extends MutableSequenceObject implements
 				throw new TypeError("iterator of " + o.toString()
 						+ " has no next() method");
 			while (true) {
-				PythonObject item = AbstractPythonInterpreter.interpreter.get()
+				PythonObject item = PythonInterpreter.interpreter.get()
 						.execute(true, next, null);
 				append(item);
 			}

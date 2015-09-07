@@ -18,7 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.types.PythonObject;
@@ -65,11 +65,11 @@ public class FloatTypeObject extends TypeObject {
 
 		PythonObject __int__ = a.get(NumberObject.__INT__, null);
 		if (__int__ != null) {
-			int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+			int cfc = PythonInterpreter.interpreter.get().currentFrame
 					.size();
-			AbstractPythonInterpreter.interpreter.get().execute(false, __int__,
+			PythonInterpreter.interpreter.get().execute(false, __int__,
 					null);
-			PythonObject o = AbstractPythonInterpreter.interpreter.get()
+			PythonObject o = PythonInterpreter.interpreter.get()
 					.executeAll(cfc);
 			if (o instanceof NumberObject) {
 				if (PythonRuntime.USE_DOUBLE_FLOAT)

@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
@@ -133,9 +133,9 @@ public class UserFunctionObject extends CallableObject {
 			a.putVariable(kvararg, kwdict);
 		}
 
-		AbstractPythonInterpreter.interpreter.get().setArgs(a);
-		AbstractPythonInterpreter.interpreter.get().setClosure(closure);
-		AbstractPythonInterpreter.interpreter.get().executeBytecode(block);
+		PythonInterpreter.interpreter.get().setArgs(a);
+		PythonInterpreter.interpreter.get().setClosure(closure);
+		PythonInterpreter.interpreter.get().executeBytecode(block);
 
 		return NoneObject.NONE; // returns immediately
 	}

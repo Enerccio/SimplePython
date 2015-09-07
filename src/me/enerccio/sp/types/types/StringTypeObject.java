@@ -18,7 +18,7 @@
 package me.enerccio.sp.types.types;
 
 import me.enerccio.sp.errors.TypeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -52,13 +52,13 @@ public class StringTypeObject extends TypeObject {
 
 		PythonObject o = args.getObjects()[0];
 		if (o instanceof ClassInstanceObject) {
-			int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+			int cfc = PythonInterpreter.interpreter.get().currentFrame
 					.size();
 			Utils.run("getattr", args.getObjects()[0], new StringObject(
 					"__str__"));
-			PythonObject ret = AbstractPythonInterpreter.interpreter.get()
+			PythonObject ret = PythonInterpreter.interpreter.get()
 					.executeAll(cfc);
-			return AbstractPythonInterpreter.interpreter.get().execute(false,
+			return PythonInterpreter.interpreter.get().execute(false,
 					ret, null);
 		} else
 			return new StringObject(o.toString());

@@ -29,7 +29,7 @@ import me.enerccio.sp.errors.IndexError;
 import me.enerccio.sp.errors.NameError;
 import me.enerccio.sp.errors.SyntaxError;
 import me.enerccio.sp.errors.ValueError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.parser.formatterParser;
@@ -123,7 +123,7 @@ public class Formatter {
 		for (SegmentContext s : segments.segment())
 			format(target, s);
 		if (checkUnused != null)
-			AbstractPythonInterpreter.interpreter.get().execute(true,
+			PythonInterpreter.interpreter.get().execute(true,
 					checkUnused, null, Coerce.toPython(used),
 					Coerce.toPython(indexMap), Coerce.toPython(dataMap));
 	}
@@ -157,7 +157,7 @@ public class Formatter {
 			Format_specContext format_spec) {
 		String formatSpec = parseFormatSpec(format_spec);
 		if (formatField != null) {
-			target.append(AbstractPythonInterpreter.interpreter.get().execute(
+			target.append(PythonInterpreter.interpreter.get().execute(
 					true, formatField, null, dataSegment,
 					Coerce.toPython(formatSpec, String.class)));
 		} else
@@ -199,7 +199,7 @@ public class Formatter {
 				base = Utils.run("getattr", base, new StringObject(ac.getText()
 						.substring(1)));
 			} else {
-				base = AbstractPythonInterpreter.interpreter.get().execute(
+				base = PythonInterpreter.interpreter.get().execute(
 						true,
 						Utils.run("getattr", base, new StringObject(
 								"__getitem__")), null,
@@ -255,7 +255,7 @@ public class Formatter {
 				base = Utils.run("getattr", base, new StringObject(ac.getText()
 						.substring(1)));
 			} else {
-				base = AbstractPythonInterpreter.interpreter.get().execute(
+				base = PythonInterpreter.interpreter.get().execute(
 						true,
 						Utils.run("getattr", base, new StringObject(
 								"__getitem__")), null,
@@ -304,7 +304,7 @@ public class Formatter {
 	private PythonObject getIndexed(int i) {
 		used.add(NumberObject.valueOf(i));
 		if (getValue != null) {
-			return AbstractPythonInterpreter.interpreter.get().execute(true,
+			return PythonInterpreter.interpreter.get().execute(true,
 					getValue, null, Coerce.toPython(i),
 					Coerce.toPython(indexMap, indexMap.getClass()),
 					Coerce.toPython(dataMap, dataMap.getClass()));
@@ -318,7 +318,7 @@ public class Formatter {
 	private PythonObject getTexted(String key) {
 		used.add(new StringObject(key));
 		if (getValue != null) {
-			return AbstractPythonInterpreter.interpreter.get().execute(true,
+			return PythonInterpreter.interpreter.get().execute(true,
 					getValue, null, Coerce.toPython(key, String.class),
 					Coerce.toPython(indexMap, indexMap.getClass()),
 					Coerce.toPython(dataMap, dataMap.getClass()));

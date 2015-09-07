@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
@@ -93,12 +93,12 @@ public class BoundHandleObject extends PythonObject {
 
 		if (callable instanceof UserFunctionObject) {
 			UserFunctionObject c = (UserFunctionObject) callable;
-			AbstractPythonInterpreter.interpreter.get()
+			PythonInterpreter.interpreter.get()
 					.invoke(c, kwargs, aargs);
-			AbstractPythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
+			PythonInterpreter.interpreter.get().currentFrame.getLast().localContext = accessor;
 		} else {
 			JavaFunctionObject c = (JavaFunctionObject) callable;
-			AbstractPythonInterpreter.interpreter.get()
+			PythonInterpreter.interpreter.get()
 					.invoke(c, kwargs, aargs);
 		}
 

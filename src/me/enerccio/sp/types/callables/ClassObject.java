@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.AttributeError;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.serialization.PySerializer;
@@ -139,13 +139,13 @@ public class ClassObject extends CallableObject {
 			addToInstance(o.fields.get(__DICT__).object, instance, o);
 		}
 
-		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+		int cfc = PythonInterpreter.interpreter.get().currentFrame
 				.size();
 
-		AbstractPythonInterpreter.interpreter.get().invoke(
+		PythonInterpreter.interpreter.get().invoke(
 				instance.get(ClassInstanceObject.__INIT__, instance), kwargs,
 				args);
-		PythonObject o = AbstractPythonInterpreter.interpreter.get()
+		PythonObject o = PythonInterpreter.interpreter.get()
 				.executeAll(cfc);
 		if (o == NoneObject.NONE)
 			return instance;

@@ -67,7 +67,7 @@ import me.enerccio.sp.external.PythonThread;
 import me.enerccio.sp.external.SocketHelper;
 import me.enerccio.sp.external.ThreadInfo;
 import me.enerccio.sp.external.WebbrowserController;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.CompiledBlockObject;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.ExecutionResult;
@@ -277,13 +277,13 @@ public class PythonRuntime implements Serializable {
 	 */
 	public synchronized void serializeRuntime(PySerializer serializer)
 			throws Exception {
-		Set<AbstractPythonInterpreter> acqSet = new HashSet<AbstractPythonInterpreter>();
+		Set<PythonInterpreter> acqSet = new HashSet<PythonInterpreter>();
 
 		try {
-			synchronized (AbstractPythonInterpreter.interpreters) {
+			synchronized (PythonInterpreter.interpreters) {
 				allowedNewInterpret = false;
 
-				for (AbstractPythonInterpreter i : AbstractPythonInterpreter.interpreters) {
+				for (PythonInterpreter i : PythonInterpreter.interpreters) {
 					if (!i.tryAcquireInterpret()) {
 						throw new RuntimeError("Save failure");
 					}
@@ -298,8 +298,8 @@ public class PythonRuntime implements Serializable {
 			activeSerializer = null;
 
 		} finally {
-			synchronized (AbstractPythonInterpreter.interpreters) {
-				for (AbstractPythonInterpreter i : acqSet) {
+			synchronized (PythonInterpreter.interpreters) {
+				for (PythonInterpreter i : acqSet) {
 					i.releaseInterpret();
 				}
 				allowedNewInterpret = true;
@@ -735,7 +735,7 @@ public class PythonRuntime implements Serializable {
 								"Failed to initialize python!", e1);
 					}
 
-					AbstractPythonInterpreter i = AbstractPythonInterpreter.interpreter
+					PythonInterpreter i = PythonInterpreter.interpreter
 							.get();
 					i.setArgs(new StringDictObject());
 					i.executeBytecode(builtin);
@@ -784,12 +784,12 @@ public class PythonRuntime implements Serializable {
 	}
 
 	protected static PythonObject locals() {
-		return (PythonObject) AbstractPythonInterpreter.interpreter.get()
+		return (PythonObject) PythonInterpreter.interpreter.get()
 				.environment().getLocals();
 	}
 
 	protected static PythonObject globals() {
-		return (PythonObject) AbstractPythonInterpreter.interpreter.get()
+		return (PythonObject) PythonInterpreter.interpreter.get()
 				.environment().getGlobals();
 	}
 
@@ -888,7 +888,7 @@ public class PythonRuntime implements Serializable {
 							.parseCompileFunction(src, filename.value, r)
 							.file_input(), filename.value);
 		} else if (isderived(source, AST)) {
-			ListObject lo = (ListObject) AbstractPythonInterpreter.interpreter
+			ListObject lo = (ListObject) PythonInterpreter.interpreter
 					.get().execute(
 							true,
 							Utils.run("getattr", source, new StringObject(
@@ -904,7 +904,7 @@ public class PythonRuntime implements Serializable {
 			}
 			block = new CompiledBlockObject(pbl);
 		} else {
-			PythonObject str = AbstractPythonInterpreter.interpreter.get()
+			PythonObject str = PythonInterpreter.interpreter.get()
 					.execute(
 							true,
 							Utils.run("getattr", source, new StringObject(
@@ -949,7 +949,7 @@ public class PythonRuntime implements Serializable {
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 
-		AbstractPythonInterpreter.interpreter.get().execute(true, fnc, null);
+		PythonInterpreter.interpreter.get().execute(true, fnc, null);
 
 		return NoneObject.NONE;
 	}
@@ -1008,7 +1008,7 @@ public class PythonRuntime implements Serializable {
 		Utils.putPublic(fnc, "function_defaults", new StringDictObject());
 		fnc.args = new ArrayList<String>();
 
-		return AbstractPythonInterpreter.interpreter.get().execute(true, fnc,
+		return PythonInterpreter.interpreter.get().execute(true, fnc,
 				null);
 	}
 
@@ -1048,7 +1048,7 @@ public class PythonRuntime implements Serializable {
 		}
 
 		if (o.get("__dir__", null) != null) {
-			PythonObject dirCall = AbstractPythonInterpreter.interpreter.get()
+			PythonObject dirCall = PythonInterpreter.interpreter.get()
 					.execute(true, o.get("__dir__", null), null);
 			if (!(dirCall instanceof ListObject))
 				throw new TypeError("dir(): __dir__ must return list");
@@ -1091,14 +1091,14 @@ public class PythonRuntime implements Serializable {
 	}
 
 	protected static PythonObject apply(PythonObject callable, ListObject args) {
-		AbstractPythonInterpreter.interpreter.get().checkOverflow();
+		PythonInterpreter.interpreter.get().checkOverflow();
 
-		int cfc = AbstractPythonInterpreter.interpreter.get().currentFrame
+		int cfc = PythonInterpreter.interpreter.get().currentFrame
 				.size();
 		TupleObject a = (TupleObject) Utils.list2tuple(args.objects, true);
-		AbstractPythonInterpreter.interpreter.get().execute(false, callable,
+		PythonInterpreter.interpreter.get().execute(false, callable,
 				null, a.getObjects());
-		return AbstractPythonInterpreter.interpreter.get().executeAll(cfc);
+		return PythonInterpreter.interpreter.get().executeAll(cfc);
 	}
 
 	protected static PythonObject chr(int v) {
@@ -1259,12 +1259,12 @@ public class PythonRuntime implements Serializable {
 			PythonObject getattr = getattr(o,
 					ClassInstanceObject.__GETATTRIBUTE__, true);
 			if (getattr != null && !(o instanceof ClassObject))
-				return AbstractPythonInterpreter.interpreter.get().execute(
+				return PythonInterpreter.interpreter.get().execute(
 						false, getattr, null, new StringObject(attribute));
 		}
 
 		PythonObject value = o.get(attribute,
-				AbstractPythonInterpreter.interpreter.get().getLocalContext());
+				PythonInterpreter.interpreter.get().getLocalContext());
 		if (value == null) {
 			if (skip == true)
 				return null;
@@ -1277,7 +1277,7 @@ public class PythonRuntime implements Serializable {
 			try {
 				PythonObject getattr = getattr(o,
 						ClassInstanceObject.__GETATTR__);
-				value = AbstractPythonInterpreter.interpreter.get().execute(
+				value = PythonInterpreter.interpreter.get().execute(
 						false, getattr, null, new StringObject(attribute));
 			} catch (NoGetattrException e) {
 				throw new AttributeError(String.format(
@@ -1292,7 +1292,7 @@ public class PythonRuntime implements Serializable {
 
 	protected static PythonObject hasattr(PythonObject o, String attribute) {
 		PythonObject value = o.get(attribute,
-				AbstractPythonInterpreter.interpreter.get().getLocalContext());
+				PythonInterpreter.interpreter.get().getLocalContext());
 		return value == null ? BoolObject.FALSE : BoolObject.TRUE;
 	}
 
@@ -1302,32 +1302,32 @@ public class PythonRuntime implements Serializable {
 
 	public static PythonObject setattr(PythonObject o, String attribute,
 			PythonObject v) {
-		if (o.get("__setattr__", AbstractPythonInterpreter.interpreter.get()
+		if (o.get("__setattr__", PythonInterpreter.interpreter.get()
 				.getLocalContext()) != null
 				&& v != null) {
-			return AbstractPythonInterpreter.interpreter.get().execute(
+			return PythonInterpreter.interpreter.get().execute(
 					false,
-					o.get("__setattr__", AbstractPythonInterpreter.interpreter
+					o.get("__setattr__", PythonInterpreter.interpreter
 							.get().getLocalContext()), null,
 					new StringObject(attribute), v);
-		} else if (o.get("__delattr__", AbstractPythonInterpreter.interpreter
+		} else if (o.get("__delattr__", PythonInterpreter.interpreter
 				.get().getLocalContext()) != null
 				&& v == null) {
-			return AbstractPythonInterpreter.interpreter.get().execute(
+			return PythonInterpreter.interpreter.get().execute(
 					false,
-					o.get("__delattr__", AbstractPythonInterpreter.interpreter
+					o.get("__delattr__", PythonInterpreter.interpreter
 							.get().getLocalContext()), null,
 					new StringObject(attribute));
 		}
 		PythonObject field;
-		if ((field = o.get(attribute, AbstractPythonInterpreter.interpreter
+		if ((field = o.get(attribute, PythonInterpreter.interpreter
 				.get().getLocalContext())) == null
 				&& v != null)
 			o.create(
 					attribute,
 					attribute.startsWith("__") && !attribute.endsWith("__") ? AccessRestrictions.PRIVATE
 							: AccessRestrictions.PUBLIC,
-					AbstractPythonInterpreter.interpreter.get()
+					PythonInterpreter.interpreter.get()
 							.getLocalContext());
 		if (field != null && field instanceof PropertyObject) {
 			if (v == null)
@@ -1337,7 +1337,7 @@ public class PythonRuntime implements Serializable {
 			((PropertyObject) field).set(v);
 			return NoneObject.NONE;
 		}
-		o.set(attribute, AbstractPythonInterpreter.interpreter.get()
+		o.set(attribute, PythonInterpreter.interpreter.get()
 				.getLocalContext(), v);
 		return NoneObject.NONE;
 	}
@@ -1649,8 +1649,8 @@ public class PythonRuntime implements Serializable {
 		s.serialize(LIST_TYPE);
 		s.serialize(FRAME_TYPE);
 
-		s.serialize(AbstractPythonInterpreter.interpreters.size());
-		for (AbstractPythonInterpreter i : AbstractPythonInterpreter.interpreters) {
+		s.serialize(PythonInterpreter.interpreters.size());
+		for (PythonInterpreter i : PythonInterpreter.interpreters) {
 			s.serialize(i);
 		}
 

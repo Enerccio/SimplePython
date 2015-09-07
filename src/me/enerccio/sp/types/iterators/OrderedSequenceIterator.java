@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.enerccio.sp.errors.StopIteration;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
@@ -104,7 +104,7 @@ public class OrderedSequenceIterator extends PythonObject implements
 	public PythonObject next() {
 		if (cp >= len)
 			throw new StopIteration();
-		PythonObject value = AbstractPythonInterpreter.interpreter.get()
+		PythonObject value = PythonInterpreter.interpreter.get()
 				.execute(false,
 						Utils.get(sequence, SequenceObject.__GETITEM__), null,
 						NumberObject.valueOf(cp++));
@@ -115,7 +115,7 @@ public class OrderedSequenceIterator extends PythonObject implements
 	public PythonObject nextInternal() {
 		if (cp >= len)
 			return null;
-		PythonObject value = AbstractPythonInterpreter.interpreter.get()
+		PythonObject value = PythonInterpreter.interpreter.get()
 				.execute(false,
 						Utils.get(sequence, SequenceObject.__GETITEM__), null,
 						NumberObject.valueOf(cp++));

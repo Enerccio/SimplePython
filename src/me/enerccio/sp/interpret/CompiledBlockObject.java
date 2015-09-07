@@ -226,7 +226,7 @@ public class CompiledBlockObject extends PythonObject {
 			else
 				mapper[0] = String
 						.format("{fc: %s}",
-								AbstractPythonInterpreter.interpreter.get().currentFrame
+								PythonInterpreter.interpreter.get().currentFrame
 										.size());
 
 			if (d == null || !d.equals(block.getDebugInformation(pos))) {

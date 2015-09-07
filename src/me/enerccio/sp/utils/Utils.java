@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Stack;
 
 import me.enerccio.sp.compiler.PythonBytecode;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.PythonExecutionException;
 import me.enerccio.sp.runtime.PythonRuntime;
@@ -70,7 +70,7 @@ public class Utils {
 
 	/** Executes builtin with specified parameters and waits until it finishes */
 	public static PythonObject run(String function, PythonObject... args) {
-		return AbstractPythonInterpreter.interpreter.get().executeCall(true,
+		return PythonInterpreter.interpreter.get().executeCall(true,
 				function, args);
 	}
 
@@ -200,11 +200,11 @@ public class Utils {
 	 * @return
 	 */
 	public static PythonObject getGlobal(String variable) {
-		if (AbstractPythonInterpreter.interpreter.get() == null
-				|| AbstractPythonInterpreter.interpreter.get().currentFrame
+		if (PythonInterpreter.interpreter.get() == null
+				|| PythonInterpreter.interpreter.get().currentFrame
 						.size() == 0)
 			return PythonRuntime.runtime.getGlobals().doGet(variable);
-		return AbstractPythonInterpreter.interpreter.get().environment()
+		return PythonInterpreter.interpreter.get().environment()
 				.get(variable, true, false);
 	}
 

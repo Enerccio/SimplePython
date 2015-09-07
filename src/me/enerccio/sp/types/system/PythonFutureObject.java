@@ -24,7 +24,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import me.enerccio.sp.errors.PythonException;
-import me.enerccio.sp.interpret.AbstractPythonInterpreter;
+import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.EnvironmentObject;
 import me.enerccio.sp.interpret.InternalDict;
 import me.enerccio.sp.interpret.PythonExecutionException;
@@ -57,7 +57,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 		for (String key : closureCopy) {
 			PythonObject var = environment.get(key, false, false);
 			if (var.get("__onfuture__", null) != null)
-				var = AbstractPythonInterpreter.interpreter.get().execute(true,
+				var = PythonInterpreter.interpreter.get().execute(true,
 						var.get("__onfuture__", null), null);
 			closure.putVariable(key, var);
 		}
@@ -88,10 +88,10 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			@Override
 			public void run() {
 				futureCall.call(new TupleObject(true), null);
-				AbstractPythonInterpreter.interpreter.get().getCurrentClosure()
+				PythonInterpreter.interpreter.get().getCurrentClosure()
 						.add(0, closure);
 				try {
-					result = AbstractPythonInterpreter.interpreter.get()
+					result = PythonInterpreter.interpreter.get()
 							.executeAll(0);
 					status = FutureStatus.FINISHED;
 				} catch (PythonExecutionException e) {
@@ -174,7 +174,7 @@ public class PythonFutureObject extends PythonObject implements FutureObject {
 			pySerializer.serialize((PythonObject) closure);
 			break;
 		case RUNNING:
-			pySerializer.serialize(AbstractPythonInterpreter.interpreterMap
+			pySerializer.serialize(PythonInterpreter.interpreterMap
 					.get(ftThread));
 			break;
 		default:

@@ -72,14 +72,13 @@ import me.enerccio.sp.utils.Coerce;
 import me.enerccio.sp.utils.RebindableThreadLocal;
 import me.enerccio.sp.utils.Utils;
 
-public abstract class AbstractPythonInterpreter extends PythonObject {
+public class PythonInterpreter extends PythonObject {
 
 	private static final long serialVersionUID = -8039667108607710165L;
 	public static final boolean TRACE_ENABLED = System
 			.getenv("SPY_TRACE_ENABLED") != null;
 	public static final Set<String> TRACE_THREADS;
 	public static final boolean TRACE_ALL;
-	public static final boolean PURE_JAVA;
 	public static final int MAX_DEEP_STACK;
 
 	@Override
@@ -101,19 +100,6 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	}
 
 	static {
-		boolean _PURE_JAVA;
-		if (System.getenv("PURE_JAVA") != null)
-			_PURE_JAVA = true;
-		else {
-			try {
-				System.loadLibrary("NativePythonInterpreter");
-				_PURE_JAVA = false;
-			} catch (Throwable t){
-				_PURE_JAVA = true;
-			}
-		}
-		PURE_JAVA = _PURE_JAVA;
-		
 		if (System.getenv("DEEP_STACK_LIMIT") != null)
 			MAX_DEEP_STACK = Integer
 					.parseInt(System.getenv("DEEP_STACK_LIMIT"));
@@ -140,39 +126,30 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	}
 
 	/** Thread local accessor to the interpret */
-	public static final transient RebindableThreadLocal<AbstractPythonInterpreter> interpreter = new RebindableThreadLocal<AbstractPythonInterpreter>() {
+	public static final transient RebindableThreadLocal<PythonInterpreter> interpreter = new RebindableThreadLocal<PythonInterpreter>() {
 
 		@Override
-		protected AbstractPythonInterpreter initialValue() {
+		protected PythonInterpreter initialValue() {
 			try {
 				PythonRuntime.runtime.waitForNewInterpretAvailability();
 			} catch (InterruptedException e) {
 
 			}
 
-			AbstractPythonInterpreter i = createInterpreter();
-			AbstractPythonInterpreter.interpreterMap.put(
+			PythonInterpreter i = createInterpreter();
+			PythonInterpreter.interpreterMap.put(
 					Thread.currentThread(), i);
-			AbstractPythonInterpreter.interpreters.add(i);
+			PythonInterpreter.interpreters.add(i);
 			return i;
 		}
 
 	};
 
-	protected static AbstractPythonInterpreter createInterpreter() {
-		if (PURE_JAVA)
-			return new JavaPythonInterpreter();
-		else {
-			try {
-				return new NativePythonInterpreter();
-			} catch (Throwable t){
-				// failed to create native, return pure java
-				return new JavaPythonInterpreter();
-			}
-		}
+	protected static PythonInterpreter createInterpreter() {
+		return new PythonInterpreter();
 	}
 
-	public AbstractPythonInterpreter() {
+	public PythonInterpreter() {
 		super(true);
 		currentOwnerThread = Thread.currentThread();
 	}
@@ -182,38 +159,38 @@ public abstract class AbstractPythonInterpreter extends PythonObject {
 	 * 
 	 * @param t
 	 */
-	public AbstractPythonInterpreter(Thread t) {
+	public PythonInterpreter(Thread t) {
 		super(true);
 		currentOwnerThread = t;
 	}
 
 	protected volatile transient Thread currentOwnerThread; // --not serialized
 
-	public static final Map<Thread, AbstractPythonInterpreter> interpreterMap = Collections
-			.synchronizedMap(new HashMap<Thread, AbstractPythonInterpreter>());
+	public static final Map<Thread, PythonInterpreter> interpreterMap = Collections
+			.synchronizedMap(new HashMap<Thread, PythonInterpreter>());
 	/** Collection of all interprets created */
-	public static final Set<AbstractPythonInterpreter> interpreters = Collections
-			.synchronizedSet(new HashSet<AbstractPythonInterpreter>());
+	public static final Set<PythonInterpreter> interpreters = Collections
+			.synchronizedSet(new HashSet<PythonInterpreter>());
 
 	/**
 	 * Binds the interpret to this thread
 	 */
 	public void bind() {
-		synchronized (AbstractPythonInterpreter.interpreter) {
-			AbstractPythonInterpreter.interpreterMap.remove(currentOwnerThread);
+		synchronized (PythonInterpreter.interpreter) {
+			PythonInterpreter.interpreterMap.remove(currentOwnerThread);
 			currentOwnerThread = Thread.currentThread();
-			AbstractPythonInterpreter.interpreter.set(this);
-			AbstractPythonInterpreter.interpreterMap.put(currentOwnerThread,
+			PythonInterpreter.interpreter.set(this);
+			PythonInterpreter.interpreterMap.put(currentOwnerThread,
 					this);
 		}
 	}
 
 	public void bindTo(Thread t) {
-		synchronized (AbstractPythonInterpreter.interpreter) {
-			AbstractPythonInterpreter.interpreterMap.remove(currentOwnerThread);
+		synchronized (PythonInterpreter.interpreter) {
+			PythonInterpreter.interpreterMap.remove(currentOwnerThread);
 			currentOwnerThread = t;
-			AbstractPythonInterpreter.interpreter.setForThread(t, this);
-			AbstractPythonInterpreter.interpreterMap.put(currentOwnerThread,
+			PythonInterpreter.interpreter.setForThread(t, this);
+			PythonInterpreter.interpreterMap.put(currentOwnerThread,
 					this);
 		}
 	}
