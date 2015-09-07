@@ -202,10 +202,10 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 	/** Represents currrently passed arguments to the function */
-	protected InternalDict args = null;
+	public InternalDict args = null;
 	/** Represents value returned by a call */
-	protected PythonObject returnee;
-	protected List<InternalDict> currentClosure;
+	public PythonObject returnee;
+	public List<InternalDict> currentClosure;
 	protected final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
 
 	/**
@@ -550,7 +550,7 @@ public class PythonInterpreter extends PythonObject {
 		return doExecuteSingleInstruction(o, stack, opcode);
 	}
 
-	protected static String printStack(Stack<PythonObject> stack) {
+	public static String printStack(Stack<PythonObject> stack) {
 		StringBuilder bd = new StringBuilder();
 
 		bd.append("[");
@@ -1414,7 +1414,7 @@ public class PythonInterpreter extends PythonObject {
 	 * @param target
 	 * @throws CastFailedException
 	 */
-	protected void pythonImport(EnvironmentObject environment, String variable,
+	public void pythonImport(EnvironmentObject environment, String variable,
 			String modulePath, PythonObject target) throws CastFailedException {
 		if (modulePath == null || modulePath.equals("")) {
 			if (target == null) {

@@ -54,6 +54,14 @@ public class CompiledBlockObject extends PythonObject {
 	public byte getTag() {
 		return Tags.CBO;
 	}
+	
+	private class CBClassLoader extends ClassLoader {
+		public CBClassLoader(ClassLoader parent){
+			super(parent);
+		}
+	}
+	
+	public final ClassLoader boundClassLoader = new CBClassLoader(getClass().getClassLoader());
 
 	public CompiledBlockObject(List<PythonBytecode> bytecode) {
 		super(false);
