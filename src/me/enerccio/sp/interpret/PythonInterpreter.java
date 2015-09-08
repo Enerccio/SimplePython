@@ -1570,7 +1570,7 @@ public class PythonInterpreter extends PythonObject {
 			krcall(opcode, o, stack);
 			break;
 		case GOTO:
-			gotoOperation(o, stack);
+			o.pc = o.nextInt();
 			break;
 		case JUMPIFFALSE:
 			jumpIfFalse(o, stack);

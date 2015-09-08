@@ -57,7 +57,25 @@ public class EnvironmentObject extends PythonObject {
 	}
 
 	public EnvironmentObject() {
-		super(false);
+		super(true);
+	}
+	
+	private EnvironmentObject(boolean internal){
+		super(internal);
+	}
+	
+	private transient EnvironmentObject pyClone;
+	
+	public EnvironmentObject cloneAsPython(){
+		if (pyClone == null){
+			synchronized (this){
+				if (pyClone == null){
+					pyClone = new EnvironmentObject(false);
+					pyClone.environments = environments;
+				}
+			}
+		}
+		return pyClone;
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
