@@ -2,11 +2,7 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import me.enerccio.sp.SimplePython;
-import me.enerccio.sp.interpret.PythonInterpreter;
-import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
-import me.enerccio.sp.interpret.debug.AbstractDebugger;
 import me.enerccio.sp.interpret.FilesystemResolver;
-import me.enerccio.sp.serialization.XMLPySerializer;
 import me.enerccio.sp.types.ModuleObject;
 
 public class Test {
@@ -28,55 +24,55 @@ public class Test {
 					.toAbsolutePath().toString()
 					+ File.separator + "bin" + File.separator + "t"));
 
-			Thread t = new Thread() {
+//			Thread t = new Thread() {
+//
+//				@Override
+//				public void run() {
+//					try {
+//						Thread.sleep(500);
+//						SimplePython.serialize(new XMLPySerializer(new File(
+//								"ser.xml")));
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//
+//			};
+//			t.start();
 
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(500);
-						SimplePython.serialize(new XMLPySerializer(new File(
-								"ser.xml")));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-
-			};
-			t.start();
-
-			PythonInterpreter i = PythonInterpreter.interpreter
-					.get();
-			final AbstractDebugger d = new AbstractDebugger();
-
-			i.attachDebugger(d);
-			d.installBreakpoint("x", "", 18);
-
-			t = new Thread() {
-
-				@Override
-				public void run() {
-					while (true) {
-						try {
-							d.breakingSemaphore.acquire();
-						} catch (InterruptedException e) {
-							return;
-						}
-
-						System.err.println();
-
-						DebugInformation di = d.f.compiled
-								.getDebugInformation(d.f.prevPc);
-						System.out.println("at " + di.function + ", module <"
-								+ di.module.getFileName() + ">, line "
-								+ di.lineno + ", pos " + di.charno);
-
-						d.waitingSemaphore.release();
-					}
-				}
-
-			};
-			t.setDaemon(true);
-			t.start();
+//			PythonInterpreter i = PythonInterpreter.interpreter
+//					.get();
+//			final AbstractDebugger d = new AbstractDebugger();
+//
+//			i.attachDebugger(d);
+//			d.installBreakpoint("x", "", 18);
+//
+//			t = new Thread() {
+//
+//				@Override
+//				public void run() {
+//					while (true) {
+//						try {
+//							d.breakingSemaphore.acquire();
+//						} catch (InterruptedException e) {
+//							return;
+//						}
+//
+//						System.err.println();
+//
+//						DebugInformation di = d.f.compiled
+//								.getDebugInformation(d.f.prevPc);
+//						System.out.println("at " + di.function + ", module <"
+//								+ di.module.getFileName() + ">, line "
+//								+ di.lineno + ", pos " + di.charno);
+//
+//						d.waitingSemaphore.release();
+//					}
+//				}
+//
+//			};
+//			t.setDaemon(true);
+//			t.start();
 
 			ModuleObject x = SimplePython.getModule("x");
 			c2 = System.currentTimeMillis();

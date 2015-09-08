@@ -43,6 +43,7 @@ import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.debug.Debugger;
+import me.enerccio.sp.interpret.jit.CompiledPython;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
@@ -520,10 +521,18 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	private ExecutionResult executeSingleInstruction(FrameObject o) {
 		int spc = o.pc;
+		
+		
+		
 		o.dataStream.position(spc);
 		o.prevPc = spc;
 		Bytecode opcode = o.nextOpcode();
 		Stack<PythonObject> stack = o.stack;
+		
+		CompiledPython cp = o.compiled.container.load(o, o.compiled, spc, opcode, debugger != null);
+		if (cp != null){
+			return cp.execute(this, o, stack, o.compiled, debugger);
+		}
 
 		if (o.accepts_return) {
 			o.accepts_return = false;

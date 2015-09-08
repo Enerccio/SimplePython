@@ -308,4 +308,9 @@ public class StringDictObject extends ContainerObject implements InternalDict,
 			kwargs.put(key, backingMap.get(key));
 		return kwargs;
 	}
+	
+	@Override
+	public int size() {
+		return backingMap.size();
+	}
 }

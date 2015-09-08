@@ -18,9 +18,9 @@
 package me.enerccio.sp.interpret.jit;
 
 import java.util.Stack;
-import java.util.concurrent.ExecutionException;
 
 import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.ExecutionResult;
 import me.enerccio.sp.interpret.FrameObject;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.debug.Debugger;
@@ -28,7 +28,7 @@ import me.enerccio.sp.types.PythonObject;
 
 public interface CompiledPython {
 
-	public ExecutionException execute(PythonInterpreter i, 
+	public ExecutionResult execute(PythonInterpreter i, 
 			FrameObject o, Stack<PythonObject> stack, CompiledBlockObject cb,
 			Debugger debugger);
 	

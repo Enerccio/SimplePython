@@ -27,12 +27,14 @@ public class JitRequest {
 		this.loader = loader;
 		this.pcFrom = pcFrom;
 		this.debug = debug;
+		this.blockId = block.hashCode();
 	}
 
 	private CompiledBlockObject block;
 	private ClassLoader loader;
 	private int pcFrom;
 	private boolean debug;
+	private int blockId;
 	
 	public volatile boolean hasResult = false;
 	public volatile int nextPc;
@@ -42,15 +44,12 @@ public class JitRequest {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((block == null) ? 0 : block.hashCode());
-		result = prime * result + ((loader == null) ? 0 : loader.hashCode());
+		result = prime * result + blockId;
+		result = prime * result + (debug ? 1231 : 1237);
 		result = prime * result + pcFrom;
-		result = prime * result
-				+ ((this.result == null) ? 0 : this.result.hashCode());
-		result = prime * result
-				+ ((this.debug) ? 0 : 1);
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -60,24 +59,11 @@ public class JitRequest {
 		if (getClass() != obj.getClass())
 			return false;
 		JitRequest other = (JitRequest) obj;
-		if (block == null) {
-			if (other.block != null)
-				return false;
-		} else if (!block.equals(other.block))
-			return false;
-		if (loader == null) {
-			if (other.loader != null)
-				return false;
-		} else if (!loader.equals(other.loader))
-			return false;
-		if (pcFrom != other.pcFrom)
+		if (blockId != other.blockId)
 			return false;
 		if (debug != other.debug)
 			return false;
-		if (result == null) {
-			if (other.result != null)
-				return false;
-		} else if (!result.equals(other.result))
+		if (pcFrom != other.pcFrom)
 			return false;
 		return true;
 	}
@@ -90,20 +76,11 @@ public class JitRequest {
 	public CompiledBlockObject getBlock() {
 		return block;
 	}
-	public void setBlock(CompiledBlockObject block) {
-		this.block = block;
-	}
 	public ClassLoader getLoader() {
 		return loader;
 	}
-	public void setLoader(ClassLoader loader) {
-		this.loader = loader;
-	}
 	public int getPcFrom() {
 		return pcFrom;
-	}
-	public void setPcFrom(int pcFrom) {
-		this.pcFrom = pcFrom;
 	}
 	public CompiledPython getResult() {
 		return result;

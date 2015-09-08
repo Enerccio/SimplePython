@@ -35,4 +35,5 @@ public interface InternalDict {
 
 	KwArgs asKwargs();
 
+	int size();
 }

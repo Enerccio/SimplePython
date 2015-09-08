@@ -19,7 +19,9 @@ package me.enerccio.sp.interpret.jit;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import me.enerccio.sp.compiler.Bytecode;
@@ -70,6 +72,7 @@ public class JJITCompiler extends Thread {
 	}
 	
 	private ConcurrentLinkedQueue<JitRequest> requests = new ConcurrentLinkedQueue<JitRequest>();
+	private Map<JitRequest, CompiledPython> finished = new HashMap<JitRequest, CompiledPython>();
 	
 	private void doEnqueue(JitRequest request){
 		requests.add(request);
@@ -102,6 +105,14 @@ public class JJITCompiler extends Thread {
 	private Map<ClassLoader, ClassPool> pools = new HashMap<ClassLoader, ClassPool>();
 
 	private void compileRequest(JitRequest rq) throws Exception {
+		if (finished.containsKey(rq)){
+			rq.result = finished.get(rq);
+			rq.hasResult = true;
+			return;
+		}
+		
+		lastPC = -1;
+		
 		ClassLoader cl = rq.getLoader();
 		ClassPool cp = getClassPool(cl);
 		
@@ -119,12 +130,19 @@ public class JJITCompiler extends Thread {
 		CtMethod method = CtNewMethod.make(builtMethod, jitted);
 		jitted.addMethod(method);
 		
-		jitted.debugWriteFile();
-		
 		Class<?> cls = cp.toClass(jitted, cl, null);
-		rq.result = (CompiledPython) cls.newInstance();
+		
+		if (lastPC != -1)
+			rq.getBlock().container.enschedule(rq.getBlock(), lastPC, rq.getDebug());
+		
+		CompiledPython inst = (CompiledPython) cls.newInstance();
+		finished.put(rq, inst);
+		
+		rq.result = inst;
 		rq.hasResult = true;
 	}
+	
+	private int lastPC;
 
 	private ClassPool getClassPool(ClassLoader cl) throws Exception {
 		if (!pools.containsKey(cl)){
@@ -144,7 +162,7 @@ public class JJITCompiler extends Thread {
 			cp.importPackage("me.enerccio.sp.types.iterators");
 			cp.importPackage("me.enerccio.sp.types.mappings");
 			cp.importPackage("me.enerccio.sp.types.pointer");
-			cp.importPackage("me.enerccio.sp.types.propertries");
+			cp.importPackage("me.enerccio.sp.types.properties");
 			cp.importPackage("me.enerccio.sp.types.sequences");
 			cp.importPackage("me.enerccio.sp.types.system");
 			cp.importPackage("me.enerccio.sp.types.types");
@@ -156,13 +174,13 @@ public class JJITCompiler extends Thread {
 	}
 	
 	private static final String header
-		= "public ExecutionException execute(PythonInterpreter i, FrameObject o, Stack<PythonObject> stack, CompiledBlockObject cb, Debugger debugger){\n";
+		= "public ExecutionResult execute(PythonInterpreter i, FrameObject o, Stack stack, CompiledBlockObject cb, Debugger debugger){\n";
 	
 	private static final String footer
 		= "}\n";
 	
 	private static final String header_ord
-		= "public ExecutionException execute_%s(PythonInterpreter i, FrameObject o, Stack<PythonObject> stack, CompiledBlockObject cb, Debugger debugger){\n";
+		= "public ExecutionResult execute_%s(PythonInterpreter i, FrameObject o, Stack stack, CompiledBlockObject cb, Debugger debugger){\n";
 
 	
 	private String buildMethod(CompiledBlockObject block, int pcFrom,
@@ -178,94 +196,76 @@ public class JJITCompiler extends Thread {
 	private String buildMethodBody(CompiledBlockObject block, int pcFrom,
 			boolean debug, CtClass jitted, int fncord) throws Exception {
 	
-		ByteBuffer buffer = block.getBytedataAsNativeBuffer();
+		ByteBuffer buffer = ByteBuffer.wrap(block.getBytedata());
 		buffer.position(pcFrom);
 		
 		StringBuilder body = new StringBuilder();
 		boolean hasReturn = false;
-		
-		body.append("// Locals declaration \n");
-		body.append(" PythonObject method = null; \n");
-		body.append(" PythonObject a = null; \n");
-		body.append(" PythonObject b = null; \n");
-		body.append(" PythonObject runnable = null; \n");
-		body.append(" PythonObject[] args = null; \n");
-		body.append(" String m = null; \n");
-		body.append(" String vname = null; \n");
-		body.append(" boolean isGlobal = false; \n");
-		body.append(" int jv = 0; \n");
-		body.append(" FrameObject frame = null; \n");
-		body.append(" String s1 = null; \n");
-		body.append(" String s2 = null; \n");		
-		body.append(" PythonObject type = null; \n");
-		body.append(" PythonObject value = null; \n");
-		body.append(" boolean doingNew = false; \n");
-		body.append(" String[] sarray = null; \n");
-		body.append(" String svl = null; \n");
-		body.append(" boolean found = false; \n");
-		body.append(" int nth = 0; \n");
-		body.append(" List<PythonObject> rest = null; \n");
-		body.append(" List<String> closureCopy = null; \n");
+		Set<String> locals = new HashSet<String>();
 		
 		int itc = 0;
 		
 		outer:
 		while (buffer.hasRemaining()){
 			int cpos = buffer.position();
-			Bytecode b = Bytecode.fromNumber(buffer.get());
-			
-			body.append(" if (o.accepts_return) { stack.push(i.returnee == null ? NoneObject.NONE : i.returnee); o.accepts_return = false; } \n");
-
-			if (PythonInterpreter.TRACE_ENABLED){
-				body.append("if (PythonInterpreter.TRACE_ALL || PythonInterpreter.TRACE_THREADS.contains(currentOwnerThread.getName())) System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + \" \" + PythonInterpreter.printStack(stack));");
-			}
-			
-			body.append("\n");
-			body.append("// " + b.toString() + " in " + block.toString() + ", pc = " + cpos + " \n");
-			if (debug){
-				body.append(" // debug enabled version \n");
-				body.append(" debugger.debugNextOperation(i, Bytecode." + b.toString() + ", f, " + cpos + "); \n");
-			}
+			Bytecode b = Bytecode.fromNumber(buffer.get() & 0xFF);
 			
 			++itc;
 			
 			switch (b){
 			case NOP:
+				header(body, b, block, cpos, debug);
 				--itc;
 				break;
 				
 
 			case D_RETURN:
 			case D_STARTFUNC:
+				header(body, b, block, cpos, debug);
 				--itc;
 				buffer.getInt();
 				break;
 			
 			case ADD:
-				addBinaryOperation("Add", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Add", buffer, body, locals);
 				break;
 			case AND:
-				addBinaryOperation("And", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("And", buffer, body, locals);
 				break;
 			case DCOLON:
-				addBinaryOperation("Dcolon", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Dcolon", buffer, body, locals);
 				break;
 			case DEL:
+				header(body, b, block, cpos, debug);
+				locals.add(" String vname = null; \n");
+				locals.add(" boolean isGlobal = false; \n");
+				
 				body.append(" vname = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" isGlobal = " + (buffer.getInt() == 1 ? "true" : "false") + ";\n");
 				body.append(" i.environment().delete(vname.value, isGlobal); \n");
 				break;
 			case DELATTR:
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject runnable = null; \n");
+				locals.add(" PythonObject[] args = null; \n");
+				
 				body.append(" runnable = i.environment().getBuiltin(\"delattr\");\n");
 				body.append(" args = new PythonObject[2];\n");
 				body.append(" args[1] = o.compiled.getConstant(" + buffer.getInt() + "); // attribute \n");
-				body.append(" args[0] = stack.pop(); \n");
+				body.append(" args[0] = (PythonObject)stack.pop(); \n");
 				body.append(" i.returnee = i.execute(true, runnable, null, args); \n");
 				break;
 			case DIV:
-				addBinaryOperation("Div", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Div", buffer, body, locals);
 				break;
 			case DUP:
+				header(body, b, block, cpos, debug);
+				locals.add(" int jv = 0; \n");
+				
 				body.append(" jv = " + buffer.getInt() + "; \n");
 				body.append(" if (jv == 0) \n");
 				body.append("  stack.push(stack.peek());\n");
@@ -273,11 +273,15 @@ public class JJITCompiler extends Thread {
 				body.append("  stack.push(stack.get(stack.size() - 1 - jv));\n");
 				break;
 			case ECALL:
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject runnable = null; \n");
+				locals.add(" FrameObject frame = null; \n");
+				
 				body.append(" i.checkOverflow(); \n");
-				body.append(" runnable = stack.peek(); \n");
+				body.append(" runnable = (PythonObject)stack.peek(); \n");
 				body.append(" try {\n");
-				body.append("  returnee = i.execute(true, runnable, null);\n");
-				body.append("  frame = i.currentFrame.peekLast(); \n");
+				body.append("  i.returnee = i.execute(true, runnable, null, new PythonObject[0]);\n");
+				body.append("  frame = (FrameObject)i.currentFrame.peekLast(); \n");
 				body.append("  if (frame != o) \n");
 				body.append("   frame.parentFrame = o; \n");
 				body.append("  else \n");
@@ -290,16 +294,19 @@ public class JJITCompiler extends Thread {
 				body.append(" }\n");
 				break;
 			case EQ:
-				addBinaryOperation("Eq", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Eq", buffer, body, locals);
 				break;
 			case GE:
-				addBinaryOperation("Ge", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Ge", buffer, body, locals);
 				break;
 			case GETATTR:
+				header(body, b, block, cpos, debug);
 				body.append(" try {\n");
 				body.append("  PythonObject apo;\n");
 				body.append("  StringObject field = (StringObject) o.compiled.getConstant(" + buffer.getInt() + ");\n");
-				body.append("  PythonObject value = stack.pop(); // object to get attribute from");
+				body.append("  PythonObject value = (PythonObject)stack.pop(); // object to get attribute from \n");
 				body.append("  if (value instanceof FutureObject) { \n");
 				body.append("   PythonObject rvalue = null; \n");
 				body.append("   while ((rvalue = ((FutureObject) value).getValue()) == null) ; \n");
@@ -308,7 +315,7 @@ public class JJITCompiler extends Thread {
 				body.append("  apo = value.get(\"__getattribute__\", i.getLocalContext()); \n");
 				body.append("  if (apo != null && !(value instanceof ClassObject)) {\n");
 				body.append("   // There is __getattribute__ defined, call it directly\n");
-				body.append("   i.returnee = i.execute(true, apo, null, field);\n");
+				body.append("   i.returnee = i.execute(true, apo, null, new PythonObject[]{field});\n");
 				body.append("   o.accepts_return = true; \n");
 				body.append("  } else {\n");
 				body.append("   // Try to grab argument normally...\n");
@@ -321,7 +328,7 @@ public class JJITCompiler extends Thread {
 				body.append("    apo = value.get(\"__getattr__\", i.getLocalContext()); \n");
 				body.append("    if (apo != null) {\n");
 				body.append("     // There is __getattribute__ defined, call it directly\n");
-				body.append("     i.returnee = i.execute(false, apo, null, field);\n");
+				body.append("     i.returnee = i.execute(false, apo, null, new PythonObject[]{field});\n");
 				body.append("     o.accepts_return = true; \n");
 				body.append("    } else\n");
 				body.append("     throw new AttributeError(\"\" + value.getType() + \" object has no attribute '\" + field + \"'\"); \n");
@@ -334,9 +341,14 @@ public class JJITCompiler extends Thread {
 				body.append(" }\n");
 				break;
 			case GT:
-				addBinaryOperation("Gt", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Gt", buffer, body, locals);
 				break;
 			case IMPORT:
+				header(body, b, block, cpos, debug);
+				locals.add(" String s1 = null; \n");
+				locals.add(" String s2 = null; \n");
+				
 				body.append(" s1 = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" s2 = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" try { \n");
@@ -346,20 +358,25 @@ public class JJITCompiler extends Thread {
 				body.append(" }\n");
 				break;
 			case ISINSTANCE:
-				body.append(" type = stack.pop(); \n");
-				body.append(" value = stack.peek(); \n");
-				body.append(" stack.push(BoolObject.fromBoolean(PythonRuntime.doIsInstance(value, type, true))); \n");
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject type = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
+				body.append(" type = (PythonObject)stack.pop(); \n");
+				body.append(" value = (PythonObject)stack.peek(); \n");
+				body.append(" stack.push(BoolObject.fromBoolean(PythonRuntime#doIsInstance(value, type, true))); \n");
 				break;
 			case KWARG:
-				int constLen = buffer.getInt();
-				StringBuffer constArray = new StringBuffer();
-				constArray.append(" sarray = new String[]{ ");
-				for (int i=0; i<constLen; i++){
-					constArray.append(block.getConstant(buffer.getInt()).toString() + ", ");
-				}
-				constArray.append(" }; \n");
+				header(body, b, block, cpos, debug);
+				locals.add(" int jv = 0; \n");
+				locals.add(" String[] sarray = null; \n");
+				locals.add(" boolean doingNew = false; \n");
 				
-				body.append(constArray.toString());
+				int constLen = buffer.getInt();
+				body.append(" sarray = new String[" + constLen + "]; \n");
+				for (int i=0; i<constLen; i++){
+					body.append(" sarray[" + i + "] = \"" + block.getConstant(buffer.getInt()).toString() + "\"; \n");
+				}
 				body.append(" jv = " + constLen + "; \n");
 				body.append(" doingNew = o.kwargs == null; \n");
 				body.append(" if (doingNew) \n");
@@ -369,13 +386,18 @@ public class JJITCompiler extends Thread {
 				body.append("  if (!doingNew) \n");
 				body.append("   if (o.kwargs.contains(key))\n");
 				body.append("    throw new TypeError(\"got multiple values for keyword argument '\" + key + \"'\"); \n");
-				body.append("  o.kwargs.put(key, stack.pop()); \n");
+				body.append("  o.kwargs.put(key, (PythonObject)stack.pop()); \n");
 				body.append(" } \n");
 				break;
 			case LE:
-				addBinaryOperation("Le", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Le", buffer, body, locals);
 				break;
 			case LOAD:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" value = i.environment().get(svl, false, false); \n");
 				body.append(" if (value == null) \n");
@@ -388,6 +410,10 @@ public class JJITCompiler extends Thread {
 				body.append(" stack.push(value); \n");
 				break;
 			case LOADBUILTIN:
+				header(body, b, block, cpos, debug);
+				locals.add(" String vname = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" vname = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" value = i.environment().getBuiltin(vname); \n");
 				body.append(" if (value == null) \n");
@@ -395,10 +421,14 @@ public class JJITCompiler extends Thread {
 				body.append(" stack.push(value); \n");
 				break;
 			case LOADDYNAMIC:
+				header(body, b, block, cpos, debug);
+				locals.add(" boolean found = false; \n");
+				locals.add(" String vname = null; \n");
+				
 				body.append(" found = false; \n");
 				body.append(" vname = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" for (int ii = i.currentFrame.size() - 1; ii >= 0; ii--) { \n");
-				body.append("  FrameObject oo = i.currentFrame.get(ii); \n");
+				body.append("  FrameObject oo = (FrameObject)i.currentFrame.get(ii); \n");
 				body.append("  InternalDict locals = oo.environment.getLocals(); \n");
 				body.append("  if (locals.containsVariable(vname)) { \n");
 				body.append("   stack.push(locals.getVariable(vname)); \n");
@@ -410,6 +440,10 @@ public class JJITCompiler extends Thread {
 				body.append("  throw new NameError(\"dynamic variable \" + vname + \" is not defined\"); \n");
 				break;
 			case LOADGLOBAL:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" value = i.environment().get(svl, true, false); \n");
 				body.append(" if (value == null) \n");
@@ -422,6 +456,10 @@ public class JJITCompiler extends Thread {
 				body.append(" stack.push(value); \n");
 				break;
 			case LOAD_FUTURE:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" value = i.environment().get(svl, false, false); \n");
 				body.append(" if (value == null) \n");
@@ -436,114 +474,154 @@ public class JJITCompiler extends Thread {
 				body.append(" stack.push(value); \n");
 				break;
 			case LSHIFT:
-				addBinaryOperation("Lshift", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Lshift", buffer, body, locals);
 				break;
 			case LT:
-				addBinaryOperation("Lt", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Lt", buffer, body, locals);
 				break;
 			case MAKE_FIRST:
+				header(body, b, block, cpos, debug);
+				locals.add(" int nth = 0; \n");
+				locals.add(" List rest = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" nth = " + buffer.getInt() + "; \n");
-				body.append(" rest = new ArrayList<PythonObject>(); \n");
+				body.append(" rest = new ArrayList(); \n");
 				body.append(" for (int ii = 0; ii < nth; ii++) \n");
-				body.append("  rest.add(stack.pop()); \n");
-				body.append(" value = stack.pop(); \n");
+				body.append("  rest.add((PythonObject)stack.pop()); \n");
+				body.append(" value = (PythonObject)stack.pop(); \n");
 				body.append(" Collections.reverse(rest); \n");
-				body.append(" for (PythonObject datum : rest) \n");
-				body.append("  stack.push(datum); \n");
+				body.append(" for (Object datum : rest) \n");
+				body.append("  stack.push((PythonObject)datum); \n");
 				body.append(" stack.push(newHead); \n");
 				break;
-			case MAKE_FUTURE:
+			case MAKE_FUTURE:	
+				header(body, b, block, cpos, debug);
 				constLen = buffer.getInt();
-				
-				body.append(" closureCopy = new ArrayList<String>(); \n");
-				body.append(" for (int ii = 0; ii < jv; i++) {\n");
+				body.append(" closureCopy = new ArrayList(); \n");
 				for (int i=0; i<constLen; i++){
 					body.append(" closureCopy.add(\"" + block.getConstant(buffer.getInt()).toString() + "); \n");
 				}
-				body.append(" stack.push(new PythonFutureObject((UserFunctionObject) stack.pop(), closureCopy, i.environment())); \n");
+				body.append(" stack.push(new PythonFutureObject((UserFunctionObject) (PythonObject)stack.pop(), closureCopy, i.environment())); \n");
 				break;
 			case MOD:
-				addBinaryOperation("Mod", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Mod", buffer, body, locals);
 				break;
 			case MUL:
-				addBinaryOperation("Mul", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Mul", buffer, body, locals);
 				break;
 			case NE:
-				addBinaryOperation("Ne", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Ne", buffer, body, locals);
 				break;
 			case OPEN_LOCALS:
-				body.append(" i.currentFrame.getLast().environment.pushLocals(new StringDictObject()); \n");
+				header(body, b, block, cpos, debug);
+				body.append(" ((FrameObject)i.currentFrame.getLast()).environment.pushLocals(new StringDictObject()); \n");
 				break;
 			case OR:
-				addBinaryOperation("Or", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Or", buffer, body, locals);
 				break;
 			case POP:
+				header(body, b, block, cpos, debug);
 				body.append(" stack.pop(); \n");
 				break;
 			case POW:
-				addBinaryOperation("Pow", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Pow", buffer, body, locals);
 				break;
 			case PUSH:
+				header(body, b, block, cpos, debug);
 				body.append(" stack.push(o.compiled.getConstant(" + buffer.getInt() + ")); \n");
 				break;
 			case PUSH_ENVIRONMENT:
+				header(body, b, block, cpos, debug);
 				body.append(" o.environment = new EnvironmentObject(); \n");
 				body.append(" if (i.currentClosure != null) { \n");
-				body.append("  o.environment.add(currentClosure); \n");
-				body.append("  currentClosure = null; \n");
-				body.append(" } else if (!PythonRuntime.runtime.buildingGlobals()) \n");
-				body.append("  o.environment.add(PythonRuntime.runtime.getGlobals()); \n");
+				body.append("  o.environment.add(i.currentClosure); \n");
+				body.append("  i.currentClosure = null; \n");
+				body.append(" } else if (!PythonRuntime#runtime.buildingGlobals()) \n");
+				body.append("  o.environment.add(Utils#asList((InternalDict)PythonRuntime#runtime.getGlobals())); \n");
 				break;
 			case PUSH_EXCEPTION:
+				header(body, b, block, cpos, debug);
+				locals.add(" FrameObject frame = null; \n");
+				
 				body.append(" frame = (FrameObject) stack.peek(); \n");
 				body.append(" if (frame.exception == null) \n");
-				body.append("  stack.push(NoneObject.NONE); \n");
+				body.append("  stack.push(NoneObject#NONE); \n");
 				body.append(" else \n");
 				body.append("  stack.push(frame.exception); \n");
 				break;
 			case PUSH_LOCALS:
-				body.append(" stack.push((PythonObject) i.currentFrame.getLast().environment.getLocals()); \n");
+				header(body, b, block, cpos, debug);
+				body.append(" stack.push((PythonObject) ((FrameObject)i.currentFrame.getLast()).environment.getLocals()); \n");
 				break;
 			case PUSH_LOCAL_CONTEXT:
-				body.append(" o.localContext = stack.pop(); \n");
+				header(body, b, block, cpos, debug);
+				body.append(" o.localContext = (PythonObject)stack.pop(); \n");
 				break;
 			case QM:
-				addBinaryOperation("Qm", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Qm", buffer, body, locals);
 				break;
 			case RARROW:
-				addBinaryOperation("Rarrow", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Rarrow", buffer, body, locals);
 				break;
 			case RERAISE:
-				body.append(" value = stack.pop(); \n");
-				body.append(" if (value != NoneObject.NONE) {\n");
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject value = null; \n");
+				
+				body.append(" value = (PythonObject)stack.pop(); \n");
+				body.append(" if (value != NoneObject#NONE) {\n");
 				body.append("  PythonExecutionException pee = new PythonExecutionException(value);\n");
 				body.append("  pee.noStackGeneration(true); \n");
 				body.append("  throw pee; \n");
 				body.append(" }\n");
 				break;
 			case RESOLVE_ARGS:
+				header(body, b, block, cpos, debug);
+				locals.add(" Iterator iter = null; \n");
+				
 				body.append(" synchronized (i.args) {\n");
-				body.append("  for (String key : i.args.keySet()) \n");
-				body.append("   i.environment().getLocals().putVariable(key, i.args.getVariable(key)); \n");
+				body.append("   iter = i.args.keySet().iterator(); \n");
+				body.append("   while (iter.hasNext()){ String v = (String)iter.next(); \n");
+				body.append("   i.environment().getLocals().putVariable(v, (PythonObject)i.args.getVariable(v)); } \n");
 				body.append(" }\n");
 				break;
 			case RESOLVE_CLOSURE:
-				body.append(" ((UserFunctionObject)stack.peek()).setClosure(environment().toClosure());\n");
+				header(body, b, block, cpos, debug);
+				body.append(" ((UserFunctionObject)stack.peek()).setClosure(i.environment().toClosure());\n");
 				break;
 			case RSHIFT:
-				addBinaryOperation("Rshift", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Rshift", buffer, body, locals);
 				break;
 			case SAVE:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
-				body.append(" value = stack.pop(); \n");
-				body.append(" i.environment().set(ss, v, false, false); \n");
+				body.append(" value = (PythonObject)stack.pop(); \n");
+				body.append(" i.environment().set(svl, value, false, false); \n");
 				break;
 			case SAVEDYNAMIC:
+				header(body, b, block, cpos, debug);
+				locals.add(" boolean found = false; \n");
+				locals.add(" PythonObject value = null; \n");
+				locals.add(" String vname = null; \n");
+				
 				body.append(" found = false; \n");
-				body.append(" value = stack.pop(); \n");
+				body.append(" value = (PythonObject)stack.pop(); \n");
 				body.append(" vname = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" for (int ii = i.currentFrame.size() - 1; ii >= 0; ii--) { \n");
-				body.append("  FrameObject oo = i.currentFrame.get(ii); \n");
+				body.append("  FrameObject oo = (FrameObject)i.currentFrame.get(ii); \n");
 				body.append("  InternalDict locals = oo.environment.getLocals(); \n");
 				body.append("  if (locals.containsVariable(vname)) { \n");
 				body.append("   locals.putVariable(vname, value); \n");
@@ -555,35 +633,57 @@ public class JJITCompiler extends Thread {
 				body.append("  o.environment.getLocals().putVariable(vname, value); \n");
 				break;
 			case SAVEGLOBAL:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
-				body.append(" value = stack.pop(); \n");
-				body.append(" i.environment().set(ss, v, true, false); \n");
+				body.append(" value = (PythonObject)stack.pop(); \n");
+				body.append(" i.environment().set(svl, value, true, false); \n");
 				break;
 			case SAVE_LOCAL:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
-				body.append(" value = stack.pop(); \n");
-				body.append(" i.environment().getLocals().putVariable(ss, v); \n");
+				body.append(" value = (PythonObject)stack.pop(); \n");
+				body.append(" i.environment().getLocals().putVariable(svl, value); \n");
 				break;
 			case SETATTR:
-				body.append(" runnable = environment().getBuiltin(\"setattr\"); \n");
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject runnable = null; \n");
+				locals.add(" PythonObject[] args = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
+				body.append(" runnable = i.environment().getBuiltin(\"setattr\"); \n");
 				body.append(" args = new PythonObject[3]; \n");
 				body.append(" value = o.compiled.getConstant(" + buffer.getInt() + "); \n");
-				body.append(" if (po == NoneObject.NONE) { \n");
-				body.append("  args[1] = stack.pop(); args[0] = stack.pop(); args[2] = stack.pop(); \n");
+				body.append(" if (value == NoneObject#NONE) { \n");
+				body.append("  args[1] = (PythonObject)stack.pop(); args[0] = (PythonObject)stack.pop(); args[2] = (PythonObject)stack.pop(); \n");
 				body.append(" } else { \n");
-				body.append("  args[1] = po; args[0] = stack.pop(); args[2] = stack.pop(); \n ");
+				body.append("  args[1] = value; args[0] = (PythonObject)stack.pop(); args[2] = (PythonObject)stack.pop(); \n ");
 				body.append(" } \n");
 				body.append(" i.returnee = i.execute(true, runnable, null, args); \n");
 				break;
 			case SUB:
-				addBinaryOperation("Sub", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Sub", buffer, body, locals);
 				break;
 			case SWAP_STACK:
-				body.append(" a = stack.pop(); \n");
-				body.append(" b = stack.pop(); \n");
+				header(body, b, block, cpos, debug);
+				locals.add(" PythonObject a = null; \n");
+				locals.add(" PythonObject b = null; \n");
+				
+				body.append(" a = (PythonObject)stack.pop(); \n");
+				body.append(" b = (PythonObject)stack.pop(); \n");
 				body.append(" stack.push(a); stack.push(b); \n");
 				break;
 			case TEST_FUTURE:
+				header(body, b, block, cpos, debug);
+				locals.add(" String svl = null; \n");
+				locals.add(" PythonObject value = null; \n");
+				
 				body.append(" svl = \"" + ((StringObject) block.getConstant(buffer.getInt())).value + "\"; \n");
 				body.append(" value = i.environment().get(svl, false, false); \n");
 				body.append(" if (value == null) \n");
@@ -595,7 +695,8 @@ public class JJITCompiler extends Thread {
 				body.append("  }\n");
 				break;
 			case XOR:
-				addBinaryOperation("Xor", buffer, body);
+				header(body, b, block, cpos, debug);
+				addBinaryOperation("Xor", buffer, body, locals);
 				break;
 
 			case TRUTH_VALUE:
@@ -617,10 +718,11 @@ public class JJITCompiler extends Thread {
 			case PUSH_FRAME:
 			case RAISE:
 				buffer.position(buffer.position()-1);
+				lastPC = buffer.position();
 				break outer;			
 			}
 			
-			if (itc > 15){
+			if (itc > 25){
 				// 15 bytecodes created, continue in next func
 				hasReturn = true;
 
@@ -628,6 +730,7 @@ public class JJITCompiler extends Thread {
 				CtMethod method = CtNewMethod.make(builtMethod, jitted);
 				jitted.addMethod(method);
 				
+				body.append("\n");
 				body.append(" // continue execution in another method due to method size constraint \n");
 				body.append(String.format(" return execute_%s(i, o, stack, cb, debugger); \n", fncord+1));
 				break;
@@ -637,15 +740,47 @@ public class JJITCompiler extends Thread {
 		if (!hasReturn)
 			addReturnProtocol(buffer.position(), body, ExecutionResult.OK);
 		
-		return body.toString();
+		String mainBody = body.toString();
+		
+		StringBuilder withLocals = new StringBuilder();
+		
+		withLocals.append(" // locals \n");
+		for (String local : locals)
+			withLocals.append(local);
+		
+		
+		withLocals.append("\n // main body \n");
+		withLocals.append(mainBody);
+		
+		return withLocals.toString();
+	}
+
+	private void header(StringBuilder body, Bytecode b, CompiledBlockObject block, int cpos, boolean debug) {
+		body.append(" if (o.accepts_return) { stack.push(i.returnee == null ? NoneObject#NONE : i.returnee); o.accepts_return = false; } \n");
+
+		if (PythonInterpreter.TRACE_ENABLED){
+			body.append("if (PythonInterpreter.TRACE_ALL || PythonInterpreter.TRACE_THREADS.contains(currentOwnerThread.getName())) System.err.println(CompiledBlockObject.dis(o.compiled, true, spc) + \" \" + PythonInterpreter.printStack(stack));");
+		}
+		
+		body.append("\n");
+		body.append("// " + b.toString() + " in " + block.toString() + ", pc = " + cpos + " \n");
+		if (debug){
+			body.append(" // debug enabled version \n");
+			body.append(" debugger.debugNextOperation(i, Bytecode#" + b.toString() + ", o, " + cpos + "); \n");
+		}
 	}
 
 	private void addBinaryOperation(String op, ByteBuffer buffer,
-			StringBuilder body) {
-		body.append(" b = stack.pop();");
-		body.append(" a = stack.pop();");
-		body.append(" if (!(a instanceof ClassInstanceObject) && (a instanceof Has" + op + "Method))\n");
-		body.append("  stack.push(((Has" + op + "Method)a).add(b));\n");
+			StringBuilder body, Set<String> locals) {
+		
+		locals.add(" PythonObject method = null; \n");
+		locals.add(" PythonObject a = null; \n");
+		locals.add(" PythonObject b = null; \n");
+		
+		body.append(" b = (PythonObject)stack.pop();");
+		body.append(" a = (PythonObject)stack.pop();");
+		body.append(" if (!(a instanceof ClassInstanceObject) && (a instanceof InterpreterMathExecutorHelper$Has" + op + "Method))\n");
+		body.append("  stack.push(((InterpreterMathExecutorHelper$Has" + op + "Method)a)." + op.toLowerCase() + "(b));\n");
 		body.append(" else {");
 		body.append(mathStandard(buffer, op.toLowerCase()));
 		body.append(" }\n");
@@ -655,12 +790,12 @@ public class JJITCompiler extends Thread {
 		StringBuffer body = new StringBuffer();
 		body.append("  try {\n");
 		body.append("   PythonObject apo;\n");
-		body.append("   StringObject field = new StringObject(__" + m + "__);\n");
+		body.append("   StringObject field = new StringObject(\"__" + m + "__\");\n");
 		body.append("   PythonObject value = a;	// object to get attribute from\n");
 		body.append("   apo = value.get(\"__getattribute__\", i.getLocalContext()); \n");
 		body.append("   if (apo != null && !(value instanceof ClassObject)) {\n");
 		body.append("    // There is __getattribute__ defined, call it directly\n");
-		body.append("    method = i.execute(true, apo, null, field);\n");
+		body.append("    method = i.execute(true, apo, null, new PythonObject[]{field});\n");
 		body.append("   } else {\n");
 		body.append("    // Try to grab argument normally...\n");
 		body.append("    apo = value.get(field.value, i.getLocalContext());\n");
@@ -671,7 +806,7 @@ public class JJITCompiler extends Thread {
 		body.append("     apo = value.get(\"__getattr__\", i.getLocalContext()); \n");
 		body.append("     if (apo != null) {\n");
 		body.append("      // There is __getattribute__ defined, call it directly\n");
-		body.append("      method = i.execute(true, apo, null, field);\n");
+		body.append("      method = i.execute(true, apo, null, new PythonObject[]{field});\n");
 		body.append("     } else\n");
 		body.append("      throw new AttributeError(\"\" + value.getType() + \" object has no attribute '\" + field + \"'\"); \n");
 		body.append("    }\n");
@@ -681,7 +816,7 @@ public class JJITCompiler extends Thread {
 		body.append("     method = ((PropertyObject)method).get();\n");
 		body.append("    }\n");
 		body.append("   }\n");
-		body.append("   i.returnee = i.execute(true, method, null, b);\n");
+		body.append("   i.returnee = i.execute(true, method, null, new PythonObject[]{b});\n");
 		body.append("   o.accepts_return = true;\n");
 		return body.toString();
 	}
@@ -690,7 +825,7 @@ public class JJITCompiler extends Thread {
 		// finalize this by setting pc of the passed frame object to current pc of the byte buffer and then return
 		// appropriate execution result
 		body.append(" o.pc = " + position + ";\n");
-		body.append(" return ExecutionResult." + result.toString() + "; \n");
+		body.append(" return ExecutionResult#" + result.toString() + "; \n");
 	}
 	
 }
