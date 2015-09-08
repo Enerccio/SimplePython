@@ -75,6 +75,7 @@ public class CompiledBlockObject extends PythonObject {
 			throw new TypeError("invalid bytecode", e);
 		}
 		finishCB();
+		init();
 	}
 
 	public void finishCB() {
@@ -97,9 +98,12 @@ public class CompiledBlockObject extends PythonObject {
 		mmap = new HashMap<Integer, PythonObject>();
 		init();
 	}
+	
+	private ByteBuffer dataBuffer;
 
 	private void init() {
 		container = new JJITContainer(this);
+		dataBuffer = makeBuffer();
 	}
 
 	public static class DebugInformation implements Serializable {
@@ -732,11 +736,15 @@ public class CompiledBlockObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-
+	
 	public ByteBuffer getBytedataAsNativeBuffer() {
+		return dataBuffer.asReadOnlyBuffer();
+	}
+
+	private ByteBuffer makeBuffer() {
 		ByteBuffer b = ByteBuffer.allocateDirect(compiled.length);
 		b.put(compiled);
 		b.position(0);
-		return b;
+		return b.asReadOnlyBuffer();
 	}
 }

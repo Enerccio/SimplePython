@@ -1121,10 +1121,11 @@ public class PythonInterpreter extends PythonObject {
 
 	protected void resolveArgs(FrameObject o, Stack<PythonObject> stack) {
 		// resolves args into locals
-		synchronized (this.args) {
-			for (String key : this.args.keySet()) {
-				environment().getLocals().putVariable(key,
-						this.args.getVariable(key));
+		InternalDict locals = environment().getLocals();
+		InternalDict args = this.args;
+		synchronized (args){
+			for (String key : args.keySet()) {
+				locals.putVariable(key, args.getVariable(key));
 			}
 		}
 	}

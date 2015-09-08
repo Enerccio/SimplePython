@@ -18,7 +18,7 @@ public class Test {
 			SimplePython.addPycCache(cache);
 
 			SimplePython.initialize();
-			SimplePython.enableJavaJIT(true);
+			SimplePython.enableJavaJIT(false);
 			SimplePython.setAllowAutowraps(true);
 			SimplePython.addResolver(new FilesystemResolver(Paths.get("")
 					.toAbsolutePath().toString()
