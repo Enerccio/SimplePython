@@ -25,6 +25,7 @@ import java.util.List;
 import me.enerccio.sp.interpret.PythonInterpreter;
 import me.enerccio.sp.interpret.KwArgs;
 import me.enerccio.sp.interpret.ModuleResolver;
+import me.enerccio.sp.interpret.jit.JJITCompiler;
 import me.enerccio.sp.runtime.ProxyOutputStream;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.sandbox.PythonSecurityManager;
@@ -441,5 +442,21 @@ public class SimplePython {
 			PythonObject... args) {
 		return PythonInterpreter.interpreter.get().execute(true,
 				object, kwargs, args);
+	}
+	
+	/**
+	 * Returns true if Java Just in Time compiler is enabled
+	 * @return if JJIT is enabled or not
+	 */
+	public static boolean isJavaJITEnabled(){
+		return JJITCompiler.isEnabled();
+	}
+	
+	/**
+	 * Enables or disables Java Just in Time compiler
+	 * @param enabled
+	 */
+	public static void enableJavaJIT(boolean enabled){
+		JJITCompiler.setEnable(enabled);
 	}
 }

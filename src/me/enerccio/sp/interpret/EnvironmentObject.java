@@ -32,6 +32,7 @@ import me.enerccio.sp.types.PythonObject;
 import me.enerccio.sp.types.Tags;
 import me.enerccio.sp.types.base.NoneObject;
 import me.enerccio.sp.types.callables.JavaMethodObject;
+import me.enerccio.sp.utils.DualSidedArrayList;
 
 /**
  * Environment object represents environment. Environment is responsible for
@@ -42,7 +43,7 @@ import me.enerccio.sp.types.callables.JavaMethodObject;
  */
 public class EnvironmentObject extends PythonObject {
 	private static final long serialVersionUID = -4678903433798210010L;
-	private List<InternalDict> environments = new ArrayList<InternalDict>();
+	private List<InternalDict> environments = new DualSidedArrayList<InternalDict>();
 
 	@Override
 	public byte getTag() {
@@ -57,7 +58,25 @@ public class EnvironmentObject extends PythonObject {
 	}
 
 	public EnvironmentObject() {
-		super(false);
+		super(true);
+	}
+	
+	private EnvironmentObject(boolean internal){
+		super(internal);
+	}
+	
+	private transient EnvironmentObject pyClone;
+	
+	public EnvironmentObject cloneAsPython(){
+		if (pyClone == null){
+			synchronized (this){
+				if (pyClone == null){
+					pyClone = new EnvironmentObject(false);
+					pyClone.environments = environments;
+				}
+			}
+		}
+		return pyClone;
 	}
 
 	private static Map<String, JavaMethodObject> sfields = new HashMap<String, JavaMethodObject>();
@@ -274,5 +293,9 @@ public class EnvironmentObject extends PythonObject {
 
 	public InternalDict getTop() {
 		return environments.get(0);
+	}
+
+	public void prepend(InternalDict args) {
+		environments.add(0, args);
 	}
 }

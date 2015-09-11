@@ -229,4 +229,10 @@ public class Utils {
 		return string.replace("\n", "\\n").replace("\r", "\\r")
 				.replace("\t", "\\t");
 	}
+	
+	public static <T> List<T> asList(T t){
+		List<T> tl = new ArrayList<T>();
+		tl.add(t);
+		return tl;
+	}
 }

@@ -40,7 +40,7 @@ public class EnvironmentTypeObject extends TypeObject {
 					+ args.len());
 		if (kwargs != null)
 			kwargs.checkEmpty("environment");
-		return PythonInterpreter.interpreter.get().environment();
+		return PythonInterpreter.interpreter.get().environment().cloneAsPython();
 	}
 
 	@Override

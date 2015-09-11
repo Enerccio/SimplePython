@@ -15,25 +15,21 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package me.enerccio.sp.interpret;
+package me.enerccio.sp.interpret.jit;
 
-import java.util.Set;
+import java.util.Stack;
 
+import me.enerccio.sp.interpret.CompiledBlockObject;
+import me.enerccio.sp.interpret.ExecutionResult;
+import me.enerccio.sp.interpret.FrameObject;
+import me.enerccio.sp.interpret.PythonInterpreter;
+import me.enerccio.sp.interpret.debug.Debugger;
 import me.enerccio.sp.types.PythonObject;
 
-public interface InternalDict {
+public interface CompiledPython {
 
-	boolean containsVariable(String vName);
-
-	PythonObject getVariable(String vName);
-
-	void putVariable(String vName, PythonObject v);
-
-	void remove(String vname);
-
-	Set<String> keySet();
-
-	KwArgs asKwargs();
-
-	int size();
+	public ExecutionResult execute(PythonInterpreter i, 
+			FrameObject o, Stack<PythonObject> stack, CompiledBlockObject cb,
+			Debugger debugger);
+	
 }
