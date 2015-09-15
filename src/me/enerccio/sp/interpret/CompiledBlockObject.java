@@ -33,6 +33,7 @@ import me.enerccio.sp.compiler.Bytecode;
 import me.enerccio.sp.compiler.PythonBytecode;
 import me.enerccio.sp.errors.AttributeError;
 import me.enerccio.sp.errors.TypeError;
+import me.enerccio.sp.interpret.jit.JJITContainer;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject.ModuleData;
 import me.enerccio.sp.types.PythonObject;
@@ -54,6 +55,14 @@ public class CompiledBlockObject extends PythonObject {
 	public byte getTag() {
 		return Tags.CBO;
 	}
+	
+	private class CBClassLoader extends ClassLoader {
+		public CBClassLoader(ClassLoader parent){
+			super(parent);
+		}
+	}
+	
+	public final ClassLoader boundClassLoader = new CBClassLoader(getClass().getClassLoader());
 
 	public CompiledBlockObject(List<PythonBytecode> bytecode) {
 		super(false);
@@ -66,6 +75,7 @@ public class CompiledBlockObject extends PythonObject {
 			throw new TypeError("invalid bytecode", e);
 		}
 		finishCB();
+		init();
 	}
 
 	public void finishCB() {
@@ -79,13 +89,21 @@ public class CompiledBlockObject extends PythonObject {
 		super(false);
 		this.compiled = compiled;
 		this.mmap = mmap;
-
+		init();
 	}
 
 	public CompiledBlockObject(byte[] compiled) {
 		super(false);
 		this.compiled = compiled;
 		mmap = new HashMap<Integer, PythonObject>();
+		init();
+	}
+	
+	private ByteBuffer dataBuffer;
+
+	private void init() {
+		container = new JJITContainer(this);
+		dataBuffer = makeBuffer();
 	}
 
 	public static class DebugInformation implements Serializable {
@@ -136,6 +154,7 @@ public class CompiledBlockObject extends PythonObject {
 	private byte[] compiled;
 	public Map<Integer, PythonObject> mmap;
 	public NavigableMap<Integer, DebugInformation> dmap = new TreeMap<Integer, DebugInformation>();
+	public transient JJITContainer container;
 
 	@Override
 	protected void serializeDirectState(PySerializer pySerializer) {
@@ -717,11 +736,15 @@ public class CompiledBlockObject extends PythonObject {
 	protected Map<String, JavaMethodObject> getGenHandles() {
 		return PythonObject.sfields;
 	}
-
+	
 	public ByteBuffer getBytedataAsNativeBuffer() {
+		return dataBuffer.asReadOnlyBuffer();
+	}
+
+	private ByteBuffer makeBuffer() {
 		ByteBuffer b = ByteBuffer.allocateDirect(compiled.length);
 		b.put(compiled);
 		b.position(0);
-		return b;
+		return b.asReadOnlyBuffer();
 	}
 }

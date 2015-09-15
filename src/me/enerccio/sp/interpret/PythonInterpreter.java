@@ -43,6 +43,7 @@ import me.enerccio.sp.errors.StopIteration;
 import me.enerccio.sp.errors.TypeError;
 import me.enerccio.sp.interpret.CompiledBlockObject.DebugInformation;
 import me.enerccio.sp.interpret.debug.Debugger;
+import me.enerccio.sp.interpret.jit.CompiledPython;
 import me.enerccio.sp.runtime.PythonRuntime;
 import me.enerccio.sp.serialization.PySerializer;
 import me.enerccio.sp.types.ModuleObject;
@@ -202,10 +203,10 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	public LinkedList<FrameObject> currentFrame = new LinkedList<FrameObject>();
 	/** Represents currrently passed arguments to the function */
-	protected InternalDict args = null;
+	public InternalDict args = null;
 	/** Represents value returned by a call */
-	protected PythonObject returnee;
-	protected List<InternalDict> currentClosure;
+	public PythonObject returnee;
+	public List<InternalDict> currentClosure;
 	protected final InterpreterMathExecutorHelper mathHelper = new InterpreterMathExecutorHelper();
 
 	/**
@@ -520,10 +521,18 @@ public class PythonInterpreter extends PythonObject {
 	 */
 	private ExecutionResult executeSingleInstruction(FrameObject o) {
 		int spc = o.pc;
+		
+		
+		
 		o.dataStream.position(spc);
 		o.prevPc = spc;
 		Bytecode opcode = o.nextOpcode();
 		Stack<PythonObject> stack = o.stack;
+		
+		CompiledPython cp = o.compiled.container.load(o, o.compiled, spc, opcode, debugger != null);
+		if (cp != null){
+			return cp.execute(this, o, stack, o.compiled, debugger);
+		}
 
 		if (o.accepts_return) {
 			o.accepts_return = false;
@@ -550,7 +559,7 @@ public class PythonInterpreter extends PythonObject {
 		return doExecuteSingleInstruction(o, stack, opcode);
 	}
 
-	protected static String printStack(Stack<PythonObject> stack) {
+	public static String printStack(Stack<PythonObject> stack) {
 		StringBuilder bd = new StringBuilder();
 
 		bd.append("[");
@@ -1112,12 +1121,7 @@ public class PythonInterpreter extends PythonObject {
 
 	protected void resolveArgs(FrameObject o, Stack<PythonObject> stack) {
 		// resolves args into locals
-		synchronized (this.args) {
-			for (String key : this.args.keySet()) {
-				environment().getLocals().putVariable(key,
-						this.args.getVariable(key));
-			}
-		}
+		environment().prepend(args);
 	}
 
 	protected void getAttr(FrameObject o, Stack<PythonObject> stack) {
@@ -1414,7 +1418,7 @@ public class PythonInterpreter extends PythonObject {
 	 * @param target
 	 * @throws CastFailedException
 	 */
-	protected void pythonImport(EnvironmentObject environment, String variable,
+	public void pythonImport(EnvironmentObject environment, String variable,
 			String modulePath, PythonObject target) throws CastFailedException {
 		if (modulePath == null || modulePath.equals("")) {
 			if (target == null) {
@@ -1560,7 +1564,7 @@ public class PythonInterpreter extends PythonObject {
 			krcall(opcode, o, stack);
 			break;
 		case GOTO:
-			gotoOperation(o, stack);
+			o.pc = o.nextInt();
 			break;
 		case JUMPIFFALSE:
 			jumpIfFalse(o, stack);

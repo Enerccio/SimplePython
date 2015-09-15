@@ -1213,8 +1213,8 @@ public class PythonCompiler {
 
 		stack.push();
 		addBytecode(bytecode, Bytecode.PUSH_ENVIRONMENT, t);
-		addBytecode(bytecode, Bytecode.OPEN_LOCALS, t);
 		addBytecode(bytecode, Bytecode.RESOLVE_ARGS, t);
+		addBytecode(bytecode, Bytecode.OPEN_LOCALS, t);
 		addBytecode(bytecode, Bytecode.D_STARTFUNC, t);
 
 		if (suite instanceof SuiteContext) {

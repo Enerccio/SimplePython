@@ -340,4 +340,9 @@ public class DictObject extends ContainerObject implements InternalDict,
 			}
 		return kwargs;
 	}
+
+	@Override
+	public int size() {
+		return backingMap.size();
+	}
 }

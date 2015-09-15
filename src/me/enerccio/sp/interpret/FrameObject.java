@@ -43,7 +43,24 @@ public class FrameObject extends PythonObject {
 	private static final long serialVersionUID = 3202634156179178037L;
 
 	public FrameObject() {
-		super(false);
+		super(true);
+	}
+	
+	private FrameObject(boolean internal){
+		super(internal);
+	}
+	
+	private transient FrameObject external;
+	
+	public FrameObject cloneAsPython(){
+		if (external == null){
+			synchronized (this){
+				if (external == null){
+					external = cloneFrame(false);
+				}
+			}
+		}
+		return external;
 	}
 
 	@Override
@@ -123,7 +140,7 @@ public class FrameObject extends PythonObject {
 	}
 
 	public EnvironmentObject getEnvironment() {
-		return environment;
+		return environment.cloneAsPython();
 	}
 
 	/**
@@ -214,7 +231,11 @@ public class FrameObject extends PythonObject {
 	}
 
 	public FrameObject cloneFrame() {
-		FrameObject f = new FrameObject();
+		return cloneFrame(true);
+	}
+
+	private FrameObject cloneFrame(boolean b) {
+		FrameObject f = new FrameObject(b);
 		f.pc = pc;
 		f.compiled = compiled;
 		f.accepts_return = accepts_return;
