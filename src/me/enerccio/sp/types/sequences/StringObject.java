@@ -81,6 +81,8 @@ public class StringObject extends ImmutableSequenceObject implements
 					"count"));
 			sfields.put("endswith", new JavaMethodObject(StringObject.class,
 					"endswith"));
+			sfields.put("startswith", new JavaMethodObject(StringObject.class,
+					"startswith"));
 			sfields.put("expandtabs", new JavaMethodObject(StringObject.class,
 					"expandtabs"));
 			sfields.put("find",
@@ -269,6 +271,29 @@ public class StringObject extends ImmutableSequenceObject implements
 
 		String substr = value.substring(start, end);
 		return BoolObject.fromBoolean(substr.endsWith(suffix));
+	}
+	
+	public PythonObject startswith(TupleObject to, KwArgs kwargs) {
+		if (to.len() < 1 || to.len() > 3)
+			throw new TypeError("substring(): requires from 1 to 3 arguments, "
+					+ to.len() + " provided");
+
+		String suffix = Coerce.argument(to, 0, "startwith", String.class);
+		int start = ArgumentConsumer.consumeArgument("count", to, kwargs, 1,
+				"start", int.class, 0);
+		int end = ArgumentConsumer.consumeArgument("count", to, kwargs, 2,
+				"end", int.class, value.length());
+
+		if (start < 0)
+			start = Math.max(0, value.length() - (-(start + 1)));
+		if (end < 0)
+			end = Math.max(0, value.length() - (-(end)));
+
+		start = Math.max(start, 0);
+		end = Math.min(value.length(), end);
+
+		String substr = value.substring(start, end);
+		return BoolObject.fromBoolean(substr.startsWith(suffix));
 	}
 
 	public PythonObject expandtabs(TupleObject to, KwArgs kwargs) {

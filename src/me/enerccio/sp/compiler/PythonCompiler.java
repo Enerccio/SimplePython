@@ -39,6 +39,7 @@ import me.enerccio.sp.parser.pythonParser.ArglistContext;
 import me.enerccio.sp.parser.pythonParser.ArgumentContext;
 import me.enerccio.sp.parser.pythonParser.Arith_exprContext;
 import me.enerccio.sp.parser.pythonParser.AtomContext;
+import me.enerccio.sp.parser.pythonParser.Block_stmtContext;
 import me.enerccio.sp.parser.pythonParser.Bracket_atomContext;
 import me.enerccio.sp.parser.pythonParser.Break_stmtContext;
 import me.enerccio.sp.parser.pythonParser.ClassdefContext;
@@ -476,7 +477,9 @@ public class PythonCompiler {
 
 	private void compileStatement(StmtContext sctx,
 			List<PythonBytecode> bytecode, ControllStack cs) {
-		if (sctx.future_stmt() != null)
+		if (sctx.block_stmt() != null)
+			compileBlockStatement(sctx.block_stmt(), bytecode, cs);
+		else if (sctx.future_stmt() != null)
 			compileFuture(sctx.future_stmt(), bytecode);
 		else if (sctx.simple_stmt() != null)
 			compileSimpleStatement(sctx.simple_stmt(), bytecode, cs);
@@ -1219,6 +1222,9 @@ public class PythonCompiler {
 
 		if (suite instanceof SuiteContext) {
 			boolean first = true;
+			if (((SuiteContext)suite).simple_stmt() != null){
+				compileSimpleStatement(((SuiteContext)suite).simple_stmt(), bytecode, null);
+			}
 			for (StmtContext c : ((SuiteContext) suite).stmt()) {
 				if (first) {
 					first = false;
@@ -2001,6 +2007,8 @@ public class PythonCompiler {
 					operation = Bytecode.NE;
 				else if (ctx.getChild(i).getText().equals("?"))
 					operation = Bytecode.QM;
+				else if (ctx.getChild(i).getText().equals("@"))
+					operation = Bytecode.AT;
 				else if (ctx.getChild(i).getText().equals("is")
 						|| ctx.getChild(i).getText().equals("isnot")) {
 					cb = addBytecode(bytecode, Bytecode.LOADBUILTIN,
@@ -2734,6 +2742,54 @@ public class PythonCompiler {
 		// TODO Auto-generated method stub
 
 	}
+	
+	private void compileBlockStatement(Block_stmtContext ctx,
+			List<PythonBytecode> bytecode, ControllStack cs) {
+		compile(ctx.test(), bytecode);
+		putGetAttr("__block__", bytecode, ctx.start);
+		
+		UserFunctionObject fnc = new UserFunctionObject();
+
+		String functionName = "block";
+		Utils.putPublic(fnc, "__name__",
+				new StringObject(compilingClass.peek() == null ? functionName
+						: compilingClass.peek() + "." + functionName));
+		List<String> arguments = new ArrayList<String>();
+		fnc.args = arguments;
+		List<PythonBytecode> fncb = new ArrayList<PythonBytecode>();
+		compilingClass.push(null);
+		doCompileFunction(ctx.suite(), fncb, ctx.suite().start);
+		compilingClass.pop();
+		
+		if (fncb.get(fncb.size() - 1) instanceof Pop) {
+			fncb.remove(fncb.size() - 1);
+			cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
+			cb.intValue = 1;
+		} else {
+			cb = addBytecode(fncb, Bytecode.PUSH, ctx.stop);
+			cb.value = NoneObject.NONE;
+			cb = addBytecode(fncb, Bytecode.RETURN, ctx.stop);
+			cb.intValue = 1;
+		}
+		
+		fnc.block = new CompiledBlockObject(fncb);
+
+		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
+		cb.value = fnc;
+
+		addBytecode(bytecode, Bytecode.RESOLVE_CLOSURE, ctx.stop);
+		addBytecode(bytecode, Bytecode.DUP, ctx.stop); // function_defaults
+
+		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
+		cb.value = new StringDictObject();
+		
+		addBytecode(bytecode, Bytecode.SWAP_STACK, ctx.stop);
+		cb = addBytecode(bytecode, Bytecode.SETATTR, ctx.stop);
+		cb.stringValue = "function_defaults";
+		
+		cb = addBytecode(bytecode, Bytecode.CALL, ctx.stop);
+		cb.intValue = 1;
+	}
 
 	private void compile(LambdefContext ctx, List<PythonBytecode> bytecode) {
 		UserFunctionObject fnc = new UserFunctionObject();
@@ -2781,7 +2837,8 @@ public class PythonCompiler {
 
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);
 		cb.value = fnc;
-
+		
+		addBytecode(bytecode, Bytecode.RESOLVE_CLOSURE, ctx.stop);
 		addBytecode(bytecode, Bytecode.DUP, ctx.stop); // function_defaults
 
 		cb = addBytecode(bytecode, Bytecode.PUSH, ctx.stop);

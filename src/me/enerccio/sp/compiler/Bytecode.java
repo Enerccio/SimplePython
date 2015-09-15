@@ -114,7 +114,7 @@ public enum Bytecode {
 	// math macros
 	ADD(164), SUB(165), MUL(166), DIV(167), MOD(168), AND(169), OR(170), XOR(
 			171), POW(172), RSHIFT(173), LSHIFT(174), LT(175), LE(176), GE(177), GT(
-			178), EQ(179), NE(180), DCOLON(181), QM(182), RARROW(183),
+			178), EQ(179), NE(180), DCOLON(181), QM(182), RARROW(183), AT(184),
 
 	// debugger only bytecodes
 	D_STARTFUNC(250), D_RETURN(251), ;
@@ -386,6 +386,7 @@ public enum Bytecode {
 		case DCOLON:
 		case QM:
 		case RARROW:
+		case AT:
 			bytecode = new BinaryOperator(b);
 
 			break;

@@ -219,11 +219,11 @@ label_or_stmt:
 ;
 
 stmt:
- future_stmt | simple_stmt | compound_stmt
+ future_stmt | simple_stmt | compound_stmt | block_stmt
 ;
 
-label:
- nname ':' suite?
+block_stmt:
+ test ':' suite
 ;
 
 simple_stmt:
@@ -462,7 +462,7 @@ comparison:
 ;
 
 comp_op:
- '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not' | '?'
+ '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'|'is' 'not' | '?' | '@'
 ;
 
 expr:

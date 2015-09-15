@@ -385,6 +385,7 @@ public class CompiledBlockObject extends PythonObject {
 			case DCOLON:
 			case QM:
 			case RARROW:
+			case AT:
 				mapper[5] = (String.format(FORMAT, ""));
 				break;
 			case MAKE_FUTURE:
@@ -689,6 +690,8 @@ public class CompiledBlockObject extends PythonObject {
 			case QM:
 				break;
 			case RARROW:
+				break;
+			case AT:
 				break;
 			}
 

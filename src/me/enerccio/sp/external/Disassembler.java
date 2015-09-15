@@ -228,6 +228,7 @@ public class Disassembler implements Externalizable {
 			case DCOLON:
 			case QM:
 			case RARROW:
+			case AT:
 				break;
 			}
 		} catch (CastFailedException e) {
